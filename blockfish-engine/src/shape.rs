@@ -76,6 +76,13 @@ impl<'a> ShapeRef<'a> {
         tgt.blit(mat, (i as u16, j as u16));
     }
 
+    /// Returns raw orientation offset, matrix index and matrix for fast bitboard conversion.
+    pub(crate) fn raw_orient(&self, r: Orientation) -> (i16, i16, usize, &'a BasicMatrix) {
+        let info = &self.1.orientations[r as usize];
+        let (i, j) = info.offset;
+        (i, j, info.matrix_index, &self.0.matrices[info.matrix_index])
+    }
+
     /// Returns the initial spawn column for this shape.
     pub fn spawn_col(&self) -> i16 {
         self.1.spawn_col

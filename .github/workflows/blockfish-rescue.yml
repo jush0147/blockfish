@@ -1,0 +1,28 @@
+name: Blockfish rescue validation
+on:
+  push:
+    branches: [rescue/independent-validation-20261116]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Compile and unit tests
+        run: |
+          cargo test --release -p blockfish --lib
+          cargo check --release -p blockfish --features race --example ex_distill
+      - name: Legal 5-preview 100L H2 validation
+        timeout-minutes: 18
+        run: |
+          cargo run --release -p blockfish --features race --example ex_distill -- eval_h2_stk legal5 | tee legal5.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: blockfish-legal5-log
+          path: legal5.log
+          if-no-files-found: ignore

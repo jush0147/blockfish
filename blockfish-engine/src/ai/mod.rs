@@ -6,8 +6,16 @@ use crate::{
 
 mod analysis;
 mod b_star;
+pub mod beam;
+pub mod cheese_val;
 mod eval;
+pub mod fast;
+pub mod fast_eval;
 mod state;
+
+pub use beam::{BagTracker, BeamConfig, BeamResult, BeamSearcher, GameContext};
+pub use cheese_val::LearnedValueModel;
+pub use fast_eval::EvalWeights;
 
 // Input / output types
 
@@ -102,5 +110,78 @@ impl AI {
         let (tx, rx) = std::sync::mpsc::channel();
         self.all_tx = Some(tx);
         rx
+    }
+}
+
+/// Stateful, zero-allocation Cheese Race AI using bitboard beam search + 7-bag rollout.
+pub struct FastAI {
+    shape_table: ShapeTable,
+    searcher: BeamSearcher,
+    bag_tracker: BagTracker,
+    pub beam_config: BeamConfig,
+}
+
+impl FastAI {
+    pub fn new(beam_config: BeamConfig) -> Self {
+        let shape_table = srs();
+        let searcher = BeamSearcher::new(&shape_table);
+        Self {
+            shape_table,
+            searcher,
+            bag_tracker: BagTracker::new(),
+            beam_config,
+        }
+    }
+
+    pub fn reset_bag(&mut self) {
+        self.bag_tracker = BagTracker::new();
+    }
+
+    pub fn last_top_candidates(&self) -> &[(char, i16, i16, u8, bool, i64)] {
+        self.searcher.last_top_candidates()
+    }
+
+    pub fn last_top_leaf_info(&self) -> &[(u16, u16, i64, u8, u8)] {
+        self.searcher.last_top_leaf_info()
+    }
+
+    pub fn diverse_beam_leaves(
+        &self,
+        max_siblings: usize,
+    ) -> Vec<(fast::FastBoard, Option<u8>, u16, u8)> {
+        self.searcher.diverse_beam_leaves(max_siblings)
+    }
+
+    pub fn best_move(
+        &mut self,
+        snapshot: &Snapshot,
+        garbage_rows: Option<u16>,
+        remaining_garbage: Option<u16>,
+    ) -> Option<BeamResult> {
+        let mask = self.bag_tracker.observe(snapshot.hold, &snapshot.queue);
+        let ctx = GameContext {
+            garbage_rows,
+            remaining_garbage,
+            next_bag_mask: Some(mask),
+        };
+        self.searcher
+            .search(&self.shape_table, snapshot, ctx, &self.beam_config)
+    }
+
+    pub fn inputs_for_place(
+        &mut self,
+        matrix: &BasicMatrix,
+        fp: fast::FastPlace,
+    ) -> Option<Vec<Input>> {
+        self.searcher.inputs_for_place(&self.shape_table, matrix, fp)
+    }
+
+    pub fn search_with_ctx(
+        &mut self,
+        snapshot: &Snapshot,
+        ctx: GameContext,
+    ) -> Option<BeamResult> {
+        self.searcher
+            .search(&self.shape_table, snapshot, ctx, &self.beam_config)
     }
 }
