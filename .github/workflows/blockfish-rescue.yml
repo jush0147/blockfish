@@ -8,7 +8,7 @@ permissions:
 jobs:
   rust:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 38
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -17,12 +17,23 @@ jobs:
           cargo test --release -p blockfish --lib
           cargo check --release -p blockfish --features race --example ex_distill
       - name: Legal 5-preview 100L H2 validation
-        timeout-minutes: 18
+        timeout-minutes: 6
         run: |
           cargo run --release -p blockfish --features race --example ex_distill -- eval_h2_stk legal5 | tee legal5.log
+      - name: Oracle p20 exact-cheese H2 validation (not legal)
+        timeout-minutes: 13
+        run: |
+          cargo run --release -p blockfish --features race --example ex_distill -- eval_h2_stk oracle5 | tee oracle5.log
+      - name: Legal root PIMC 100L H2 validation
+        timeout-minutes: 11
+        run: |
+          cargo run --release -p blockfish --features race --example ex_distill -- eval_h2_stk rpimc | tee rpimc.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: blockfish-legal5-log
-          path: legal5.log
+          name: blockfish-benchmark-logs
+          path: |
+            legal5.log
+            oracle5.log
+            rpimc.log
           if-no-files-found: ignore
