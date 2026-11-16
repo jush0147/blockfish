@@ -771,9 +771,10 @@ impl SpatialValueModel {
         for i in 0..SPATIAL_H1 {
             let a1 = h1[i];
             if a1 > 0.0 {
+                let c1 = a1.min(6.0);
                 let row = &self.w2[i];
                 for k in 0..SPATIAL_H2 {
-                    h2[k] += a1 * row[k];
+                    h2[k] += c1 * row[k];
                 }
             }
         }
@@ -782,10 +783,11 @@ impl SpatialValueModel {
         for k in 0..SPATIAL_H2 {
             let a2 = h2[k];
             if a2 > 0.0 {
-                mlp += a2 * self.w3[k];
+                mlp += a2.min(6.0) * self.w3[k];
             }
         }
-        lin + mlp
+        let mlp_sat = mlp / (1.0 + mlp.abs() / 3.5);
+        lin + mlp_sat
     }
 
     #[inline]

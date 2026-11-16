@@ -895,6 +895,92 @@ fn main() {
         run_oracle_suite("OR_p6_EXCH_b120_sp", &ed, 6, 120, true, &sm);
         run_oracle_suite("OR_p14_EXCH_b160_sp", &ed, 14, 160, true, &sm);
         run_oracle_suite("OR_p20_EXCH_b240_sp", &ed, 20, 240, true, &sm);
+    } else if mode == "spatial_probe" {
+        let model_path = args.get(2).map(|s| s.as_str()).unwrap_or("models/spatial_pilot20_v2.txt");
+        let sm = SpatialValueModel::load_from_file(model_path).expect("load spatial model");
+        let mut sm_lin = sm.clone();
+        sm_lin.b3 = 0.0;
+        sm_lin.w3 = [0.0; blockfish::ai::spatial_val::SPATIAL_H2];
+        sm_lin.prepare_fast();
+        println!("=== Spatial Probe ({}) (seeds 101..=105) ===", model_path);
+        let ed = collect_exact_seeds(&seeds5);
+        run_oracle_suite("OR_p6_b120_h2nog0", &ed, 6, 120, true, &m_h2_nog0);
+        run_oracle_suite("OR_p6_b120_sp_lin", &ed, 6, 120, true, &sm_lin);
+        run_oracle_suite("OR_p6_b120_sp_full", &ed, 6, 120, true, &sm);
+
+        // Quick 1-seed step comparison on seed 101 OR_p6
+        let ed1 = &ed[0];
+        let mut game_cfg = BSConfig::default();
+        game_cfg.garbage.total_lines = Some(100);
+        game_cfg.prng_seed = Some(ed1.seed);
+        let mut stacker = Stacker::new(Ruleset::guideline().into(), game_cfg);
+        let fst = FastShapeTable::srs();
+        let mut pgen = FastPlaceGen::new();
+        let mut ai_in = FastAI::new(BeamConfig::default());
+        let mut root_places = Vec::with_capacity(64);
+        let mut ds_total = 0usize;
+        let mut q_pos = 0usize;
+        let mut act = [0u16; blockfish::ai::spatial_val::SPARSE_DIM];
+        let mut den = [0.0f32; blockfish::ai::spatial_val::DENSE_DIM];
+        println!("\n=== 1-ply breakdown on first 12 moves of seed 101 (sp_full vs h2nog0) ===");
+        for step in 0..15usize {
+            if ds_total >= 100 || stacker.current_piece_type().is_none() { break; }
+            let snap = stacker.snapshot().unwrap();
+            let g_rows = garbage_rows(&stacker);
+            let root_board = FastBoard::from_basic_matrix(&snap.matrix, g_rows);
+            let rem_g0 = 100usize.saturating_sub(ds_total) as u16;
+            let hold0 = snap.hold.map(|cc| color_to_idx(cc) as u8);
+            let q = &ed1.pieces[q_pos..(q_pos + 6).min(ed1.pieces.len())];
+            let cur0 = Some(q[0]);
+            let alt0 = hold0.or_else(|| q.get(1).copied());
+            pgen.generate_for_state(&fst, &root_board, cur0, alt0, &mut root_places);
+            let mut best_sp = (i64::MAX, 0usize, 0.0f32, 0.0f32);
+            let mut best_h2 = (i64::MAX, 0usize);
+            for (idx, &fp) in root_places.iter().enumerate() {
+                let mut b = root_board;
+                let o = &fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
+                let (lines, ds, _) = b.place_and_sift(o, fp.norm_i, fp.norm_j);
+                let rem_g = rem_g0.saturating_sub(ds as u16);
+                if rem_g > 0 {
+                    let target_g: usize = if lines > 0 { 4 } else { 9 };
+                    let g = b.garbage_rows as usize;
+                    let unsp = (rem_g as usize).saturating_sub(g);
+                    let num = target_g.saturating_sub(g).min(unsp);
+                    if num > 0 && b.rows as usize + num < 32 {
+                        let sp_so_far = 100usize - unsp;
+                        for r in (0..b.rows as usize).rev() { b.data[r + num] = b.data[r]; }
+                        for k in 0..num {
+                            b.data[num - 1 - k] = 0xFC00 | (0x3FF & !(1u16 << ed1.holes[sp_so_far + k]));
+                        }
+                        b.rows += num as u8;
+                        b.garbage_rows += num as u8;
+                    }
+                }
+                let held = if hold0.is_some() { if fp.did_hold { cur0 } else { hold0 } } else if fp.did_hold { cur0 } else { None };
+                let qc = if hold0.is_none() && fp.did_hold { 2 } else { 1 };
+                let in_h = held.or_else(|| q.get(qc).copied());
+                let n_act = blockfish::ai::spatial_val::extract_spatial_features(&b, rem_g, in_h, 0x7F, &mut act, &mut den);
+                let p_full = sm.predict_extracted(&act[..n_act], &den);
+                let p_lin = sm_lin.predict_extracted(&act[..n_act], &den);
+                let sc_sp = sm.evaluate_board_with_bag(&b, rem_g, in_h, 0x7F);
+                let sc_h2 = m_h2_nog0.evaluate_board_with_bag(&b, rem_g, in_h, 0x7F);
+                if sc_sp < best_sp.0 { best_sp = (sc_sp, idx, p_lin, p_full - p_lin); }
+                if sc_h2 < best_h2.0 { best_h2 = (sc_h2, idx); }
+            }
+            let fp = root_places[best_sp.1];
+            let fp_h2 = root_places[best_h2.1];
+            let (_, bo, _, _) = h1_info(&stacker);
+            let mut inputs = ai_in.inputs_for_place(&snap.matrix, fp).unwrap();
+            inputs.pop();
+            if fp.did_hold { if hold0.is_none() { q_pos += 2; } else { q_pos += 1; } } else { q_pos += 1; }
+            stacker.run(inputs);
+            let (lines, ds) = stacker.hard_drop();
+            ds_total += ds;
+            let (_, new_bo, _, cells_ab) = h1_info(&stacker);
+            println!("step={:2} bo={}->{:<2} cells={:2} ds={} l={} | sp(lin={:6.2} mlp={:+6.2}) same_as_h2={}",
+                step + 1, bo, new_bo, cells_ab, ds, lines, best_sp.2, best_sp.3, best_sp.1 == best_h2.1);
+            let _ = fp_h2;
+        }
     } else if mode == "legal20" {
         println!("=== Legal Held-out Dev20 (seeds 201..=220) ===");
         run_legal_suite("LEGAL_h2nog0_p5_b120", &seeds20, &cfg_legal);

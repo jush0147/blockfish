@@ -360,6 +360,28 @@ fn main() {
         return;
     }
 
+    if mode == "rpimc_h12" {
+        println!("=== Legal 5-seed Long-Horizon CRN Root-PIMC (101..=105) ===");
+        let mut c_h9 = make_cfg(m_h2_nog0.clone());
+        c_h9.root_pimc_worlds = 8;
+        c_h9.root_pimc_horizon = 8; // 9 plies total
+        c_h9.root_pimc_roots = 8;
+        c_h9.root_pimc_width = 24;
+        c_h9.root_pimc_margin = 350;
+        c_h9.root_pimc_weight_pct = 100;
+        c_h9.root_pimc_steady_g4 = false;
+        eval_seeds("h2_rpimc_w8_h9_pw100", &seeds5, &c_h9);
+
+        let mut c_h12 = c_h9.clone();
+        c_h12.root_pimc_horizon = 11; // 12 plies total
+        eval_seeds("h2_rpimc_w8_h12_pw100", &seeds5, &c_h12);
+
+        let mut c_h12_mix = c_h12.clone();
+        c_h12_mix.root_pimc_weight_pct = 75;
+        eval_seeds("h2_rpimc_w8_h12_pw75", &seeds5, &c_h12_mix);
+        return;
+    }
+
     if mode == "ablate" {
         println!("=== Legal 5-seed Search & Calibration Ablation (101..=105) ===");
         let mut c0 = make_cfg(m_h2_nog0.clone());
