@@ -1,0 +1,58 @@
+name: Blockfish Research & Experiments
+
+on:
+  workflow_dispatch:
+    inputs:
+      cmd:
+        description: "Cargo or shell command to run inside repo root"
+        required: true
+        default: "cargo run --release -p blockfish --features race --example diag_cheese -- gap5"
+      timeout_minutes:
+        description: "Job timeout in minutes"
+        required: false
+        default: "45"
+      commit_results:
+        description: "Commit and push generated logs/models under results/ or models/ back to branch"
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  experiment:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Run unit tests
+        run: cargo test --release -p blockfish --lib
+      - name: Run research command
+        shell: bash
+        run: |
+          mkdir -p results
+          set -o pipefail
+          (${{ inputs.cmd }}) 2>&1 | tee results/gh_latest.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: research-outputs-${{ github.run_number }}
+          path: |
+            results/
+            models/
+          if-no-files-found: ignore
+      - name: Commit outputs if requested
+        if: ${{ inputs.commit_results && success() }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f results/gh_latest.log
+          if ! git diff --cached --quiet; then
+            git commit -m "actions: experiment results run #${{ github.run_number }}"
+            git push
+          fi
