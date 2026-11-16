@@ -356,4 +356,56 @@ fn main() {
         eval_seeds("h2stk03_nog0_b120", &seeds40, &make_cfg(m_h2_nog0));
         return;
     }
+
+    if mode == "trace" {
+        let seed: u64 = std::env::args()
+            .nth(2)
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(101);
+        let cfg = make_cfg(m_h2_nog0);
+        let mut game_cfg = BSConfig::default();
+        game_cfg.garbage.total_lines = Some(100);
+        game_cfg.prng_seed = Some(seed);
+        let mut stacker = Stacker::new(Ruleset::guideline().into(), game_cfg);
+        let mut ai = FastAI::new(cfg);
+        let mut ds_total = 0usize;
+        let mut step = 0usize;
+        let mut printed = 0usize;
+        println!("=== Legal Trace seed={} ===", seed);
+        while ds_total < 100 && stacker.current_piece_type().is_some() {
+            let snap = stacker.snapshot().unwrap();
+            let g_rows = garbage_rows(&stacker);
+            let rem_g = 100usize.saturating_sub(ds_total) as u16;
+            let (h1_c, bo, chute, cells_ab) = h1_info(&stacker);
+            let cur_c = snap.queue[0].as_char();
+            let hold_c = snap.hold.or_else(|| snap.queue.get(1).copied()).map(|c| c.as_char());
+            let res = ai.best_move(&snap, Some(g_rows), Some(rem_g)).unwrap();
+            let top_cands = ai.last_top_candidates().to_vec();
+            let top_leaves = ai.last_top_leaf_info().to_vec();
+            let mut inputs = res.inputs;
+            inputs.pop();
+            stacker.run(inputs);
+            let (lines, ds) = stacker.hard_drop();
+            step += 1;
+            ds_total += ds;
+            let (_, new_bo, _, _) = h1_info(&stacker);
+            let is_cov_nxt = ds > 0 && new_bo > 0;
+            let is_wide = ds == 0 && rem_g > 7 && g_rows > 0 && bo == 0 && cur_c != 'O' && hold_c != Some('O') && chute == 0;
+            if (is_cov_nxt || is_wide) && printed < 24 {
+                printed += 1;
+                let tag = if is_cov_nxt { "COV_NXT" } else { "WIDE_0DS" };
+                let q_str: String = snap.queue.iter().map(|c| c.as_char()).collect();
+                println!(
+                    "step={:3} {:8} rem_g={:3} g={} h1={:?} bo={} cells={} hold={:?} q={} -> ds={} lines={} new_bo={}",
+                    step, tag, rem_g, g_rows, h1_c, bo, cells_ab, snap.hold.map(|c| c.as_char()), q_str, ds, lines, new_bo
+                );
+                for (ci, c) in top_cands.iter().take(4).enumerate() {
+                    let li = top_leaves.get(ci);
+                    println!("   cand#{}: ({},{},{},r{},hold={}) rating={} leaf={:?}", ci, c.0, c.1, c.2, c.3, c.4, c.5, li);
+                }
+            }
+        }
+        println!("Finished seed={} in {} pieces", seed, step);
+        return;
+    }
 }

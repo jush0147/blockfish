@@ -1,6 +1,10 @@
 name: Blockfish Research & Experiments
 
 on:
+  push:
+    branches: [rescue/independent-validation-20261116]
+    paths:
+      - 'scripts/actions_cmd.sh'
   workflow_dispatch:
     inputs:
       cmd:
@@ -31,13 +35,18 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Run unit tests
-        run: cargo test --release -p blockfish --lib
+        run: cargo test --release -p blockfish --features block-stacker --lib
       - name: Run research command
         shell: bash
         run: |
           mkdir -p results
           set -o pipefail
-          (${{ inputs.cmd }}) 2>&1 | tee results/gh_latest.log
+          CMD="${{ inputs.cmd }}"
+          if [ -z "$CMD" ]; then
+            bash scripts/actions_cmd.sh 2>&1 | tee results/gh_latest.log
+          else
+            ($CMD) 2>&1 | tee results/gh_latest.log
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -47,12 +56,12 @@ jobs:
             models/
           if-no-files-found: ignore
       - name: Commit outputs if requested
-        if: ${{ inputs.commit_results && success() }}
+        if: ${{ (inputs.commit_results || github.event_name == 'push') && success() }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -f results/gh_latest.log
           if ! git diff --cached --quiet; then
-            git commit -m "actions: experiment results run #${{ github.run_number }}"
+            git commit -m "actions: experiment results run #${{ github.run_number }} [skip ci]"
             git push
           fi
