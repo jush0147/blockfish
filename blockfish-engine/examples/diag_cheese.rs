@@ -3,7 +3,7 @@ use blockfish::{
     ai::{
         cheese_val::{FEAT_DIM, MLP_HIDDEN},
         fast::{color_to_idx, FastBoard, FastPlaceGen, FastShapeTable},
-        BeamConfig, FastAI, LearnedValueModel,
+        BeamConfig, FastAI, LearnedValueModel, SpatialValueModel,
     },
     StackerExt as _,
 };
@@ -54,6 +54,24 @@ fn load_model(path: &str) -> LearnedValueModel {
     }
     m.prepare_fast();
     m
+}
+
+trait DiagEvaluator: Sync {
+    fn eval_b(&self, b: &FastBoard, rem_g: u16, in_h: Option<u8>, avail: u8) -> i64;
+}
+
+impl DiagEvaluator for LearnedValueModel {
+    #[inline]
+    fn eval_b(&self, b: &FastBoard, rem_g: u16, in_h: Option<u8>, avail: u8) -> i64 {
+        self.evaluate_board_with_bag(b, rem_g, in_h, avail)
+    }
+}
+
+impl DiagEvaluator for SpatialValueModel {
+    #[inline]
+    fn eval_b(&self, b: &FastBoard, rem_g: u16, in_h: Option<u8>, avail: u8) -> i64 {
+        self.evaluate_board_with_bag(b, rem_g, in_h, avail)
+    }
 }
 
 fn garbage_rows(stacker: &Stacker) -> u16 {
@@ -267,6 +285,7 @@ fn print_summary(label: &str, res: &[GameStat], dt: f64) {
     if res.len() <= 10 {
         println!("  per_seed={:?}", pcs_vec);
     }
+    let _ = std::io::Write::flush(&mut std::io::stdout());
 }
 
 struct ExactSeedData {
@@ -343,7 +362,7 @@ fn collect_exact_seeds(seeds: &[u64]) -> Vec<ExactSeedData> {
     }).collect()
 }
 
-fn run_oracle_suite(label: &str, exact_data: &[ExactSeedData], horizon: usize, beam_w: usize, exact_cheese: bool, mdl: &LearnedValueModel) {
+fn run_oracle_suite<M: DiagEvaluator>(label: &str, exact_data: &[ExactSeedData], horizon: usize, beam_w: usize, exact_cheese: bool, mdl: &M) {
     #[derive(Clone, Copy)]
     struct ONode {
         board: FastBoard,
@@ -454,7 +473,7 @@ fn run_oracle_suite(label: &str, exact_data: &[ExactSeedData], horizon: usize, b
                     if best_goal.map_or(true, |x| gr < x.2) { best_goal = Some((1, idx as u16, gr)); }
                 }
                 let in_h = held.or_else(|| q.get(qc).copied());
-                let sc = mdl.evaluate_board_with_bag(&b, rem_g, in_h, 0x7F);
+                let sc = mdl.eval_b(&b, rem_g, in_h, 0x7F);
                 let key = OKey { board: b, held, rem_g };
                 if seen.insert(key) {
                     cur_beam.push(ONode { board: b, held, q_cursor: qc, rem_g, first_idx: idx as u16, score: sc });
@@ -492,7 +511,7 @@ fn run_oracle_suite(label: &str, exact_data: &[ExactSeedData], horizon: usize, b
                             if best_goal.map_or(true, |x| gr < x.2) { best_goal = Some((depth, node.first_idx, gr)); }
                         }
                         let in_h = held.or_else(|| q.get(nqc).copied());
-                        let sc = mdl.evaluate_board_with_bag(&b, rem_g, in_h, 0x7F);
+                        let sc = mdl.eval_b(&b, rem_g, in_h, 0x7F);
                         children.push(ONode { board: b, held, q_cursor: nqc, rem_g, first_idx: node.first_idx, score: sc });
                     }
                 }
@@ -576,6 +595,193 @@ fn run_oracle_suite(label: &str, exact_data: &[ExactSeedData], horizon: usize, b
     print_summary(label, &res, t0.elapsed().as_secs_f64());
 }
 
+fn print_board_ascii(b: &FastBoard) {
+    let top = (b.rows as usize).min(14);
+    for r in (0..top).rev() {
+        let bits = b.data[r] & 0x3FF;
+        let is_g = r < b.garbage_rows as usize;
+        let mut line = String::with_capacity(10);
+        for c in 0..10 {
+            if (bits & (1 << c)) != 0 {
+                line.push(if is_g { 'G' } else { '#' });
+            } else {
+                line.push('.');
+            }
+        }
+        println!("    {:2}: {}", r, line);
+    }
+}
+
+fn trace_oracle_seed101(mdl: &LearnedValueModel) {
+    use blockfish::ai::fast::idx_to_color;
+    let ed = &collect_exact_seeds(&[101])[0];
+    let mut game_cfg = BSConfig::default();
+    game_cfg.garbage.total_lines = Some(100);
+    game_cfg.prng_seed = Some(ed.seed);
+    let mut stacker = Stacker::new(Ruleset::guideline().into(), game_cfg);
+    let fst = FastShapeTable::srs();
+    let mut pgen = FastPlaceGen::new();
+    let mut ai_in = FastAI::new(BeamConfig::default());
+    let mut root_places = Vec::with_capacity(64);
+    let mut tmp_places = Vec::with_capacity(64);
+    let mut cur_beam = Vec::new();
+    let mut children = Vec::new();
+    type FxBuild = std::hash::BuildHasherDefault<blockfish::ai::beam::FxHasher>;
+    let mut seen: HashSet<(FastBoard, Option<u8>, u16), FxBuild> = HashSet::with_hasher(FxBuild::default());
+
+    let spawn_exact_cheese = |b: &mut FastBoard, rem_g: u16, lines_cleared: u8, holes: &[u16]| -> bool {
+        let target_g: usize = if lines_cleared > 0 { 4 } else { 9 };
+        let g = b.garbage_rows as usize;
+        let unspawned = (rem_g as usize).saturating_sub(g);
+        let num = target_g.saturating_sub(g).min(unspawned);
+        if num == 0 { return true; }
+        let old_rows = b.rows as usize;
+        if old_rows + num >= 32 { return false; }
+        let spawned_so_far = 100usize - unspawned;
+        for r in (0..old_rows).rev() { b.data[r + num] = b.data[r]; }
+        for k in 0..num {
+            let hole = holes[spawned_so_far + k];
+            b.data[num - 1 - k] = 0xFC00 | (0x3FF & !(1u16 << hole));
+        }
+        b.rows = (old_rows + num) as u8;
+        b.garbage_rows = (g + num) as u8;
+        true
+    };
+
+    #[derive(Clone, Copy)]
+    struct TNode { board: FastBoard, held: Option<u8>, q_cursor: usize, rem_g: u16, first_idx: u16, score: i64 }
+
+    let mut ds_total = 0usize;
+    let mut q_pos = 0usize;
+    let mut pcs = 0usize;
+    let mut printed_wide = 0usize;
+    let mut printed_o = 0usize;
+    let mut printed_covnxt = 0usize;
+
+    while ds_total < 100 && stacker.current_piece_type().is_some() {
+        let snap = stacker.snapshot().unwrap();
+        let g_rows = garbage_rows(&stacker);
+        let root_board = FastBoard::from_basic_matrix(&snap.matrix, g_rows);
+        let rem_g0 = 100usize.saturating_sub(ds_total) as u16;
+        let hold0 = snap.hold.map(|cc| color_to_idx(cc) as u8);
+        let q_start = q_pos.min(ed.pieces.len());
+        let q_end = (q_start + 20).min(ed.pieces.len());
+        let q = &ed.pieces[q_start..q_end];
+        let q_len = q.len();
+        let cur0 = Some(q[0]);
+        let alt0 = hold0.or_else(|| q.get(1).copied());
+
+        let (h1_col, blocks_over, chute_min, _) = h1_info(&stacker);
+        pgen.generate_for_state(&fst, &root_board, cur0, alt0, &mut root_places);
+        let target_d = q_len.saturating_sub(if hold0.is_some() { 0 } else { 1 }).max(1);
+        cur_beam.clear();
+        seen.clear();
+        let mut best_goal: Option<(usize, u16, i64)> = None;
+
+        for (idx, &fp) in root_places.iter().enumerate() {
+            let mut b = root_board;
+            let o = &fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
+            let (lines, ds, _) = b.place_and_sift(o, fp.norm_i, fp.norm_j);
+            let rem_g = rem_g0.saturating_sub(ds as u16);
+            if rem_g > 0 && !spawn_exact_cheese(&mut b, rem_g, lines, &ed.holes) { continue; }
+            let (held, qc) = if hold0.is_some() {
+                if fp.did_hold { (cur0, 1.min(q_len)) } else { (hold0, 1.min(q_len)) }
+            } else if fp.did_hold { (cur0, 2.min(q_len)) } else { (None, 1.min(q_len)) };
+            if rem_g == 0 && b.rows < 20 {
+                let gr = -30_000_000 + 100 + b.rows as i64;
+                if best_goal.map_or(true, |x| gr < x.2) { best_goal = Some((1, idx as u16, gr)); }
+            }
+            let in_h = held.or_else(|| q.get(qc).copied());
+            let sc = mdl.evaluate_board_with_bag(&b, rem_g, in_h, 0x7F);
+            if seen.insert((b, held, rem_g)) {
+                cur_beam.push(TNode { board: b, held, q_cursor: qc, rem_g, first_idx: idx as u16, score: sc });
+            }
+        }
+        for depth in 2..=target_d {
+            children.clear();
+            for node in &cur_beam {
+                if node.rem_g == 0 { continue; }
+                let qc = node.q_cursor;
+                let (c_nh, c_h) = if node.held.is_some() { (q.get(qc).copied(), node.held) } else { (q.get(qc).copied(), q.get(qc + 1).copied()) };
+                pgen.generate_for_state(&fst, &node.board, c_nh, c_h, &mut tmp_places);
+                for &fp in &tmp_places {
+                    let mut b = node.board;
+                    let o = &fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
+                    let (lines, ds, _) = b.place_and_sift(o, fp.norm_i, fp.norm_j);
+                    let rem_g = node.rem_g.saturating_sub(ds as u16);
+                    if rem_g > 0 && !spawn_exact_cheese(&mut b, rem_g, lines, &ed.holes) { continue; }
+                    let (held, nqc) = if node.held.is_some() {
+                        if fp.did_hold { (c_nh, (qc + 1).min(q_len)) } else { (node.held, (qc + 1).min(q_len)) }
+                    } else if fp.did_hold { (c_nh, (qc + 2).min(q_len)) } else { (None, (qc + 1).min(q_len)) };
+                    if rem_g == 0 && b.rows < 20 {
+                        let gr = -30_000_000 + (depth as i64) * 100 + b.rows as i64;
+                        if best_goal.map_or(true, |x| gr < x.2) { best_goal = Some((depth, node.first_idx, gr)); }
+                    }
+                    let in_h = held.or_else(|| q.get(nqc).copied());
+                    let sc = mdl.evaluate_board_with_bag(&b, rem_g, in_h, 0x7F);
+                    children.push(TNode { board: b, held, q_cursor: nqc, rem_g, first_idx: node.first_idx, score: sc });
+                }
+            }
+            if children.is_empty() { break; }
+            children.sort_unstable_by_key(|n| (n.score, n.first_idx));
+            cur_beam.clear();
+            seen.clear();
+            let mut rc = vec![0usize; root_places.len()];
+            for &ch in &children {
+                if cur_beam.len() >= 240 { break; }
+                if rc[ch.first_idx as usize] >= 60 { continue; }
+                if seen.insert((ch.board, ch.held, ch.rem_g)) { rc[ch.first_idx as usize] += 1; cur_beam.push(ch); }
+            }
+        }
+        let chosen_idx = best_goal.map(|x| x.1 as usize).unwrap_or_else(|| cur_beam.first().map_or(0, |n| n.first_idx as usize));
+        let fp = root_places[chosen_idx];
+        let mut root_best_leaf: Vec<(u16, i64, u16)> = Vec::new();
+        for n in &cur_beam {
+            if !root_best_leaf.iter().any(|x| x.0 == n.first_idx) {
+                root_best_leaf.push((n.first_idx, n.score, n.rem_g));
+            }
+            if root_best_leaf.len() >= 5 { break; }
+        }
+
+        let mut inputs = ai_in.inputs_for_place(&snap.matrix, fp).unwrap();
+        inputs.pop();
+        if fp.did_hold { if hold0.is_none() { q_pos += 2; } else { q_pos += 1; } } else { q_pos += 1; }
+        stacker.run(inputs);
+        let (lines, ds) = stacker.hard_drop();
+        pcs += 1;
+        ds_total += ds;
+        let (_, new_bo, _, _) = h1_info(&stacker);
+        let cur_ch = snap.queue[0].as_char();
+        let hold_ch = snap.hold.or_else(|| snap.queue.get(1).copied()).map(|cc| cc.as_char());
+        let has_o = cur_ch == 'O' || hold_ch == Some('O');
+        let has_i = cur_ch == 'I' || hold_ch == Some('I');
+        let q_str: String = q.iter().take(8).map(|&x| idx_to_color(x as usize).as_char()).collect();
+        let chosen_ch = idx_to_color(fp.color_idx as usize).as_char();
+        let mut tag = None;
+        if ds > 0 && new_bo > 0 && printed_covnxt < 4 { printed_covnxt += 1; tag = Some("COV_NXT"); }
+        else if ds == 0 && blocks_over == 0 && g_rows > 0 && !(rem_g0 <= 7 && rem_g0 == g_rows) {
+            if has_o && printed_o < 5 { printed_o += 1; tag = Some("0DS_O"); }
+            else if !has_o && !(chute_min >= 1 && !has_i) && printed_wide < 5 { printed_wide += 1; tag = Some("0DS_WIDE"); }
+        }
+        if let Some(tg) = tag {
+            println!("\n[{}] pc={} rem_g={} g={} h1={:?} bo={} chute={} hold={:?} q={}",
+                tg, pcs, rem_g0, g_rows, h1_col, blocks_over, chute_min, snap.hold.map(|c| c.as_char()), q_str);
+            print_board_ascii(&root_board);
+            println!("  chosen: {} (i={},j={},r={:?},hold={}) -> lines={}, ds={}, new_bo={}",
+                chosen_ch, fp.norm_i, fp.norm_j, fp.tf.2, fp.did_hold, lines, ds, new_bo);
+            for (ridx, sc, l_rem) in &root_best_leaf {
+                let rfp = root_places[*ridx as usize];
+                let mut rb = root_board;
+                let ro = &fst.shapes[rfp.color_idx as usize].orients[rfp.tf.2 as usize];
+                let (rl, rds, _) = rb.place_and_sift(ro, rfp.norm_i, rfp.norm_j);
+                println!("    top_root: {} (i={},j={},r={:?},hold={}) 1ply(l={},ds={}) leaf_sc={} leaf_rem={}",
+                    idx_to_color(rfp.color_idx as usize).as_char(), rfp.norm_i, rfp.norm_j, rfp.tf.2, rfp.did_hold, rl, rds, sc, l_rem);
+            }
+        }
+    }
+    println!("\nTrace finished: {} pieces, {} ds", pcs, ds_total);
+}
+
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     let mode = args.get(1).map(|s| s.as_str()).unwrap_or("gap5");
@@ -624,6 +830,71 @@ fn main() {
         run_oracle_suite("ORACLE_p14_nosp_b240", &ed, 14, 240, false, &m_h2_nog0);
         run_oracle_suite("ORACLE_p14_EXCH_b240", &ed, 14, 240, true, &m_h2_nog0);
         run_oracle_suite("ORACLE_p20_EXCH_b240", &ed, 20, 240, true, &m_h2);
+    } else if mode == "probe5" {
+        println!("=== Fast Oracle Probe (seeds 101..=105) ===");
+        let ed = collect_exact_seeds(&seeds5);
+        run_oracle_suite("ORACLE_p6_EXCH_b120", &ed, 6, 120, true, &m_h2_nog0);
+        run_oracle_suite("ORACLE_p12_EXCH_b120", &ed, 12, 120, true, &m_h2_nog0);
+    } else if mode == "trace101" {
+        trace_oracle_seed101(&m_h2_nog0);
+    } else if mode == "ablation5" {
+        println!("=== Oracle Ceiling Ablations (seeds 101..=105) ===");
+        let ed = collect_exact_seeds(&seeds5);
+        run_oracle_suite("ORACLE_p20_b240_h2nog0", &ed, 20, 240, true, &m_h2_nog0);
+        run_oracle_suite("ORACLE_p20_b600_h2nog0", &ed, 20, 600, true, &m_h2_nog0);
+
+        // Clean surgical patch of crn_r3_h2stk03 flaws:
+        // [0] rem_g: 2.12 -> 1.65 (match true ~1.65 pieces/line instead of greedy 2.12)
+        // [63] hand_O: +0.523 -> 0.0 (stop dumping O blindly)
+        // [88] h2_only_row_g_blocked: -0.127 -> +0.20 (stop rewarding blocking h2)
+        // [36] h2_blocks: 0 -> +0.22/unit, [39] h2_open: 0 -> -0.15
+        let mut m_clean = m_h2_nog0.clone();
+        m_clean.linear_w[0] = 1.65 / m_clean.inv_std[0];
+        m_clean.linear_w[63] = 0.0;
+        m_clean.linear_w[88] = 0.25 / m_clean.inv_std[88];
+        m_clean.linear_w[36] = 0.20 / m_clean.inv_std[36];
+        m_clean.linear_w[39] = -0.15 / m_clean.inv_std[39];
+        m_clean.prepare_fast();
+        run_oracle_suite("ORACLE_p20_b240_clean", &ed, 20, 240, true, &m_clean);
+
+        let m_r4 = load_model(concat!(env!("CARGO_MANIFEST_DIR"), "/../models/crn_r4_gbox.txt"));
+        run_oracle_suite("ORACLE_p20_b240_r4gbox", &ed, 20, 240, true, &m_r4);
+    } else if mode == "oracle_eval5" {
+        println!("=== Fast Oracle Evaluator Comparison p14_b160 (seeds 101..=105) ===");
+        let ed = collect_exact_seeds(&seeds5);
+        run_oracle_suite("OR_p14_b160_h2nog0", &ed, 14, 160, true, &m_h2_nog0);
+
+        let mut m_clean = m_h2_nog0.clone();
+        m_clean.linear_w[0] = 1.65 / m_clean.inv_std[0];
+        m_clean.linear_w[63] = 0.0;
+        m_clean.linear_w[88] = 0.25 / m_clean.inv_std[88];
+        m_clean.linear_w[36] = 0.20 / m_clean.inv_std[36];
+        m_clean.linear_w[39] = -0.15 / m_clean.inv_std[39];
+        m_clean.prepare_fast();
+        run_oracle_suite("OR_p14_b160_clean", &ed, 14, 160, true, &m_clean);
+
+        // Strong conservation + clean h2/O/skim calibration
+        let mut m_cons = m_clean.clone();
+        m_cons.linear_w[0] = 1.60 / m_cons.inv_std[0];    // rem_g ~ 1.60 pieces/line
+        m_cons.linear_w[9] = 0.14 / m_cons.inv_std[9];    // stack_cells ~ 0.14/cell
+        m_cons.linear_w[11] = 0.06 / m_cons.inv_std[11];  // stack_cells_above1
+        m_cons.linear_w[36] = 0.30 / m_cons.inv_std[36];  // h2_blocks
+        m_cons.linear_w[39] = -0.20 / m_cons.inv_std[39]; // h2_open
+        m_cons.linear_w[57] = -0.25 / m_cons.inv_std[57]; // near_full_9
+        m_cons.linear_w[92] = -0.15 / m_cons.inv_std[92]; // clean_skim_rows
+        m_cons.prepare_fast();
+        run_oracle_suite("OR_p14_b160_cons", &ed, 14, 160, true, &m_cons);
+
+        let m_r4 = load_model(concat!(env!("CARGO_MANIFEST_DIR"), "/../models/crn_r4_gbox.txt"));
+        run_oracle_suite("OR_p14_b160_r4gbox", &ed, 14, 160, true, &m_r4);
+    } else if mode == "spatial_oracle5" {
+        let model_path = args.get(2).map(|s| s.as_str()).unwrap_or("models/spatial_v1.txt");
+        let sm = SpatialValueModel::load_from_file(model_path).expect("load spatial model");
+        println!("=== Spatial Oracle Suite ({}) (seeds 101..=105) ===", model_path);
+        let ed = collect_exact_seeds(&seeds5);
+        run_oracle_suite("OR_p6_EXCH_b120_sp", &ed, 6, 120, true, &sm);
+        run_oracle_suite("OR_p14_EXCH_b160_sp", &ed, 14, 160, true, &sm);
+        run_oracle_suite("OR_p20_EXCH_b240_sp", &ed, 20, 240, true, &sm);
     } else if mode == "legal20" {
         println!("=== Legal Held-out Dev20 (seeds 201..=220) ===");
         run_legal_suite("LEGAL_h2nog0_p5_b120", &seeds20, &cfg_legal);

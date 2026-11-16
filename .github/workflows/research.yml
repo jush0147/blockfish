@@ -61,6 +61,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -f results/gh_latest.log
+          git add -f models/*.txt 2>/dev/null || true
           if ! git diff --cached --quiet; then
             git commit -m "actions: experiment results run #${{ github.run_number }} [skip ci]"
             git push

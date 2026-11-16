@@ -8,6 +8,9 @@ pub const BOARD_COLS: u16 = 10;
 pub const MAX_ROWS: usize = 32;
 pub const EMPTY_ROW: u16 = 0xFC00; // bits 10..16 set, bits 0..10 clear
 pub const FULL_ROW: u16 = 0xFFFF;
+/// Opaque unspawned garbage row: all 10 columns occupied (`0x3FF`), bit 10 clear so
+/// `!= FULL_ROW` (never auto-cleared) and `(!row & 0x3FF).trailing_zeros() >= 10` (hole unknown).
+pub const OPAQUE_GARBAGE_ROW: u16 = 0xFBFF;
 
 #[inline(always)]
 pub fn color_to_idx(c: Color) -> usize {
@@ -229,6 +232,77 @@ impl FastBoard {
         self.rows = (old_rows + num) as u8;
         self.garbage_rows = (g + num) as u8;
         true
+    }
+
+    /// Returns `true` if the topmost garbage row (`h1`) is an opaque unspawned row.
+    #[inline(always)]
+    pub fn has_opaque_top_garbage(&self) -> bool {
+        let g = self.garbage_rows as usize;
+        g > 0 && self.data[g - 1] == OPAQUE_GARBAGE_ROW
+    }
+
+    /// Spawns opaque (hole-unknown) unspawned garbage rows up to Cheese `min_height=4 / max_height=9`
+    /// without peeking or fabricating fake concrete holes inside beam search.
+    #[inline]
+    pub fn spawn_fog_rows(&mut self, rem_garbage: u16, lines_cleared: u8) -> bool {
+        let target_g: usize = if lines_cleared > 0 { 4 } else { 9 };
+        let g = self.garbage_rows as usize;
+        let unspawned = (rem_garbage as usize).saturating_sub(g);
+        let num = target_g.saturating_sub(g).min(unspawned);
+        if num == 0 {
+            return true;
+        }
+        let old_rows = self.rows as usize;
+        if old_rows + num >= MAX_ROWS {
+            return false;
+        }
+        for r in (0..old_rows).rev() {
+            self.data[r + num] = self.data[r];
+        }
+        for r in 0..num {
+            self.data[r] = OPAQUE_GARBAGE_ROW;
+        }
+        self.rows = (old_rows + num) as u8;
+        self.garbage_rows = (g + num) as u8;
+        true
+    }
+
+    /// Replaces any `OPAQUE_GARBAGE_ROW` entries in `0..garbage_rows` with valid CRN
+    /// consecutive holes (`offset in 1..=9`) before greedy rollouts.
+    #[inline]
+    pub fn materialize_fog_holes(&mut self, rng: &mut u64) {
+        let g = self.garbage_rows as usize;
+        if g == 0 {
+            return;
+        }
+        let mut prev_hole: Option<u16> = None;
+        for r in (0..g).rev() {
+            let row = self.data[r];
+            if row == OPAQUE_GARBAGE_ROW {
+                let hole = match prev_hole {
+                    Some(ph) => {
+                        *rng = rng
+                            .wrapping_mul(6364136223846793005)
+                            .wrapping_add(1442695040888963407);
+                        let off = (((*rng >> 32) as u16) % 9) + 1;
+                        (ph + off) % 10
+                    }
+                    None => {
+                        *rng = rng
+                            .wrapping_mul(6364136223846793005)
+                            .wrapping_add(1442695040888963407);
+                        ((*rng >> 32) as u16) % 10
+                    }
+                };
+                self.data[r] = EMPTY_ROW | (0x3FF & !(1u16 << hole));
+                prev_hole = Some(hole);
+            } else {
+                let h = (!row & 0x3FF).trailing_zeros() as u16;
+                if h < 10 {
+                    prev_hole = Some(h);
+                }
+            }
+        }
     }
 }
 

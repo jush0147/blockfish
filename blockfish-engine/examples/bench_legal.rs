@@ -1,6 +1,6 @@
 use block_stacker::{Config as BSConfig, Ruleset, Stacker};
 use blockfish::{
-    ai::{cheese_val::FEAT_DIM, BeamConfig, FastAI, LearnedValueModel},
+    ai::{cheese_val::FEAT_DIM, BeamConfig, FastAI, LearnedValueModel, SpatialValueModel},
     Input, StackerExt as _,
 };
 use std::fs::File;
@@ -296,6 +296,18 @@ fn make_cfg(m: LearnedValueModel) -> BeamConfig {
     c
 }
 
+fn make_spatial_cfg(m: Arc<SpatialValueModel>) -> BeamConfig {
+    let mut c = BeamConfig::default();
+    c.beam_width = 120;
+    c.max_per_root = 24;
+    c.rollout_top_k = 12;
+    c.endgame_wide = true;
+    c.no_g_credit = 0;
+    c.value_fast_micro = 0;
+    c.spatial_model = Some(m);
+    c
+}
+
 fn main() {
     let mode = std::env::args().nth(1).unwrap_or_else(|| "baseline".to_string());
     let m_h2 = load_model(concat!(
@@ -345,6 +357,106 @@ fn main() {
         c_rpimc_real.root_pimc_weight_pct = 100;
         c_rpimc_real.root_pimc_steady_g4 = false;
         eval_seeds("h2_rpimc_realphys_w12", &seeds5, &c_rpimc_real);
+        return;
+    }
+
+    if mode == "ablate" {
+        println!("=== Legal 5-seed Search & Calibration Ablation (101..=105) ===");
+        let mut c0 = make_cfg(m_h2_nog0.clone());
+        eval_seeds("0_base_h2nog0_b120", &seeds5, &c0);
+
+        c0.bag_det_extend = true;
+        eval_seeds("1_+bag_det_extend", &seeds5, &c0);
+
+        c0.endgame_solver = true;
+        eval_seeds("2_+endgame_solver", &seeds5, &c0);
+
+        c0.fog_spawn = true;
+        eval_seeds("3_+fog_spawn", &seeds5, &c0);
+
+        let mut c4 = c0.clone();
+        c4.rollout_top_k = 48;
+        c4.rollout_per_root = 3;
+        eval_seeds("4_+roll_k48_pr3", &seeds5, &c4);
+
+        let mut c5 = c4.clone();
+        c5.fog_spawn = false;
+        eval_seeds("5_no_fog_k48_pr3", &seeds5, &c5);
+
+        // Calibrated heuristic patch over crn_r3_h2stk03
+        let mut m_cal = m_h2_nog0.clone();
+        let set_raw = |m: &mut LearnedValueModel, idx: usize, raw_w: f32| {
+            if m.inv_std[idx] > 1e-6 {
+                m.linear_w[idx] = raw_w / m.inv_std[idx];
+            }
+        };
+        set_raw(&mut m_cal, 0, 1.65);   // rem_g
+        set_raw(&mut m_cal, 9, 0.08);   // stack_cells
+        set_raw(&mut m_cal, 11, 0.06);  // stack_cells_above1
+        set_raw(&mut m_cal, 36, 0.22);  // h2_blocks
+        set_raw(&mut m_cal, 39, -0.15); // h2_open
+        set_raw(&mut m_cal, 57, -0.18); // near_full_9
+        set_raw(&mut m_cal, 63, 0.0);   // hand_O
+        set_raw(&mut m_cal, 88, 0.25);  // h2_only_row_g_blocked
+        set_raw(&mut m_cal, 92, -0.12); // clean_skim_rows
+        m_cal.prepare_fast();
+        let mut c6 = c0.clone();
+        c6.value_model = Some(Arc::new(m_cal));
+        eval_seeds("6_cal_probe+fog", &seeds5, &c6);
+        return;
+    }
+
+    if mode == "spatial5" || mode == "spatial20" || mode == "spatial40" {
+        let model_path = std::env::args()
+            .nth(2)
+            .unwrap_or_else(|| "models/spatial_v1.txt".to_string());
+        let sm = Arc::new(SpatialValueModel::load_from_file(&model_path).expect("load spatial model"));
+        let target_seeds: Vec<u64> = if mode == "spatial5" {
+            seeds5.clone()
+        } else if mode == "spatial20" {
+            (201..=220).collect()
+        } else {
+            let mut s = Vec::new();
+            s.extend_from_slice(&dev20);
+            s.extend_from_slice(&train20);
+            s
+        };
+        println!("=== Legal {} ({}) ===", mode, model_path);
+        let c_nosp = make_spatial_cfg(sm.clone());
+        if mode == "spatial5" {
+            eval_seeds("sp_nosp_b120", &target_seeds, &c_nosp);
+        }
+
+        let mut c_crn = make_spatial_cfg(sm.clone());
+        c_crn.simulate_cheese_spawn = true;
+        if mode == "spatial5" {
+            eval_seeds("sp_crn1w_b120", &target_seeds, &c_crn);
+        }
+
+        let mut c_crn_be = c_crn.clone();
+        c_crn_be.bag_det_extend = true;
+        c_crn_be.endgame_solver = true;
+        eval_seeds("sp_crn1w_bdet_end", &target_seeds, &c_crn_be);
+
+        let mut c_rpimc = make_spatial_cfg(sm.clone());
+        c_rpimc.bag_det_extend = true;
+        c_rpimc.endgame_solver = true;
+        c_rpimc.root_pimc_worlds = 12;
+        c_rpimc.root_pimc_horizon = 99;
+        c_rpimc.root_pimc_roots = 10;
+        c_rpimc.root_pimc_width = 32;
+        c_rpimc.root_pimc_margin = 1400;
+        c_rpimc.root_pimc_weight_pct = 100;
+        c_rpimc.root_pimc_steady_g4 = false;
+        eval_seeds("sp_rpimc_w12_b120", &target_seeds, &c_rpimc);
+
+        if mode == "spatial5" {
+            let mut c_rpimc_b240 = c_rpimc.clone();
+            c_rpimc_b240.beam_width = 240;
+            c_rpimc_b240.max_per_root = 48;
+            c_rpimc_b240.rollout_top_k = 24;
+            eval_seeds("sp_rpimc_w12_b240", &target_seeds, &c_rpimc_b240);
+        }
         return;
     }
 

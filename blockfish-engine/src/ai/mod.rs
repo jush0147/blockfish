@@ -11,11 +11,13 @@ pub mod cheese_val;
 mod eval;
 pub mod fast;
 pub mod fast_eval;
+pub mod spatial_val;
 mod state;
 
 pub use beam::{BagTracker, BeamConfig, BeamResult, BeamSearcher, GameContext};
 pub use cheese_val::LearnedValueModel;
 pub use fast_eval::EvalWeights;
+pub use spatial_val::SpatialValueModel;
 
 // Input / output types
 
