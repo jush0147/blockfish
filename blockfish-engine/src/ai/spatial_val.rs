@@ -688,6 +688,9 @@ pub struct SpatialValueModel {
     pub fast_lin_dense: [f32; DENSE_DIM],
     pub fast_b1: [f32; SPATIAL_H1],
     pub fast_w_dense: Box<[[f32; SPATIAL_H1]; DENSE_DIM]>,
+    pub fast_min_d: [f32; DENSE_DIM],
+    pub fast_max_d: [f32; DENSE_DIM],
+    pub fast_dense_active: [bool; DENSE_DIM],
     pub fast_ready: bool,
 }
 
@@ -710,6 +713,9 @@ impl Default for SpatialValueModel {
             fast_lin_dense: [0.0; DENSE_DIM],
             fast_b1: [0.0; SPATIAL_H1],
             fast_w_dense: Box::new([[0.0; SPATIAL_H1]; DENSE_DIM]),
+            fast_min_d: [0.0; DENSE_DIM],
+            fast_max_d: [0.0; DENSE_DIM],
+            fast_dense_active: [false; DENSE_DIM],
             fast_ready: false,
         }
     }
@@ -731,11 +737,25 @@ impl SpatialValueModel {
         for j in 0..DENSE_DIM {
             let inv = self.dense_inv_std[j];
             let m = self.dense_mean[j];
+            if inv > 1e-6 {
+                let half_span = 3.0 / inv;
+                self.fast_min_d[j] = m - half_span;
+                self.fast_max_d[j] = m + half_span;
+            } else {
+                self.fast_min_d[j] = m;
+                self.fast_max_d[j] = m;
+            }
+            let mut active = false;
             for h in 0..SPATIAL_H1 {
-                let fw = self.w_dense[j][h] * inv;
+                let w = self.w_dense[j][h];
+                if w != 0.0 {
+                    active = true;
+                }
+                let fw = w * inv;
                 self.fast_w_dense[j][h] = fw;
                 self.fast_b1[h] -= fw * m;
             }
+            self.fast_dense_active[j] = active;
         }
         self.fast_ready = true;
     }
@@ -763,9 +783,14 @@ impl SpatialValueModel {
                 let x = dense[j];
                 if x != 0.0 {
                     lin += self.fast_lin_dense[j] * x;
-                    let row = &self.fast_w_dense[j];
-                    for h in 0..SPATIAL_H1 {
-                        h1[h] += x * row[h];
+                }
+                if self.fast_dense_active[j] {
+                    let xm = x.clamp(self.fast_min_d[j], self.fast_max_d[j]);
+                    if xm != 0.0 {
+                        let row = &self.fast_w_dense[j];
+                        for h in 0..SPATIAL_H1 {
+                            h1[h] += xm * row[h];
+                        }
                     }
                 }
             }
@@ -773,10 +798,11 @@ impl SpatialValueModel {
             for j in 0..DENSE_DIM {
                 let z = (dense[j] - self.dense_mean[j]) * self.dense_inv_std[j];
                 lin += self.lin_dense[j] * z;
-                if z != 0.0 {
+                let zm = z.clamp(-3.0, 3.0);
+                if zm != 0.0 {
                     let row = &self.w_dense[j];
                     for h in 0..SPATIAL_H1 {
-                        h1[h] += z * row[h];
+                        h1[h] += zm * row[h];
                     }
                 }
             }
@@ -801,7 +827,7 @@ impl SpatialValueModel {
                 mlp += a2.min(6.0) * self.w3[k];
             }
         }
-        let mlp_sat = mlp / (1.0 + mlp.abs() / 5.0);
+        let mlp_sat = mlp / (1.0 + mlp.abs() / 2.5);
         lin + mlp_sat
     }
 
@@ -1146,5 +1172,19 @@ mod tests {
         let reload_lin = m2.predict_linear_extracted(&active[..n_act], &dense);
         assert!((fast_pred - reload_pred).abs() < 1e-3, "{} vs {}", fast_pred, reload_pred);
         assert!((fast_lin - reload_lin).abs() < 1e-3, "lin {} vs {}", fast_lin, reload_lin);
+
+        // Verify OOD dense values: linear stays unclamped, MLP z is clamped to [-3, 3] and matches raw/fast
+        let mut ood_dense = dense;
+        ood_dense[23] = 50.0; // z >> +3.0
+        ood_dense[67] = 0.0;  // z << -3.0 (dense_mean[67] = 33.5, dense_inv_std[67] = 0.92)
+        m.fast_ready = false;
+        let ood_raw = m.predict_extracted(&active[..n_act], &ood_dense);
+        let ood_raw_lin = m.predict_linear_extracted(&active[..n_act], &ood_dense);
+        m.prepare_fast();
+        let ood_fast = m.predict_extracted(&active[..n_act], &ood_dense);
+        let ood_fast_lin = m.predict_linear_extracted(&active[..n_act], &ood_dense);
+        assert!((ood_raw - ood_fast).abs() < 1e-3, "ood {} vs {}", ood_raw, ood_fast);
+        assert!((ood_raw_lin - ood_fast_lin).abs() < 1e-3, "ood_lin {} vs {}", ood_raw_lin, ood_fast_lin);
+        assert!((ood_fast - ood_fast_lin).abs() <= 2.5, "mlp_sat exceeded +-2.5: {}", ood_fast - ood_fast_lin);
     }
 }

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "=== Round 2: Two-Phase Calibrated Finite-Horizon CRN SpatialValueModel RL (150 games, H=14, B=150) ==="
+echo "=== Round 3: OOD-Safe Calibrated Finite-Horizon CRN SpatialValueModel RL (150 games, H=14, B=150) ==="
 cargo run --release -p blockfish --features race --example train_spatial -- \
   --teacher learned:models/crn_r3_h2stk03.txt \
-  --out models/spatial_r2.txt \
+  --out models/spatial_r3.txt \
   --games 150 \
   --horizon 14 \
   --beam 150 \
@@ -28,6 +28,6 @@ cargo run --release -p blockfish --features race --example train_spatial -- \
   --eval-legal 10
 
 echo ""
-echo "=== Post-Round2 Oracle & Legal Diagnostics ==="
-cargo run --release -p blockfish --features race --example diag_cheese -- spatial_probe models/spatial_r2.txt
-cargo run --release -p blockfish --features race --example bench_legal -- spatial5_q models/spatial_r2.txt
+echo "=== Post-Round3 Oracle & Legal Diagnostics ==="
+cargo run --release -p blockfish --features race --example diag_cheese -- spatial_probe models/spatial_r3.txt
+cargo run --release -p blockfish --features race --example bench_legal -- spatial5_q models/spatial_r3.txt

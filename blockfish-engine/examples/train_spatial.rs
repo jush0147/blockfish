@@ -884,18 +884,23 @@ fn generate_game_data(
                 if do_cf {
                     next_cf_rem_g = rem_g0.saturating_sub(cf_step_g);
 
-                    // 1) Root 1-ply candidates (up to 4: chosen vs opp_ds / runner / 1ply_other / clean_alt)
+                    // 1) Root 1-ply candidates (up to 5: chosen vs opp_ds / runner / hole_alt / 1ply_other / clean_alt)
                     let mut best_runner: Option<(usize, i64)> = None;
                     let mut best_opp_ds: Option<(usize, i64)> = None;
                     let mut best_1ply_other: Option<(usize, i64)> = None;
                     let mut best_clean_alt: Option<(usize, i64)> = None;
+                    let mut sorted_1ply: Vec<(usize, i64, i32)> = Vec::with_capacity(root_places.len());
 
                     for ri in 0..root_places.len() {
-                        if ri == chosen_idx {
-                            continue;
-                        }
                         if let Some((b_l, _, _, _, rem_l, _, ds_l, sc_l_1ply)) = root_after1[ri] {
                             if rem_l == 0 {
+                                continue;
+                            }
+                            let (stk_c, cov_h, h1_b) = fast_leaf_clean_metrics(&b_l);
+                            if b_l.rows < 20 {
+                                sorted_1ply.push((ri, sc_l_1ply, cov_h));
+                            }
+                            if ri == chosen_idx {
                                 continue;
                             }
                             if best_1ply_other.map_or(true, |x| sc_l_1ply < x.1) {
@@ -912,16 +917,23 @@ fn generate_game_data(
                                     best_opp_ds = Some((ri, metric));
                                 }
                             }
-                            let (stk_c, cov_h, h1_b) = fast_leaf_clean_metrics(&b_l);
                             let clean_metric = (cov_h * 80 + h1_b * 40 + stk_c * 4) as i64;
                             if best_clean_alt.map_or(true, |x| clean_metric < x.1) {
                                 best_clean_alt = Some((ri, clean_metric));
                             }
                         }
                     }
+                    sorted_1ply.sort_unstable_by_key(|x| x.1);
+                    let mut best_hole_alt: Option<usize> = None;
+                    for &(ri, _, cov_h) in sorted_1ply.iter().take(15) {
+                        if ri != chosen_idx && cov_h > 0 {
+                            best_hole_alt = Some(ri);
+                            break;
+                        }
+                    }
 
-                    let mut cand_ris: Vec<usize> = Vec::with_capacity(4);
-                    let mut root_cands: Vec<CfCand> = Vec::with_capacity(4);
+                    let mut cand_ris: Vec<usize> = Vec::with_capacity(5);
+                    let mut root_cands: Vec<CfCand> = Vec::with_capacity(5);
                     cand_ris.push(chosen_idx);
                     root_cands.push(CfCand {
                         state_idx: win_s_idx,
@@ -934,10 +946,11 @@ fn generate_game_data(
                     for opt_ri in [
                         best_opp_ds.map(|x| x.0),
                         best_runner.map(|x| x.0),
+                        best_hole_alt,
                         best_1ply_other.map(|x| x.0),
                         best_clean_alt.map(|x| x.0),
                     ] {
-                        if root_cands.len() >= 4 {
+                        if root_cands.len() >= 5 {
                             break;
                         }
                         if let Some(ri) = opt_ri {
@@ -1450,6 +1463,9 @@ impl AdamW {
             }
         }
         for j in 1..DENSE_DIM {
+            if !dense_mlp_allowed(j) {
+                continue;
+            }
             for h in 0..SPATIAL_H1 {
                 Self::step_param(&mut mdl.w_dense[j][h], g.w_dense[j][h], &mut self.m_wd[j][h], &mut self.v_wd[j][h], wd_mlp, lr_cur, b1, b2, b1t, b2t, eps);
             }
@@ -1467,6 +1483,11 @@ impl AdamW {
             Self::step_param(&mut mdl.w3[k], g.w3[k], &mut self.m_w3[k], &mut self.v_w3[k], wd_mlp, lr_cur, b1, b2, b1t, b2t, eps);
         }
     }
+}
+
+#[inline]
+const fn dense_mlp_allowed(j: usize) -> bool {
+    !matches!(j, 0 | 18 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 64)
 }
 
 struct GradBuf {
@@ -1541,10 +1562,13 @@ fn forward_cache(
         let z = (sf.dense[j] - mdl.dense_mean[j]) * mdl.dense_inv_std[j];
         z_out[j] = z;
         lin += mdl.lin_dense[j] * z;
-        if z != 0.0 && j >= 1 {
-            let row = &mdl.w_dense[j];
-            for h in 0..SPATIAL_H1 {
-                h1[h] += z * row[h];
+        if dense_mlp_allowed(j) {
+            let zm = z.clamp(-3.0, 3.0);
+            if zm != 0.0 {
+                let row = &mdl.w_dense[j];
+                for h in 0..SPATIAL_H1 {
+                    h1[h] += zm * row[h];
+                }
             }
         }
     }
@@ -1567,7 +1591,7 @@ fn forward_cache(
             mlp += a2 * mdl.w3[k];
         }
     }
-    lin + (mlp / (1.0 + mlp.abs() / 5.0))
+    lin + (mlp / (1.0 + mlp.abs() / 2.5))
 }
 
 #[inline]
@@ -1594,7 +1618,7 @@ fn backward_add(
     for k in 0..SPATIAL_H2 {
         raw_mlp += a2[k] * mdl.w3[k];
     }
-    let denom = 1.0 + raw_mlp.abs() / 5.0;
+    let denom = 1.0 + raw_mlp.abs() / 2.5;
     let d_mlp = d_out / (denom * denom);
     g.b3 += d_mlp;
 
@@ -1631,7 +1655,10 @@ fn backward_add(
                     gs_row[h] += dh;
                 }
                 for j in 1..DENSE_DIM {
-                    let zv = z[j];
+                    if !dense_mlp_allowed(j) {
+                        continue;
+                    }
+                    let zv = z[j].clamp(-3.0, 3.0);
                     if zv != 0.0 {
                         g.w_dense[j][h] += dh * zv;
                     }
@@ -1966,8 +1993,8 @@ fn compute_gentle_bounds(dense_inv_std: &[f32; DENSE_DIM]) -> (Vec<f64>, Vec<f64
 
     // Sparse spatial/bag bounds
     for i in 0..80 {
-        lb[i] = -0.05;
-        ub[i] = 0.30;
+        lb[i] = -0.01;
+        ub[i] = 0.15;
     }
     for i in 80..90 {
         lb[i] = 0.0;
@@ -2016,14 +2043,11 @@ fn compute_gentle_bounds(dense_inv_std: &[f32; DENSE_DIM]) -> (Vec<f64>, Vec<f64
         }
     };
 
-    // Wide empirical bounds for rem_g, g, and stack_cells; leave stack_cells_row_g (4) free
+    // Wide empirical bounds for rem_g, g, and stack_cells
     set_raw_range(&mut lb, &mut ub, 0, 1.35, 2.35); // rem_g
     set_raw_range(&mut lb, &mut ub, 1, 0.0, 0.45);  // g
 
     for j in 2..DENSE_DIM {
-        if j == 4 {
-            continue; // stack_cells_row_g free
-        }
         match j {
             // Readiness / open-hole / clean-O / near-full / clearable bonuses <= 0
             33 | 34 | 35 | 41 | 54 | 55 | 56 | 57 | 58 | 59 | 60 | 61 | 67 | 71 => {
@@ -2036,7 +2060,16 @@ fn compute_gentle_bounds(dense_inv_std: &[f32; DENSE_DIM]) -> (Vec<f64>, Vec<f64
         }
     }
 
-    set_raw_range(&mut lb, &mut ub, 3, 0.015, 0.25); // stack_cells
+    set_raw_range(&mut lb, &mut ub, 3, 0.04, 0.25); // stack_cells
+    set_raw_range(&mut lb, &mut ub, 19, 0.0, 0.25); // min_stack_h
+    set_raw_range(&mut lb, &mut ub, 34, -0.35, 0.0); // hand_fits_h1
+    set_raw_range(&mut lb, &mut ub, 35, -0.35, 0.0); // bag_fit_frac
+    set_raw_range(&mut lb, &mut ub, 39, 0.0, 0.35); // h2_narrow_1
+    set_raw_range(&mut lb, &mut ub, 40, 0.0, 0.35); // h2_narrow_2plus
+    set_raw_range(&mut lb, &mut ub, 53, 0.0, 0.35); // two_well_cnt
+    set_raw_range(&mut lb, &mut ub, 66, 0.0, 0.60); // o_trapped
+    set_raw_range(&mut lb, &mut ub, 68, 0.0, 0.60); // no_i_when_i_only
+    set_raw_range(&mut lb, &mut ub, 69, 0.0, 0.60); // i_dep_cols_no_i
 
     for c in 0..10 {
         set_raw_range(&mut lb, &mut ub, 8 + c, 0.0, 0.08);
@@ -2045,9 +2078,9 @@ fn compute_gentle_bounds(dense_inv_std: &[f32; DENSE_DIM]) -> (Vec<f64>, Vec<f64
     // Minimal safety floors only
     let floors: [(usize, f64); 4] = [
         (22, 0.03),  // ex13_sq
-        (23, 0.08),  // covered_holes
-        (28, 0.05),  // h1_blocks
-        (36, 0.03),  // h2_blocks
+        (23, 0.25),  // covered_holes
+        (28, 0.12),  // h1_blocks
+        (36, 0.08),  // h2_blocks
     ];
     for &(j, min_raw) in &floors {
         let inv = dense_inv_std[j] as f64;
@@ -2197,8 +2230,8 @@ fn ridge_fit_values(
         }
     }
 
-    let lam_sparse = (sum_w * 0.0025).clamp(20.0, 140.0);
-    let lam_dense = (sum_w * 0.0005).clamp(3.0, 30.0);
+    let lam_sparse = (sum_w * 0.015).clamp(30.0, 1200.0);
+    let lam_dense = (sum_w * 0.015).clamp(15.0, 900.0);
     for i in 0..SPARSE_DIM {
         let mult = if (90..120).contains(&i) { 4.0 } else { 1.0 };
         a[i * P1 + i] += lam_sparse * mult;
@@ -2425,7 +2458,7 @@ fn main() {
         .unwrap_or(2);
     let n_threads = avail_threads.min(games.max(1));
     println!(
-        "=== Round 2 Two-Phase Calibrated Finite-Horizon CRN SpatialValueModel RL ===\n  teacher={} no_o_bias={} games={} seeds=[{}..{}] H={} B={} MPR={} roll_h={} roll_bw={} crn_w={} cf/g={} cal_v_w={} lin_lr_mult={} threads={}",
+        "=== Round 3 OOD-Safe Calibrated Finite-Horizon CRN SpatialValueModel RL ===\n  teacher={} no_o_bias={} games={} seeds=[{}..{}] H={} B={} MPR={} roll_h={} roll_bw={} crn_w={} cf/g={} cal_v_w={} lin_lr_mult={} threads={}",
         teacher_arg, !keep_o_bias, games, seed_base, seed_base + games as u64, horizon, beam_w, max_per_root, roll_horizon, roll_bw, crn_worlds, cf_per_game, cal_v_weight, lin_lr_mult, avail_threads
     );
     let _ = std::io::Write::flush(&mut std::io::stdout());
@@ -2710,8 +2743,12 @@ fn main() {
     let mut mdl = if let Some(ref ip) = init_path {
         let mut m = SpatialValueModel::load_from_file(ip).expect("load init model");
         m.fast_ready = false;
-        for h in 0..SPATIAL_H1 {
-            m.w_dense[0][h] = 0.0;
+        for j in 0..DENSE_DIM {
+            if !dense_mlp_allowed(j) {
+                for h in 0..SPATIAL_H1 {
+                    m.w_dense[j][h] = 0.0;
+                }
+            }
         }
         m
     } else {
@@ -2761,6 +2798,9 @@ fn main() {
             }
         }
         for j in 1..DENSE_DIM {
+            if !dense_mlp_allowed(j) {
+                continue;
+            }
             for h in 0..SPATIAL_H1 {
                 m.w_dense[j][h] = rng.next_normal() * s1;
             }
