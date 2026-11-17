@@ -78,10 +78,6 @@ impl Teacher {
             Teacher::Spatial(m) => m.evaluate_board_with_bag(b, rem_g, in_hand, avail_mask),
         }
     }
-
-    fn is_spatial(&self) -> bool {
-        matches!(self, Teacher::Spatial(_))
-    }
 }
 
 fn garbage_rows(stacker: &Stacker) -> u16 {
@@ -104,8 +100,8 @@ fn extended_queue(stacker: &Stacker, len: usize) -> Vec<blockfish::Color> {
         out.push(c.try_into().unwrap());
     }
     let mut ai_cfg = BeamConfig::default();
-    ai_cfg.beam_width = 16;
-    ai_cfg.max_per_root = 4;
+    ai_cfg.beam_width = 24;
+    ai_cfg.max_per_root = 6;
     ai_cfg.rollout_top_k = 0;
     let mut ai = FastAI::new(ai_cfg);
     while out.len() < len {
@@ -142,7 +138,7 @@ struct ExactSeedData {
     pieces: Vec<u8>,
 }
 
-fn collect_exact_seed(s: u64) -> ExactSeedData {
+fn collect_exact_seed(s: u64) -> Option<ExactSeedData> {
     use std::convert::TryInto;
     let hole_at_row = |st: &Stacker, target_r: u16| -> u16 {
         let mut present = [false; 10];
@@ -162,22 +158,22 @@ fn collect_exact_seed(s: u64) -> ExactSeedData {
     for r in (0..g0).rev() {
         holes.push(hole_at_row(&stacker, r));
     }
-    let mut pieces = Vec::with_capacity(320);
+    let mut pieces = Vec::with_capacity(340);
     pieces.push(color_to_idx(stacker.current_piece_type().unwrap().try_into().unwrap()) as u8);
     for &ch in stacker.next() {
         pieces.push(color_to_idx(ch.try_into().unwrap()) as u8);
     }
     let mut c = BeamConfig::default();
-    c.beam_width = 16;
-    c.max_per_root = 4;
+    c.beam_width = 24;
+    c.max_per_root = 6;
     c.rollout_top_k = 0;
     let mut ai = FastAI::new(c);
     let mut ds_total = 0usize;
     while ds_total < 100 && stacker.current_piece_type().is_some() {
-        let snap = stacker.snapshot().unwrap();
+        let snap = stacker.snapshot()?;
         let g_before = garbage_rows(&stacker);
         let rem_g = 100usize.saturating_sub(ds_total) as u16;
-        let res = ai.best_move(&snap, Some(g_before), Some(rem_g)).unwrap();
+        let res = ai.best_move(&snap, Some(g_before), Some(rem_g))?;
         let had_hold = stacker.held().is_some();
         let did_hold = res.inputs.first() == Some(&blockfish::Input::Hold);
         let mut inputs = res.inputs;
@@ -198,32 +194,87 @@ fn collect_exact_seed(s: u64) -> ExactSeedData {
             pieces.push(color_to_idx(nx[nx.len() - 1].try_into().unwrap()) as u8);
         }
     }
-    assert_eq!(holes.len(), 100);
+    if holes.len() != 100 {
+        return None;
+    }
     let skip_n = stacker.snapshot().map_or(0, |sn| sn.queue.len());
     if stacker.current_piece_type().is_some() {
-        for &col in extended_queue(&stacker, 240).iter().skip(skip_n) {
+        for &col in extended_queue(&stacker, 260).iter().skip(skip_n) {
             pieces.push(color_to_idx(col) as u8);
         }
     }
-    ExactSeedData { seed: s, holes, pieces }
+    Some(ExactSeedData { seed: s, holes, pieces })
 }
 
 #[derive(Clone)]
 struct StateFeat {
     active: Vec<u16>,
     dense: [f32; DENSE_DIM],
+    teacher_score: f32,
 }
 
 impl StateFeat {
-    fn from_board(b: &FastBoard, rem_g: u16, in_hand: Option<u8>, avail: u8) -> Self {
+    fn from_board(
+        b: &FastBoard,
+        rem_g: u16,
+        in_hand: Option<u8>,
+        avail: u8,
+        teacher: &Teacher,
+    ) -> Self {
         let mut active_buf = [0u16; SPARSE_DIM];
         let mut dense = [0.0f32; DENSE_DIM];
         let n_act = extract_spatial_features(b, rem_g, in_hand, avail, &mut active_buf, &mut dense);
+        let t_sc = (teacher.eval(b, rem_g, in_hand, avail) as f32) * 0.01;
         Self {
             active: active_buf[..n_act].to_vec(),
             dense,
+            teacher_score: t_sc,
         }
     }
+}
+
+#[inline]
+fn consume_bag_bit(mask: &mut u8, p: u8) {
+    let bit = 1u8 << p;
+    if (*mask & bit) == 0 {
+        *mask = 0x7F;
+    }
+    *mask &= !bit;
+    if *mask == 0 {
+        *mask = 0x7F;
+    }
+}
+
+/// Fast board structural cleanliness metrics `(stack_cells, covered_holes, h1_blocks)`
+/// used to select diverse frontier beam leaves without full feature extraction.
+#[inline]
+fn fast_leaf_clean_metrics(b: &FastBoard) -> (i32, i32, i32) {
+    let g = b.garbage_rows as usize;
+    let n = b.rows as usize;
+    let mut stack_cells = 0i32;
+    let mut covered_holes = 0i32;
+    let mut above_mask: u16 = 0;
+    let mut i = n;
+    while i > g {
+        i -= 1;
+        let bits = b.data[i] & 0x3FF;
+        stack_cells += bits.count_ones() as i32;
+        let rholes = (!bits & 0x3FF) & above_mask;
+        covered_holes += rholes.count_ones() as i32;
+        above_mask |= bits;
+    }
+    let mut h1_blocks = 0i32;
+    if g >= 1 {
+        let c1 = (!b.data[g - 1] & 0x3FF).trailing_zeros() as usize;
+        if c1 < 10 {
+            for r in g..n {
+                if ((b.data[r] >> c1) & 1) != 0 {
+                    h1_blocks += 1;
+                }
+            }
+        }
+    }
+    (stack_cells, covered_holes, h1_blocks)
 }
 
 #[derive(Clone)]
@@ -248,6 +299,7 @@ struct GameGenerated {
     pieces: usize,
     ds_cleared: usize,
     topout: bool,
+    cf_checks: usize,
     states: Vec<StateFeat>,
     val_targets: Vec<(usize, f32, f32)>,
     pairs: Vec<(usize, usize, f32, bool, bool)>,
@@ -271,45 +323,29 @@ fn avail_mask_from_q(held: Option<u8>, q_cursor: usize, q: &[u8], bag_mask: u8) 
 }
 
 #[inline]
-fn clean_physics_cost(b: &FastBoard, rem_g: u16, in_h: Option<u8>, avail: u8, rate: f32) -> f32 {
-    let ch = b.col_heights();
-    let max_h = *ch.iter().max().unwrap() as i32;
-    let cmax = ch[3..=6].iter().copied().max().unwrap() as i32;
-    if max_h >= 20 || cmax >= 19 {
-        return 30.0 + rate * (rem_g as f32) + (max_h as f32);
+fn draw_from_bag(mask: &mut u8, rng: &mut u64) -> u8 {
+    if *mask == 0 {
+        *mask = 0x7F;
     }
-    if rem_g == 0 {
-        let mut cells = 0.0f32;
-        for r in (b.garbage_rows as usize)..(b.rows as usize) {
-            cells += (b.data[r] & 0x3FF).count_ones() as f32;
+    let cnt = mask.count_ones();
+    *rng = rng
+        .wrapping_mul(6364136223846793005)
+        .wrapping_add(1442695040888963407);
+    let mut pick = ((*rng >> 32) as u32) % cnt;
+    let mut m = *mask;
+    while m != 0 {
+        let p = m.trailing_zeros() as u8;
+        if pick == 0 {
+            *mask &= !(1u8 << p);
+            if *mask == 0 {
+                *mask = 0x7F;
+            }
+            return p;
         }
-        return 0.03 * cells;
+        pick -= 1;
+        m &= m - 1;
     }
-    let mut act = [0u16; SPARSE_DIM];
-    let mut d = [0.0f32; DENSE_DIM];
-    let _ = extract_spatial_features(b, rem_g, in_h, avail, &mut act, &mut d);
-    let h1_open = if b.garbage_rows >= 1 && d[29] == 0.0 { 1.0 } else { 0.0 };
-    let h2_open = if b.garbage_rows >= 2 && d[36] == 0.0 { 1.0 } else { 0.0 };
-    rate * d[0]
-        + 0.14 * d[3]
-        + 0.04 * d[5]
-        + 0.012 * d[21]
-        + 0.12 * d[22]
-        + 0.65 * d[23]
-        + 0.12 * d[25]
-        + 0.30 * d[28]
-        + 0.08 * d[30]
-        + 0.25 * d[36]
-        + 0.04 * d[38]
-        + 0.10 * d[42]
-        + 0.05 * d[47]
-        + 0.04 * d[48]
-        - 0.25 * h1_open
-        - 0.15 * h2_open
-        - 0.15 * d[34]
-        - 0.12 * d[56]
-        - 0.08 * d[61]
-        - 0.06 * d[54]
+    0
 }
 
 #[inline]
@@ -342,7 +378,9 @@ fn spawn_exact_cheese_ed(b: &mut FastBoard, rem_g: u16, lines_cleared: u8, holes
     true
 }
 
-fn cf_rollout_cost(
+/// Pure terminal CRN rollout from a post-1-move candidate state until `rem_g == 0`.
+/// Returns exact remaining pieces after the candidate placement (NO heuristic tail cutoff).
+fn rollout_crn_terminal(
     fst: &FastShapeTable,
     pgen: &mut FastPlaceGen,
     tmp_places: &mut Vec<blockfish::ai::fast::FastPlace>,
@@ -353,17 +391,12 @@ fn cf_rollout_cost(
     q_full: &[u8],
     holes: &[u16],
     teacher: &Teacher,
-    roll_len: usize,
-    cf_beam_w: usize,
+    roll_bw: usize,
 ) -> f32 {
     if rem_g_start == 0 {
         let ch = b_start.col_heights();
         let max_h = *ch.iter().max().unwrap_or(&0);
-        return if max_h < 20 {
-            1.0 + clean_physics_cost(&b_start, 0, held_start, 0x7F, 1.72)
-        } else {
-            35.0
-        };
+        return if max_h < 20 { 0.0 } else { 25.0 };
     }
 
     #[derive(Clone, Copy)]
@@ -381,27 +414,34 @@ fn cf_rollout_cost(
         rem_g: u16,
     }
 
-    let mut beam: Vec<CNode> = Vec::with_capacity(cf_beam_w);
-    let mut next_beam: Vec<CNode> = Vec::with_capacity(cf_beam_w * 32);
+    let max_bw = roll_bw.max(24);
+    let mut beam: Vec<CNode> = Vec::with_capacity(max_bw);
+    let mut next_beam: Vec<CNode> = Vec::with_capacity(max_bw * 32);
     let mut seen: HashSet<CKey, FxBuild> =
-        HashSet::with_capacity_and_hasher(cf_beam_w * 8, FxBuild::default());
+        HashSet::with_capacity_and_hasher(max_bw * 8, FxBuild::default());
 
     let in_h0 = held_start.or_else(|| q_full.get(qc_start).copied());
+    let av0 = avail_mask_from_q(held_start, qc_start, q_full, 0x7F);
     beam.push(CNode {
         board: b_start,
         held: held_start,
         qc: qc_start,
         rem_g: rem_g_start,
-        score: teacher.eval(&b_start, rem_g_start, in_h0, 0x7F),
+        score: teacher.eval(&b_start, rem_g_start, in_h0, av0),
     });
 
-    let mut best_done = f32::MAX;
-    let mut steps_done = 0usize;
     let q_len = q_full.len();
+    let max_steps = 230usize.min(q_len.saturating_sub(qc_start));
+    let mut steps_done = 0usize;
 
-    for step in 1..=roll_len {
+    for step in 1..=max_steps {
         next_beam.clear();
         let mut any_expanded = false;
+        let in_endgame = beam
+            .first()
+            .map_or(false, |n| n.rem_g <= 7 && n.rem_g == n.board.garbage_rows as u16);
+        let eff_bw = if in_endgame { roll_bw.max(24) } else { roll_bw };
+
         for &node in &beam {
             if node.rem_g == 0 {
                 continue;
@@ -440,14 +480,11 @@ fn cf_rollout_cost(
                     (None, (qc + 1).min(q_len))
                 };
                 if rem_g == 0 && b.rows < 20 {
-                    let finish_cost = 1.0 + (step as f32) + clean_physics_cost(&b, 0, held, 0x7F, 1.72);
-                    if finish_cost < best_done {
-                        best_done = finish_cost;
-                    }
-                    continue;
+                    return step as f32;
                 }
                 let in_h = held.or_else(|| q_full.get(nqc).copied());
-                let sc = teacher.eval(&b, rem_g, in_h, 0x7F);
+                let av = avail_mask_from_q(held, nqc, q_full, 0x7F);
+                let sc = teacher.eval(&b, rem_g, in_h, av);
                 next_beam.push(CNode {
                     board: b,
                     held,
@@ -457,24 +494,16 @@ fn cf_rollout_cost(
                 });
             }
         }
-        if !any_expanded {
-            break;
-        }
-        if next_beam.is_empty() {
-            if best_done < f32::MAX {
-                return best_done;
-            }
-            return 1.0 + (step as f32) + 28.0 + 1.72 * (rem_g_start as f32);
+        if !any_expanded || next_beam.is_empty() {
+            let rem_left = beam.first().map_or(rem_g_start, |n| n.rem_g);
+            return (steps_done as f32) + 12.0 + 1.85 * (rem_left as f32);
         }
         steps_done = step;
-        if best_done < f32::MAX {
-            return best_done;
-        }
         next_beam.sort_unstable_by_key(|n| n.score);
         beam.clear();
         seen.clear();
         for &ch in &next_beam {
-            if beam.len() >= cf_beam_w {
+            if beam.len() >= eff_bw {
                 break;
             }
             let key = CKey {
@@ -488,31 +517,8 @@ fn cf_rollout_cost(
         }
     }
 
-    if best_done < f32::MAX {
-        return best_done;
-    }
-    let mut best_term = f32::MAX;
-    for &node in beam.iter().take(2) {
-        let in_h = node.held.or_else(|| q_full.get(node.qc).copied());
-        let tail = if let Teacher::Spatial(ref sm) = teacher {
-            let mut act = [0u16; SPARSE_DIM];
-            let mut d = [0.0f32; DENSE_DIM];
-            let n_act = extract_spatial_features(&node.board, node.rem_g, in_h, 0x7F, &mut act, &mut d);
-            0.75 * sm.predict_extracted(&act[..n_act], &d)
-                + 0.25 * clean_physics_cost(&node.board, node.rem_g, in_h, 0x7F, 1.70)
-        } else {
-            clean_physics_cost(&node.board, node.rem_g, in_h, 0x7F, 1.72)
-        };
-        let tot = 1.0 + (steps_done as f32) + tail;
-        if tot < best_term {
-            best_term = tot;
-        }
-    }
-    if best_term < f32::MAX {
-        best_term
-    } else {
-        1.0 + (steps_done as f32) + 28.0 + 1.72 * (rem_g_start as f32)
-    }
+    let rem_left = beam.first().map_or(rem_g_start, |n| n.rem_g);
+    (steps_done as f32) + 12.0 + 1.85 * (rem_left as f32)
 }
 
 fn generate_game_data(
@@ -520,9 +526,25 @@ fn generate_game_data(
     horizon: usize,
     beam_w: usize,
     max_per_root: usize,
+    roll_bw: usize,
+    crn_worlds: usize,
+    cf_per_game: usize,
     teacher: &Teacher,
 ) -> GameGenerated {
-    let ed = collect_exact_seed(seed);
+    let ed = match collect_exact_seed(seed) {
+        Some(e) => e,
+        None => {
+            return GameGenerated {
+                pieces: 400,
+                ds_cleared: 0,
+                topout: true,
+                cf_checks: 0,
+                states: Vec::new(),
+                val_targets: Vec::new(),
+                pairs: Vec::new(),
+            };
+        }
+    };
     let fst = FastShapeTable::srs();
 
     #[derive(Clone, Copy)]
@@ -557,27 +579,18 @@ fn generate_game_data(
     let mut seen: HashSet<OKey, FxBuild> =
         HashSet::with_capacity_and_hasher(beam_w * 4, FxBuild::default());
 
-    struct StepRec {
-        win_state_idx: usize,
-        rem_g_after: u16,
-        clean_res: f32,
-    }
-    struct CfCandRec {
-        step_idx: usize,
-        cand_state_idx: usize,
-        cf_delta: f32,
-        weight: f32,
-    }
-
-    let mut states: Vec<StateFeat> = Vec::with_capacity(2000);
-    let mut step_recs: Vec<StepRec> = Vec::with_capacity(220);
-    let mut cf_cands: Vec<CfCandRec> = Vec::with_capacity(600);
-    let mut raw_pairs: Vec<(usize, usize, f32, bool, bool)> = Vec::with_capacity(900);
+    let mut states: Vec<StateFeat> = Vec::with_capacity(600);
+    let mut traj_recs: Vec<(usize, u16)> = Vec::with_capacity(220);
+    let mut cf_val_recs: Vec<(usize, f32, f32)> = Vec::with_capacity(140);
+    let mut raw_pairs: Vec<(usize, usize, f32, bool, bool)> = Vec::with_capacity(240);
 
     let mut ds_total = 0usize;
     let mut q_pos = 0usize;
     let mut pcs = 0usize;
     let mut cf_checks = 0usize;
+    let max_cf_rem_g: u16 = 40;
+    let mut next_cf_rem_g: u16 = max_cf_rem_g;
+    let cf_step_g: u16 = (34u16 / (cf_per_game.max(1) as u16)).max(2);
     let mut topout = false;
 
     while ds_total < 100 && stacker.current_piece_type().is_some() {
@@ -620,7 +633,6 @@ fn generate_game_data(
         seen.clear();
         let mut best_goal: Option<(usize, u16, i64)> = None;
         let mut root_best_goal: Vec<Option<usize>> = vec![None; root_places.len()];
-        // (board_after, exact_held, exact_qc, legal_in_hand, rem_g, legal_avail, ds, sc_1ply_legal)
         let mut root_after1: Vec<Option<(FastBoard, Option<u8>, usize, Option<u8>, u16, u8, u8, i64)>> =
             vec![None; root_places.len()];
 
@@ -773,227 +785,346 @@ fn generate_game_data(
             0
         };
 
-        let mut root_q: Vec<Option<f32>> = vec![None; root_places.len()];
+        let mut root_beam_rank: Vec<Option<i64>> = vec![None; root_places.len()];
         for (ri, &gd) in root_best_goal.iter().enumerate() {
             if let Some(d) = gd {
-                root_q[ri] = Some(d as f32);
+                root_beam_rank[ri] = Some(-30_000_000 + (d as i64) * 100);
             }
         }
         for node in &cur_beam {
             let ri = node.first_idx as usize;
-            if root_q[ri].is_none() && node.score > -9_000_000 && node.score < 4_000_000 {
-                root_q[ri] = Some((target_d as f32) + (node.score as f32) * 0.01);
+            if root_beam_rank[ri].is_none() {
+                root_beam_rank[ri] = Some(node.score);
             }
         }
 
-        if let Some((b_w, held_w, qc_w, l_ih_w, rem_w, l_av_w, ds_w, sc_w_1ply)) = root_after1[chosen_idx] {
+        if let Some((b_w, _held_w, _qc_w, l_ih_w, rem_w, l_av_w, ds_w, sc_w_1ply)) = root_after1[chosen_idx] {
             if rem_w > 0 {
-                let step_idx = step_recs.len();
                 let win_s_idx = states.len();
-                states.push(StateFeat::from_board(&b_w, rem_w, l_ih_w, l_av_w));
-                let clean_res_w = clean_physics_cost(&b_w, rem_w, l_ih_w, l_av_w, 0.0);
-                let clean_w = 1.75 * (rem_w as f32) + clean_res_w;
-                step_recs.push(StepRec {
-                    win_state_idx: win_s_idx,
-                    rem_g_after: rem_w,
-                    clean_res: clean_res_w,
-                });
+                states.push(StateFeat::from_board(&b_w, rem_w, l_ih_w, l_av_w, teacher));
+                traj_recs.push((win_s_idx, rem_w));
 
-                let mut best_1ply_other: Option<(usize, i64)> = None;
-                let mut best_opp_ds: Option<(usize, i64)> = None;
-                let mut best_runner: Option<(usize, f32)> = None;
-                let mut worst_surv: Option<(usize, f32)> = None;
-                let mut pruned_trap: Option<(usize, i64)> = None;
-                let mut pruned_ugly: Option<(usize, f32)> = None;
+                let do_cf = rem_g0 <= next_cf_rem_g
+                    && rem_g0 > 6
+                    && cf_checks < cf_per_game
+                    && q_full.len() > 24
+                    && best_goal.is_none();
 
-                for ri in 0..root_places.len() {
-                    if ri == chosen_idx {
-                        continue;
-                    }
-                    if let Some((b_l, _, _, l_ih_l, rem_l, l_av_l, ds_l, sc_l_1ply)) = root_after1[ri] {
-                        if rem_l == 0 {
-                            continue;
-                        }
-                        if best_1ply_other.map_or(true, |x| sc_l_1ply < x.1) {
-                            best_1ply_other = Some((ri, sc_l_1ply));
-                        }
-                        if (ds_l > 0) != (ds_w > 0) && best_opp_ds.map_or(true, |x| sc_l_1ply < x.1) {
-                            best_opp_ds = Some((ri, sc_l_1ply));
-                        }
-                        if let Some(ql) = root_q[ri] {
-                            if best_runner.map_or(true, |x| ql < x.1) {
-                                best_runner = Some((ri, ql));
-                            }
-                            if worst_surv.map_or(true, |x| ql > x.1) {
-                                worst_surv = Some((ri, ql));
-                            }
-                        } else {
-                            if pruned_trap.map_or(true, |x| sc_l_1ply < x.1) {
-                                pruned_trap = Some((ri, sc_l_1ply));
-                            }
-                            let c_l = clean_physics_cost(&b_l, rem_l, l_ih_l, l_av_l, 1.75);
-                            if pruned_ugly.map_or(true, |x| c_l > x.1) {
-                                pruned_ugly = Some((ri, c_l));
-                            }
-                        }
-                    }
-                }
-
-                let is_interesting = best_1ply_other.map_or(false, |x| x.1 <= sc_w_1ply + 20)
-                    || ds_w > 0
-                    || (pcs % 4 == 0);
-                let do_cf = rem_g0 > 4
-                    && q_full.len() > 14
-                    && cf_checks < 36
-                    && is_interesting;
-
-                let mut used_ris: Vec<usize> = Vec::with_capacity(6);
                 if do_cf {
                     cf_checks += 1;
-                    let cf_w = cf_rollout_cost(
-                        &fst,
-                        &mut pgen,
-                        &mut cf_tmp_places,
-                        b_w,
-                        held_w,
-                        qc_w,
-                        rem_w,
-                        q_full,
-                        &ed.holes,
-                        teacher,
-                        14,
-                        6,
-                    );
+                    next_cf_rem_g = rem_g0.saturating_sub(cf_step_g);
 
-                    let mut cand_ris: Vec<usize> = Vec::with_capacity(4);
-                    for opt_ri in [
-                        best_1ply_other.map(|x| x.0),
-                        best_opp_ds.map(|x| x.0),
-                        best_runner.map(|x| x.0),
-                    ] {
-                        if let Some(ri) = opt_ri {
-                            if !cand_ris.contains(&ri) {
-                                cand_ris.push(ri);
-                            }
+                    // 1) Root 1-ply candidates (chosen vs opp_ds / runner / clean_alt)
+                    let mut best_runner: Option<(usize, i64)> = None;
+                    let mut best_opp_ds: Option<(usize, i64)> = None;
+                    let mut best_1ply_other: Option<(usize, i64)> = None;
+                    let mut best_clean_alt: Option<(usize, i64)> = None;
+
+                    for ri in 0..root_places.len() {
+                        if ri == chosen_idx {
+                            continue;
                         }
-                    }
-
-                    for ri in cand_ris.into_iter().take(3) {
-                        if let Some((b_l, held_l, qc_l, l_ih_l, rem_l, l_av_l, _, sc_l_1ply)) =
-                            root_after1[ri]
-                        {
+                        if let Some((b_l, _, _, _, rem_l, _, ds_l, sc_l_1ply)) = root_after1[ri] {
                             if rem_l == 0 {
                                 continue;
                             }
-                            used_ris.push(ri);
-                            let cf_l = cf_rollout_cost(
-                                &fst,
-                                &mut pgen,
-                                &mut cf_tmp_places,
-                                b_l,
-                                held_l,
-                                qc_l,
-                                rem_l,
-                                q_full,
-                                &ed.holes,
-                                teacher,
-                                14,
-                                6,
-                            );
-                            let l_s_idx = states.len();
-                            states.push(StateFeat::from_board(&b_l, rem_l, l_ih_l, l_av_l));
-                            let delta = (cf_l - cf_w).clamp(-6.0, 12.0);
-                            if delta.abs() < 10.0 {
-                                cf_cands.push(CfCandRec {
-                                    step_idx,
-                                    cand_state_idx: l_s_idx,
-                                    cf_delta: delta,
-                                    weight: 0.45,
-                                });
+                            if best_1ply_other.map_or(true, |x| sc_l_1ply < x.1) {
+                                best_1ply_other = Some((ri, sc_l_1ply));
                             }
-
-                            let is_1ply_trap = sc_l_1ply <= sc_w_1ply + 20;
-                            if delta >= 0.12 {
-                                raw_pairs.push((win_s_idx, l_s_idx, delta, is_1ply_trap, false));
-                            } else if delta <= -0.25 {
-                                raw_pairs.push((l_s_idx, win_s_idx, -delta, true, true));
+                            if let Some(br) = root_beam_rank[ri] {
+                                if best_runner.map_or(true, |x| br < x.1) {
+                                    best_runner = Some((ri, br));
+                                }
+                            }
+                            if (ds_l > 0) != (ds_w > 0) {
+                                let metric = root_beam_rank[ri].unwrap_or(sc_l_1ply + 500_000);
+                                if best_opp_ds.map_or(true, |x| metric < x.1) {
+                                    best_opp_ds = Some((ri, metric));
+                                }
+                            }
+                            let (stk_c, cov_h, h1_b) = fast_leaf_clean_metrics(&b_l);
+                            let clean_metric = (cov_h * 80 + h1_b * 40 + stk_c * 4) as i64;
+                            if best_clean_alt.map_or(true, |x| clean_metric < x.1) {
+                                best_clean_alt = Some((ri, clean_metric));
                             }
                         }
                     }
-                } else if let Some(q_win) = root_q[chosen_idx] {
-                    for opt_ri in [best_1ply_other.map(|x| x.0), best_runner.map(|x| x.0)] {
+
+                    let mut cand_ris: Vec<(usize, usize)> = Vec::with_capacity(3);
+                    cand_ris.push((chosen_idx, win_s_idx));
+                    for opt_ri in [
+                        best_opp_ds.map(|x| x.0),
+                        best_runner.map(|x| x.0),
+                        best_1ply_other.map(|x| x.0),
+                        best_clean_alt.map(|x| x.0),
+                    ] {
+                        if cand_ris.len() >= 3 {
+                            break;
+                        }
                         if let Some(ri) = opt_ri {
-                            if used_ris.contains(&ri) {
-                                continue;
-                            }
-                            if let Some((b_l, _, _, l_ih_l, rem_l, l_av_l, _, sc_l_1ply)) = root_after1[ri] {
-                                let dq = if let Some(ql) = root_q[ri] {
-                                    (ql - q_win).clamp(0.15, 6.0)
-                                } else {
-                                    (clean_physics_cost(&b_l, rem_l, l_ih_l, l_av_l, 1.75) - clean_w)
-                                        .max(1.1)
-                                        .clamp(0.8, 6.0)
-                                };
-                                if dq >= 0.20 {
-                                    used_ris.push(ri);
+                            if !cand_ris.iter().any(|&(r, _)| r == ri) {
+                                if let Some((b_l, _, _, l_ih_l, rem_l, l_av_l, _, _)) = root_after1[ri] {
                                     let l_s_idx = states.len();
-                                    states.push(StateFeat::from_board(&b_l, rem_l, l_ih_l, l_av_l));
+                                    states.push(StateFeat::from_board(&b_l, rem_l, l_ih_l, l_av_l, teacher));
+                                    cand_ris.push((ri, l_s_idx));
+                                }
+                            }
+                        }
+                    }
+
+                    let base_rng = seed.wrapping_mul(0x9E3779B97F4A7C15)
+                        ^ ((pcs as u64) + 1).wrapping_mul(0xBF58476D1CE4E5B9);
+
+                    if cand_ris.len() >= 2 {
+                        let unspawned0 = (rem_g0 as usize).saturating_sub(g_rows as usize);
+                        let spawned_so_far0 = 100usize.saturating_sub(unspawned0);
+                        let prev_hole0 = if spawned_so_far0 > 0 && spawned_so_far0 <= ed.holes.len() {
+                            ed.holes[spawned_so_far0 - 1]
+                        } else if g_rows > 0 {
+                            (!root_board.data[0] & 0x3FF).trailing_zeros() as u16
+                        } else {
+                            4
+                        };
+
+                        let mut w_queues: Vec<Vec<u8>> = Vec::with_capacity(crn_worlds);
+                        let mut w_holes: Vec<Vec<u16>> = Vec::with_capacity(crn_worlds);
+                        for wi in 0..crn_worlds {
+                            if wi == 0 {
+                                w_queues.push(q_full.to_vec());
+                                w_holes.push(ed.holes.clone());
+                            } else {
+                                let mut wr = base_rng ^ ((wi as u64) + 1).wrapping_mul(0x94D049BB133111EB);
+                                let mut qw = Vec::with_capacity(240);
+                                for &p in &legal_q[..legal_q_len] {
+                                    qw.push(p);
+                                }
+                                let mut bag = legal_bag;
+                                while qw.len() < 240 {
+                                    qw.push(draw_from_bag(&mut bag, &mut wr));
+                                }
+                                let mut hw = ed.holes.clone();
+                                let mut ph = prev_hole0;
+                                let mut hr = wr ^ 0xD6E8FEB86659FD93;
+                                for hslot in hw.iter_mut().skip(spawned_so_far0) {
+                                    hr = hr
+                                        .wrapping_mul(6364136223846793005)
+                                        .wrapping_add(1442695040888963407);
+                                    let off = (((hr >> 32) as u16) % 9) + 1;
+                                    ph = (ph + off) % 10;
+                                    *hslot = ph;
+                                }
+                                w_queues.push(qw);
+                                w_holes.push(hw);
+                            }
+                        }
+
+                        let mut cand_means: Vec<f32> = Vec::with_capacity(cand_ris.len());
+                        let mut cand_1ply: Vec<i64> = Vec::with_capacity(cand_ris.len());
+
+                        for &(ri, s_idx) in &cand_ris {
+                            let (b_c, held_c, qc_c, _, rem_c, _, _, sc_1ply) = root_after1[ri].unwrap();
+                            let mut sum_c = 0.0f32;
+                            for wi in 0..crn_worlds {
+                                let cost = rollout_crn_terminal(
+                                    &fst,
+                                    &mut pgen,
+                                    &mut cf_tmp_places,
+                                    b_c,
+                                    held_c,
+                                    qc_c,
+                                    rem_c,
+                                    &w_queues[wi],
+                                    &w_holes[wi],
+                                    teacher,
+                                    roll_bw,
+                                );
+                                sum_c += cost;
+                            }
+                            let mean_c = sum_c / (crn_worlds as f32);
+                            cand_means.push(mean_c);
+                            cand_1ply.push(sc_1ply);
+                            cf_val_recs.push((s_idx, mean_c, 0.85));
+                        }
+
+                        for a in 0..cand_ris.len() {
+                            for b in (a + 1)..cand_ris.len() {
+                                let (win_c, lose_c) = if cand_means[a] <= cand_means[b] {
+                                    (a, b)
+                                } else {
+                                    (b, a)
+                                };
+                                let delta = (cand_means[lose_c] - cand_means[win_c]).min(10.0);
+                                if delta >= 0.25 {
+                                    let is_flipped = win_c != 0 && lose_c == 0;
+                                    let is_trap = is_flipped
+                                        || (cand_1ply[win_c] > cand_1ply[lose_c] + 10)
+                                        || (sc_w_1ply >= cand_1ply[lose_c]);
                                     raw_pairs.push((
-                                        win_s_idx,
-                                        l_s_idx,
-                                        dq,
-                                        sc_l_1ply <= sc_w_1ply + 20,
-                                        false,
+                                        cand_ris[win_c].1,
+                                        cand_ris[lose_c].1,
+                                        delta,
+                                        is_trap,
+                                        is_flipped,
                                     ));
                                 }
                             }
                         }
                     }
-                }
 
-                // Always add explicit off-policy coverage of worst/pruned high-stack/covered roots
-                let mut neg_adds = 0usize;
-                for opt_ri in [
-                    pruned_trap.map(|x| x.0),
-                    pruned_ugly.map(|x| x.0),
-                    worst_surv.map(|x| x.0),
-                ] {
-                    if neg_adds >= 2 {
-                        break;
-                    }
-                    if let Some(ri) = opt_ri {
-                        if used_ris.contains(&ri) {
-                            continue;
-                        }
-                        if let Some((b_l, _, _, l_ih_l, rem_l, l_av_l, _, sc_l_1ply)) = root_after1[ri] {
-                            if rem_l == 0 {
-                                continue;
+                    // 2) Frontier diverse_beam_leaves(4) CRN comparisons directly on beam leaves
+                    let valid_leaves: Vec<usize> = cur_beam
+                        .iter()
+                        .enumerate()
+                        .filter(|(_, n)| n.rem_g > 0 && n.board.rows < 20)
+                        .map(|(i, _)| i)
+                        .collect();
+                    if valid_leaves.len() >= 2 {
+                        let best_li = valid_leaves[0];
+                        let best_rem_g = cur_beam[best_li].rem_g;
+                        let mut opp_rem_li: Option<usize> = None;
+                        let mut low_stk_li: Option<(usize, i32)> = None;
+                        let mut clean_li: Option<(usize, i32)> = None;
+
+                        for &li in valid_leaves.iter().skip(1) {
+                            let nd = &cur_beam[li];
+                            if opp_rem_li.is_none() && nd.rem_g != best_rem_g {
+                                opp_rem_li = Some(li);
                             }
-                            let c_l = clean_physics_cost(&b_l, rem_l, l_ih_l, l_av_l, 1.75);
-                            let beam_pen = if let (Some(qw), Some(ql)) = (root_q[chosen_idx], root_q[ri]) {
-                                (ql - qw).max(0.0)
+                            let (stk_c, cov_h, h1_b) = fast_leaf_clean_metrics(&nd.board);
+                            let low_m = (nd.rem_g as i32) * 200 + stk_c * 10 + h1_b * 25;
+                            if low_stk_li.map_or(true, |x| low_m < x.1) {
+                                low_stk_li = Some((li, low_m));
+                            }
+                            let clean_m = cov_h * 40
+                                + h1_b * 25
+                                + stk_c * 3
+                                + ((nd.rem_g as i32 - best_rem_g as i32).max(0)) * 180;
+                            if clean_li.map_or(true, |x| clean_m < x.1) {
+                                clean_li = Some((li, clean_m));
+                            }
+                        }
+
+                        let mut leaf_idxs: Vec<usize> = Vec::with_capacity(4);
+                        leaf_idxs.push(best_li);
+                        for opt in [opp_rem_li, low_stk_li.map(|x| x.0), clean_li.map(|x| x.0)] {
+                            if let Some(li) = opt {
+                                if !leaf_idxs.contains(&li) {
+                                    leaf_idxs.push(li);
+                                }
+                            }
+                        }
+                        if leaf_idxs.len() < 3 {
+                            for &li in &valid_leaves {
+                                if !leaf_idxs.contains(&li) {
+                                    leaf_idxs.push(li);
+                                    if leaf_idxs.len() >= 4 {
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        if leaf_idxs.len() >= 2 {
+                            let mut bag_at_q_end = legal_bag;
+                            for &p in q.iter().skip(legal_q_len) {
+                                consume_bag_bit(&mut bag_at_q_end, p);
+                            }
+                            let mut max_spawned_leaf = 0usize;
+                            let mut leaf_s_idxs: Vec<(usize, usize)> = Vec::with_capacity(leaf_idxs.len());
+                            for &li in &leaf_idxs {
+                                let nd = &cur_beam[li];
+                                let unsp = (nd.rem_g as usize).saturating_sub(nd.board.garbage_rows as usize);
+                                max_spawned_leaf = max_spawned_leaf.max(100usize.saturating_sub(unsp));
+                                let l_ih = nd.held.or_else(|| q.get(nd.q_cursor).copied());
+                                let l_av = avail_mask_from_q(nd.held, nd.q_cursor, q, bag_at_q_end);
+                                let s_idx = states.len();
+                                states.push(StateFeat::from_board(&nd.board, nd.rem_g, l_ih, l_av, teacher));
+                                leaf_s_idxs.push((li, s_idx));
+                            }
+                            let prev_hole_leaf = if max_spawned_leaf > 0 && max_spawned_leaf <= ed.holes.len() {
+                                ed.holes[max_spawned_leaf - 1]
                             } else {
-                                1.25
+                                4
                             };
-                            let dq = (c_l - clean_w).max(beam_pen).clamp(0.6, 8.0);
-                            if dq >= 0.55 {
-                                used_ris.push(ri);
-                                neg_adds += 1;
-                                let l_s_idx = states.len();
-                                states.push(StateFeat::from_board(&b_l, rem_l, l_ih_l, l_av_l));
-                                raw_pairs.push((
-                                    win_s_idx,
-                                    l_s_idx,
-                                    dq,
-                                    sc_l_1ply <= sc_w_1ply + 25,
-                                    false,
-                                ));
-                                cf_cands.push(CfCandRec {
-                                    step_idx,
-                                    cand_state_idx: l_s_idx,
-                                    cf_delta: dq,
-                                    weight: 0.35,
-                                });
+
+                            let mut leaf_queues: Vec<Vec<u8>> = Vec::with_capacity(crn_worlds);
+                            let mut leaf_holes: Vec<Vec<u16>> = Vec::with_capacity(crn_worlds);
+                            for wi in 0..crn_worlds {
+                                if wi == 0 {
+                                    leaf_queues.push(q_full.to_vec());
+                                    leaf_holes.push(ed.holes.clone());
+                                } else {
+                                    let mut wr = (base_rng ^ 0xA5A55A5A9E3779B9)
+                                        ^ ((wi as u64) + 1).wrapping_mul(0x94D049BB133111EB);
+                                    let mut qw = Vec::with_capacity(260);
+                                    qw.extend_from_slice(q);
+                                    let mut bag = bag_at_q_end;
+                                    while qw.len() < 260 {
+                                        qw.push(draw_from_bag(&mut bag, &mut wr));
+                                    }
+                                    let mut hw = ed.holes.clone();
+                                    let mut ph = prev_hole_leaf;
+                                    let mut hr = wr ^ 0xD6E8FEB86659FD93;
+                                    for hslot in hw.iter_mut().skip(max_spawned_leaf) {
+                                        hr = hr
+                                            .wrapping_mul(6364136223846793005)
+                                            .wrapping_add(1442695040888963407);
+                                        let off = (((hr >> 32) as u16) % 9) + 1;
+                                        ph = (ph + off) % 10;
+                                        *hslot = ph;
+                                    }
+                                    leaf_queues.push(qw);
+                                    leaf_holes.push(hw);
+                                }
+                            }
+
+                            let mut leaf_means: Vec<f32> = Vec::with_capacity(leaf_s_idxs.len());
+                            let mut leaf_t_scores: Vec<i64> = Vec::with_capacity(leaf_s_idxs.len());
+                            for &(li, s_idx) in &leaf_s_idxs {
+                                let nd = &cur_beam[li];
+                                let mut sum_c = 0.0f32;
+                                for wi in 0..crn_worlds {
+                                    sum_c += rollout_crn_terminal(
+                                        &fst,
+                                        &mut pgen,
+                                        &mut cf_tmp_places,
+                                        nd.board,
+                                        nd.held,
+                                        nd.q_cursor,
+                                        nd.rem_g,
+                                        &leaf_queues[wi],
+                                        &leaf_holes[wi],
+                                        teacher,
+                                        roll_bw,
+                                    );
+                                }
+                                let mean_c = sum_c / (crn_worlds as f32);
+                                leaf_means.push(mean_c);
+                                leaf_t_scores.push(nd.score);
+                                cf_val_recs.push((s_idx, mean_c, 0.90));
+                            }
+
+                            for a in 0..leaf_s_idxs.len() {
+                                for b in (a + 1)..leaf_s_idxs.len() {
+                                    let (win_c, lose_c) = if leaf_means[a] <= leaf_means[b] {
+                                        (a, b)
+                                    } else {
+                                        (b, a)
+                                    };
+                                    let delta = (leaf_means[lose_c] - leaf_means[win_c]).min(10.0);
+                                    if delta >= 0.25 {
+                                        let is_flipped = win_c != 0 && lose_c == 0;
+                                        let is_trap = is_flipped
+                                            || (leaf_t_scores[win_c] > leaf_t_scores[lose_c] + 10);
+                                        raw_pairs.push((
+                                            leaf_s_idxs[win_c].1,
+                                            leaf_s_idxs[lose_c].1,
+                                            delta,
+                                            is_trap,
+                                            is_flipped,
+                                        ));
+                                    }
+                                }
                             }
                         }
                     }
@@ -1025,47 +1156,36 @@ fn generate_game_data(
         ds_total += ds;
     }
 
-    if ds_total < 100 {
+    if ds_total < 100 || topout {
         return GameGenerated {
             pieces: 400,
             ds_cleared: ds_total,
             topout: true,
+            cf_checks,
             states: Vec::new(),
             val_targets: Vec::new(),
             pairs: Vec::new(),
         };
     }
 
-    // Variance-reduced n-step TD + MC blend for value targets
-    let game_rate = (pcs as f32 / 100.0).clamp(1.60, 1.95);
-    let td_k = 10usize;
-    let mut step_targets = vec![0.0f32; step_recs.len()];
-    let mut val_targets = Vec::with_capacity(step_recs.len() + cf_cands.len());
-    for (step_idx, sr) in step_recs.iter().enumerate() {
-        let mc_rem = (pcs - (step_idx + 1)) as f32;
-        let td_rem = if step_idx + td_k < step_recs.len() {
-            let fut = &step_recs[step_idx + td_k];
-            (td_k as f32) + game_rate * (fut.rem_g_after as f32) + fut.clean_res
-        } else {
-            mc_rem
-        };
-        let targ = (0.35 * mc_rem + 0.65 * td_rem).clamp(0.5, 260.0);
-        step_targets[step_idx] = targ;
-        if sr.rem_g_after == 0 {
+    // Realized Monte-Carlo remaining pieces (very light anchor) + low-variance terminal CRN outcomes
+    let mut val_targets = Vec::with_capacity(traj_recs.len() + cf_val_recs.len());
+    for (step_idx, &(s_idx, rem_w)) in traj_recs.iter().enumerate() {
+        if rem_w == 0 {
             continue;
         }
-        val_targets.push((sr.win_state_idx, targ, 1.0));
+        let mc_rem = (pcs.saturating_sub(step_idx + 1)) as f32;
+        val_targets.push((s_idx, mc_rem.clamp(0.5, 280.0), 0.05));
     }
-    for cc in &cf_cands {
-        let win_targ = step_targets[cc.step_idx];
-        let targ = (win_targ + cc.cf_delta).clamp(0.5, 280.0);
-        val_targets.push((cc.cand_state_idx, targ, cc.weight));
+    for (s_idx, mean_c, wt) in cf_val_recs {
+        val_targets.push((s_idx, mean_c.clamp(0.5, 280.0), wt));
     }
 
     GameGenerated {
         pieces: pcs,
         ds_cleared: ds_total,
-        topout,
+        topout: false,
+        cf_checks,
         states,
         val_targets,
         pairs: raw_pairs,
@@ -1160,22 +1280,34 @@ impl AdamW {
         *w -= lr_cur * mh / (vh.sqrt() + eps);
     }
 
-    fn apply(&mut self, mdl: &mut SpatialValueModel, g: &GradBuf, lr_cur: f32) {
+    fn apply(
+        &mut self,
+        mdl: &mut SpatialValueModel,
+        g: &GradBuf,
+        lr_cur: f32,
+        lin_lr_mult: f32,
+        anchor_sparse: &[f32; SPARSE_DIM],
+        anchor_dense: &[f32; DENSE_DIM],
+    ) {
         self.t += 1;
         self.b1t *= self.beta1;
         self.b2t *= self.beta2;
         let wd_mlp = self.wd * 2.0;
-        let wd_lin_sp = self.wd * 0.5;
-        let wd_lin_d = self.wd * 0.1;
+        let anchor_sp = self.wd * 2.0;
+        let anchor_d = self.wd * 3.0;
+        let lr_lin = lr_cur * lin_lr_mult;
         let (b1, b2, b1t, b2t, eps) = (self.beta1, self.beta2, self.b1t, self.b2t, self.eps);
 
-        Self::step_param(&mut mdl.lin_bias, g.lin_bias, &mut self.m_lin_b, &mut self.v_lin_b, 0.0, lr_cur, b1, b2, b1t, b2t, eps);
+        Self::step_param(&mut mdl.lin_bias, g.lin_bias, &mut self.m_lin_b, &mut self.v_lin_b, 0.0, lr_lin, b1, b2, b1t, b2t, eps);
         for i in 0..SPARSE_DIM {
-            Self::step_param(&mut mdl.lin_sparse[i], g.lin_sparse[i], &mut self.m_lin_s[i], &mut self.v_lin_s[i], wd_lin_sp, lr_cur, b1, b2, b1t, b2t, eps);
+            Self::step_param(&mut mdl.lin_sparse[i], g.lin_sparse[i], &mut self.m_lin_s[i], &mut self.v_lin_s[i], 0.0, lr_lin, b1, b2, b1t, b2t, eps);
+            mdl.lin_sparse[i] -= lr_lin * anchor_sp * (mdl.lin_sparse[i] - anchor_sparse[i]);
         }
         for j in 0..DENSE_DIM {
-            let d = if j == 0 { 0.0 } else { wd_lin_d };
-            Self::step_param(&mut mdl.lin_dense[j], g.lin_dense[j], &mut self.m_lin_d[j], &mut self.v_lin_d[j], d, lr_cur, b1, b2, b1t, b2t, eps);
+            Self::step_param(&mut mdl.lin_dense[j], g.lin_dense[j], &mut self.m_lin_d[j], &mut self.v_lin_d[j], 0.0, lr_lin, b1, b2, b1t, b2t, eps);
+            if j >= 1 {
+                mdl.lin_dense[j] -= lr_lin * anchor_d * (mdl.lin_dense[j] - anchor_dense[j]);
+            }
         }
         for h in 0..SPATIAL_H1 {
             Self::step_param(&mut mdl.b1[h], g.b1[h], &mut self.m_b1[h], &mut self.v_b1[h], 0.0, lr_cur, b1, b2, b1t, b2t, eps);
@@ -1303,7 +1435,7 @@ fn forward_cache(
             mlp += a2 * mdl.w3[k];
         }
     }
-    lin + (mlp / (1.0 + mlp.abs() / 3.5))
+    lin + (mlp / (1.0 + mlp.abs() / 5.0))
 }
 
 #[inline]
@@ -1330,7 +1462,7 @@ fn backward_add(
     for k in 0..SPATIAL_H2 {
         raw_mlp += a2[k] * mdl.w3[k];
     }
-    let denom = 1.0 + raw_mlp.abs() / 3.5;
+    let denom = 1.0 + raw_mlp.abs() / 5.0;
     let d_mlp = d_out / (denom * denom);
     g.b3 += d_mlp;
 
@@ -1420,31 +1552,33 @@ fn eval_legal_quick(label: &str, seeds: &[u64], mdl: &Arc<SpatialValueModel>) {
             .map(|sl| {
                 let cfg_ref = &cfg;
                 sc.spawn(move || {
-                    sl.iter().map(|&s| {
-                        let mut gc = BSConfig::default();
-                        gc.garbage.total_lines = Some(100);
-                        gc.prng_seed = Some(s);
-                        let mut stacker = Stacker::new(Ruleset::guideline().into(), gc);
-                        let mut ai = FastAI::new(cfg_ref.clone());
-                        let mut ds_total = 0usize;
-                        let mut moves = 0usize;
-                        while ds_total < 100 && stacker.current_piece_type().is_some() {
-                            let snap = stacker.snapshot().unwrap();
-                            let g_rows = garbage_rows(&stacker);
-                            let rem_g = 100usize.saturating_sub(ds_total) as u16;
-                            let res = match ai.best_move(&snap, Some(g_rows), Some(rem_g)) {
-                                Some(r) => r,
-                                None => return 400,
-                            };
-                            let mut inputs = res.inputs;
-                            inputs.pop();
-                            stacker.run(inputs);
-                            let (_, ds) = stacker.hard_drop();
-                            moves += 1;
-                            ds_total += ds;
-                        }
-                        if ds_total < 100 { 400 } else { moves }
-                    }).collect::<Vec<_>>()
+                    sl.iter()
+                        .map(|&s| {
+                            let mut gc = BSConfig::default();
+                            gc.garbage.total_lines = Some(100);
+                            gc.prng_seed = Some(s);
+                            let mut stacker = Stacker::new(Ruleset::guideline().into(), gc);
+                            let mut ai = FastAI::new(cfg_ref.clone());
+                            let mut ds_total = 0usize;
+                            let mut moves = 0usize;
+                            while ds_total < 100 && stacker.current_piece_type().is_some() {
+                                let snap = stacker.snapshot().unwrap();
+                                let g_rows = garbage_rows(&stacker);
+                                let rem_g = 100usize.saturating_sub(ds_total) as u16;
+                                let res = match ai.best_move(&snap, Some(g_rows), Some(rem_g)) {
+                                    Some(r) => r,
+                                    None => return 400,
+                                };
+                                let mut inputs = res.inputs;
+                                inputs.pop();
+                                stacker.run(inputs);
+                                let (_, ds) = stacker.hard_drop();
+                                moves += 1;
+                                ds_total += ds;
+                            }
+                            if ds_total < 100 { 400 } else { moves }
+                        })
+                        .collect::<Vec<_>>()
                 })
             })
             .collect();
@@ -1456,39 +1590,39 @@ fn eval_legal_quick(label: &str, seeds: &[u64], mdl: &Arc<SpatialValueModel>) {
     });
     let mean = pcs.iter().sum::<usize>() as f64 / pcs.len() as f64;
     println!(
-        "{:<24} mean={:6.2} per_seed={:?} dt={:.1}s",
+        "{:<26} mean={:6.2} per_seed={:?} dt={:.1}s",
         label, mean, pcs, t0.elapsed().as_secs_f64()
     );
 }
 
-fn eval_oracle_quick(label: &str, seeds: &[u64], horizon: usize, beam_w: usize, mdl: &Arc<SpatialValueModel>) {
+fn eval_oracle_quick(
+    label: &str,
+    seeds: &[u64],
+    horizon: usize,
+    beam_w: usize,
+    mdl: &Teacher,
+) -> f64 {
     let t0 = Instant::now();
-    let eds: Vec<ExactSeedData> = seeds.iter().map(|&s| collect_exact_seed(s)).collect();
+    let eds: Vec<ExactSeedData> = seeds.iter().filter_map(|&s| collect_exact_seed(s)).collect();
     let run_slice = |sl: &[ExactSeedData]| -> Vec<usize> {
         let fst = FastShapeTable::srs();
-            sl.iter().map(|ed| {
+        sl.iter()
+            .map(|ed| {
                 #[derive(Clone, Copy)]
-                struct ONode { board: FastBoard, held: Option<u8>, q_cursor: usize, rem_g: u16, first_idx: u16, score: i64 }
+                struct ONode {
+                    board: FastBoard,
+                    held: Option<u8>,
+                    q_cursor: usize,
+                    rem_g: u16,
+                    first_idx: u16,
+                    score: i64,
+                }
                 #[derive(Clone, Copy, Eq, PartialEq, Hash)]
-                struct OKey { board: FastBoard, held: Option<u8>, rem_g: u16 }
-
-                let spawn_exact_cheese = |b: &mut FastBoard, rem_g: u16, lines_cleared: u8, holes: &[u16]| -> bool {
-                    let target_g: usize = if lines_cleared > 0 { 4 } else { 9 };
-                    let g = b.garbage_rows as usize;
-                    let unspawned = (rem_g as usize).saturating_sub(g);
-                    let num = target_g.saturating_sub(g).min(unspawned);
-                    if num == 0 { return true; }
-                    let old_rows = b.rows as usize;
-                    if old_rows + num >= 32 { return false; }
-                    let spawned_so_far = 100usize - unspawned;
-                    for r in (0..old_rows).rev() { b.data[r + num] = b.data[r]; }
-                    for k in 0..num {
-                        b.data[num - 1 - k] = 0xFC00 | (0x3FF & !(1u16 << holes[spawned_so_far + k]));
-                    }
-                    b.rows = (old_rows + num) as u8;
-                    b.garbage_rows = (g + num) as u8;
-                    true
-                };
+                struct OKey {
+                    board: FastBoard,
+                    held: Option<u8>,
+                    rem_g: u16,
+                }
 
                 let mut gc = BSConfig::default();
                 gc.garbage.total_lines = Some(100);
@@ -1500,7 +1634,8 @@ fn eval_oracle_quick(label: &str, seeds: &[u64], horizon: usize, beam_w: usize, 
                 let mut tmp_places = Vec::with_capacity(64);
                 let mut cur_beam: Vec<ONode> = Vec::with_capacity(beam_w);
                 let mut children: Vec<ONode> = Vec::with_capacity(beam_w * 32);
-                let mut seen: HashSet<OKey, FxBuild> = HashSet::with_capacity_and_hasher(beam_w * 4, FxBuild::default());
+                let mut seen: HashSet<OKey, FxBuild> =
+                    HashSet::with_capacity_and_hasher(beam_w * 4, FxBuild::default());
 
                 let mut ds_total = 0usize;
                 let mut q_pos = 0usize;
@@ -1515,11 +1650,15 @@ fn eval_oracle_quick(label: &str, seeds: &[u64], horizon: usize, beam_w: usize, 
                     let q_end = (q_start + horizon).min(ed.pieces.len());
                     let q = &ed.pieces[q_start..q_end];
                     let q_len = q.len();
-                    if q_len == 0 { return 400; }
+                    if q_len == 0 {
+                        return 400;
+                    }
                     let cur0 = Some(q[0]);
                     let alt0 = hold0.or_else(|| q.get(1).copied());
                     pgen.generate_for_state(&fst, &root_board, cur0, alt0, &mut root_places);
-                    if root_places.is_empty() { return 400; }
+                    if root_places.is_empty() {
+                        return 400;
+                    }
 
                     let is_end = rem_g0 <= 7 && rem_g0 == g_rows;
                     let eff_w = if is_end { beam_w.max(320) } else { beam_w };
@@ -1534,71 +1673,136 @@ fn eval_oracle_quick(label: &str, seeds: &[u64], horizon: usize, beam_w: usize, 
                         let o = &fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
                         let (lines, ds, _) = b.place_and_sift(o, fp.norm_i, fp.norm_j);
                         let rem_g = rem_g0.saturating_sub(ds as u16);
-                        if rem_g > 0 && !spawn_exact_cheese(&mut b, rem_g, lines, &ed.holes) { continue; }
+                        if rem_g > 0 && !spawn_exact_cheese_ed(&mut b, rem_g, lines, &ed.holes) {
+                            continue;
+                        }
                         let (held, qc) = if hold0.is_some() {
-                            if fp.did_hold { (cur0, 1.min(q_len)) } else { (hold0, 1.min(q_len)) }
-                        } else if fp.did_hold { (cur0, 2.min(q_len)) } else { (None, 1.min(q_len)) };
+                            if fp.did_hold {
+                                (cur0, 1.min(q_len))
+                            } else {
+                                (hold0, 1.min(q_len))
+                            }
+                        } else if fp.did_hold {
+                            (cur0, 2.min(q_len))
+                        } else {
+                            (None, 1.min(q_len))
+                        };
                         if rem_g == 0 && b.rows < 20 {
                             let gr = -30_000_000 + 100 + b.rows as i64;
-                            if best_goal.map_or(true, |x| gr < x.2) { best_goal = Some((1, idx as u16, gr)); }
+                            if best_goal.map_or(true, |x| gr < x.2) {
+                                best_goal = Some((1, idx as u16, gr));
+                            }
                         }
                         let in_h = held.or_else(|| q.get(qc).copied());
-                        let sc = mdl.evaluate_board_with_bag(&b, rem_g, in_h, 0x7F);
+                        let sc = mdl.eval(&b, rem_g, in_h, 0x7F);
                         if seen.insert(OKey { board: b, held, rem_g }) {
-                            cur_beam.push(ONode { board: b, held, q_cursor: qc, rem_g, first_idx: idx as u16, score: sc });
+                            cur_beam.push(ONode {
+                                board: b,
+                                held,
+                                q_cursor: qc,
+                                rem_g,
+                                first_idx: idx as u16,
+                                score: sc,
+                            });
                         }
                     }
                     for depth in 2..=target_d {
                         children.clear();
                         for node in &cur_beam {
-                            if node.rem_g == 0 { continue; }
+                            if node.rem_g == 0 {
+                                continue;
+                            }
                             let qc = node.q_cursor;
-                            let (c_nh, c_h) = if node.held.is_some() { (q.get(qc).copied(), node.held) } else { (q.get(qc).copied(), q.get(qc + 1).copied()) };
+                            let (c_nh, c_h) = if node.held.is_some() {
+                                (q.get(qc).copied(), node.held)
+                            } else {
+                                (q.get(qc).copied(), q.get(qc + 1).copied())
+                            };
                             pgen.generate_for_state(&fst, &node.board, c_nh, c_h, &mut tmp_places);
                             for &fp in &tmp_places {
                                 let mut b = node.board;
                                 let o = &fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
                                 let (lines, ds, _) = b.place_and_sift(o, fp.norm_i, fp.norm_j);
                                 let rem_g = node.rem_g.saturating_sub(ds as u16);
-                                if rem_g > 0 && !spawn_exact_cheese(&mut b, rem_g, lines, &ed.holes) { continue; }
+                                if rem_g > 0 && !spawn_exact_cheese_ed(&mut b, rem_g, lines, &ed.holes) {
+                                    continue;
+                                }
                                 let (held, nqc) = if node.held.is_some() {
-                                    if fp.did_hold { (c_nh, (qc + 1).min(q_len)) } else { (node.held, (qc + 1).min(q_len)) }
-                                } else if fp.did_hold { (c_nh, (qc + 2).min(q_len)) } else { (None, (qc + 1).min(q_len)) };
+                                    if fp.did_hold {
+                                        (c_nh, (qc + 1).min(q_len))
+                                    } else {
+                                        (node.held, (qc + 1).min(q_len))
+                                    }
+                                } else if fp.did_hold {
+                                    (c_nh, (qc + 2).min(q_len))
+                                } else {
+                                    (None, (qc + 1).min(q_len))
+                                };
                                 if rem_g == 0 && b.rows < 20 {
                                     let gr = -30_000_000 + (depth as i64) * 100 + b.rows as i64;
-                                    if best_goal.map_or(true, |x| gr < x.2) { best_goal = Some((depth, node.first_idx, gr)); }
+                                    if best_goal.map_or(true, |x| gr < x.2) {
+                                        best_goal = Some((depth, node.first_idx, gr));
+                                    }
                                 }
                                 let in_h = held.or_else(|| q.get(nqc).copied());
-                                let sc = mdl.evaluate_board_with_bag(&b, rem_g, in_h, 0x7F);
-                                children.push(ONode { board: b, held, q_cursor: nqc, rem_g, first_idx: node.first_idx, score: sc });
+                                let sc = mdl.eval(&b, rem_g, in_h, 0x7F);
+                                children.push(ONode {
+                                    board: b,
+                                    held,
+                                    q_cursor: nqc,
+                                    rem_g,
+                                    first_idx: node.first_idx,
+                                    score: sc,
+                                });
                             }
                         }
-                        if children.is_empty() { break; }
+                        if children.is_empty() {
+                            break;
+                        }
                         children.sort_unstable_by_key(|n| (n.score, n.first_idx));
                         cur_beam.clear();
                         seen.clear();
                         let mut rc = vec![0usize; root_places.len()];
                         for &ch in &children {
-                            if cur_beam.len() >= eff_w { break; }
-                            if rc[ch.first_idx as usize] >= eff_mpr { continue; }
-                            if seen.insert(OKey { board: ch.board, held: ch.held, rem_g: ch.rem_g }) {
+                            if cur_beam.len() >= eff_w {
+                                break;
+                            }
+                            if rc[ch.first_idx as usize] >= eff_mpr {
+                                continue;
+                            }
+                            if seen.insert(OKey {
+                                board: ch.board,
+                                held: ch.held,
+                                rem_g: ch.rem_g,
+                            }) {
                                 rc[ch.first_idx as usize] += 1;
                                 cur_beam.push(ch);
                             }
                         }
                     }
-                    let chosen_idx = best_goal.map(|x| x.1 as usize).unwrap_or_else(|| cur_beam.first().map_or(0, |n| n.first_idx as usize));
+                    let chosen_idx = best_goal
+                        .map(|x| x.1 as usize)
+                        .unwrap_or_else(|| cur_beam.first().map_or(0, |n| n.first_idx as usize));
                     let fp = root_places[chosen_idx];
                     let mut inputs = ai_in.inputs_for_place(&snap.matrix, fp).unwrap();
                     inputs.pop();
-                    if fp.did_hold { if hold0.is_none() { q_pos += 2; } else { q_pos += 1; } } else { q_pos += 1; }
+                    if fp.did_hold {
+                        if hold0.is_none() {
+                            q_pos += 2;
+                        } else {
+                            q_pos += 1;
+                        }
+                    } else {
+                        q_pos += 1;
+                    }
                     stacker.run(inputs);
                     let (_, ds) = stacker.hard_drop();
                     moves += 1;
                     ds_total += ds;
                 }
                 if ds_total < 100 { 400 } else { moves }
-            }).collect()
+            })
+            .collect()
     };
     let n_threads = std::thread::available_parallelism()
         .map(|n| n.get())
@@ -1613,54 +1817,52 @@ fn eval_oracle_quick(label: &str, seeds: &[u64], horizon: usize, beam_w: usize, 
         }
         out
     });
-    let mean = pcs.iter().sum::<usize>() as f64 / pcs.len() as f64;
+    let mean = pcs.iter().sum::<usize>() as f64 / pcs.len().max(1) as f64;
     println!(
-        "{:<24} mean={:6.2} per_seed={:?} dt={:.1}s",
+        "{:<26} mean={:6.2} per_seed={:?} dt={:.1}s",
         label, mean, pcs, t0.elapsed().as_secs_f64()
     );
+    mean
 }
 
-fn compute_linear_bounds(dense_inv_std: &[f32; DENSE_DIM]) -> (Vec<f64>, Vec<f64>) {
+/// Gentle sign-consistent bounds for the linear skip connection:
+/// prevents collinear sign inversions while leaving magnitudes empirical.
+fn compute_gentle_bounds(dense_inv_std: &[f32; DENSE_DIM]) -> (Vec<f64>, Vec<f64>) {
     const P: usize = SPARSE_DIM + DENSE_DIM;
-    let mut lb = vec![-1e6f64; P];
-    let mut ub = vec![1e6f64; P];
+    let mut lb = vec![-6.0f64; P];
+    let mut ub = vec![6.0f64; P];
 
     // Sparse spatial/bag bounds
     for i in 0..80 {
-        lb[i] = 0.0;
-        ub[i] = 0.25;
+        lb[i] = -0.05;
+        ub[i] = 0.30;
     }
     for i in 80..90 {
         lb[i] = 0.0;
-        ub[i] = 0.80;
+        ub[i] = 1.00;
     }
     for i in 90..120 {
-        // Absolute h1/h2/h3 column bits: keep tight to prevent seed-specific column bias
-        lb[i] = -0.02;
-        ub[i] = 0.02;
+        // Prevent overfitting to absolute seed hole column indices
+        lb[i] = -0.03;
+        ub[i] = 0.03;
     }
     for i in 120..160 {
-        // 5x5 / 5x3 windows around h1/h2: tight bonus cap, larger overhang penalty room
-        lb[i] = -0.08;
+        lb[i] = -0.15;
+        ub[i] = 0.30;
+    }
+    for i in 160..180 {
+        lb[i] = -0.25;
         ub[i] = 0.25;
     }
-    for i in 160..166 {
-        lb[i] = -0.18;
-        ub[i] = 0.18;
-    }
-    for i in 166..180 {
-        lb[i] = -0.06;
-        ub[i] = 0.06;
-    }
-    lb[180] = 0.0;
-    ub[180] = 2.50; // g == 0 && rem_g > 0
+    lb[180] = 0.50;
+    ub[180] = 5.00; // g == 0 && rem_g > 0
     lb[181] = 0.0;
-    ub[181] = 0.50; // g >= 5
-    lb[182] = -0.25;
-    ub[182] = 0.25;
+    ub[181] = 0.60; // g >= 5
+    lb[182] = -0.35;
+    ub[182] = 0.35;
     for i in 183..186 {
-        lb[i] = -0.25;
-        ub[i] = 0.0;
+        lb[i] = -0.45;
+        ub[i] = 0.0; // h1_open / h2_open are bonuses <= 0
     }
 
     let set_raw_range = |lb: &mut [f64], ub: &mut [f64], j: usize, min_raw: f64, max_raw: f64| {
@@ -1674,14 +1876,20 @@ fn compute_linear_bounds(dense_inv_std: &[f32; DENSE_DIM]) -> (Vec<f64>, Vec<f64
         }
     };
 
-    set_raw_range(&mut lb, &mut ub, 0, 1.55, 1.85); // rem_g
-    set_raw_range(&mut lb, &mut ub, 1, 0.0, 0.30);  // g
+    // Wide empirical bounds for rem_g and g; leave stack_cells_row_g (4) free
+    set_raw_range(&mut lb, &mut ub, 0, 1.35, 2.50); // rem_g
+    set_raw_range(&mut lb, &mut ub, 1, 0.0, 0.45);  // g
 
     for j in 2..DENSE_DIM {
+        if j == 4 {
+            continue; // stack_cells_row_g free
+        }
         match j {
-            33 | 34 | 35 | 41 | 54 | 55 | 56 | 57 | 58 | 59 | 60 | 61 | 67 => {
+            // Readiness / open-hole / clean-O / near-full / clearable bonuses <= 0
+            33 | 34 | 35 | 41 | 54 | 55 | 56 | 57 | 58 | 59 | 60 | 61 | 67 | 71 => {
                 ub[SPARSE_DIM + j] = 0.0;
             }
+            // Risk / hole / blocking / clutter / roughness penalties >= 0
             _ => {
                 lb[SPARSE_DIM + j] = 0.0;
             }
@@ -1689,69 +1897,18 @@ fn compute_linear_bounds(dense_inv_std: &[f32; DENSE_DIM]) -> (Vec<f64>, Vec<f64
     }
 
     for c in 0..10 {
-        set_raw_range(&mut lb, &mut ub, 8 + c, 0.0, 0.06); // stack_h[0..9]
-    }
-    set_raw_range(&mut lb, &mut ub, 19, 0.0, 0.12); // min_sh
-    set_raw_range(&mut lb, &mut ub, 62, 0.0, 0.12); // parity
-    set_raw_range(&mut lb, &mut ub, 66, 0.0, 0.40); // o_trap
-
-    // Tight bonus caps (prevent stacking > clearing)
-    let bonus_mins: [(usize, f64); 13] = [
-        (33, -0.06), // h1_fit_cnt
-        (34, -0.28), // hand_fits_h1
-        (35, -0.28), // bag_fit_frac
-        (41, -0.05), // h2_fit_cnt
-        (54, -0.18), // clean_o_spots
-        (55, -0.14), // total_o_spots
-        (56, -0.12), // near_full_9
-        (57, -0.06), // near_full_8
-        (58, -0.24), // row_g_9_aligned
-        (59, -0.12), // row_g_8_aligned
-        (60, -0.20), // row_g_clearable_with_h1
-        (61, -0.10), // clean_skim_rows
-        (67, -0.04), // avail_cnt
-    ];
-    for &(j, min_raw) in &bonus_mins {
-        let inv = dense_inv_std[j] as f64;
-        lb[SPARSE_DIM + j] = if inv > 1e-6 { min_raw / inv } else { 0.0 };
+        set_raw_range(&mut lb, &mut ub, 8 + c, 0.0, 0.08);
     }
 
-    // Physics penalty floors
-    let pen_floors: [(usize, f64); 32] = [
-        (2, 0.12),   // pe_net
-        (3, 0.06),   // stack_cells (9 * 0.06 = 0.54 > |near9|)
-        (5, 0.01),   // stack_cells_above1
-        (7, 0.005),  // upper_cells
-        (18, 0.04),  // max_sh
-        (21, 0.012), // stack_over2_sq
-        (22, 0.12),  // ex13_sq
-        (23, 0.35),  // covered_holes
-        (24, 0.12),  // hole_rows
-        (25, 0.08),  // blocks_over_holes
-        (26, 0.15),  // shallow_holes
-        (27, 0.10),  // bottom_covered_holes
-        (28, 0.14),  // h1_blocks
-        (29, 0.02),  // h1_height
-        (30, 0.01),  // h1_empty_blocking
-        (32, 0.06),  // h1_narrow_2plus
-        (36, 0.10),  // h2_blocks
-        (37, 0.01),  // h2_empty_blocking
-        (38, 0.02),  // h2_extra_empty
-        (42, 0.04),  // h3_blocks
-        (45, 0.015), // cells_to_uncover_h1
-        (46, 0.010), // cells_to_uncover_h12
-        (47, 0.04),  // bumpiness
-        (48, 0.02),  // sharp_diff
-        (49, 0.02),  // row_transitions
-        (50, 0.02),  // col_transitions
-        (51, 0.10),  // i_dep_depth
-        (52, 0.15),  // i_dep_cols
-        (53, 0.12),  // two_well_cnt
-        (63, 0.05),  // pillars_2plus
-        (64, 0.05),  // h12_adj_overhangs
-        (65, 0.03),  // max_cliff_around_h1
+    // Minimal safety floors only (no heavy artificial overrides)
+    let floors: [(usize, f64); 5] = [
+        (3, 0.015),  // stack_cells
+        (22, 0.03),  // ex13_sq
+        (23, 0.08),  // covered_holes
+        (28, 0.05),  // h1_blocks
+        (36, 0.03),  // h2_blocks
     ];
-    for &(j, min_raw) in &pen_floors {
+    for &(j, min_raw) in &floors {
         let inv = dense_inv_std[j] as f64;
         if inv > 1e-6 {
             lb[SPARSE_DIM + j] = lb[SPARSE_DIM + j].max(min_raw / inv);
@@ -1761,105 +1918,91 @@ fn compute_linear_bounds(dense_inv_std: &[f32; DENSE_DIM]) -> (Vec<f64>, Vec<f64
     (lb, ub)
 }
 
-fn ridge_warmstart_pairwise(
+/// Distill `teacher_score` directly onto `SpatialValueModel`'s linear skip `(lin_bias, lin_sparse, lin_dense)`
+/// using lightly-regularized sign-consistent Ridge regression on all generated training states.
+/// Guarantees `ep=0` reproduces the solid baseline (`~176-180` Oracle, 0 topouts) before residual MLP RL.
+fn ridge_distill_teacher(
     mdl: &mut SpatialValueModel,
     all_states: &[StateFeat],
-    val_samples: &[ValueSample],
-    train_vals: &[usize],
-    pairs: &[RankPair],
-    train_pairs: &[usize],
-    emp_rate: f64,
+    train_state_idxs: &[usize],
 ) {
     const P: usize = SPARSE_DIM + DENSE_DIM;
-    let mut a = vec![0.0f64; P * P];
-    let mut b = vec![0.0f64; P];
-    let mut dx = [0.0f64; P];
-    let mut nz: Vec<usize> = Vec::with_capacity(160);
+    const P1: usize = P + 1;
+    let mut a = vec![0.0f64; P1 * P1];
+    let mut b = vec![0.0f64; P1];
+    let mut x = [0.0f64; P1];
+    let mut nz: Vec<usize> = Vec::with_capacity(180);
+    let mut used = 0usize;
 
-    for &pi in train_pairs {
-        let pr = &pairs[pi];
-        let sw = &all_states[pr.win_idx];
-        let sl = &all_states[pr.lose_idx];
-        let y_res = pr.dq as f64;
-        let pw = if pr.is_flipped { 1.6 } else if pr.is_trap { 1.4 } else { 1.0 };
-
-        nz.clear();
-        for &bit in &sl.active {
-            let idx = bit as usize;
-            if dx[idx] == 0.0 {
-                nz.push(idx);
-            }
-            dx[idx] += 1.0;
+    for &si in train_state_idxs {
+        let sf = &all_states[si];
+        if !sf.teacher_score.is_finite() || sf.teacher_score.abs() > 1000.0 {
+            continue;
         }
-        for &bit in &sw.active {
+        used += 1;
+        nz.clear();
+        for &bit in &sf.active {
             let idx = bit as usize;
-            if dx[idx] == 0.0 {
+            if x[idx] == 0.0 {
                 nz.push(idx);
             }
-            dx[idx] -= 1.0;
+            x[idx] += 1.0;
         }
         for j in 0..DENSE_DIM {
-            let dz = ((sl.dense[j] - sw.dense[j]) * mdl.dense_inv_std[j]) as f64;
-            if dz.abs() > 1e-9 {
+            let z = ((sf.dense[j] - mdl.dense_mean[j]) * mdl.dense_inv_std[j]) as f64;
+            if z.abs() > 1e-9 {
                 let idx = SPARSE_DIM + j;
-                dx[idx] = dz;
+                x[idx] = z;
                 nz.push(idx);
             }
         }
+        x[P] = 1.0;
+        nz.push(P);
+
+        let y = sf.teacher_score as f64;
         for (ii, &ia) in nz.iter().enumerate() {
-            let xa = dx[ia];
-            if xa == 0.0 {
-                continue;
-            }
-            b[ia] += pw * xa * y_res;
+            let xa = x[ia];
+            b[ia] += xa * y;
             for &ib in &nz[ii..] {
-                let xb = dx[ib];
-                if xb != 0.0 {
-                    a[ia * P + ib] += pw * xa * xb;
-                }
+                a[ia * P1 + ib] += xa * x[ib];
             }
         }
         for &idx in &nz {
-            dx[idx] = 0.0;
+            x[idx] = 0.0;
         }
     }
 
-    for i in 0..P {
+    for i in 0..P1 {
         for j in 0..i {
-            a[i * P + j] = a[j * P + i];
+            a[i * P1 + j] = a[j * P1 + i];
         }
     }
-    let lam_dense = (train_pairs.len() as f64 * 0.10).max(600.0);
-    let lam_sparse = (train_pairs.len() as f64 * 0.25).max(1200.0);
+
+    let lam_sparse = (used as f64 * 0.002).clamp(20.0, 120.0);
+    let lam_dense = (used as f64 * 0.0004).clamp(3.0, 25.0);
     for i in 0..SPARSE_DIM {
-        a[i * P + i] += lam_sparse;
+        let mult = if (90..120).contains(&i) { 4.0 } else { 1.0 };
+        a[i * P1 + i] += lam_sparse * mult;
     }
+    a[SPARSE_DIM * P1 + SPARSE_DIM] += 0.5;
     for j in 1..DENSE_DIM {
-        a[(SPARSE_DIM + j) * P + (SPARSE_DIM + j)] += lam_dense;
-    }
-    // Small regularization on rem_g anchored weakly around emp_rate.min(1.78)
-    let target_rate = emp_rate.clamp(1.55, 1.78);
-    if mdl.dense_inv_std[0] > 1e-6 {
-        let w0_prior = target_rate / (mdl.dense_inv_std[0] as f64);
-        let prior_lam = (train_pairs.len() as f64 * 0.01).max(40.0);
-        a[SPARSE_DIM * P + SPARSE_DIM] += prior_lam;
-        b[SPARSE_DIM] += prior_lam * w0_prior;
+        a[(SPARSE_DIM + j) * P1 + (SPARSE_DIM + j)] += lam_dense;
     }
 
-    let (lb, ub) = compute_linear_bounds(&mdl.dense_inv_std);
-
-    // Projected Gauss-Seidel coordinate descent for box-constrained Ridge
-    let mut w = vec![0.0f64; P];
-    for _ in 0..300 {
-        for j in 0..P {
-            let diag = a[j * P + j];
+    let (mut lb, mut ub) = compute_gentle_bounds(&mdl.dense_inv_std);
+    lb.push(-1e6);
+    ub.push(1e6);
+    let mut w = vec![0.0f64; P1];
+    for _ in 0..600 {
+        for j in 0..P1 {
+            let diag = a[j * P1 + j];
             if diag.abs() < 1e-12 {
                 w[j] = 0.0;
                 continue;
             }
             let mut dot = 0.0f64;
-            let row = &a[j * P..(j + 1) * P];
-            for k in 0..P {
+            let row = &a[j * P1..(j + 1) * P1];
+            for k in 0..P1 {
                 if k != j {
                     dot += row[k] * w[k];
                 }
@@ -1874,33 +2017,61 @@ fn ridge_warmstart_pairwise(
     for j in 0..DENSE_DIM {
         mdl.lin_dense[j] = w[SPARSE_DIM + j] as f32;
     }
-    mdl.lin_bias = 0.0;
+    mdl.lin_bias = w[P] as f32;
 
-    // Fit bias on train_vals so absolute scale aligns cleanly
-    let mut sum_err = 0.0f64;
-    let mut sum_w = 0.0f64;
-    for &vi in train_vals {
-        let smp = &val_samples[vi];
-        let sf = &all_states[smp.state_idx];
+    let mut abs_err = 0.0f64;
+    let mut sq_err = 0.0f64;
+    let mut cnt = 0usize;
+    for &si in train_state_idxs {
+        let sf = &all_states[si];
+        if !sf.teacher_score.is_finite() || sf.teacher_score.abs() > 1000.0 {
+            continue;
+        }
         let pred = mdl.predict_extracted(&sf.active, &sf.dense) as f64;
-        let wt = smp.weight as f64;
-        sum_err += wt * ((smp.target as f64) - pred);
-        sum_w += wt;
+        let e = pred - (sf.teacher_score as f64);
+        abs_err += e.abs();
+        sq_err += e * e;
+        cnt += 1;
     }
-    mdl.lin_bias = (sum_err / sum_w.max(1.0)) as f32;
+    let mae = abs_err / (cnt.max(1) as f64);
+    let rmse = (sq_err / (cnt.max(1) as f64)).sqrt();
+    println!(
+        "  Distilled teacher onto linear skip ({} states): distill_mae={:.3} distill_rmse={:.3}",
+        cnt, mae, rmse
+    );
 }
 
-fn clamp_linear_physics_bounds(mdl: &mut SpatialValueModel) {
-    let (lb, ub) = compute_linear_bounds(&mdl.dense_inv_std);
+fn clamp_linear_sanity(
+    mdl: &mut SpatialValueModel,
+    anchor_sparse: &[f32; SPARSE_DIM],
+    anchor_dense: &[f32; DENSE_DIM],
+) {
+    let (lb, ub) = compute_gentle_bounds(&mdl.dense_inv_std);
     for i in 0..SPARSE_DIM {
-        mdl.lin_sparse[i] = mdl.lin_sparse[i].clamp(lb[i] as f32, ub[i] as f32);
+        let al = (anchor_sparse[i] - 0.15).max(lb[i] as f32);
+        let au = (anchor_sparse[i] + 0.15).min(ub[i] as f32);
+        let (lo, hi) = if al <= au { (al, au) } else { (lb[i] as f32, ub[i] as f32) };
+        mdl.lin_sparse[i] = mdl.lin_sparse[i].clamp(lo, hi);
     }
-    for j in 0..DENSE_DIM {
-        mdl.lin_dense[j] = mdl.lin_dense[j].clamp(lb[SPARSE_DIM + j] as f32, ub[SPARSE_DIM + j] as f32);
+    mdl.lin_dense[0] = mdl.lin_dense[0].clamp(lb[SPARSE_DIM] as f32, ub[SPARSE_DIM] as f32);
+    for j in 1..DENSE_DIM {
+        let inv = mdl.dense_inv_std[j];
+        let slack = if inv > 1e-6 { 0.04 / inv } else { 0.0 };
+        let anc = anchor_dense[j];
+        let tr_lo = (anc * 0.85).min(anc * 1.20) - slack;
+        let tr_hi = (anc * 0.85).max(anc * 1.20) + slack;
+        let glb = lb[SPARSE_DIM + j] as f32;
+        let gub = ub[SPARSE_DIM + j] as f32;
+        let lo = glb.max(tr_lo);
+        let hi = gub.min(tr_hi);
+        mdl.lin_dense[j] = if lo <= hi {
+            mdl.lin_dense[j].clamp(lo, hi)
+        } else {
+            mdl.lin_dense[j].clamp(glb, gub)
+        };
     }
-
     for k in 0..SPATIAL_H2 {
-        mdl.w3[k] = mdl.w3[k].clamp(-0.15, 0.15);
+        mdl.w3[k] = mdl.w3[k].clamp(-0.25, 0.25);
     }
     mdl.b3 = mdl.b3.clamp(-1.5, 1.5);
 }
@@ -1924,7 +2095,10 @@ fn print_spatial_diagnostics(label: &str, mdl: &SpatialValueModel) {
     for &(j, name) in &checks {
         parts.push(format!("{}:{:+.3}", name, mdl.lin_dense[j] * mdl.dense_inv_std[j]));
     }
-    println!("  [{}] lin_raw: {}", label, parts.join(" "));
+    println!(
+        "  [{}] bias={:+.2} g0_sp={:+.2} | lin_raw: {}",
+        label, mdl.lin_bias, mdl.lin_sparse[180], parts.join(" ")
+    );
 }
 
 fn main() {
@@ -1936,16 +2110,21 @@ fn main() {
     let mut horizon: usize = 12;
     let mut beam_w: usize = 140;
     let mut max_per_root: usize = 20;
-    let mut epochs: usize = 35;
+    let mut roll_bw: usize = 10;
+    let mut crn_worlds: usize = 4;
+    let mut cf_per_game: usize = 10;
+    let mut epochs: usize = 30;
     let mut batch_size: usize = 128;
-    let mut lr: f32 = 0.0012;
-    let mut wd: f32 = 0.002;
-    let mut rank_w: f32 = 2.0;
-    let mut diff_w: f32 = 1.5;
-    let mut val_w: f32 = 0.03;
+    let mut lr: f32 = 0.0005;
+    let mut wd: f32 = 0.012;
+    let mut lin_lr_mult: f32 = 0.08;
+    let mut rank_w: f32 = 1.5;
+    let mut diff_w: f32 = 0.30;
+    let mut val_w: f32 = 0.05;
     let mut seed_base: u64 = 1000;
     let mut eval_oracle: usize = 5;
     let mut eval_legal: usize = 5;
+    let mut eval_teacher: bool = false;
 
     let mut i = 1;
     while i < args.len() {
@@ -1957,10 +2136,14 @@ fn main() {
             "--horizon" => { horizon = args[i + 1].parse().unwrap(); i += 2; }
             "--beam" => { beam_w = args[i + 1].parse().unwrap(); i += 2; }
             "--max-per-root" => { max_per_root = args[i + 1].parse().unwrap(); i += 2; }
+            "--roll-bw" => { roll_bw = args[i + 1].parse().unwrap(); i += 2; }
+            "--crn-worlds" => { crn_worlds = args[i + 1].parse().unwrap(); i += 2; }
+            "--cf-per-game" => { cf_per_game = args[i + 1].parse().unwrap(); i += 2; }
             "--epochs" => { epochs = args[i + 1].parse().unwrap(); i += 2; }
             "--batch" => { batch_size = args[i + 1].parse().unwrap(); i += 2; }
             "--lr" => { lr = args[i + 1].parse().unwrap(); i += 2; }
             "--wd" => { wd = args[i + 1].parse().unwrap(); i += 2; }
+            "--lin-lr-mult" => { lin_lr_mult = args[i + 1].parse().unwrap(); i += 2; }
             "--rank-w" => { rank_w = args[i + 1].parse().unwrap(); i += 2; }
             "--diff-w" => { diff_w = args[i + 1].parse().unwrap(); i += 2; }
             "--val-w" => { val_w = args[i + 1].parse().unwrap(); i += 2; }
@@ -1973,6 +2156,7 @@ fn main() {
             }
             "--eval-oracle" => { eval_oracle = args[i + 1].parse().unwrap(); i += 2; }
             "--eval-legal" => { eval_legal = args[i + 1].parse().unwrap(); i += 2; }
+            "--eval-teacher" => { eval_teacher = true; i += 1; }
             other => panic!("Unknown arg: {}", other),
         }
     }
@@ -1990,8 +2174,8 @@ fn main() {
         .unwrap_or(2)
         .min(games.max(1));
     println!(
-        "=== SpatialValueModel Counterfactual ExIt ===\n  teacher={} games={} seeds=[{}..{}] H={} B={} MPR={} threads={}",
-        teacher_arg, games, seed_base, seed_base + games as u64, horizon, beam_w, max_per_root, n_threads
+        "=== True-Outcome Terminal-CRN SpatialValueModel RL ===\n  teacher={} games={} seeds=[{}..{}] H={} B={} MPR={} roll_bw={} crn_w={} cf/g={} lin_lr_mult={} threads={}",
+        teacher_arg, games, seed_base, seed_base + games as u64, horizon, beam_w, max_per_root, roll_bw, crn_worlds, cf_per_game, lin_lr_mult, n_threads
     );
     let _ = std::io::Write::flush(&mut std::io::stdout());
 
@@ -2006,7 +2190,18 @@ fn main() {
                 sc.spawn(move || {
                     chunk
                         .iter()
-                        .map(|&s| generate_game_data(s, horizon, beam_w, max_per_root, t_ref))
+                        .map(|&s| {
+                            generate_game_data(
+                                s,
+                                horizon,
+                                beam_w,
+                                max_per_root,
+                                roll_bw,
+                                crn_worlds,
+                                cf_per_game,
+                                t_ref,
+                            )
+                        })
                         .collect::<Vec<_>>()
                 })
             })
@@ -2022,14 +2217,16 @@ fn main() {
     let topouts = game_results.len() - valid_games.len();
     let sum_pcs: usize = valid_games.iter().map(|g| g.pieces).sum();
     let sum_ds: usize = valid_games.iter().map(|g| g.ds_cleared).sum();
+    let sum_cf: usize = valid_games.iter().map(|g| g.cf_checks).sum();
     let mean_pcs = sum_pcs as f64 / valid_games.len().max(1) as f64;
-    let emp_rate = (sum_pcs as f64 / sum_ds.max(1) as f64).clamp(1.55, 1.90);
+    let emp_rate = sum_pcs as f64 / sum_ds.max(1) as f64;
     let min_pcs = valid_games.iter().map(|g| g.pieces).min().unwrap_or(0);
     let max_pcs = valid_games.iter().map(|g| g.pieces).max().unwrap_or(0);
     println!(
-        "Generated {} valid games ({} topouts) in {:.1}s | teacher mean={:.2} [{}..{}] emp_rate={:.4}",
+        "Generated {} valid games ({} topouts, {} cf_checks) in {:.1}s | teacher mean={:.2} [{}..{}] emp_rate={:.4}",
         valid_games.len(),
         topouts,
+        sum_cf,
         t_gen.elapsed().as_secs_f64(),
         mean_pcs,
         min_pcs,
@@ -2037,15 +2234,20 @@ fn main() {
         emp_rate
     );
 
-    let val_start = (valid_games.len() * 85) / 100;
+    let val_start = ((valid_games.len() * 85) / 100).min(valid_games.len().saturating_sub(1));
     let mut all_states: Vec<StateFeat> = Vec::new();
     let mut val_samples: Vec<ValueSample> = Vec::new();
     let mut pairs: Vec<RankPair> = Vec::new();
     let mut flipped_cnt = 0usize;
+    let mut train_state_idxs: Vec<usize> = Vec::new();
     for (gi, g) in valid_games.iter().enumerate() {
         let is_val = gi >= val_start;
         let base = all_states.len();
+        let end = base + g.states.len();
         all_states.extend(g.states.iter().cloned());
+        if !is_val {
+            train_state_idxs.extend(base..end);
+        }
         for &(si, targ, wt) in &g.val_targets {
             val_samples.push(ValueSample {
                 state_idx: base + si,
@@ -2074,8 +2276,9 @@ fn main() {
     let train_pairs: Vec<usize> = (0..pairs.len()).filter(|&i| !pairs[i].is_val).collect();
     let valid_pairs: Vec<usize> = (0..pairs.len()).filter(|&i| pairs[i].is_val).collect();
     println!(
-        "Dataset: states={} train_vals={} val_vals={} train_pairs={} val_pairs={} cf_flipped={}",
+        "Dataset: states={} train_states={} train_vals={} val_vals={} train_pairs={} val_pairs={} crn_flipped={}",
         all_states.len(),
+        train_state_idxs.len(),
         train_vals.len(),
         valid_vals.len(),
         train_pairs.len(),
@@ -2092,24 +2295,6 @@ fn main() {
         m
     } else {
         let mut m = SpatialValueModel::default();
-        // Compute dense mean & inv_std over ALL train states (winners + counterfactual losers)
-        let mut train_state_seen = vec![false; all_states.len()];
-        let mut train_state_idxs = Vec::new();
-        for &vi in &train_vals {
-            let si = val_samples[vi].state_idx;
-            if !train_state_seen[si] {
-                train_state_seen[si] = true;
-                train_state_idxs.push(si);
-            }
-        }
-        for &pi in &train_pairs {
-            for si in [pairs[pi].win_idx, pairs[pi].lose_idx] {
-                if !train_state_seen[si] {
-                    train_state_seen[si] = true;
-                    train_state_idxs.push(si);
-                }
-            }
-        }
         let mut mean = [0.0f64; DENSE_DIM];
         let mut var = [0.0f64; DENSE_DIM];
         let n_tr = train_state_idxs.len().max(1) as f64;
@@ -2135,11 +2320,31 @@ fn main() {
             m.dense_inv_std[j] = (1.0 / std) as f32;
         }
 
-        ridge_warmstart_pairwise(&mut m, &all_states, &val_samples, &train_vals, &pairs, &train_pairs, emp_rate);
+        ridge_distill_teacher(&mut m, &all_states, &train_state_idxs);
+
+        // Shift lin_bias (constant, invariant for search) to match true CRN rem_pcs scale
+        let mut sum_err = 0.0f64;
+        let mut sum_w = 0.0f64;
+        for &vi in &train_vals {
+            let smp = &val_samples[vi];
+            if smp.weight < 0.5 {
+                continue;
+            }
+            let sf = &all_states[smp.state_idx];
+            let pred = m.predict_extracted(&sf.active, &sf.dense) as f64;
+            let wt = smp.weight as f64;
+            sum_err += wt * ((smp.target as f64) - pred);
+            sum_w += wt;
+        }
+        if sum_w > 0.0 {
+            m.lin_bias += (sum_err / sum_w) as f32;
+        }
+
+        // Initialize residual 2-layer MLP tiny so ep=0 starts squarely at distilled linear teacher
         let mut rng = Xorshift64(0x9E3779B97F4A7C15 ^ seed_base);
-        let s1 = (2.0f32 / (DENSE_DIM as f32 + 40.0)).sqrt() * 0.30;
-        let s2 = (2.0f32 / SPATIAL_H1 as f32).sqrt() * 0.40;
-        let s3 = (2.0f32 / SPATIAL_H2 as f32).sqrt() * 0.05;
+        let s1 = (2.0f32 / (DENSE_DIM as f32 + 40.0)).sqrt() * 0.20;
+        let s2 = (2.0f32 / SPATIAL_H1 as f32).sqrt() * 0.20;
+        let s3 = 0.008f32;
         for i in 0..SPARSE_DIM {
             for h in 0..SPATIAL_H1 {
                 m.w_sparse[i][h] = rng.next_normal() * s1 * 0.5;
@@ -2158,9 +2363,13 @@ fn main() {
         for k in 0..SPATIAL_H2 {
             m.w3[k] = rng.next_normal() * s3;
         }
+        m.b3 = 0.0;
         m
     };
     mdl.fast_ready = false;
+    let anchor_sparse = mdl.lin_sparse;
+    let anchor_dense = mdl.lin_dense;
+    let ep0_mdl = mdl.clone();
     print_spatial_diagnostics("ep0_warm", &mdl);
 
     let mut opt = AdamW::new(wd);
@@ -2208,9 +2417,9 @@ fn main() {
             };
 
             let mut p_cursor = 0usize;
-            let val_huber = 2.5f32;
-            let diff_huber = 1.5f32;
-            let tau = 0.25f32;
+            let val_huber = 4.0f32;
+            let diff_huber = 2.0f32;
+            let tau = 0.30f32;
 
             for b_idx in 0..n_batches {
                 grad.zero();
@@ -2243,7 +2452,6 @@ fn main() {
                         let yw = forward_cache(&mdl, sw, &mut z_w, &mut a1_w, &mut a2_w);
                         let yl = forward_cache(&mdl, sl, &mut z_l, &mut a1_l, &mut a2_l);
 
-                        // 1) Calibrated pairwise difference Huber regression: (yl - yw) ~ dq
                         let pred_d = yl - yw;
                         let err_d = pred_d - pr.dq;
                         let g_cal = if err_d.abs() <= diff_huber {
@@ -2252,14 +2460,13 @@ fn main() {
                             diff_huber * err_d.signum()
                         };
 
-                        // 2) Logistic ranking loss with extra emphasis on traps & CF-flipped wins
-                        let margin = pr.dq.clamp(0.15, 1.25);
+                        let margin = pr.dq.clamp(0.20, 1.50);
                         let u = ((yw - yl + margin) / tau).clamp(-20.0, 20.0);
                         let sig = 1.0 / (1.0 + (-u).exp());
                         let trap_mult = if pr.is_flipped {
-                            2.2
+                            2.0
                         } else if pr.is_trap {
-                            1.8
+                            1.5
                         } else {
                             1.0
                         };
@@ -2271,20 +2478,28 @@ fn main() {
                     }
                 }
 
-                opt.apply(&mut mdl, &grad, lr_cur);
-                clamp_linear_physics_bounds(&mut mdl);
+                opt.apply(&mut mdl, &grad, lr_cur, lin_lr_mult, &anchor_sparse, &anchor_dense);
+                clamp_linear_sanity(&mut mdl, &anchor_sparse, &anchor_dense);
             }
         }
 
-        // Validation metrics
-        let tau = 0.25f32;
-        let mut val_mae = 0.0f32;
+        let tau = 0.30f32;
+        let mut cf_val_err = 0.0f32;
+        let mut cf_val_wt = 0.0f32;
         for &vi in &valid_vals {
             let smp = &val_samples[vi];
+            if smp.weight < 0.5 {
+                continue;
+            }
             let pred = forward_cache(&mdl, &all_states[smp.state_idx], &mut z_w, &mut a1_w, &mut a2_w);
-            val_mae += (pred - smp.target).abs();
+            cf_val_err += smp.weight * (pred - smp.target).abs();
+            cf_val_wt += smp.weight;
         }
-        val_mae /= valid_vals.len().max(1) as f32;
+        let val_mae = if cf_val_wt > 0.0 {
+            cf_val_err / cf_val_wt
+        } else {
+            0.0
+        };
 
         let mut pair_ok = 0usize;
         let mut trap_ok = 0usize;
@@ -2313,7 +2528,7 @@ fn main() {
                     flip_ok += 1;
                 }
             }
-            let margin = pr.dq.clamp(0.15, 1.25);
+            let margin = pr.dq.clamp(0.20, 1.50);
             let u = ((yw - yl + margin) / tau).clamp(-20.0, 20.0);
             rank_loss_sum += tau * (1.0 + u.exp()).ln();
         }
@@ -2323,14 +2538,14 @@ fn main() {
         let trap_acc = 100.0 * trap_ok as f32 / trap_tot.max(1) as f32;
         let flip_acc = 100.0 * flip_ok as f32 / flip_tot.max(1) as f32;
         let rank_l = rank_loss_sum / n_vp;
-        let comb = 0.05 * val_mae + 0.65 * diff_mae + rank_w * rank_l;
+        let comb = 0.15 * val_mae + 0.65 * diff_mae + rank_w * rank_l;
         if comb < best_score {
             best_score = comb;
             best_mdl = mdl.clone();
         }
         if ep <= 1 || ep % 5 == 0 || ep == epochs {
             println!(
-                "  ep={:2}/{} lr={:.5} | val_mae={:.3} diff_mae={:.3} pair={:.1}% trap={:.1}% flip={:.1}% ({}) rank_l={:.3} comb={:.3}",
+                "  ep={:2}/{} lr={:.5} | cf_mae={:.3} diff_mae={:.3} pair={:.1}% trap={:.1}% flip={:.1}% ({}) rank_l={:.3} comb={:.3}",
                 ep, epochs, lr_cur, val_mae, diff_mae, pair_acc, trap_acc, flip_acc, flip_tot, rank_l, comb
             );
             let _ = std::io::Write::flush(&mut std::io::stdout());
@@ -2355,8 +2570,17 @@ fn main() {
         println!("\n=== Post-Training Held-Out Verification ===");
         if eval_oracle > 0 {
             let test_seeds: Vec<u64> = (101..101 + eval_oracle as u64).collect();
-            eval_oracle_quick("OR_p6_b120_spatial", &test_seeds, 6, 120, &mdl_arc);
-            eval_oracle_quick("OR_p12_b140_spatial", &test_seeds, 12, 140, &mdl_arc);
+            if eval_teacher {
+                let _ = eval_oracle_quick("OR_p12_b140_teacher", &test_seeds, 12, 140, &teacher);
+            }
+            if init_path.is_none() {
+                let mut ep0_fast = ep0_mdl;
+                ep0_fast.prepare_fast();
+                let ep0_t = Teacher::Spatial(Arc::new(ep0_fast));
+                let _ = eval_oracle_quick("OR_p12_b140_ep0", &test_seeds, 12, 140, &ep0_t);
+            }
+            let sp_teacher = Teacher::Spatial(mdl_arc.clone());
+            let _ = eval_oracle_quick("OR_p12_b140_best", &test_seeds, 12, 140, &sp_teacher);
         }
         if eval_legal > 0 {
             let test_seeds: Vec<u64> = (101..101 + eval_legal as u64).collect();

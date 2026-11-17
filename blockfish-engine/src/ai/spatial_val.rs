@@ -801,7 +801,7 @@ impl SpatialValueModel {
                 mlp += a2.min(6.0) * self.w3[k];
             }
         }
-        let mlp_sat = mlp / (1.0 + mlp.abs() / 3.5);
+        let mlp_sat = mlp / (1.0 + mlp.abs() / 5.0);
         lin + mlp_sat
     }
 
