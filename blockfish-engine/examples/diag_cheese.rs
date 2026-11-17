@@ -3,6 +3,7 @@ use blockfish::{
     ai::{
         cheese_val::{FEAT_DIM, MLP_HIDDEN},
         fast::{color_to_idx, FastBoard, FastPlaceGen, FastShapeTable},
+        fast_eval::{eval_fast_with_bag, EvalWeights},
         BeamConfig, FastAI, LearnedValueModel, SpatialValueModel,
     },
     StackerExt as _,
@@ -71,6 +72,13 @@ impl DiagEvaluator for SpatialValueModel {
     #[inline]
     fn eval_b(&self, b: &FastBoard, rem_g: u16, in_h: Option<u8>, avail: u8) -> i64 {
         self.evaluate_board_with_bag(b, rem_g, in_h, avail)
+    }
+}
+
+impl DiagEvaluator for EvalWeights {
+    #[inline]
+    fn eval_b(&self, b: &FastBoard, rem_g: u16, in_h: Option<u8>, avail: u8) -> i64 {
+        eval_fast_with_bag(b, rem_g, in_h, avail, self)
     }
 }
 
@@ -179,73 +187,93 @@ struct GameStat {
 
 fn run_legal_suite(label: &str, seeds: &[u64], cfg: &BeamConfig) {
     let t0 = Instant::now();
-    let mid = seeds.len() / 2;
-    let (s1, s2) = seeds.split_at(mid);
-    let run_slice = |sl: &[u64]| -> Vec<GameStat> {
-        sl.iter().map(|&s| {
-            let mut game_cfg = BSConfig::default();
-            game_cfg.garbage.total_lines = Some(100);
-            game_cfg.prng_seed = Some(s);
-            let mut stacker = Stacker::new(Ruleset::guideline().into(), game_cfg);
-            let mut ai = FastAI::new(cfg.clone());
-            let mut st = GameStat::default();
-            let mut ds_total = 0usize;
-            while ds_total < 100 && stacker.current_piece_type().is_some() {
-                let snap = stacker.snapshot().unwrap();
-                let g_rows = garbage_rows(&stacker);
-                let rem_g = 100usize.saturating_sub(ds_total) as u16;
-                let (_, blocks_over, chute_min, cells_above) = h1_info(&stacker);
-                st.cells_sum += cells_above;
-                let cur_c = snap.queue[0].as_char();
-                let hold_c = snap.hold.or_else(|| snap.queue.get(1).copied()).map(|c| c.as_char());
-                let res = match ai.best_move(&snap, Some(g_rows), Some(rem_g)) {
-                    Some(r) => r,
-                    None => { st.topout = true; break; }
-                };
-                let mut inputs = res.inputs;
-                inputs.pop();
-                stacker.run(inputs);
-                let (lines, ds) = stacker.hard_drop();
-                st.pcs += 1;
-                ds_total += ds;
-                st.nds += lines.saturating_sub(ds);
-                if ds > 0 {
-                    st.ds_cnt += 1;
-                    if ds == 1 { st.ds1 += 1; }
-                    else if ds == 2 { st.ds2 += 1; }
-                    else { st.ds3 += 1; }
-                    let (_, new_bo, _, _) = h1_info(&stacker);
-                    if new_bo > 0 { st.ds_cov_next += 1; }
-                } else {
-                    st.zds += 1;
-                    if rem_g <= 7 && rem_g == g_rows { st.zds_end += 1; }
-                    else if g_rows == 0 { st.zds_g0 += 1; }
-                    else if blocks_over > 0 { st.zds_h1_cov += 1; }
-                    else {
-                        let has_o = cur_c == 'O' || hold_c == Some('O');
-                        let has_i = cur_c == 'I' || hold_c == Some('I');
-                        if has_o { st.zds_o += 1; }
-                        else if chute_min >= 1 && !has_i { st.zds_nar += 1; }
-                        else { st.zds_wide += 1; }
-                    }
+    let workers = std::thread::available_parallelism()
+        .map(|n| n.get())
+        .unwrap_or(2)
+        .min(seeds.len().max(1));
+    let next_idx = std::sync::atomic::AtomicUsize::new(0);
+    let mut results: Vec<Option<GameStat>> = vec![None; seeds.len()];
+
+    let play_one = |s: u64| -> GameStat {
+        let mut game_cfg = BSConfig::default();
+        game_cfg.garbage.total_lines = Some(100);
+        game_cfg.prng_seed = Some(s);
+        let mut stacker = Stacker::new(Ruleset::guideline().into(), game_cfg);
+        let mut ai = FastAI::new(cfg.clone());
+        let mut st = GameStat::default();
+        let mut ds_total = 0usize;
+        while ds_total < 100 && stacker.current_piece_type().is_some() {
+            let snap = stacker.snapshot().unwrap();
+            let g_rows = garbage_rows(&stacker);
+            let rem_g = 100usize.saturating_sub(ds_total) as u16;
+            let (_, blocks_over, chute_min, cells_above) = h1_info(&stacker);
+            st.cells_sum += cells_above;
+            let cur_c = snap.queue[0].as_char();
+            let hold_c = snap.hold.or_else(|| snap.queue.get(1).copied()).map(|c| c.as_char());
+            let res = match ai.best_move(&snap, Some(g_rows), Some(rem_g)) {
+                Some(r) => r,
+                None => { st.topout = true; break; }
+            };
+            let mut inputs = res.inputs;
+            inputs.pop();
+            let did_hold = inputs.first() == Some(&blockfish::Input::Hold);
+            let placed_c = if did_hold { hold_c.unwrap_or(cur_c) } else { cur_c };
+            stacker.run(inputs);
+            let (lines, ds) = stacker.hard_drop();
+            st.pcs += 1;
+            ds_total += ds;
+            st.nds += lines.saturating_sub(ds);
+            if ds > 0 {
+                st.ds_cnt += 1;
+                if ds == 1 { st.ds1 += 1; }
+                else if ds == 2 { st.ds2 += 1; }
+                else { st.ds3 += 1; }
+                let (_, new_bo, _, _) = h1_info(&stacker);
+                if new_bo > 0 { st.ds_cov_next += 1; }
+            } else {
+                st.zds += 1;
+                if rem_g <= 7 && rem_g == g_rows { st.zds_end += 1; }
+                else if g_rows == 0 { st.zds_g0 += 1; }
+                else if blocks_over > 0 { st.zds_h1_cov += 1; }
+                else {
+                    let is_o = placed_c == 'O';
+                    let has_i = cur_c == 'I' || hold_c == Some('I');
+                    if is_o { st.zds_o += 1; }
+                    else if chute_min >= 1 && !has_i { st.zds_nar += 1; }
+                    else { st.zds_wide += 1; }
                 }
             }
-            if ds_total < 100 {
-                st.topout = true;
-                st.pcs = 400;
-            }
-            st.r_end = stacker.matrix().count();
-            st
-        }).collect()
+        }
+        if ds_total < 100 {
+            st.topout = true;
+            st.pcs = 400;
+        }
+        st.r_end = stacker.matrix().count();
+        st
     };
 
-    let res: Vec<GameStat> = std::thread::scope(|sc| {
-        let h = sc.spawn(|| run_slice(s1));
-        let mut r2 = run_slice(s2);
-        let mut r1 = h.join().unwrap();
-        r1.append(&mut r2);
-        r1
+    std::thread::scope(|sc| {
+        let mut handles = Vec::new();
+        for _ in 0..workers {
+            handles.push(sc.spawn(|| {
+                let mut local = Vec::new();
+                loop {
+                    let i = next_idx.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                    if i >= seeds.len() {
+                        break;
+                    }
+                    local.push((i, play_one(seeds[i])));
+                }
+                local
+            }));
+        }
+        for h in handles {
+            for (i, st) in h.join().unwrap() {
+                results[i] = Some(st);
+            }
+        }
     });
+    let res: Vec<GameStat> = results.into_iter().map(|x| x.unwrap()).collect();
     print_summary(label, &res, t0.elapsed().as_secs_f64());
 }
 
@@ -571,9 +599,9 @@ fn run_oracle_suite<M: DiagEvaluator>(label: &str, exact_data: &[ExactSeedData],
                 else if g_rows == 0 { st.zds_g0 += 1; }
                 else if blocks_over > 0 { st.zds_h1_cov += 1; }
                 else {
-                    let has_o = cur_ch == 'O' || hold_ch == Some('O');
+                    let is_o = fp.color_idx == 1;
                     let has_i = cur_ch == 'I' || hold_ch == Some('I');
-                    if has_o { st.zds_o += 1; }
+                    if is_o { st.zds_o += 1; }
                     else if chute_min >= 1 && !has_i { st.zds_nar += 1; }
                     else { st.zds_wide += 1; }
                 }
@@ -584,14 +612,34 @@ fn run_oracle_suite<M: DiagEvaluator>(label: &str, exact_data: &[ExactSeedData],
         st
     };
 
-    let (s1, s2) = exact_data.split_at(exact_data.len() / 2);
-    let res: Vec<GameStat> = std::thread::scope(|sc| {
-        let h = sc.spawn(|| s1.iter().map(run_one).collect::<Vec<_>>());
-        let mut r2: Vec<GameStat> = s2.iter().map(run_one).collect();
-        let mut r1 = h.join().unwrap();
-        r1.append(&mut r2);
-        r1
+    let workers = std::thread::available_parallelism()
+        .map(|n| n.get())
+        .unwrap_or(2)
+        .min(exact_data.len().max(1));
+    let next_idx = std::sync::atomic::AtomicUsize::new(0);
+    let mut results: Vec<Option<GameStat>> = vec![None; exact_data.len()];
+    std::thread::scope(|sc| {
+        let mut handles = Vec::new();
+        for _ in 0..workers {
+            handles.push(sc.spawn(|| {
+                let mut local = Vec::new();
+                loop {
+                    let i = next_idx.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                    if i >= exact_data.len() {
+                        break;
+                    }
+                    local.push((i, run_one(&exact_data[i])));
+                }
+                local
+            }));
+        }
+        for h in handles {
+            for (i, st) in h.join().unwrap() {
+                results[i] = Some(st);
+            }
+        }
     });
+    let res: Vec<GameStat> = results.into_iter().map(|x| x.unwrap()).collect();
     print_summary(label, &res, t0.elapsed().as_secs_f64());
 }
 
@@ -984,5 +1032,350 @@ fn main() {
     } else if mode == "legal20" {
         println!("=== Legal Held-out Dev20 (seeds 201..=220) ===");
         run_legal_suite("LEGAL_h2nog0_p5_b120", &seeds20, &cfg_legal);
+    } else if mode == "or_ceil2_h14" {
+        let seeds2: Vec<u64> = vec![101, 102];
+        let ed2 = collect_exact_seeds(&seeds2);
+        println!("=== Oracle H=14 Ceiling Probe (seeds 101..=102) ===");
+        run_oracle_suite("OR_p14_b160_h2nog0", &ed2, 14, 160, true, &m_h2_nog0);
+        run_oracle_adv("OR_p14_b320_prog_strat", &ed2, 14, 320, true, true, None, &m_h2_nog0);
+
+        let mut m_rg165 = m_h2_nog0.clone();
+        m_rg165.linear_w[0] = 1.65 / m_rg165.inv_std[0];
+        m_rg165.prepare_fast();
+        run_oracle_adv("OR_p14_b240_rg165_keepO", &ed2, 14, 240, true, true, None, &m_rg165);
+
+        let mut m_rg255 = m_h2_nog0.clone();
+        m_rg255.linear_w[0] = 2.55 / m_rg255.inv_std[0];
+        m_rg255.prepare_fast();
+        run_oracle_adv("OR_p14_b240_rg255", &ed2, 14, 240, true, true, None, &m_rg255);
+
+        let ew_def = EvalWeights::default();
+        run_oracle_adv("OR_p14_b240_ew_default", &ed2, 14, 240, true, true, None, &ew_def);
+    } else if mode == "or_ceil2_clean" {
+        let seeds2: Vec<u64> = vec![101, 102];
+        let ed2 = collect_exact_seeds(&seeds2);
+        println!("=== Oracle Clean Evaluator & Width Probe (seeds 101..=102, NO prog_strat) ===");
+        // Pure clean physics calibration on top of m_h2_nog0:
+        // Lower rem_g from 2.12 -> 1.60 (true marginal cost of 1 garbage line)
+        // Raise stack_cells 0.03 -> 0.12, h2_blocks 0 -> 0.25, h2_open 0 -> -0.18,
+        // covered_holes 0.13 -> 0.45, h1_blocks 0.026 -> 0.22, near_full_9 0 -> -0.18
+        let mut m_clean160 = m_h2_nog0.clone();
+        m_clean160.linear_w[0] = 1.60 / m_clean160.inv_std[0];   // rem_g
+        m_clean160.linear_w[9] = 0.12 / m_clean160.inv_std[9];   // stack_cells
+        m_clean160.linear_w[11] = 0.05 / m_clean160.inv_std[11]; // stack_cells_above1
+        m_clean160.linear_w[20] = 0.45 / m_clean160.inv_std[20]; // covered_holes
+        m_clean160.linear_w[24] = 0.22 / m_clean160.inv_std[24]; // h1_blocks
+        m_clean160.linear_w[36] = 0.25 / m_clean160.inv_std[36]; // h2_blocks
+        m_clean160.linear_w[39] = -0.18 / m_clean160.inv_std[39];// h2_open
+        m_clean160.linear_w[57] = -0.18 / m_clean160.inv_std[57];// near_full_9
+        m_clean160.linear_w[88] = 0.20 / m_clean160.inv_std[88]; // h2_only_row_g_blocked
+        m_clean160.prepare_fast();
+
+        let mut m_clean145 = m_clean160.clone();
+        m_clean145.linear_w[0] = 1.45 / m_clean145.inv_std[0];
+        m_clean145.prepare_fast();
+
+        run_oracle_adv("OR_p14_b240_h2nog0", &ed2, 14, 240, false, false, None, &m_h2_nog0);
+        run_oracle_adv("OR_p14_b240_clean160", &ed2, 14, 240, false, false, None, &m_clean160);
+        run_oracle_adv("OR_p14_b240_clean145", &ed2, 14, 240, false, false, None, &m_clean145);
+        run_oracle_adv("OR_p20_b240_clean160", &ed2, 20, 240, false, false, None, &m_clean160);
+    } else if mode == "or_ceil2_probe" {
+        let seeds2: Vec<u64> = vec![101, 102];
+        let ed2 = collect_exact_seeds(&seeds2);
+        println!("=== Oracle Pure rem_g & prog_mpr Probe (seeds 101..=102) ===");
+        let mut m_rg170 = m_h2_nog0.clone();
+        m_rg170.linear_w[0] = 1.70 / m_rg170.inv_std[0];
+        m_rg170.prepare_fast();
+
+        let mut m_rg260 = m_h2_nog0.clone();
+        m_rg260.linear_w[0] = 2.60 / m_rg260.inv_std[0];
+        m_rg260.prepare_fast();
+
+        let mut m_rg320 = m_h2_nog0.clone();
+        m_rg320.linear_w[0] = 3.20 / m_rg320.inv_std[0];
+        m_rg320.prepare_fast();
+
+        run_oracle_adv("OR_p14_b240_rg170_only", &ed2, 14, 240, false, false, None, &m_rg170);
+        run_oracle_adv("OR_p14_b240_rg260_only", &ed2, 14, 240, false, false, None, &m_rg260);
+        run_oracle_adv("OR_p14_b240_rg320_only", &ed2, 14, 240, false, false, None, &m_rg320);
+        run_oracle_adv("OR_p14_b240_prog_only", &ed2, 14, 240, true, false, None, &m_h2_nog0);
+    } else if mode == "or_ceil2_h30" {
+        let seeds2: Vec<u64> = vec![101, 102];
+        let ed2 = collect_exact_seeds(&seeds2);
+        println!("=== Oracle H=20 mpr24 & H=30 Probe (seeds 101..=102) ===");
+        run_oracle_adv("OR_p20_b360_mpr24", &ed2, 20, 360, false, false, Some(24), &m_h2_nog0);
+        run_oracle_adv("OR_p30_b240_mpr40", &ed2, 30, 240, false, false, Some(40), &m_h2_nog0);
+    } else if mode == "or_ceil2_deep" {
+        let seeds2: Vec<u64> = vec![101, 102];
+        let ed2 = collect_exact_seeds(&seeds2);
+        println!("=== Oracle Deep Ceiling Probe (seeds 101..=102, NO prog_strat) ===");
+        run_oracle_adv("OR_p20_b500_h2nog0", &ed2, 20, 500, false, false, None, &m_h2_nog0);
+    } else if mode == "or_ceil_gh" {
+        let ed5 = collect_exact_seeds(&seeds5);
+        println!("=== Oracle Ceiling Suite (seeds 101..=105) ===");
+        run_oracle_adv("OR_p20_b240_h2nog0", &ed5, 20, 240, false, false, None, &m_h2_nog0);
+        run_oracle_adv("OR_p20_b600_h2nog0", &ed5, 20, 600, false, false, None, &m_h2_nog0);
+        run_oracle_adv("OR_p30_b400_h2nog0", &ed5, 30, 400, false, false, Some(64), &m_h2_nog0);
     }
 }
+
+fn run_oracle_adv<M: DiagEvaluator>(
+    label: &str,
+    exact_data: &[ExactSeedData],
+    horizon: usize,
+    beam_w: usize,
+    prog_mpr: bool,
+    stratify: bool,
+    mpr_override: Option<usize>,
+    mdl: &M,
+) {
+    type FxBuild = std::hash::BuildHasherDefault<blockfish::ai::beam::FxHasher>;
+    #[derive(Clone, Copy)]
+    struct ONode { board: FastBoard, held: Option<u8>, q_cursor: usize, rem_g: u16, first_idx: u16, score: i64 }
+    #[derive(Clone, Copy, Eq, PartialEq, Hash)]
+    struct OKey { board: FastBoard, held: Option<u8>, rem_g: u16 }
+
+    let t0 = Instant::now();
+    let fst = FastShapeTable::srs();
+    let spawn_exact_cheese = |b: &mut FastBoard, rem_g: u16, lines_cleared: u8, holes: &[u16]| -> bool {
+        let target_g: usize = if lines_cleared > 0 { 4 } else { 9 };
+        let g = b.garbage_rows as usize;
+        let unspawned = (rem_g as usize).saturating_sub(g);
+        let num = target_g.saturating_sub(g).min(unspawned);
+        if num == 0 { return true; }
+        let old_rows = b.rows as usize;
+        if old_rows + num >= 32 { return false; }
+        let spawned_so_far = 100usize - unspawned;
+        for r in (0..old_rows).rev() {
+            b.data[r + num] = b.data[r];
+        }
+        for k in 0..num {
+            let hole = holes[spawned_so_far + k];
+            let dst_r = num - 1 - k;
+            b.data[dst_r] = 0xFC00 | (0x3FF & !(1u16 << hole));
+        }
+        b.rows = (old_rows + num) as u8;
+        b.garbage_rows = (g + num) as u8;
+        true
+    };
+
+    let run_one = |ed: &ExactSeedData| -> GameStat {
+        let mut game_cfg = BSConfig::default();
+        game_cfg.garbage.total_lines = Some(100);
+        game_cfg.prng_seed = Some(ed.seed);
+        let mut stacker = Stacker::new(Ruleset::guideline().into(), game_cfg);
+        let mut pgen = FastPlaceGen::new();
+        let mut ai_in = FastAI::new(BeamConfig::default());
+        let mut root_places = Vec::with_capacity(64);
+        let mut tmp_places = Vec::with_capacity(64);
+        let mut cur_beam: Vec<ONode> = Vec::with_capacity(beam_w);
+        let mut children: Vec<ONode> = Vec::with_capacity(beam_w * 32);
+        let mut seen: HashSet<OKey, FxBuild> = HashSet::with_capacity_and_hasher(beam_w * 4, FxBuild::default());
+
+        let mut st = GameStat::default();
+        let mut ds_total = 0usize;
+        let mut q_pos = 0usize;
+
+        while ds_total < 100 && stacker.current_piece_type().is_some() {
+            let snap = stacker.snapshot().unwrap();
+            let g_rows = garbage_rows(&stacker);
+            let root_board = FastBoard::from_basic_matrix(&snap.matrix, g_rows);
+            let rem_g0 = 100usize.saturating_sub(ds_total) as u16;
+            let hold0 = snap.hold.map(|cc| color_to_idx(cc) as u8);
+            let q_start = q_pos.min(ed.pieces.len());
+            let q_end = (q_start + horizon).min(ed.pieces.len());
+            let q = &ed.pieces[q_start..q_end];
+            let q_len = q.len();
+            if q_len == 0 { st.topout = true; st.pcs = 400; break; }
+            let cur0 = Some(q[0]);
+            let alt0 = if hold0.is_some() { hold0 } else if q_len > 1 { Some(q[1]) } else { None };
+
+            let (_, blocks_over, chute_min, cells_above) = h1_info(&stacker);
+            st.cells_sum += cells_above;
+            let cur_ch = snap.queue[0].as_char();
+            let hold_ch = snap.hold.or_else(|| snap.queue.get(1).copied()).map(|cc| cc.as_char());
+
+            pgen.generate_for_state(&fst, &root_board, cur0, alt0, &mut root_places);
+            if root_places.is_empty() { st.topout = true; st.pcs = 400; break; }
+
+            let is_end = rem_g0 <= 7 && rem_g0 == g_rows;
+            let eff_w = if is_end { beam_w.max(400) } else { beam_w };
+            let eff_mpr = if is_end { 96 } else { mpr_override.unwrap_or((eff_w / 4).max(24)) };
+            let target_d = q_len.saturating_sub(if hold0.is_some() { 0 } else { 1 }).max(1);
+
+            cur_beam.clear();
+            seen.clear();
+            let mut best_goal: Option<(usize, u16, i64)> = None;
+
+            for (idx, &fp) in root_places.iter().enumerate() {
+                let mut b = root_board;
+                let o = &fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
+                let (lines, ds, _) = b.place_and_sift(o, fp.norm_i, fp.norm_j);
+                let rem_g = rem_g0.saturating_sub(ds as u16);
+                if rem_g > 0 && !spawn_exact_cheese(&mut b, rem_g, lines, &ed.holes) { continue; }
+                let (held, qc) = if hold0.is_some() {
+                    if fp.did_hold { (cur0, 1.min(q_len)) } else { (hold0, 1.min(q_len)) }
+                } else if fp.did_hold { (cur0, 2.min(q_len)) } else { (None, 1.min(q_len)) };
+                if rem_g == 0 && b.rows < 20 {
+                    let gr = -30_000_000 + 100 + b.rows as i64;
+                    if best_goal.map_or(true, |x| gr < x.2) { best_goal = Some((1, idx as u16, gr)); }
+                }
+                let in_h = held.or_else(|| q.get(qc).copied());
+                let sc = mdl.eval_b(&b, rem_g, in_h, 0x7F);
+                let key = OKey { board: b, held, rem_g };
+                if seen.insert(key) {
+                    cur_beam.push(ONode { board: b, held, q_cursor: qc, rem_g, first_idx: idx as u16, score: sc });
+                }
+            }
+
+            for depth in 2..=target_d {
+                children.clear();
+                for node in &cur_beam {
+                    if node.rem_g == 0 { continue; }
+                    let qc = node.q_cursor;
+                    let (c_nh, c_h) = if node.held.is_some() {
+                        (q.get(qc).copied(), node.held)
+                    } else {
+                        (q.get(qc).copied(), q.get(qc + 1).copied())
+                    };
+                    pgen.generate_for_state(&fst, &node.board, c_nh, c_h, &mut tmp_places);
+                    for &fp in &tmp_places {
+                        let mut b = node.board;
+                        let o = &fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
+                        let (lines, ds, _) = b.place_and_sift(o, fp.norm_i, fp.norm_j);
+                        let rem_g = node.rem_g.saturating_sub(ds as u16);
+                        if rem_g > 0 && !spawn_exact_cheese(&mut b, rem_g, lines, &ed.holes) { continue; }
+                        let (held, nqc) = if node.held.is_some() {
+                            if fp.did_hold { (c_nh, (qc + 1).min(q_len)) } else { (node.held, (qc + 1).min(q_len)) }
+                        } else if fp.did_hold { (c_nh, (qc + 2).min(q_len)) } else { (None, (qc + 1).min(q_len)) };
+                        if rem_g == 0 && b.rows < 20 {
+                            let gr = -30_000_000 + (depth as i64) * 100 + b.rows as i64;
+                            if best_goal.map_or(true, |x| gr < x.2) { best_goal = Some((depth, node.first_idx, gr)); }
+                        }
+                        let in_h = held.or_else(|| q.get(nqc).copied());
+                        let sc = mdl.eval_b(&b, rem_g, in_h, 0x7F);
+                        children.push(ONode { board: b, held, q_cursor: nqc, rem_g, first_idx: node.first_idx, score: sc });
+                    }
+                }
+                if children.is_empty() { break; }
+                children.sort_unstable_by_key(|n| (n.score, n.first_idx));
+                let step_mpr = if prog_mpr && !is_end {
+                    ((eff_mpr * depth) / target_d.max(1)).max(4).min(eff_mpr)
+                } else {
+                    eff_mpr
+                };
+                cur_beam.clear();
+                seen.clear();
+                let mut rc = vec![0usize; root_places.len()];
+                if stratify && !is_end {
+                    let mut g_counts = [0usize; 24];
+                    let bucket_cap = (eff_w / 4).max(16);
+                    let strat_cap = (eff_w * 3) / 4;
+                    for &ch in &children {
+                        if cur_beam.len() >= strat_cap { break; }
+                        let bi = rem_g0.saturating_sub(ch.rem_g).min(23) as usize;
+                        if g_counts[bi] >= bucket_cap || rc[ch.first_idx as usize] >= step_mpr { continue; }
+                        let key = OKey { board: ch.board, held: ch.held, rem_g: ch.rem_g };
+                        if seen.insert(key) {
+                            g_counts[bi] += 1;
+                            rc[ch.first_idx as usize] += 1;
+                            cur_beam.push(ch);
+                        }
+                    }
+                }
+                for &ch in &children {
+                    if cur_beam.len() >= eff_w { break; }
+                    if rc[ch.first_idx as usize] >= step_mpr { continue; }
+                    let key = OKey { board: ch.board, held: ch.held, rem_g: ch.rem_g };
+                    if seen.insert(key) {
+                        rc[ch.first_idx as usize] += 1;
+                        cur_beam.push(ch);
+                    }
+                }
+                if cur_beam.len() < eff_w {
+                    for &ch in &children {
+                        if cur_beam.len() >= eff_w { break; }
+                        let key = OKey { board: ch.board, held: ch.held, rem_g: ch.rem_g };
+                        if seen.insert(key) { cur_beam.push(ch); }
+                    }
+                }
+                if stratify && !is_end {
+                    cur_beam.sort_unstable_by_key(|n| (n.score, n.first_idx));
+                }
+            }
+
+            let chosen_idx = if let Some((_, ri, _)) = best_goal {
+                ri as usize
+            } else if let Some(best) = cur_beam.first() {
+                best.first_idx as usize
+            } else {
+                0
+            };
+            let fp = root_places[chosen_idx];
+            let mut inputs = ai_in.inputs_for_place(&snap.matrix, fp).unwrap();
+            inputs.pop();
+            if fp.did_hold {
+                if hold0.is_none() { q_pos += 2; } else { q_pos += 1; }
+            } else {
+                q_pos += 1;
+            }
+            stacker.run(inputs);
+            let (lines, ds) = stacker.hard_drop();
+            st.pcs += 1;
+            ds_total += ds;
+            st.nds += lines.saturating_sub(ds);
+            if ds > 0 {
+                st.ds_cnt += 1;
+                if ds == 1 { st.ds1 += 1; }
+                else if ds == 2 { st.ds2 += 1; }
+                else { st.ds3 += 1; }
+                let (_, new_bo, _, _) = h1_info(&stacker);
+                if new_bo > 0 { st.ds_cov_next += 1; }
+            } else {
+                st.zds += 1;
+                if rem_g0 <= 7 && rem_g0 == g_rows { st.zds_end += 1; }
+                else if g_rows == 0 { st.zds_g0 += 1; }
+                else if blocks_over > 0 { st.zds_h1_cov += 1; }
+                else {
+                    let is_o = fp.color_idx == 1;
+                    let has_i = cur_ch == 'I' || hold_ch == Some('I');
+                    if is_o { st.zds_o += 1; }
+                    else if chute_min >= 1 && !has_i { st.zds_nar += 1; }
+                    else { st.zds_wide += 1; }
+                }
+            }
+        }
+        if ds_total < 100 { st.topout = true; st.pcs = 400; }
+        st.r_end = stacker.matrix().count();
+        st
+    };
+
+    let workers = std::thread::available_parallelism()
+        .map(|n| n.get())
+        .unwrap_or(2)
+        .min(exact_data.len().max(1));
+    let next_idx = std::sync::atomic::AtomicUsize::new(0);
+    let mut results: Vec<Option<GameStat>> = vec![None; exact_data.len()];
+    std::thread::scope(|sc| {
+        let mut handles = Vec::new();
+        for _ in 0..workers {
+            handles.push(sc.spawn(|| {
+                let mut local = Vec::new();
+                loop {
+                    let i = next_idx.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                    if i >= exact_data.len() { break; }
+                    local.push((i, run_one(&exact_data[i])));
+                }
+                local
+            }));
+        }
+        for h in handles {
+            for (i, st) in h.join().unwrap() {
+                results[i] = Some(st);
+            }
+        }
+    });
+    let res: Vec<GameStat> = results.into_iter().map(|x| x.unwrap()).collect();
+    print_summary(label, &res, t0.elapsed().as_secs_f64());
+}
+

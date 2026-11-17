@@ -159,6 +159,12 @@ fn play_legal_seed(seed: u64, cfg: &BeamConfig) -> GameStats {
         };
         let mut inputs = res.inputs;
         assert_eq!(inputs.pop(), Some(Input::HD));
+        let did_hold = inputs.first() == Some(&Input::Hold);
+        let placed_c = if did_hold {
+            hold_c.unwrap_or(cur_c)
+        } else {
+            cur_c
+        };
         stacker.run(inputs);
         let (lines, ds) = stacker.hard_drop();
         st.pieces += 1;
@@ -179,9 +185,9 @@ fn play_legal_seed(seed: u64, cfg: &BeamConfig) -> GameStats {
             } else if blocks_over > 0 {
                 st.zds_h1_cov += 1;
             } else {
-                let has_o = cur_c == 'O' || hold_c == Some('O');
+                let is_o = placed_c == 'O';
                 let has_i = cur_c == 'I' || hold_c == Some('I');
-                if has_o {
+                if is_o {
                     st.zds_open_o += 1;
                 } else if chute_min >= 1 && !has_i {
                     st.zds_open_nar += 1;
@@ -479,6 +485,95 @@ fn main() {
             c_rpimc_b240.rollout_top_k = 24;
             eval_seeds("sp_rpimc_w12_b240", &target_seeds, &c_rpimc_b240);
         }
+        return;
+    }
+
+    if mode == "spatial5_q" {
+        let model_path = std::env::args()
+            .nth(2)
+            .unwrap_or_else(|| "models/spatial_r2.txt".to_string());
+        let sm = Arc::new(SpatialValueModel::load_from_file(&model_path).expect("load spatial model"));
+        println!("=== Legal spatial5_q ({}) ===", model_path);
+
+        let mut c_nosp = make_spatial_cfg(sm.clone());
+        c_nosp.bag_det_extend = true;
+        c_nosp.endgame_solver = true;
+        eval_seeds("sp_nosp_bdet_end", &seeds5, &c_nosp);
+
+        let mut c_sim = c_nosp.clone();
+        c_sim.simulate_cheese_spawn = true;
+        eval_seeds("sp_sim1w_bdet_end", &seeds5, &c_sim);
+
+        let mut c_rpimc = c_nosp.clone();
+        c_rpimc.root_pimc_worlds = 8;
+        c_rpimc.root_pimc_horizon = 8;
+        c_rpimc.root_pimc_roots = 8;
+        c_rpimc.root_pimc_width = 24;
+        c_rpimc.root_pimc_margin = 350;
+        c_rpimc.root_pimc_weight_pct = 100;
+        c_rpimc.root_pimc_steady_g4 = false;
+        eval_seeds("sp_rpimc_w8_h9", &seeds5, &c_rpimc);
+
+        let mut c_rpimc_sim = c_rpimc.clone();
+        c_rpimc_sim.simulate_cheese_spawn = true;
+        eval_seeds("sp_rpimc_sim_w8_h9", &seeds5, &c_rpimc_sim);
+        return;
+    }
+
+    if mode == "spatial5_1" {
+        let model_path = std::env::args()
+            .nth(2)
+            .unwrap_or_else(|| "models/spatial_r2.txt".to_string());
+        let cfg_name = std::env::args()
+            .nth(3)
+            .unwrap_or_else(|| "sp_rpimc_sim_w8_h9".to_string());
+        let mut sm_val = SpatialValueModel::load_from_file(&model_path).expect("load spatial model");
+        if cfg_name.contains("_lin") {
+            sm_val.b3 = 0.0;
+            sm_val.w3 = [0.0; blockfish::ai::spatial_val::SPATIAL_H2];
+            sm_val.prepare_fast();
+        }
+        let sm = Arc::new(sm_val);
+        println!("=== Legal spatial5_1 ({} / {}) ===", model_path, cfg_name);
+
+        let mut c = make_spatial_cfg(sm);
+        c.bag_det_extend = true;
+        c.endgame_solver = true;
+        c.root_pimc_worlds = 8;
+        c.root_pimc_horizon = 8;
+        c.root_pimc_roots = 8;
+        c.root_pimc_width = 24;
+        c.root_pimc_margin = 350;
+        c.root_pimc_weight_pct = 100;
+        c.root_pimc_steady_g4 = false;
+        if cfg_name.contains("_sim") {
+            c.simulate_cheese_spawn = true;
+        }
+        if cfg_name.contains("_w9") {
+            c.root_pimc_worlds = 9;
+        }
+        if cfg_name.contains("_w12") {
+            c.root_pimc_worlds = 12;
+        }
+        if cfg_name.contains("_h12") {
+            c.root_pimc_horizon = 11;
+        }
+        if cfg_name.contains("_m500") {
+            c.root_pimc_margin = 500;
+        }
+        eval_seeds(&cfg_name, &seeds5, &c);
+        return;
+    }
+
+    if mode == "end5" {
+        println!("=== Legal 5-seed Endgame Solver Check (101..=105) ===");
+        let mut c1 = make_cfg(m_h2_nog0.clone());
+        c1.bag_det_extend = true;
+        eval_seeds("1_bagdet_noend", &seeds5, &c1);
+
+        let mut c2 = c1.clone();
+        c2.endgame_solver = true;
+        eval_seeds("2_bagdet_end_minibeam", &seeds5, &c2);
         return;
     }
 

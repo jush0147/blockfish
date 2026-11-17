@@ -57,14 +57,26 @@
    - `target_depth` stops at `total_known - 1` even when `bag_mask.count_ones() == 1` (deterministic 7th piece).
    - Endgame (`rem_g <= 9`, 100% deterministic known board) lacks a dedicated exact/deep solver (`end = 6.6` `0ds` moves still wasted).
 
+### 3.3 Oracle Ceiling Ablation (`crn_r3_h2stk03` Plateau at ~176 Pieces)
+Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric:
+- `OR_p14_b160_h2nog0`: `mean=184.00 [187, 181]` (`0ds=84.00`, `cov=28.5 O=18.0 nar=8.5 wide=26.0 end=3.0`, `cov_nxt=17.5%`)
+- `OR_p14_b240_h2nog0`: `mean=178.50 [179, 178]` (`cov=29.0 O=15.0 nar=5.0 wide=26.5`, `cov_nxt=15.0%`)
+- `OR_p20_b240_h2nog0` (`trace101`): seed 101 = `175`
+- `OR_p20_b500_h2nog0`: `mean=176.00 [175, 177]` (`nds=59.50 0ds=76.00`, `cov=23.5 O=16.0 nar=12.0 wide=22.0 end=2.5`, `cov_nxt=12.5%`, `avg_c=12.2`)
+- `OR_p30_b240_mpr40`: `mean=177.50 [177, 178]` (`cov=31.0 O=17.5 nar=5.5 wide=20.5`, `cov_nxt=15.0%`, `avg_c=11.4`)
+- Weight probes on `OR_p14_b240`: `rg=1.70` (`186.00`), `rg=2.60` (`180.50`), `rg=3.20` (`186.00`), `clean160` (`202.50`), `clean145` (`205.50`), `stratify_rem_g` (`191.00`), `prog_mpr` (`183.50`) — all worse than baseline `178.50`.
+- **Actions Run #2 (`spatial_r1` / `spatial_r2`) postmortem**: `OR_p6=242.40` because `train_spatial.rs` trained ~97% on pairwise ranking imitating weak depth-6/12 beam preferences (`val_w=0.03`) and `B=8` rollouts using heuristic `clean_physics_cost(..., 1.88)` instead of true multi-move piece-to-finish outcomes.
+- **Implication**: Breaking `<= 166` legally requires breaking the **Oracle ceiling down to <= 158–160** (cutting non-`O` `0ds` from `~60` down to `<= 42–44`). Simply widening/deepening beam with `m_h2_nog0` plateaus at `~176` because intermediate linear beam pruning (`d=2..10`) rejects temporary clean setups that save 2–4 pieces over the next 6–15 placements.
+
 ---
 
 ## 4. Roadmap
 
-1. **Gap Decomposition & Trace Analysis**: Run `diag_cheese -- gap5` & move-level trace diagnostics on legal vs Oracle games to isolate piece losses by horizon, unknown holes, endgame, and evaluator errors.
-2. **Exact-Physics Search & Endgame Solver**:
-   - Exploit zero-spawn deterministic transitions (`g >= 5` on clears, `g == 9` on `0ds`), 1-bit `bag_mask` deterministic extension, exact 9-branch expectation when spawning 1 row (`g=4 -> 3`), and a deep/exact endgame solver for `rem_g <= 9` (especially `rem_g <= 6`).
-   - Proper CRN/belief-space search over real Jstris physics (`min=4, max=9`).
-3. **Stronger Nonlinear Evaluator / Deep-Teacher RL**:
-   - Build spatial + tactical board representation (beyond linear 98 features: column heights relative to `g`, per-row occupancy/cavity/overhang over `h1..h4`, SRS direct-fit & skim-to-clear readiness, `O`-slot management) + MLP/residual value network trained on deep-lookahead Oracle/CRN rollouts generated via GitHub Actions.
-4. **Large-Scale Independent Verification**: Evaluate every promising change on `dev40` (40 seeds) locally or via `.github/workflows/research.yml` on GitHub Actions.
+1. **Break the Oracle Ceiling (`176 -> <= 158–160`)**:
+   - Inspect concrete `OR_p20_b500` non-`O` `0ds` moves (`cov=23.5, wide=22.0, nar=12.0`) to identify exact structural & search causes.
+   - Replace myopic 1-step linear pruning and weak-teacher imitation with: (a) genuine search-architecture improvements (e.g., rollout-evaluated beam leaves / structural diversity Pareto beam retention / multi-move skim-and-dig tactical lookahead) and (b) true-outcome (`rem_pcs`, TD(λ), wide deep-rollout counterfactual) nonlinear evaluation.
+2. **Close Legal (`p=5`) vs Oracle (`p=20`) Gap**:
+   - Exploit zero-spawn deterministic transitions (`g >= 5` on clears, `g == 9` on `0ds`), 1-bit `bag_mask` deterministic extension, stratified CRN belief-space worlds, and an exact/deep deterministic endgame solver (`rem_g <= 9`).
+3. **Large-Scale Independent Verification on GitHub Actions**:
+   - Train & benchmark on `dev20`/`dev40` (`seeds 101..=120, 201..=220`) via `.github/workflows/research.yml`, keeping all code, models, and logs pushed to `rescue/independent-validation-20261116`.
+

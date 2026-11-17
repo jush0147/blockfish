@@ -3,7 +3,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
 
 pub const SPARSE_DIM: usize = 186;
-pub const DENSE_DIM: usize = 68;
+pub const DENSE_DIM: usize = 72;
 pub const SPATIAL_H1: usize = 64;
 pub const SPATIAL_H2: usize = 32;
 
@@ -647,12 +647,27 @@ pub fn extract_spatial_features(
     dense[65] = max_cliff_around_h1 as f32;
     dense[66] = if has_o_avail && clean_o_spots == 0 && total_o_spots <= 1 { 1.0 } else { 0.0 };
     dense[67] = avail_mask.count_ones() as f32;
+    let has_i_avail = in_hand == Some(0) || (avail_mask & 1) != 0;
+    let no_i_when_i_only = if h1_narrow_2plus > 0 && !has_i_avail { 1.0 } else { 0.0 };
+    let i_dep_cols_no_i = if !has_i_avail { i_dep_cols as f32 } else { 0.0 };
+    let h2_blocked_row_g = if n > g {
+        h2_col.map_or(0.0, |c2| if ((board.data[g] >> c2) & 1) != 0 { 1.0 } else { 0.0 })
+    } else {
+        0.0
+    };
+    let h2_only_row_g_blocked = if g >= 2 && h2_blocks == 1 && h2_blocked_row_g > 0.5 { 1.0 } else { 0.0 };
+    let h1_ds_clears_rg_open_h2 = if row_g_9_aligned > 0.5 && h2_open { 1.0 } else { 0.0 };
+
+    dense[68] = no_i_when_i_only;
+    dense[69] = i_dep_cols_no_i;
+    dense[70] = h2_only_row_g_blocked;
+    dense[71] = h1_ds_clears_rg_open_h2;
 
     n_act
 }
 
 /// Fast NNUE-style spatial + tactical value network with linear skip connection:
-/// `(Sparse(186) + Dense(68)) -> H1(64, ReLU) -> H2(32, ReLU) -> 1 + Linear(Sparse + Dense)`.
+/// `(Sparse(186) + Dense(72)) -> H1(64, ReLU) -> H2(32, ReLU) -> 1 + Linear(Sparse + Dense)`.
 /// Output is predicted expected remaining pieces until finishing all garbage (lower is better).
 #[derive(Clone, Debug)]
 pub struct SpatialValueModel {
@@ -825,7 +840,7 @@ impl SpatialValueModel {
         let mut w = BufWriter::new(f);
         writeln!(
             w,
-            "SPATIAL_VAL_V1 {} {} {} {}",
+            "SPATIAL_VAL_V2 {} {} {} {}",
             SPARSE_DIM, DENSE_DIM, SPATIAL_H1, SPATIAL_H2
         )?;
         for j in 0..DENSE_DIM {
@@ -928,17 +943,19 @@ impl SpatialValueModel {
                 .collect()
         };
         let parts: Vec<&str> = header.split_whitespace().collect();
-        if parts.len() != 5 || parts[0] != "SPATIAL_VAL_V1" {
+        if parts.len() != 5 || (parts[0] != "SPATIAL_VAL_V1" && parts[0] != "SPATIAL_VAL_V2") {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::InvalidData,
-                "bad SPATIAL_VAL_V1 header",
+                "bad SPATIAL_VAL header",
             ));
         }
         let sd: usize = parts[1].parse().unwrap_or(0);
         let dd: usize = parts[2].parse().unwrap_or(0);
         let h1: usize = parts[3].parse().unwrap_or(0);
         let h2: usize = parts[4].parse().unwrap_or(0);
-        if sd != SPARSE_DIM || dd != DENSE_DIM || h1 != SPATIAL_H1 || h2 != SPATIAL_H2 {
+        let dd_ok = (parts[0] == "SPATIAL_VAL_V1" && (dd == 68 || dd == DENSE_DIM))
+            || (parts[0] == "SPATIAL_VAL_V2" && dd == DENSE_DIM);
+        if sd != SPARSE_DIM || !dd_ok || h1 != SPATIAL_H1 || h2 != SPATIAL_H2 {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::InvalidData,
                 "dimension mismatch in spatial model",
@@ -948,16 +965,16 @@ impl SpatialValueModel {
         let mut m = Self::default();
         let dm = next_floats()?;
         let dis = next_floats()?;
-        m.dense_mean.copy_from_slice(&dm[..DENSE_DIM]);
-        m.dense_inv_std.copy_from_slice(&dis[..DENSE_DIM]);
+        m.dense_mean[..dd].copy_from_slice(&dm[..dd]);
+        m.dense_inv_std[..dd].copy_from_slice(&dis[..dd]);
         m.lin_bias = next_floats()?[0];
         m.lin_sparse.copy_from_slice(&next_floats()?[..SPARSE_DIM]);
-        m.lin_dense.copy_from_slice(&next_floats()?[..DENSE_DIM]);
+        m.lin_dense[..dd].copy_from_slice(&next_floats()?[..dd]);
         m.b1.copy_from_slice(&next_floats()?[..SPATIAL_H1]);
         for i in 0..SPARSE_DIM {
             m.w_sparse[i].copy_from_slice(&next_floats()?[..SPATIAL_H1]);
         }
-        for j in 0..DENSE_DIM {
+        for j in 0..dd {
             m.w_dense[j].copy_from_slice(&next_floats()?[..SPATIAL_H1]);
         }
         m.b2.copy_from_slice(&next_floats()?[..SPATIAL_H2]);
@@ -981,7 +998,7 @@ mod tests {
         let mut fb = FastBoard::empty();
         fb.data[0] = EMPTY_ROW | (0x3FF & !(1u16 << 3)); // h2 col = 3
         fb.data[1] = EMPTY_ROW | (0x3FF & !(1u16 << 7)); // h1 col = 7
-        fb.data[2] = EMPTY_ROW | (0x3FF & !(1u16 << 7)) & !(1u16 << 8); // 8 filled, empty at 7 & 8
+        fb.data[2] = EMPTY_ROW | ((0x3FF & !(1u16 << 7)) & !(1u16 << 8)); // 8 filled, empty at 7 & 8
         fb.garbage_rows = 2;
         fb.rows = 3;
 
@@ -1002,7 +1019,23 @@ mod tests {
         assert_eq!(dense[1], 2.0); // g
         assert_eq!(dense[3], 8.0); // stack_cells
         assert_eq!(dense[58], 0.0);
-        assert_eq!(dense[59], 1.0); // row_g_8_aligned
+        assert_eq!(dense[59], 1.0); // row_g_8_aligned (empty at 7 and 8; col 3 is filled!)
+        assert_eq!(dense[70], 1.0); // h2_only_row_g_blocked (h2=3 has 1 block on row g)
+        assert_eq!(dense[71], 0.0); // h1_ds_clears_rg_open_h2
+
+        // Check row_g_9_aligned + h2_only_row_g_blocked + h1_ds_clears_rg_open_h2
+        fb.data[2] = EMPTY_ROW | (0x3FF & !(1u16 << 7)); // row g has 9 filled, col 3 filled, col 7 empty
+        let _ = extract_spatial_features(&fb, 50, Some(1), 0x7E, &mut active, &mut dense);
+        assert_eq!(dense[58], 1.0); // row_g_9_aligned
+        assert_eq!(dense[70], 1.0); // h2_only_row_g_blocked
+        assert_eq!(dense[71], 0.0); // h2 is blocked
+
+        // Now check h2 open + row_g_9_aligned (col 3 = h1, col 7 = h2, or make h2=col 3 open and row g filled except 3? Wait: if h1=7 and h2=3, row g empty at 3 & 7 is 8 filled; test h1_ds_clears_rg_open_h2 with h2=7 and h1=7 same col)
+        fb.data[0] = EMPTY_ROW | (0x3FF & !(1u16 << 7)); // h2 col = 7 (same as h1)
+        let _ = extract_spatial_features(&fb, 50, Some(1), 0x7E, &mut active, &mut dense);
+        assert_eq!(dense[58], 1.0); // row_g_9_aligned
+        assert_eq!(dense[70], 0.0); // h2 is open
+        assert_eq!(dense[71], 1.0); // h1_ds_clears_rg_open_h2
 
         let mut m = SpatialValueModel::default();
         for j in 0..DENSE_DIM {
@@ -1036,5 +1069,13 @@ mod tests {
         m.prepare_fast();
         let fast_pred = m.predict_extracted(&active[..n_act], &dense);
         assert!((raw_pred - fast_pred).abs() < 1e-4, "{} vs {}", raw_pred, fast_pred);
+
+        let tmp = std::env::temp_dir().join("test_spatial_v2_roundtrip.txt");
+        let tmp_str = tmp.to_str().unwrap();
+        m.save_to_file(tmp_str).unwrap();
+        let m2 = SpatialValueModel::load_from_file(tmp_str).unwrap();
+        let _ = std::fs::remove_file(&tmp);
+        let reload_pred = m2.predict_extracted(&active[..n_act], &dense);
+        assert!((fast_pred - reload_pred).abs() < 1e-3, "{} vs {}", fast_pred, reload_pred);
     }
 }
