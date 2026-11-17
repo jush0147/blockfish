@@ -806,6 +806,32 @@ impl SpatialValueModel {
     }
 
     #[inline]
+    pub fn predict_linear_extracted(
+        &self,
+        active_bits: &[u16],
+        dense: &[f32; DENSE_DIM],
+    ) -> f32 {
+        let mut lin = if self.fast_ready { self.fast_lin_bias } else { self.lin_bias };
+        for &bit in active_bits {
+            lin += self.lin_sparse[bit as usize];
+        }
+        if self.fast_ready {
+            for j in 0..DENSE_DIM {
+                let x = dense[j];
+                if x != 0.0 {
+                    lin += self.fast_lin_dense[j] * x;
+                }
+            }
+        } else {
+            for j in 0..DENSE_DIM {
+                let z = (dense[j] - self.dense_mean[j]) * self.dense_inv_std[j];
+                lin += self.lin_dense[j] * z;
+            }
+        }
+        lin
+    }
+
+    #[inline]
     pub fn evaluate_board_with_bag(
         &self,
         board: &FastBoard,
@@ -833,6 +859,36 @@ impl SpatialValueModel {
             &mut dense,
         );
         (self.predict_extracted(&active_bits[..n_act], &dense) * 100.0).round() as i64
+    }
+
+    #[inline]
+    pub fn evaluate_linear_board_with_bag(
+        &self,
+        board: &FastBoard,
+        rem_garbage: u16,
+        in_hand: Option<u8>,
+        avail_mask: u8,
+    ) -> i64 {
+        let col_h = board.col_heights();
+        let max_h = *col_h.iter().max().unwrap() as i64;
+        let center_max_h = col_h[3..=6].iter().copied().max().unwrap() as i64;
+        if max_h >= 20 || center_max_h >= 19 {
+            return 5_000_000 + max_h * 10_000 + center_max_h * 10_000;
+        }
+        if rem_garbage == 0 {
+            return -10_000_000 + (board.rows as i64) * 5;
+        }
+        let mut active_bits = [0u16; SPARSE_DIM];
+        let mut dense = [0.0f32; DENSE_DIM];
+        let n_act = extract_spatial_features(
+            board,
+            rem_garbage,
+            in_hand,
+            avail_mask,
+            &mut active_bits,
+            &mut dense,
+        );
+        (self.predict_linear_extracted(&active_bits[..n_act], &dense) * 100.0).round() as i64
     }
 
     pub fn save_to_file(&self, path: &str) -> std::io::Result<()> {
@@ -1032,7 +1088,7 @@ mod tests {
 
         // Now check h2 open + row_g_9_aligned (col 3 = h1, col 7 = h2, or make h2=col 3 open and row g filled except 3? Wait: if h1=7 and h2=3, row g empty at 3 & 7 is 8 filled; test h1_ds_clears_rg_open_h2 with h2=7 and h1=7 same col)
         fb.data[0] = EMPTY_ROW | (0x3FF & !(1u16 << 7)); // h2 col = 7 (same as h1)
-        let _ = extract_spatial_features(&fb, 50, Some(1), 0x7E, &mut active, &mut dense);
+        let n_act = extract_spatial_features(&fb, 50, Some(1), 0x7E, &mut active, &mut dense);
         assert_eq!(dense[58], 1.0); // row_g_9_aligned
         assert_eq!(dense[70], 0.0); // h2 is open
         assert_eq!(dense[71], 1.0); // h1_ds_clears_rg_open_h2
@@ -1066,9 +1122,20 @@ mod tests {
         m.b3 = -0.2;
 
         let raw_pred = m.predict_extracted(&active[..n_act], &dense);
+        let raw_lin = m.predict_linear_extracted(&active[..n_act], &dense);
         m.prepare_fast();
         let fast_pred = m.predict_extracted(&active[..n_act], &dense);
+        let fast_lin = m.predict_linear_extracted(&active[..n_act], &dense);
         assert!((raw_pred - fast_pred).abs() < 1e-4, "{} vs {}", raw_pred, fast_pred);
+        assert!((raw_lin - fast_lin).abs() < 1e-4, "lin {} vs {}", raw_lin, fast_lin);
+        assert_eq!(
+            m.evaluate_board_with_bag(&fb, 50, Some(1), 0x7E),
+            (fast_pred * 100.0).round() as i64
+        );
+        assert_eq!(
+            m.evaluate_linear_board_with_bag(&fb, 50, Some(1), 0x7E),
+            (fast_lin * 100.0).round() as i64
+        );
 
         let tmp = std::env::temp_dir().join("test_spatial_v2_roundtrip.txt");
         let tmp_str = tmp.to_str().unwrap();
@@ -1076,6 +1143,8 @@ mod tests {
         let m2 = SpatialValueModel::load_from_file(tmp_str).unwrap();
         let _ = std::fs::remove_file(&tmp);
         let reload_pred = m2.predict_extracted(&active[..n_act], &dense);
+        let reload_lin = m2.predict_linear_extracted(&active[..n_act], &dense);
         assert!((fast_pred - reload_pred).abs() < 1e-3, "{} vs {}", fast_pred, reload_pred);
+        assert!((fast_lin - reload_lin).abs() < 1e-3, "lin {} vs {}", fast_lin, reload_lin);
     }
 }

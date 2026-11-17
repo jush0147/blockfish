@@ -1301,7 +1301,11 @@ impl BeamSearcher {
                 m_sc
             }
         } else if let Some(ref sm) = cfg.spatial_model {
-            sm.evaluate_board_with_bag(board, rem_g, in_hand, avail_mask)
+            if allow_spatial {
+                sm.evaluate_board_with_bag(board, rem_g, in_hand, avail_mask)
+            } else {
+                sm.evaluate_linear_board_with_bag(board, rem_g, in_hand, avail_mask)
+            }
         } else {
             eval_fast_with_bag(board, rem_g, in_hand, avail_mask, &cfg.weights)
         }

@@ -517,6 +517,10 @@ fn main() {
         let mut c_rpimc_sim = c_rpimc.clone();
         c_rpimc_sim.simulate_cheese_spawn = true;
         eval_seeds("sp_rpimc_sim_w8_h9", &seeds5, &c_rpimc_sim);
+
+        let mut c_rpimc_linfast = c_rpimc_sim.clone();
+        c_rpimc_linfast.spatial_rerank_only = true;
+        eval_seeds("sp_rpimc_linfast_w8_h9", &seeds5, &c_rpimc_linfast);
         return;
     }
 
@@ -564,7 +568,7 @@ fn main() {
             .nth(3)
             .unwrap_or_else(|| "sp_rpimc_sim_w8_h9".to_string());
         let mut sm_val = SpatialValueModel::load_from_file(&model_path).expect("load spatial model");
-        if cfg_name.contains("_lin") {
+        if cfg_name.contains("_lin") && !cfg_name.contains("_linfast") {
             sm_val.b3 = 0.0;
             sm_val.w3 = [0.0; blockfish::ai::spatial_val::SPATIAL_H2];
             sm_val.prepare_fast();
@@ -582,8 +586,11 @@ fn main() {
         c.root_pimc_margin = 350;
         c.root_pimc_weight_pct = 100;
         c.root_pimc_steady_g4 = false;
-        if cfg_name.contains("_sim") {
+        if cfg_name.contains("_sim") || cfg_name.contains("_linfast") {
             c.simulate_cheese_spawn = true;
+        }
+        if cfg_name.contains("_linfast") {
+            c.spatial_rerank_only = true;
         }
         if cfg_name.contains("_w9") {
             c.root_pimc_worlds = 9;

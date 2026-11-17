@@ -1,32 +1,33 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "=== Round 1: True-Outcome CRN-Terminal SpatialValueModel RL (140 games, H=12, B=140) ==="
+echo "=== Round 2: Two-Phase Calibrated Finite-Horizon CRN SpatialValueModel RL (150 games, H=14, B=150) ==="
 cargo run --release -p blockfish --features race --example train_spatial -- \
   --teacher learned:models/crn_r3_h2stk03.txt \
-  --out models/spatial_r1.txt \
-  --games 140 \
-  --horizon 12 \
-  --beam 140 \
+  --out models/spatial_r2.txt \
+  --games 150 \
+  --horizon 14 \
+  --beam 150 \
   --max-per-root 24 \
-  --roll-bw 10 \
-  --crn-worlds 4 \
-  --cf-per-game 12 \
-  --epochs 40 \
+  --roll-horizon 20 \
+  --roll-bw 16 \
+  --crn-worlds 6 \
+  --cf-per-game 20 \
+  --epochs 30 \
   --batch 128 \
   --lr 0.0005 \
-  --wd 0.012 \
-  --lin-lr-mult 0.06 \
-  --rank-w 1.5 \
-  --diff-w 0.30 \
-  --val-w 0.05 \
+  --wd 0.015 \
+  --lin-lr-mult 0.45 \
+  --val-w 0.25 \
+  --diff-w 0.55 \
+  --rank-w 1.1 \
+  --cal-v-weight 0.55 \
   --seed-base 1000 \
   --eval-teacher \
   --eval-oracle 5 \
   --eval-legal 10
 
 echo ""
-echo "=== Post-Round1 Legal & Oracle Diagnostics ==="
-cargo run --release -p blockfish --features race --example diag_cheese -- spatial_probe models/spatial_r1.txt
-cargo run --release -p blockfish --features race --example bench_legal -- spatial5_q models/spatial_r1.txt
-
+echo "=== Post-Round2 Oracle & Legal Diagnostics ==="
+cargo run --release -p blockfish --features race --example diag_cheese -- spatial_probe models/spatial_r2.txt
+cargo run --release -p blockfish --features race --example bench_legal -- spatial5_q models/spatial_r2.txt

@@ -18,7 +18,7 @@ use std::time::Instant;
 
 type FxBuild = BuildHasherDefault<FxHasher>;
 
-fn load_learned_model(path: &str, nog0: bool) -> LearnedValueModel {
+fn load_learned_model(path: &str, nog0: bool, no_o_bias: bool) -> LearnedValueModel {
     let f = File::open(path).expect("open learned model");
     let mut lines = BufReader::new(f).lines().map(|l| l.unwrap());
     let mut m = LearnedValueModel::default();
@@ -60,6 +60,9 @@ fn load_learned_model(path: &str, nog0: bool) -> LearnedValueModel {
     if nog0 {
         m.linear_w[2] = 0.0;
     }
+    if no_o_bias {
+        m.linear_w[63] = 0.0;
+    }
     m.prepare_fast();
     m
 }
@@ -77,6 +80,29 @@ impl Teacher {
             Teacher::Learned(m) => m.evaluate_board_with_bag(b, rem_g, in_hand, avail_mask),
             Teacher::Spatial(m) => m.evaluate_board_with_bag(b, rem_g, in_hand, avail_mask),
         }
+    }
+}
+
+#[derive(Clone)]
+struct LeafEval {
+    v_cal: Arc<SpatialValueModel>,
+    teacher: Teacher,
+    v_cal_w: f32,
+    t_scale: f32,
+    t_shift: f32,
+}
+
+impl LeafEval {
+    #[inline]
+    fn eval_pieces(&self, b: &FastBoard, rem_g: u16, in_hand: Option<u8>, avail_mask: u8) -> f32 {
+        let vc = (self.v_cal.evaluate_board_with_bag(b, rem_g, in_hand, avail_mask) as f32) * 0.01;
+        let tw = 1.0 - self.v_cal_w;
+        if tw <= 1e-4 {
+            return vc.max(0.5);
+        }
+        let ts = (self.teacher.eval(b, rem_g, in_hand, avail_mask) as f32) * 0.01;
+        let tc = self.t_scale * ts + self.t_shift;
+        (self.v_cal_w * vc + tw * tc).max(0.5)
     }
 }
 
@@ -295,14 +321,42 @@ struct RankPair {
     is_val: bool,
 }
 
+#[derive(Clone)]
+struct CfCand {
+    state_idx: usize,
+    board: FastBoard,
+    held: Option<u8>,
+    qc: usize,
+    rem_g: u16,
+    ref_score: i64,
+}
+
+#[derive(Clone)]
+struct CfTask {
+    base_rng: u64,
+    q_start: usize,
+    q_win_len: usize,
+    legal_q: [u8; 6],
+    legal_q_len: usize,
+    legal_bag: u8,
+    bag_at_q_end: u8,
+    spawned_so_far0: usize,
+    prev_hole0: u16,
+    sc_w_1ply: i64,
+    root_cands: Vec<CfCand>,
+    leaf_cands: Vec<CfCand>,
+    max_spawned_leaf: usize,
+    prev_hole_leaf: u16,
+}
+
 struct GameGenerated {
+    ed: Option<ExactSeedData>,
     pieces: usize,
     ds_cleared: usize,
     topout: bool,
-    cf_checks: usize,
     states: Vec<StateFeat>,
-    val_targets: Vec<(usize, f32, f32)>,
-    pairs: Vec<(usize, usize, f32, bool, bool)>,
+    traj_recs: Vec<(usize, u16)>,
+    cf_tasks: Vec<CfTask>,
 }
 
 #[inline]
@@ -378,9 +432,10 @@ fn spawn_exact_cheese_ed(b: &mut FastBoard, rem_g: u16, lines_cleared: u8, holes
     true
 }
 
-/// Pure terminal CRN rollout from a post-1-move candidate state until `rem_g == 0`.
-/// Returns exact remaining pieces after the candidate placement (NO heuristic tail cutoff).
-fn rollout_crn_terminal(
+/// Finite-horizon (or terminal when `roll_horizon == 0`) CRN rollout from a candidate state.
+/// Returns calibrated expected remaining pieces after the candidate placement.
+#[allow(clippy::too_many_arguments)]
+fn rollout_crn_eval(
     fst: &FastShapeTable,
     pgen: &mut FastPlaceGen,
     tmp_places: &mut Vec<blockfish::ai::fast::FastPlace>,
@@ -391,6 +446,8 @@ fn rollout_crn_terminal(
     q_full: &[u8],
     holes: &[u16],
     teacher: &Teacher,
+    leaf_eval: &LeafEval,
+    roll_horizon: usize,
     roll_bw: usize,
 ) -> f32 {
     if rem_g_start == 0 {
@@ -431,7 +488,11 @@ fn rollout_crn_terminal(
     });
 
     let q_len = q_full.len();
-    let max_steps = 230usize.min(q_len.saturating_sub(qc_start));
+    let max_steps = if roll_horizon > 0 {
+        roll_horizon.min(q_len.saturating_sub(qc_start))
+    } else {
+        230usize.min(q_len.saturating_sub(qc_start))
+    };
     let mut steps_done = 0usize;
 
     for step in 1..=max_steps {
@@ -495,8 +556,12 @@ fn rollout_crn_terminal(
             }
         }
         if !any_expanded || next_beam.is_empty() {
-            let rem_left = beam.first().map_or(rem_g_start, |n| n.rem_g);
-            return (steps_done as f32) + 12.0 + 1.85 * (rem_left as f32);
+            if let Some(top) = beam.first() {
+                let in_h = top.held.or_else(|| q_full.get(top.qc).copied());
+                let av = avail_mask_from_q(top.held, top.qc, q_full, 0x7F);
+                return (steps_done as f32) + 12.0 + leaf_eval.eval_pieces(&top.board, top.rem_g, in_h, av);
+            }
+            return (steps_done as f32) + 25.0 + 1.80 * (rem_g_start as f32);
         }
         steps_done = step;
         next_beam.sort_unstable_by_key(|n| n.score);
@@ -517,8 +582,19 @@ fn rollout_crn_terminal(
         }
     }
 
-    let rem_left = beam.first().map_or(rem_g_start, |n| n.rem_g);
-    (steps_done as f32) + 12.0 + 1.85 * (rem_left as f32)
+    if beam.is_empty() {
+        return (steps_done as f32) + 25.0 + 1.80 * (rem_g_start as f32);
+    }
+    let mut best_leaf = f32::MAX;
+    for node in beam.iter().take(3) {
+        let in_h = node.held.or_else(|| q_full.get(node.qc).copied());
+        let av = avail_mask_from_q(node.held, node.qc, q_full, 0x7F);
+        let lv = leaf_eval.eval_pieces(&node.board, node.rem_g, in_h, av);
+        if lv < best_leaf {
+            best_leaf = lv;
+        }
+    }
+    (steps_done as f32) + best_leaf
 }
 
 fn generate_game_data(
@@ -526,8 +602,6 @@ fn generate_game_data(
     horizon: usize,
     beam_w: usize,
     max_per_root: usize,
-    roll_bw: usize,
-    crn_worlds: usize,
     cf_per_game: usize,
     teacher: &Teacher,
 ) -> GameGenerated {
@@ -535,13 +609,13 @@ fn generate_game_data(
         Some(e) => e,
         None => {
             return GameGenerated {
+                ed: None,
                 pieces: 400,
                 ds_cleared: 0,
                 topout: true,
-                cf_checks: 0,
                 states: Vec::new(),
-                val_targets: Vec::new(),
-                pairs: Vec::new(),
+                traj_recs: Vec::new(),
+                cf_tasks: Vec::new(),
             };
         }
     };
@@ -573,7 +647,6 @@ fn generate_game_data(
 
     let mut root_places = Vec::with_capacity(64);
     let mut tmp_places = Vec::with_capacity(64);
-    let mut cf_tmp_places = Vec::with_capacity(64);
     let mut cur_beam: Vec<ONode> = Vec::with_capacity(beam_w);
     let mut children: Vec<ONode> = Vec::with_capacity(beam_w * 32);
     let mut seen: HashSet<OKey, FxBuild> =
@@ -581,16 +654,14 @@ fn generate_game_data(
 
     let mut states: Vec<StateFeat> = Vec::with_capacity(600);
     let mut traj_recs: Vec<(usize, u16)> = Vec::with_capacity(220);
-    let mut cf_val_recs: Vec<(usize, f32, f32)> = Vec::with_capacity(140);
-    let mut raw_pairs: Vec<(usize, usize, f32, bool, bool)> = Vec::with_capacity(240);
+    let mut cf_tasks: Vec<CfTask> = Vec::with_capacity(cf_per_game + 4);
 
     let mut ds_total = 0usize;
     let mut q_pos = 0usize;
     let mut pcs = 0usize;
-    let mut cf_checks = 0usize;
-    let max_cf_rem_g: u16 = 40;
+    let max_cf_rem_g: u16 = 99;
     let mut next_cf_rem_g: u16 = max_cf_rem_g;
-    let cf_step_g: u16 = (34u16 / (cf_per_game.max(1) as u16)).max(2);
+    let cf_step_g: u16 = (92u16 / (cf_per_game.max(1) as u16)).max(2);
     let mut topout = false;
 
     while ds_total < 100 && stacker.current_piece_type().is_some() {
@@ -609,7 +680,7 @@ fn generate_game_data(
         let q_start = q_pos.min(ed.pieces.len());
         let q_end = (q_start + horizon).min(ed.pieces.len());
         let q = &ed.pieces[q_start..q_end];
-        let q_full = &ed.pieces[q_start..];
+        let q_full_len = ed.pieces.len().saturating_sub(q_start);
         let q_len = q.len();
         if q_len == 0 {
             topout = true;
@@ -798,7 +869,7 @@ fn generate_game_data(
             }
         }
 
-        if let Some((b_w, _held_w, _qc_w, l_ih_w, rem_w, l_av_w, ds_w, sc_w_1ply)) = root_after1[chosen_idx] {
+        if let Some((b_w, held_w, qc_w, l_ih_w, rem_w, l_av_w, ds_w, sc_w_1ply)) = root_after1[chosen_idx] {
             if rem_w > 0 {
                 let win_s_idx = states.len();
                 states.push(StateFeat::from_board(&b_w, rem_w, l_ih_w, l_av_w, teacher));
@@ -806,15 +877,14 @@ fn generate_game_data(
 
                 let do_cf = rem_g0 <= next_cf_rem_g
                     && rem_g0 > 6
-                    && cf_checks < cf_per_game
-                    && q_full.len() > 24
+                    && cf_tasks.len() < cf_per_game
+                    && q_full_len > 24
                     && best_goal.is_none();
 
                 if do_cf {
-                    cf_checks += 1;
                     next_cf_rem_g = rem_g0.saturating_sub(cf_step_g);
 
-                    // 1) Root 1-ply candidates (chosen vs opp_ds / runner / clean_alt)
+                    // 1) Root 1-ply candidates (up to 4: chosen vs opp_ds / runner / 1ply_other / clean_alt)
                     let mut best_runner: Option<(usize, i64)> = None;
                     let mut best_opp_ds: Option<(usize, i64)> = None;
                     let mut best_1ply_other: Option<(usize, i64)> = None;
@@ -850,128 +920,54 @@ fn generate_game_data(
                         }
                     }
 
-                    let mut cand_ris: Vec<(usize, usize)> = Vec::with_capacity(3);
-                    cand_ris.push((chosen_idx, win_s_idx));
+                    let mut cand_ris: Vec<usize> = Vec::with_capacity(4);
+                    let mut root_cands: Vec<CfCand> = Vec::with_capacity(4);
+                    cand_ris.push(chosen_idx);
+                    root_cands.push(CfCand {
+                        state_idx: win_s_idx,
+                        board: b_w,
+                        held: held_w,
+                        qc: qc_w,
+                        rem_g: rem_w,
+                        ref_score: sc_w_1ply,
+                    });
                     for opt_ri in [
                         best_opp_ds.map(|x| x.0),
                         best_runner.map(|x| x.0),
                         best_1ply_other.map(|x| x.0),
                         best_clean_alt.map(|x| x.0),
                     ] {
-                        if cand_ris.len() >= 3 {
+                        if root_cands.len() >= 4 {
                             break;
                         }
                         if let Some(ri) = opt_ri {
-                            if !cand_ris.iter().any(|&(r, _)| r == ri) {
-                                if let Some((b_l, _, _, l_ih_l, rem_l, l_av_l, _, _)) = root_after1[ri] {
+                            if !cand_ris.contains(&ri) {
+                                if let Some((b_l, held_l, qc_l, l_ih_l, rem_l, l_av_l, _, sc_l_1ply)) =
+                                    root_after1[ri]
+                                {
                                     let l_s_idx = states.len();
                                     states.push(StateFeat::from_board(&b_l, rem_l, l_ih_l, l_av_l, teacher));
-                                    cand_ris.push((ri, l_s_idx));
+                                    cand_ris.push(ri);
+                                    root_cands.push(CfCand {
+                                        state_idx: l_s_idx,
+                                        board: b_l,
+                                        held: held_l,
+                                        qc: qc_l,
+                                        rem_g: rem_l,
+                                        ref_score: sc_l_1ply,
+                                    });
                                 }
                             }
                         }
                     }
 
-                    let base_rng = seed.wrapping_mul(0x9E3779B97F4A7C15)
-                        ^ ((pcs as u64) + 1).wrapping_mul(0xBF58476D1CE4E5B9);
-
-                    if cand_ris.len() >= 2 {
-                        let unspawned0 = (rem_g0 as usize).saturating_sub(g_rows as usize);
-                        let spawned_so_far0 = 100usize.saturating_sub(unspawned0);
-                        let prev_hole0 = if spawned_so_far0 > 0 && spawned_so_far0 <= ed.holes.len() {
-                            ed.holes[spawned_so_far0 - 1]
-                        } else if g_rows > 0 {
-                            (!root_board.data[0] & 0x3FF).trailing_zeros() as u16
-                        } else {
-                            4
-                        };
-
-                        let mut w_queues: Vec<Vec<u8>> = Vec::with_capacity(crn_worlds);
-                        let mut w_holes: Vec<Vec<u16>> = Vec::with_capacity(crn_worlds);
-                        for wi in 0..crn_worlds {
-                            if wi == 0 {
-                                w_queues.push(q_full.to_vec());
-                                w_holes.push(ed.holes.clone());
-                            } else {
-                                let mut wr = base_rng ^ ((wi as u64) + 1).wrapping_mul(0x94D049BB133111EB);
-                                let mut qw = Vec::with_capacity(240);
-                                for &p in &legal_q[..legal_q_len] {
-                                    qw.push(p);
-                                }
-                                let mut bag = legal_bag;
-                                while qw.len() < 240 {
-                                    qw.push(draw_from_bag(&mut bag, &mut wr));
-                                }
-                                let mut hw = ed.holes.clone();
-                                let mut ph = prev_hole0;
-                                let mut hr = wr ^ 0xD6E8FEB86659FD93;
-                                for hslot in hw.iter_mut().skip(spawned_so_far0) {
-                                    hr = hr
-                                        .wrapping_mul(6364136223846793005)
-                                        .wrapping_add(1442695040888963407);
-                                    let off = (((hr >> 32) as u16) % 9) + 1;
-                                    ph = (ph + off) % 10;
-                                    *hslot = ph;
-                                }
-                                w_queues.push(qw);
-                                w_holes.push(hw);
-                            }
-                        }
-
-                        let mut cand_means: Vec<f32> = Vec::with_capacity(cand_ris.len());
-                        let mut cand_1ply: Vec<i64> = Vec::with_capacity(cand_ris.len());
-
-                        for &(ri, s_idx) in &cand_ris {
-                            let (b_c, held_c, qc_c, _, rem_c, _, _, sc_1ply) = root_after1[ri].unwrap();
-                            let mut sum_c = 0.0f32;
-                            for wi in 0..crn_worlds {
-                                let cost = rollout_crn_terminal(
-                                    &fst,
-                                    &mut pgen,
-                                    &mut cf_tmp_places,
-                                    b_c,
-                                    held_c,
-                                    qc_c,
-                                    rem_c,
-                                    &w_queues[wi],
-                                    &w_holes[wi],
-                                    teacher,
-                                    roll_bw,
-                                );
-                                sum_c += cost;
-                            }
-                            let mean_c = sum_c / (crn_worlds as f32);
-                            cand_means.push(mean_c);
-                            cand_1ply.push(sc_1ply);
-                            cf_val_recs.push((s_idx, mean_c, 0.85));
-                        }
-
-                        for a in 0..cand_ris.len() {
-                            for b in (a + 1)..cand_ris.len() {
-                                let (win_c, lose_c) = if cand_means[a] <= cand_means[b] {
-                                    (a, b)
-                                } else {
-                                    (b, a)
-                                };
-                                let delta = (cand_means[lose_c] - cand_means[win_c]).min(10.0);
-                                if delta >= 0.25 {
-                                    let is_flipped = win_c != 0 && lose_c == 0;
-                                    let is_trap = is_flipped
-                                        || (cand_1ply[win_c] > cand_1ply[lose_c] + 10)
-                                        || (sc_w_1ply >= cand_1ply[lose_c]);
-                                    raw_pairs.push((
-                                        cand_ris[win_c].1,
-                                        cand_ris[lose_c].1,
-                                        delta,
-                                        is_trap,
-                                        is_flipped,
-                                    ));
-                                }
-                            }
-                        }
+                    // 2) Frontier diverse beam leaves (up to 4)
+                    let mut bag_at_q_end = legal_bag;
+                    for &p in q.iter().skip(legal_q_len) {
+                        consume_bag_bit(&mut bag_at_q_end, p);
                     }
-
-                    // 2) Frontier diverse_beam_leaves(4) CRN comparisons directly on beam leaves
+                    let mut leaf_cands: Vec<CfCand> = Vec::with_capacity(4);
+                    let mut max_spawned_leaf = 0usize;
                     let valid_leaves: Vec<usize> = cur_beam
                         .iter()
                         .enumerate()
@@ -1013,7 +1009,7 @@ fn generate_game_data(
                                 }
                             }
                         }
-                        if leaf_idxs.len() < 3 {
+                        if leaf_idxs.len() < 4 {
                             for &li in &valid_leaves {
                                 if !leaf_idxs.contains(&li) {
                                     leaf_idxs.push(li);
@@ -1023,14 +1019,7 @@ fn generate_game_data(
                                 }
                             }
                         }
-
                         if leaf_idxs.len() >= 2 {
-                            let mut bag_at_q_end = legal_bag;
-                            for &p in q.iter().skip(legal_q_len) {
-                                consume_bag_bit(&mut bag_at_q_end, p);
-                            }
-                            let mut max_spawned_leaf = 0usize;
-                            let mut leaf_s_idxs: Vec<(usize, usize)> = Vec::with_capacity(leaf_idxs.len());
                             for &li in &leaf_idxs {
                                 let nd = &cur_beam[li];
                                 let unsp = (nd.rem_g as usize).saturating_sub(nd.board.garbage_rows as usize);
@@ -1039,94 +1028,51 @@ fn generate_game_data(
                                 let l_av = avail_mask_from_q(nd.held, nd.q_cursor, q, bag_at_q_end);
                                 let s_idx = states.len();
                                 states.push(StateFeat::from_board(&nd.board, nd.rem_g, l_ih, l_av, teacher));
-                                leaf_s_idxs.push((li, s_idx));
-                            }
-                            let prev_hole_leaf = if max_spawned_leaf > 0 && max_spawned_leaf <= ed.holes.len() {
-                                ed.holes[max_spawned_leaf - 1]
-                            } else {
-                                4
-                            };
-
-                            let mut leaf_queues: Vec<Vec<u8>> = Vec::with_capacity(crn_worlds);
-                            let mut leaf_holes: Vec<Vec<u16>> = Vec::with_capacity(crn_worlds);
-                            for wi in 0..crn_worlds {
-                                if wi == 0 {
-                                    leaf_queues.push(q_full.to_vec());
-                                    leaf_holes.push(ed.holes.clone());
-                                } else {
-                                    let mut wr = (base_rng ^ 0xA5A55A5A9E3779B9)
-                                        ^ ((wi as u64) + 1).wrapping_mul(0x94D049BB133111EB);
-                                    let mut qw = Vec::with_capacity(260);
-                                    qw.extend_from_slice(q);
-                                    let mut bag = bag_at_q_end;
-                                    while qw.len() < 260 {
-                                        qw.push(draw_from_bag(&mut bag, &mut wr));
-                                    }
-                                    let mut hw = ed.holes.clone();
-                                    let mut ph = prev_hole_leaf;
-                                    let mut hr = wr ^ 0xD6E8FEB86659FD93;
-                                    for hslot in hw.iter_mut().skip(max_spawned_leaf) {
-                                        hr = hr
-                                            .wrapping_mul(6364136223846793005)
-                                            .wrapping_add(1442695040888963407);
-                                        let off = (((hr >> 32) as u16) % 9) + 1;
-                                        ph = (ph + off) % 10;
-                                        *hslot = ph;
-                                    }
-                                    leaf_queues.push(qw);
-                                    leaf_holes.push(hw);
-                                }
-                            }
-
-                            let mut leaf_means: Vec<f32> = Vec::with_capacity(leaf_s_idxs.len());
-                            let mut leaf_t_scores: Vec<i64> = Vec::with_capacity(leaf_s_idxs.len());
-                            for &(li, s_idx) in &leaf_s_idxs {
-                                let nd = &cur_beam[li];
-                                let mut sum_c = 0.0f32;
-                                for wi in 0..crn_worlds {
-                                    sum_c += rollout_crn_terminal(
-                                        &fst,
-                                        &mut pgen,
-                                        &mut cf_tmp_places,
-                                        nd.board,
-                                        nd.held,
-                                        nd.q_cursor,
-                                        nd.rem_g,
-                                        &leaf_queues[wi],
-                                        &leaf_holes[wi],
-                                        teacher,
-                                        roll_bw,
-                                    );
-                                }
-                                let mean_c = sum_c / (crn_worlds as f32);
-                                leaf_means.push(mean_c);
-                                leaf_t_scores.push(nd.score);
-                                cf_val_recs.push((s_idx, mean_c, 0.90));
-                            }
-
-                            for a in 0..leaf_s_idxs.len() {
-                                for b in (a + 1)..leaf_s_idxs.len() {
-                                    let (win_c, lose_c) = if leaf_means[a] <= leaf_means[b] {
-                                        (a, b)
-                                    } else {
-                                        (b, a)
-                                    };
-                                    let delta = (leaf_means[lose_c] - leaf_means[win_c]).min(10.0);
-                                    if delta >= 0.25 {
-                                        let is_flipped = win_c != 0 && lose_c == 0;
-                                        let is_trap = is_flipped
-                                            || (leaf_t_scores[win_c] > leaf_t_scores[lose_c] + 10);
-                                        raw_pairs.push((
-                                            leaf_s_idxs[win_c].1,
-                                            leaf_s_idxs[lose_c].1,
-                                            delta,
-                                            is_trap,
-                                            is_flipped,
-                                        ));
-                                    }
-                                }
+                                leaf_cands.push(CfCand {
+                                    state_idx: s_idx,
+                                    board: nd.board,
+                                    held: nd.held,
+                                    qc: nd.q_cursor,
+                                    rem_g: nd.rem_g,
+                                    ref_score: nd.score,
+                                });
                             }
                         }
+                    }
+
+                    if root_cands.len() >= 2 || leaf_cands.len() >= 2 {
+                        let base_rng = seed.wrapping_mul(0x9E3779B97F4A7C15)
+                            ^ ((pcs as u64) + 1).wrapping_mul(0xBF58476D1CE4E5B9);
+                        let unspawned0 = (rem_g0 as usize).saturating_sub(g_rows as usize);
+                        let spawned_so_far0 = 100usize.saturating_sub(unspawned0);
+                        let prev_hole0 = if spawned_so_far0 > 0 && spawned_so_far0 <= ed.holes.len() {
+                            ed.holes[spawned_so_far0 - 1]
+                        } else if g_rows > 0 {
+                            (!root_board.data[0] & 0x3FF).trailing_zeros() as u16
+                        } else {
+                            4
+                        };
+                        let prev_hole_leaf = if max_spawned_leaf > 0 && max_spawned_leaf <= ed.holes.len() {
+                            ed.holes[max_spawned_leaf - 1]
+                        } else {
+                            4
+                        };
+                        cf_tasks.push(CfTask {
+                            base_rng,
+                            q_start,
+                            q_win_len: q_len,
+                            legal_q,
+                            legal_q_len,
+                            legal_bag,
+                            bag_at_q_end,
+                            spawned_so_far0,
+                            prev_hole0,
+                            sc_w_1ply,
+                            root_cands,
+                            leaf_cands,
+                            max_spawned_leaf,
+                            prev_hole_leaf,
+                        });
                     }
                 }
             }
@@ -1158,38 +1104,230 @@ fn generate_game_data(
 
     if ds_total < 100 || topout {
         return GameGenerated {
+            ed: None,
             pieces: 400,
             ds_cleared: ds_total,
             topout: true,
-            cf_checks,
             states: Vec::new(),
-            val_targets: Vec::new(),
-            pairs: Vec::new(),
+            traj_recs: Vec::new(),
+            cf_tasks: Vec::new(),
         };
     }
 
-    // Realized Monte-Carlo remaining pieces (very light anchor) + low-variance terminal CRN outcomes
-    let mut val_targets = Vec::with_capacity(traj_recs.len() + cf_val_recs.len());
-    for (step_idx, &(s_idx, rem_w)) in traj_recs.iter().enumerate() {
-        if rem_w == 0 {
-            continue;
-        }
-        let mc_rem = (pcs.saturating_sub(step_idx + 1)) as f32;
-        val_targets.push((s_idx, mc_rem.clamp(0.5, 280.0), 0.05));
-    }
-    for (s_idx, mean_c, wt) in cf_val_recs {
-        val_targets.push((s_idx, mean_c.clamp(0.5, 280.0), wt));
-    }
-
     GameGenerated {
+        ed: Some(ed),
         pieces: pcs,
         ds_cleared: ds_total,
         topout: false,
-        cf_checks,
         states,
-        val_targets,
-        pairs: raw_pairs,
+        traj_recs,
+        cf_tasks,
     }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn run_cf_task(
+    task: &CfTask,
+    ed: &ExactSeedData,
+    state_base: usize,
+    is_val: bool,
+    crn_worlds: usize,
+    roll_horizon: usize,
+    roll_bw: usize,
+    teacher: &Teacher,
+    leaf_eval: &LeafEval,
+    fst: &FastShapeTable,
+    pgen: &mut FastPlaceGen,
+    cf_tmp_places: &mut Vec<blockfish::ai::fast::FastPlace>,
+) -> (Vec<ValueSample>, Vec<RankPair>) {
+    let mut vals = Vec::new();
+    let mut pairs = Vec::new();
+    let q_full = &ed.pieces[task.q_start..];
+    let q_need = if roll_horizon > 0 {
+        (task.q_win_len + roll_horizon + 12).min(260)
+    } else {
+        260
+    };
+
+    if task.root_cands.len() >= 2 {
+        let mut w_queues: Vec<Vec<u8>> = Vec::with_capacity(crn_worlds);
+        let mut w_holes: Vec<Vec<u16>> = Vec::with_capacity(crn_worlds);
+        for wi in 0..crn_worlds {
+            if wi == 0 {
+                w_queues.push(q_full.to_vec());
+                w_holes.push(ed.holes.clone());
+            } else {
+                let mut wr = task.base_rng ^ ((wi as u64) + 1).wrapping_mul(0x94D049BB133111EB);
+                let mut qw = Vec::with_capacity(q_need);
+                for &p in &task.legal_q[..task.legal_q_len] {
+                    qw.push(p);
+                }
+                let mut bag = task.legal_bag;
+                while qw.len() < q_need {
+                    qw.push(draw_from_bag(&mut bag, &mut wr));
+                }
+                let mut hw = ed.holes.clone();
+                let mut ph = task.prev_hole0;
+                let mut hr = wr ^ 0xD6E8FEB86659FD93;
+                for hslot in hw.iter_mut().skip(task.spawned_so_far0) {
+                    hr = hr
+                        .wrapping_mul(6364136223846793005)
+                        .wrapping_add(1442695040888963407);
+                    let off = (((hr >> 32) as u16) % 9) + 1;
+                    ph = (ph + off) % 10;
+                    *hslot = ph;
+                }
+                w_queues.push(qw);
+                w_holes.push(hw);
+            }
+        }
+
+        let mut cand_means: Vec<f32> = Vec::with_capacity(task.root_cands.len());
+        for cand in &task.root_cands {
+            let mut sum_c = 0.0f32;
+            for wi in 0..crn_worlds {
+                sum_c += rollout_crn_eval(
+                    fst,
+                    pgen,
+                    cf_tmp_places,
+                    cand.board,
+                    cand.held,
+                    cand.qc,
+                    cand.rem_g,
+                    &w_queues[wi],
+                    &w_holes[wi],
+                    teacher,
+                    leaf_eval,
+                    roll_horizon,
+                    roll_bw,
+                );
+            }
+            let mean_c = sum_c / (crn_worlds as f32);
+            cand_means.push(mean_c);
+            vals.push(ValueSample {
+                state_idx: state_base + cand.state_idx,
+                target: mean_c.clamp(0.5, 280.0),
+                weight: 1.0,
+                is_val,
+            });
+        }
+
+        for a in 0..task.root_cands.len() {
+            for b in (a + 1)..task.root_cands.len() {
+                let (win_c, lose_c) = if cand_means[a] <= cand_means[b] {
+                    (a, b)
+                } else {
+                    (b, a)
+                };
+                let delta = (cand_means[lose_c] - cand_means[win_c]).min(10.0);
+                if delta >= 0.20 {
+                    let is_flipped = win_c != 0 && lose_c == 0;
+                    let is_trap = is_flipped
+                        || (task.root_cands[win_c].ref_score > task.root_cands[lose_c].ref_score + 10)
+                        || (task.sc_w_1ply >= task.root_cands[lose_c].ref_score);
+                    pairs.push(RankPair {
+                        win_idx: state_base + task.root_cands[win_c].state_idx,
+                        lose_idx: state_base + task.root_cands[lose_c].state_idx,
+                        dq: delta,
+                        is_trap,
+                        is_flipped,
+                        is_val,
+                    });
+                }
+            }
+        }
+    }
+
+    if task.leaf_cands.len() >= 2 {
+        let q_win_end = (task.q_start + task.q_win_len).min(ed.pieces.len());
+        let q_win = &ed.pieces[task.q_start..q_win_end];
+        let mut leaf_queues: Vec<Vec<u8>> = Vec::with_capacity(crn_worlds);
+        let mut leaf_holes: Vec<Vec<u16>> = Vec::with_capacity(crn_worlds);
+        for wi in 0..crn_worlds {
+            if wi == 0 {
+                leaf_queues.push(q_full.to_vec());
+                leaf_holes.push(ed.holes.clone());
+            } else {
+                let mut wr = (task.base_rng ^ 0xA5A55A5A9E3779B9)
+                    ^ ((wi as u64) + 1).wrapping_mul(0x94D049BB133111EB);
+                let mut qw = Vec::with_capacity(q_need);
+                qw.extend_from_slice(q_win);
+                let mut bag = task.bag_at_q_end;
+                while qw.len() < q_need {
+                    qw.push(draw_from_bag(&mut bag, &mut wr));
+                }
+                let mut hw = ed.holes.clone();
+                let mut ph = task.prev_hole_leaf;
+                let mut hr = wr ^ 0xD6E8FEB86659FD93;
+                for hslot in hw.iter_mut().skip(task.max_spawned_leaf) {
+                    hr = hr
+                        .wrapping_mul(6364136223846793005)
+                        .wrapping_add(1442695040888963407);
+                    let off = (((hr >> 32) as u16) % 9) + 1;
+                    ph = (ph + off) % 10;
+                    *hslot = ph;
+                }
+                leaf_queues.push(qw);
+                leaf_holes.push(hw);
+            }
+        }
+
+        let mut leaf_means: Vec<f32> = Vec::with_capacity(task.leaf_cands.len());
+        for cand in &task.leaf_cands {
+            let mut sum_c = 0.0f32;
+            for wi in 0..crn_worlds {
+                sum_c += rollout_crn_eval(
+                    fst,
+                    pgen,
+                    cf_tmp_places,
+                    cand.board,
+                    cand.held,
+                    cand.qc,
+                    cand.rem_g,
+                    &leaf_queues[wi],
+                    &leaf_holes[wi],
+                    teacher,
+                    leaf_eval,
+                    roll_horizon,
+                    roll_bw,
+                );
+            }
+            let mean_c = sum_c / (crn_worlds as f32);
+            leaf_means.push(mean_c);
+            vals.push(ValueSample {
+                state_idx: state_base + cand.state_idx,
+                target: mean_c.clamp(0.5, 280.0),
+                weight: 1.0,
+                is_val,
+            });
+        }
+
+        for a in 0..task.leaf_cands.len() {
+            for b in (a + 1)..task.leaf_cands.len() {
+                let (win_c, lose_c) = if leaf_means[a] <= leaf_means[b] {
+                    (a, b)
+                } else {
+                    (b, a)
+                };
+                let delta = (leaf_means[lose_c] - leaf_means[win_c]).min(10.0);
+                if delta >= 0.20 {
+                    let is_flipped = win_c != 0 && lose_c == 0;
+                    let is_trap = is_flipped
+                        || (task.leaf_cands[win_c].ref_score > task.leaf_cands[lose_c].ref_score + 10);
+                    pairs.push(RankPair {
+                        win_idx: state_base + task.leaf_cands[win_c].state_idx,
+                        lose_idx: state_base + task.leaf_cands[lose_c].state_idx,
+                        dq: delta,
+                        is_trap,
+                        is_flipped,
+                        is_val,
+                    });
+                }
+            }
+        }
+    }
+
+    (vals, pairs)
 }
 
 struct AdamW {
@@ -1286,28 +1424,22 @@ impl AdamW {
         g: &GradBuf,
         lr_cur: f32,
         lin_lr_mult: f32,
-        anchor_sparse: &[f32; SPARSE_DIM],
-        anchor_dense: &[f32; DENSE_DIM],
     ) {
         self.t += 1;
         self.b1t *= self.beta1;
         self.b2t *= self.beta2;
-        let wd_mlp = self.wd * 2.0;
-        let anchor_sp = self.wd * 2.0;
-        let anchor_d = self.wd * 3.0;
+        let wd_mlp = self.wd * 4.0;
+        let wd_lin = self.wd * 0.5;
         let lr_lin = lr_cur * lin_lr_mult;
         let (b1, b2, b1t, b2t, eps) = (self.beta1, self.beta2, self.b1t, self.b2t, self.eps);
 
         Self::step_param(&mut mdl.lin_bias, g.lin_bias, &mut self.m_lin_b, &mut self.v_lin_b, 0.0, lr_lin, b1, b2, b1t, b2t, eps);
         for i in 0..SPARSE_DIM {
-            Self::step_param(&mut mdl.lin_sparse[i], g.lin_sparse[i], &mut self.m_lin_s[i], &mut self.v_lin_s[i], 0.0, lr_lin, b1, b2, b1t, b2t, eps);
-            mdl.lin_sparse[i] -= lr_lin * anchor_sp * (mdl.lin_sparse[i] - anchor_sparse[i]);
+            Self::step_param(&mut mdl.lin_sparse[i], g.lin_sparse[i], &mut self.m_lin_s[i], &mut self.v_lin_s[i], wd_lin, lr_lin, b1, b2, b1t, b2t, eps);
         }
         for j in 0..DENSE_DIM {
-            Self::step_param(&mut mdl.lin_dense[j], g.lin_dense[j], &mut self.m_lin_d[j], &mut self.v_lin_d[j], 0.0, lr_lin, b1, b2, b1t, b2t, eps);
-            if j >= 1 {
-                mdl.lin_dense[j] -= lr_lin * anchor_d * (mdl.lin_dense[j] - anchor_dense[j]);
-            }
+            let d = if j == 0 { 0.0 } else { wd_lin };
+            Self::step_param(&mut mdl.lin_dense[j], g.lin_dense[j], &mut self.m_lin_d[j], &mut self.v_lin_d[j], d, lr_lin, b1, b2, b1t, b2t, eps);
         }
         for h in 0..SPATIAL_H1 {
             Self::step_param(&mut mdl.b1[h], g.b1[h], &mut self.m_b1[h], &mut self.v_b1[h], 0.0, lr_cur, b1, b2, b1t, b2t, eps);
@@ -1850,10 +1982,18 @@ fn compute_gentle_bounds(dense_inv_std: &[f32; DENSE_DIM]) -> (Vec<f64>, Vec<f64
         lb[i] = -0.15;
         ub[i] = 0.30;
     }
-    for i in 160..180 {
+    for i in 160..166 {
         lb[i] = -0.25;
         ub[i] = 0.25;
     }
+    for i in 166..180 {
+        lb[i] = -0.08;
+        ub[i] = 0.08;
+    }
+    // Constrain hand_O (sparse bit 167) to prevent artificial O-dumping bias
+    lb[167] = -0.05;
+    ub[167] = 0.08;
+
     lb[180] = 0.50;
     ub[180] = 5.00; // g == 0 && rem_g > 0
     lb[181] = 0.0;
@@ -1876,8 +2016,8 @@ fn compute_gentle_bounds(dense_inv_std: &[f32; DENSE_DIM]) -> (Vec<f64>, Vec<f64
         }
     };
 
-    // Wide empirical bounds for rem_g and g; leave stack_cells_row_g (4) free
-    set_raw_range(&mut lb, &mut ub, 0, 1.35, 2.50); // rem_g
+    // Wide empirical bounds for rem_g, g, and stack_cells; leave stack_cells_row_g (4) free
+    set_raw_range(&mut lb, &mut ub, 0, 1.35, 2.35); // rem_g
     set_raw_range(&mut lb, &mut ub, 1, 0.0, 0.45);  // g
 
     for j in 2..DENSE_DIM {
@@ -1896,13 +2036,14 @@ fn compute_gentle_bounds(dense_inv_std: &[f32; DENSE_DIM]) -> (Vec<f64>, Vec<f64
         }
     }
 
+    set_raw_range(&mut lb, &mut ub, 3, 0.015, 0.25); // stack_cells
+
     for c in 0..10 {
         set_raw_range(&mut lb, &mut ub, 8 + c, 0.0, 0.08);
     }
 
-    // Minimal safety floors only (no heavy artificial overrides)
-    let floors: [(usize, f64); 5] = [
-        (3, 0.015),  // stack_cells
+    // Minimal safety floors only
+    let floors: [(usize, f64); 4] = [
         (22, 0.03),  // ex13_sq
         (23, 0.08),  // covered_holes
         (28, 0.05),  // h1_blocks
@@ -1918,32 +2059,48 @@ fn compute_gentle_bounds(dense_inv_std: &[f32; DENSE_DIM]) -> (Vec<f64>, Vec<f64
     (lb, ub)
 }
 
-/// Distill `teacher_score` directly onto `SpatialValueModel`'s linear skip `(lin_bias, lin_sparse, lin_dense)`
-/// using lightly-regularized sign-consistent Ridge regression on all generated training states.
-/// Guarantees `ep=0` reproduces the solid baseline (`~176-180` Oracle, 0 topouts) before residual MLP RL.
-fn ridge_distill_teacher(
+/// Fit `SpatialValueModel`'s linear skip `(lin_bias, lin_sparse, lin_dense)` directly to weighted
+/// true outcome targets `(state_idx, target, weight)` and optional pairwise CRN differences
+/// `(win_idx, lose_idx, dq, weight)` via sign-consistent Ridge regression.
+fn ridge_fit_values(
+    label: &str,
     mdl: &mut SpatialValueModel,
     all_states: &[StateFeat],
-    train_state_idxs: &[usize],
+    samples: &[(usize, f32, f32)],
+    pair_diffs: &[(usize, usize, f32, f32)],
+    min_rem_g: f32,
+    max_rem_g: f32,
 ) {
     const P: usize = SPARSE_DIM + DENSE_DIM;
     const P1: usize = P + 1;
     let mut a = vec![0.0f64; P1 * P1];
     let mut b = vec![0.0f64; P1];
     let mut x = [0.0f64; P1];
-    let mut nz: Vec<usize> = Vec::with_capacity(180);
+    let mut seen_stamp = [0u32; P1];
+    let mut stamp: u32 = 0;
+    let mut nz: Vec<usize> = Vec::with_capacity(240);
     let mut used = 0usize;
+    let mut used_pairs = 0usize;
+    let mut sum_w = 0.0f64;
 
-    for &si in train_state_idxs {
+    for &(si, target, weight) in samples {
+        if weight <= 0.0 || !target.is_finite() || target.abs() > 1000.0 {
+            continue;
+        }
         let sf = &all_states[si];
-        if !sf.teacher_score.is_finite() || sf.teacher_score.abs() > 1000.0 {
+        let rg = sf.dense[0];
+        if rg < min_rem_g || rg > max_rem_g {
             continue;
         }
         used += 1;
+        let wt = weight as f64;
+        sum_w += wt;
+        stamp += 1;
         nz.clear();
         for &bit in &sf.active {
             let idx = bit as usize;
-            if x[idx] == 0.0 {
+            if seen_stamp[idx] != stamp {
+                seen_stamp[idx] = stamp;
                 nz.push(idx);
             }
             x[idx] += 1.0;
@@ -1952,19 +2109,81 @@ fn ridge_distill_teacher(
             let z = ((sf.dense[j] - mdl.dense_mean[j]) * mdl.dense_inv_std[j]) as f64;
             if z.abs() > 1e-9 {
                 let idx = SPARSE_DIM + j;
+                seen_stamp[idx] = stamp;
                 x[idx] = z;
                 nz.push(idx);
             }
         }
+        seen_stamp[P] = stamp;
         x[P] = 1.0;
         nz.push(P);
+        nz.sort_unstable();
 
-        let y = sf.teacher_score as f64;
+        let y = target as f64;
         for (ii, &ia) in nz.iter().enumerate() {
-            let xa = x[ia];
-            b[ia] += xa * y;
+            let wxa = wt * x[ia];
+            b[ia] += wxa * y;
             for &ib in &nz[ii..] {
-                a[ia * P1 + ib] += xa * x[ib];
+                a[ia * P1 + ib] += wxa * x[ib];
+            }
+        }
+        for &idx in &nz {
+            x[idx] = 0.0;
+        }
+    }
+
+    for &(win_si, lose_si, dq, weight) in pair_diffs {
+        if weight <= 0.0 || !dq.is_finite() || dq.abs() > 50.0 {
+            continue;
+        }
+        let sw = &all_states[win_si];
+        let sl = &all_states[lose_si];
+        if sw.dense[0] < min_rem_g
+            || sw.dense[0] > max_rem_g
+            || sl.dense[0] < min_rem_g
+            || sl.dense[0] > max_rem_g
+        {
+            continue;
+        }
+        used_pairs += 1;
+        let pw = weight as f64;
+        sum_w += pw;
+        stamp += 1;
+        nz.clear();
+        for &bit in &sl.active {
+            let idx = bit as usize;
+            if seen_stamp[idx] != stamp {
+                seen_stamp[idx] = stamp;
+                nz.push(idx);
+            }
+            x[idx] += 1.0;
+        }
+        for &bit in &sw.active {
+            let idx = bit as usize;
+            if seen_stamp[idx] != stamp {
+                seen_stamp[idx] = stamp;
+                nz.push(idx);
+            }
+            x[idx] -= 1.0;
+        }
+        for j in 0..DENSE_DIM {
+            let dz = ((sl.dense[j] - sw.dense[j]) * mdl.dense_inv_std[j]) as f64;
+            if dz.abs() > 1e-9 {
+                let idx = SPARSE_DIM + j;
+                seen_stamp[idx] = stamp;
+                x[idx] = dz;
+                nz.push(idx);
+            }
+        }
+        nz.retain(|&idx| x[idx].abs() > 1e-12);
+        nz.sort_unstable();
+
+        let y = dq as f64;
+        for (ii, &ia) in nz.iter().enumerate() {
+            let wxa = pw * x[ia];
+            b[ia] += wxa * y;
+            for &ib in &nz[ii..] {
+                a[ia * P1 + ib] += wxa * x[ib];
             }
         }
         for &idx in &nz {
@@ -1978,8 +2197,8 @@ fn ridge_distill_teacher(
         }
     }
 
-    let lam_sparse = (used as f64 * 0.002).clamp(20.0, 120.0);
-    let lam_dense = (used as f64 * 0.0004).clamp(3.0, 25.0);
+    let lam_sparse = (sum_w * 0.0025).clamp(20.0, 140.0);
+    let lam_dense = (sum_w * 0.0005).clamp(3.0, 30.0);
     for i in 0..SPARSE_DIM {
         let mult = if (90..120).contains(&i) { 4.0 } else { 1.0 };
         a[i * P1 + i] += lam_sparse * mult;
@@ -2021,59 +2240,76 @@ fn ridge_distill_teacher(
 
     let mut abs_err = 0.0f64;
     let mut sq_err = 0.0f64;
-    let mut cnt = 0usize;
-    for &si in train_state_idxs {
-        let sf = &all_states[si];
-        if !sf.teacher_score.is_finite() || sf.teacher_score.abs() > 1000.0 {
+    let mut eval_w = 0.0f64;
+    for &(si, target, weight) in samples {
+        if weight <= 0.0 || !target.is_finite() || target.abs() > 1000.0 {
             continue;
         }
-        let pred = mdl.predict_extracted(&sf.active, &sf.dense) as f64;
-        let e = pred - (sf.teacher_score as f64);
-        abs_err += e.abs();
-        sq_err += e * e;
-        cnt += 1;
+        let sf = &all_states[si];
+        let rg = sf.dense[0];
+        if rg < min_rem_g || rg > max_rem_g {
+            continue;
+        }
+        let pred = mdl.predict_linear_extracted(&sf.active, &sf.dense) as f64;
+        let e = pred - (target as f64);
+        let wt = weight as f64;
+        abs_err += wt * e.abs();
+        sq_err += wt * e * e;
+        eval_w += wt;
     }
-    let mae = abs_err / (cnt.max(1) as f64);
-    let rmse = (sq_err / (cnt.max(1) as f64)).sqrt();
-    println!(
-        "  Distilled teacher onto linear skip ({} states): distill_mae={:.3} distill_rmse={:.3}",
-        cnt, mae, rmse
-    );
+    let mae = abs_err / eval_w.max(1.0);
+    let rmse = (sq_err / eval_w.max(1.0)).sqrt();
+    if used_pairs > 0 {
+        let mut p_ok = 0usize;
+        let mut p_tot = 0usize;
+        let mut p_derr = 0.0f64;
+        for &(win_si, lose_si, dq, weight) in pair_diffs {
+            if weight <= 0.0 || !dq.is_finite() || dq.abs() > 50.0 {
+                continue;
+            }
+            let sw = &all_states[win_si];
+            let sl = &all_states[lose_si];
+            if sw.dense[0] < min_rem_g
+                || sw.dense[0] > max_rem_g
+                || sl.dense[0] < min_rem_g
+                || sl.dense[0] > max_rem_g
+            {
+                continue;
+            }
+            let yw = mdl.predict_linear_extracted(&sw.active, &sw.dense) as f64;
+            let yl = mdl.predict_linear_extracted(&sl.active, &sl.dense) as f64;
+            p_tot += 1;
+            if yw < yl {
+                p_ok += 1;
+            }
+            p_derr += ((yl - yw) - (dq as f64)).abs();
+        }
+        let p_acc = 100.0 * (p_ok as f64) / (p_tot.max(1) as f64);
+        let p_mae = p_derr / (p_tot.max(1) as f64);
+        println!(
+            "  Ridge [{}] ({} vals, {} pairs, sum_w={:.1}): mae={:.3} rmse={:.3} | train_pair={:.1}% diff_mae={:.3}",
+            label, used, used_pairs, sum_w, mae, rmse, p_acc, p_mae
+        );
+    } else {
+        println!(
+            "  Ridge [{}] ({} samples, sum_w={:.1}): mae={:.3} rmse={:.3}",
+            label, used, sum_w, mae, rmse
+        );
+    }
 }
 
-fn clamp_linear_sanity(
-    mdl: &mut SpatialValueModel,
-    anchor_sparse: &[f32; SPARSE_DIM],
-    anchor_dense: &[f32; DENSE_DIM],
-) {
+fn clamp_linear_sanity(mdl: &mut SpatialValueModel) {
     let (lb, ub) = compute_gentle_bounds(&mdl.dense_inv_std);
     for i in 0..SPARSE_DIM {
-        let al = (anchor_sparse[i] - 0.15).max(lb[i] as f32);
-        let au = (anchor_sparse[i] + 0.15).min(ub[i] as f32);
-        let (lo, hi) = if al <= au { (al, au) } else { (lb[i] as f32, ub[i] as f32) };
-        mdl.lin_sparse[i] = mdl.lin_sparse[i].clamp(lo, hi);
+        mdl.lin_sparse[i] = mdl.lin_sparse[i].clamp(lb[i] as f32, ub[i] as f32);
     }
-    mdl.lin_dense[0] = mdl.lin_dense[0].clamp(lb[SPARSE_DIM] as f32, ub[SPARSE_DIM] as f32);
-    for j in 1..DENSE_DIM {
-        let inv = mdl.dense_inv_std[j];
-        let slack = if inv > 1e-6 { 0.04 / inv } else { 0.0 };
-        let anc = anchor_dense[j];
-        let tr_lo = (anc * 0.85).min(anc * 1.20) - slack;
-        let tr_hi = (anc * 0.85).max(anc * 1.20) + slack;
-        let glb = lb[SPARSE_DIM + j] as f32;
-        let gub = ub[SPARSE_DIM + j] as f32;
-        let lo = glb.max(tr_lo);
-        let hi = gub.min(tr_hi);
-        mdl.lin_dense[j] = if lo <= hi {
-            mdl.lin_dense[j].clamp(lo, hi)
-        } else {
-            mdl.lin_dense[j].clamp(glb, gub)
-        };
+    for j in 0..DENSE_DIM {
+        mdl.lin_dense[j] = mdl.lin_dense[j].clamp(lb[SPARSE_DIM + j] as f32, ub[SPARSE_DIM + j] as f32);
     }
     for k in 0..SPATIAL_H2 {
-        mdl.w3[k] = mdl.w3[k].clamp(-0.25, 0.25);
+        mdl.w3[k] = mdl.w3[k].clamp(-0.35, 0.35);
     }
-    mdl.b3 = mdl.b3.clamp(-1.5, 1.5);
+    mdl.b3 = mdl.b3.clamp(-2.0, 2.0);
 }
 
 fn print_spatial_diagnostics(label: &str, mdl: &SpatialValueModel) {
@@ -2081,7 +2317,7 @@ fn print_spatial_diagnostics(label: &str, mdl: &SpatialValueModel) {
         (0, "rem_g"),
         (1, "g"),
         (2, "pe_net"),
-        (3, "stack_cells"),
+        (3, "stk_cells"),
         (18, "max_sh"),
         (21, "over2_sq"),
         (23, "cov_holes"),
@@ -2090,14 +2326,23 @@ fn print_spatial_diagnostics(label: &str, mdl: &SpatialValueModel) {
         (36, "h2_blk"),
         (47, "bump"),
         (56, "near9"),
+        (61, "clean_sk"),
+        (70, "h2_only_rg"),
+        (71, "h1_ds_rg_h2"),
     ];
     let mut parts = Vec::new();
     for &(j, name) in &checks {
         parts.push(format!("{}:{:+.3}", name, mdl.lin_dense[j] * mdl.dense_inv_std[j]));
     }
     println!(
-        "  [{}] bias={:+.2} g0_sp={:+.2} | lin_raw: {}",
-        label, mdl.lin_bias, mdl.lin_sparse[180], parts.join(" ")
+        "  [{}] bias={:+.2} g0_sp={:+.2} h_IOT=({:+.3},{:+.3},{:+.3}) | lin_raw: {}",
+        label,
+        mdl.lin_bias,
+        mdl.lin_sparse[180],
+        mdl.lin_sparse[166],
+        mdl.lin_sparse[167],
+        mdl.lin_sparse[168],
+        parts.join(" ")
     );
 }
 
@@ -2110,17 +2355,20 @@ fn main() {
     let mut horizon: usize = 12;
     let mut beam_w: usize = 140;
     let mut max_per_root: usize = 20;
-    let mut roll_bw: usize = 10;
-    let mut crn_worlds: usize = 4;
-    let mut cf_per_game: usize = 10;
-    let mut epochs: usize = 30;
+    let mut roll_horizon: usize = 20;
+    let mut roll_bw: usize = 16;
+    let mut crn_worlds: usize = 6;
+    let mut cf_per_game: usize = 24;
+    let mut epochs: usize = 35;
     let mut batch_size: usize = 128;
-    let mut lr: f32 = 0.0005;
-    let mut wd: f32 = 0.012;
-    let mut lin_lr_mult: f32 = 0.08;
+    let mut lr: f32 = 0.0006;
+    let mut wd: f32 = 0.015;
+    let mut lin_lr_mult: f32 = 0.45;
     let mut rank_w: f32 = 1.5;
-    let mut diff_w: f32 = 0.30;
-    let mut val_w: f32 = 0.05;
+    let mut diff_w: f32 = 0.45;
+    let mut val_w: f32 = 0.25;
+    let mut cal_v_weight: f32 = 0.55;
+    let mut keep_o_bias: bool = false;
     let mut seed_base: u64 = 1000;
     let mut eval_oracle: usize = 5;
     let mut eval_legal: usize = 5;
@@ -2136,6 +2384,7 @@ fn main() {
             "--horizon" => { horizon = args[i + 1].parse().unwrap(); i += 2; }
             "--beam" => { beam_w = args[i + 1].parse().unwrap(); i += 2; }
             "--max-per-root" => { max_per_root = args[i + 1].parse().unwrap(); i += 2; }
+            "--roll-horizon" => { roll_horizon = args[i + 1].parse().unwrap(); i += 2; }
             "--roll-bw" => { roll_bw = args[i + 1].parse().unwrap(); i += 2; }
             "--crn-worlds" => { crn_worlds = args[i + 1].parse().unwrap(); i += 2; }
             "--cf-per-game" => { cf_per_game = args[i + 1].parse().unwrap(); i += 2; }
@@ -2147,6 +2396,8 @@ fn main() {
             "--rank-w" => { rank_w = args[i + 1].parse().unwrap(); i += 2; }
             "--diff-w" => { diff_w = args[i + 1].parse().unwrap(); i += 2; }
             "--val-w" => { val_w = args[i + 1].parse().unwrap(); i += 2; }
+            "--cal-v-weight" => { cal_v_weight = args[i + 1].parse().unwrap(); i += 2; }
+            "--keep-o-bias" => { keep_o_bias = true; i += 1; }
             "--seed-base" => { seed_base = args[i + 1].parse().unwrap(); i += 2; }
             "--eval-seeds" => {
                 let n: usize = args[i + 1].parse().unwrap();
@@ -2164,21 +2415,22 @@ fn main() {
     let teacher = if let Some(p) = teacher_arg.strip_prefix("spatial:") {
         Teacher::Spatial(Arc::new(SpatialValueModel::load_from_file(p).expect("load spatial teacher")))
     } else if let Some(p) = teacher_arg.strip_prefix("learned:") {
-        Teacher::Learned(Arc::new(load_learned_model(p, true)))
+        Teacher::Learned(Arc::new(load_learned_model(p, true, !keep_o_bias)))
     } else {
         panic!("--teacher must start with learned: or spatial:");
     };
 
-    let n_threads = std::thread::available_parallelism()
+    let avail_threads = std::thread::available_parallelism()
         .map(|n| n.get())
-        .unwrap_or(2)
-        .min(games.max(1));
+        .unwrap_or(2);
+    let n_threads = avail_threads.min(games.max(1));
     println!(
-        "=== True-Outcome Terminal-CRN SpatialValueModel RL ===\n  teacher={} games={} seeds=[{}..{}] H={} B={} MPR={} roll_bw={} crn_w={} cf/g={} lin_lr_mult={} threads={}",
-        teacher_arg, games, seed_base, seed_base + games as u64, horizon, beam_w, max_per_root, roll_bw, crn_worlds, cf_per_game, lin_lr_mult, n_threads
+        "=== Round 2 Two-Phase Calibrated Finite-Horizon CRN SpatialValueModel RL ===\n  teacher={} no_o_bias={} games={} seeds=[{}..{}] H={} B={} MPR={} roll_h={} roll_bw={} crn_w={} cf/g={} cal_v_w={} lin_lr_mult={} threads={}",
+        teacher_arg, !keep_o_bias, games, seed_base, seed_base + games as u64, horizon, beam_w, max_per_root, roll_horizon, roll_bw, crn_worlds, cf_per_game, cal_v_weight, lin_lr_mult, avail_threads
     );
     let _ = std::io::Write::flush(&mut std::io::stdout());
 
+    // Phase 1: Play games and collect trajectories + counterfactual tasks
     let t_gen = Instant::now();
     let seeds: Vec<u64> = (seed_base..seed_base + games as u64).collect();
     let game_results: Vec<GameGenerated> = std::thread::scope(|sc| {
@@ -2196,8 +2448,6 @@ fn main() {
                                 horizon,
                                 beam_w,
                                 max_per_root,
-                                roll_bw,
-                                crn_worlds,
                                 cf_per_game,
                                 t_ref,
                             )
@@ -2214,19 +2464,20 @@ fn main() {
     });
 
     let valid_games: Vec<&GameGenerated> = game_results.iter().filter(|g| !g.topout).collect();
+    assert!(!valid_games.is_empty(), "No valid games generated!");
     let topouts = game_results.len() - valid_games.len();
     let sum_pcs: usize = valid_games.iter().map(|g| g.pieces).sum();
     let sum_ds: usize = valid_games.iter().map(|g| g.ds_cleared).sum();
-    let sum_cf: usize = valid_games.iter().map(|g| g.cf_checks).sum();
+    let sum_cf_tasks: usize = valid_games.iter().map(|g| g.cf_tasks.len()).sum();
     let mean_pcs = sum_pcs as f64 / valid_games.len().max(1) as f64;
     let emp_rate = sum_pcs as f64 / sum_ds.max(1) as f64;
     let min_pcs = valid_games.iter().map(|g| g.pieces).min().unwrap_or(0);
     let max_pcs = valid_games.iter().map(|g| g.pieces).max().unwrap_or(0);
     println!(
-        "Generated {} valid games ({} topouts, {} cf_checks) in {:.1}s | teacher mean={:.2} [{}..{}] emp_rate={:.4}",
+        "Phase 1: {} valid games ({} topouts, {} cf_tasks) in {:.1}s | teacher mean={:.2} [{}..{}] emp_rate={:.4}",
         valid_games.len(),
         topouts,
-        sum_cf,
+        sum_cf_tasks,
         t_gen.elapsed().as_secs_f64(),
         mean_pcs,
         min_pcs,
@@ -2234,51 +2485,220 @@ fn main() {
         emp_rate
     );
 
-    let val_start = ((valid_games.len() * 85) / 100).min(valid_games.len().saturating_sub(1));
+    // Phase 2: Train/val split (zero leakage), normalization stats, V_cal MC fit, LeafEval calibration
+    let val_start = if valid_games.len() <= 1 {
+        valid_games.len()
+    } else {
+        ((valid_games.len() * 85) / 100).min(valid_games.len() - 1)
+    };
     let mut all_states: Vec<StateFeat> = Vec::new();
-    let mut val_samples: Vec<ValueSample> = Vec::new();
-    let mut pairs: Vec<RankPair> = Vec::new();
-    let mut flipped_cnt = 0usize;
+    let mut game_state_bases: Vec<usize> = Vec::with_capacity(valid_games.len());
     let mut train_state_idxs: Vec<usize> = Vec::new();
+    let mut mc_train_samples: Vec<(usize, f32, f32)> = Vec::new();
+
     for (gi, g) in valid_games.iter().enumerate() {
         let is_val = gi >= val_start;
         let base = all_states.len();
         let end = base + g.states.len();
+        game_state_bases.push(base);
         all_states.extend(g.states.iter().cloned());
         if !is_val {
             train_state_idxs.extend(base..end);
-        }
-        for &(si, targ, wt) in &g.val_targets {
-            val_samples.push(ValueSample {
-                state_idx: base + si,
-                target: targ,
-                weight: wt,
-                is_val,
-            });
-        }
-        for &(wi, li, dq, is_trap, is_flipped) in &g.pairs {
-            if is_flipped {
-                flipped_cnt += 1;
+            for (step_idx, &(local_si, rem_w)) in g.traj_recs.iter().enumerate() {
+                if rem_w == 0 {
+                    continue;
+                }
+                let mc_rem = (g.pieces.saturating_sub(step_idx + 1)) as f32;
+                mc_train_samples.push((base + local_si, mc_rem.clamp(0.5, 280.0), 1.0));
             }
-            pairs.push(RankPair {
-                win_idx: base + wi,
-                lose_idx: base + li,
-                dq,
-                is_trap,
-                is_flipped,
+        }
+    }
+
+    let mut mean = [0.0f64; DENSE_DIM];
+    let mut var = [0.0f64; DENSE_DIM];
+    let n_tr = train_state_idxs.len().max(1) as f64;
+    for &si in &train_state_idxs {
+        let s = &all_states[si];
+        for j in 0..DENSE_DIM {
+            mean[j] += s.dense[j] as f64;
+        }
+    }
+    for j in 0..DENSE_DIM {
+        mean[j] /= n_tr;
+    }
+    for &si in &train_state_idxs {
+        let s = &all_states[si];
+        for j in 0..DENSE_DIM {
+            let d = s.dense[j] as f64 - mean[j];
+            var[j] += d * d;
+        }
+    }
+    let mut dense_mean = [0.0f32; DENSE_DIM];
+    let mut dense_inv_std = [1.0f32; DENSE_DIM];
+    for j in 0..DENSE_DIM {
+        dense_mean[j] = mean[j] as f32;
+        let std = (var[j] / n_tr).sqrt().max(1e-3);
+        dense_inv_std[j] = (1.0 / std) as f32;
+    }
+
+    let mut v_cal = SpatialValueModel::default();
+    v_cal.dense_mean = dense_mean;
+    v_cal.dense_inv_std = dense_inv_std;
+    ridge_fit_values("V_cal_MC", &mut v_cal, &all_states, &mc_train_samples, &[], 1.0, 100.0);
+    v_cal.prepare_fast();
+    print_spatial_diagnostics("V_cal_MC", &v_cal);
+    let v_cal_arc = Arc::new(v_cal);
+
+    // Calibrate teacher scaling to empirical pieces-remaining scale via OLS on train MC outcomes
+    let mut sum_x = 0.0f64;
+    let mut sum_y = 0.0f64;
+    let mut n_cal = 0usize;
+    for &(si, y_mc, _) in &mc_train_samples {
+        let tx = all_states[si].teacher_score as f64;
+        if tx.is_finite() && tx.abs() < 1000.0 {
+            sum_x += tx;
+            sum_y += y_mc as f64;
+            n_cal += 1;
+        }
+    }
+    let (t_scale, t_shift) = if n_cal >= 10 {
+        let mx = sum_x / (n_cal as f64);
+        let my = sum_y / (n_cal as f64);
+        let mut cov = 0.0f64;
+        let mut vx = 0.0f64;
+        for &(si, y_mc, _) in &mc_train_samples {
+            let tx = all_states[si].teacher_score as f64;
+            if tx.is_finite() && tx.abs() < 1000.0 {
+                let dx = tx - mx;
+                cov += dx * ((y_mc as f64) - my);
+                vx += dx * dx;
+            }
+        }
+        let raw_slope = if vx > 1e-6 { cov / vx } else { emp_rate / 2.1189 };
+        let ts = raw_slope.clamp(0.70, 1.0) as f32;
+        let sh = (my - (ts as f64) * mx) as f32;
+        (ts, sh)
+    } else {
+        ((emp_rate / 2.1189).clamp(0.70, 1.0) as f32, 0.0f32)
+    };
+    println!(
+        "  LeafEval calibration: emp_rate={:.4} t_scale={:.4} t_shift={:+.2} v_cal_w={:.2}",
+        emp_rate, t_scale, t_shift, cal_v_weight
+    );
+    let leaf_eval = LeafEval {
+        v_cal: v_cal_arc.clone(),
+        teacher: teacher.clone(),
+        v_cal_w: cal_v_weight,
+        t_scale,
+        t_shift,
+    };
+
+    // Build blended 0.5*MC + 0.5*TD(K) trajectory targets (using train-fit V_cal)
+    let td_k = if roll_horizon > 0 { roll_horizon } else { 20 };
+    let mut val_samples: Vec<ValueSample> = Vec::new();
+    for (gi, g) in valid_games.iter().enumerate() {
+        let is_val = gi >= val_start;
+        let base = game_state_bases[gi];
+        for (step_idx, &(local_si, rem_w)) in g.traj_recs.iter().enumerate() {
+            if rem_w == 0 {
+                continue;
+            }
+            let mc_rem = (g.pieces.saturating_sub(step_idx + 1)) as f32;
+            let targ = if step_idx + td_k < g.traj_recs.len() {
+                let (fut_si, _) = g.traj_recs[step_idx + td_k];
+                let f_sf = &all_states[base + fut_si];
+                let v_fut = v_cal_arc.predict_extracted(&f_sf.active, &f_sf.dense).max(0.5);
+                let td_rem = (td_k as f32) + v_fut;
+                (0.5 * mc_rem + 0.5 * td_rem).clamp(0.5, 280.0)
+            } else {
+                mc_rem.clamp(0.5, 280.0)
+            };
+            val_samples.push(ValueSample {
+                state_idx: base + local_si,
+                target: targ,
+                weight: 0.30,
                 is_val,
             });
         }
     }
 
+    // Phase 3: Execute all counterfactual tasks across all threads via work-stealing
+    let t_cf = Instant::now();
+    let mut jobs: Vec<(usize, usize)> = Vec::with_capacity(sum_cf_tasks);
+    for (gi, g) in valid_games.iter().enumerate() {
+        for ti in 0..g.cf_tasks.len() {
+            jobs.push((gi, ti));
+        }
+    }
+    let next_job = std::sync::atomic::AtomicUsize::new(0);
+    let cf_threads = avail_threads.min(jobs.len().max(1));
+    let cf_chunks: Vec<(Vec<ValueSample>, Vec<RankPair>)> = std::thread::scope(|sc| {
+        let handles: Vec<_> = (0..cf_threads)
+            .map(|_| {
+                let vg_ref = &valid_games;
+                let bases_ref = &game_state_bases;
+                let jobs_ref = &jobs;
+                let nj_ref = &next_job;
+                let t_ref = &teacher;
+                let le_ref = &leaf_eval;
+                sc.spawn(move || {
+                    let fst = FastShapeTable::srs();
+                    let mut pgen = FastPlaceGen::new();
+                    let mut tmp = Vec::with_capacity(64);
+                    let mut out_v = Vec::new();
+                    let mut out_p = Vec::new();
+                    loop {
+                        let ji = nj_ref.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                        if ji >= jobs_ref.len() {
+                            break;
+                        }
+                        let (gi, ti) = jobs_ref[ji];
+                        let g = vg_ref[gi];
+                        let ed = g.ed.as_ref().expect("valid game must retain ExactSeedData");
+                        let (vs, ps) = run_cf_task(
+                            &g.cf_tasks[ti],
+                            ed,
+                            bases_ref[gi],
+                            gi >= val_start,
+                            crn_worlds,
+                            roll_horizon,
+                            roll_bw,
+                            t_ref,
+                            le_ref,
+                            &fst,
+                            &mut pgen,
+                            &mut tmp,
+                        );
+                        out_v.extend(vs);
+                        out_p.extend(ps);
+                    }
+                    (out_v, out_p)
+                })
+            })
+            .collect();
+        handles.into_iter().map(|h| h.join().unwrap()).collect()
+    });
+
+    let mut pairs: Vec<RankPair> = Vec::new();
+    let mut flipped_cnt = 0usize;
+    for (vs, ps) in cf_chunks {
+        val_samples.extend(vs);
+        for p in ps {
+            if p.is_flipped {
+                flipped_cnt += 1;
+            }
+            pairs.push(p);
+        }
+    }
     let train_vals: Vec<usize> = (0..val_samples.len()).filter(|&i| !val_samples[i].is_val).collect();
     let valid_vals: Vec<usize> = (0..val_samples.len()).filter(|&i| val_samples[i].is_val).collect();
     let train_pairs: Vec<usize> = (0..pairs.len()).filter(|&i| !pairs[i].is_val).collect();
     let valid_pairs: Vec<usize> = (0..pairs.len()).filter(|&i| pairs[i].is_val).collect();
     println!(
-        "Dataset: states={} train_states={} train_vals={} val_vals={} train_pairs={} val_pairs={} crn_flipped={}",
+        "Phase 3: {} CF jobs finished in {:.1}s | states={} train_vals={} val_vals={} train_pairs={} val_pairs={} crn_flipped={}",
+        jobs.len(),
+        t_cf.elapsed().as_secs_f64(),
         all_states.len(),
-        train_state_idxs.len(),
         train_vals.len(),
         valid_vals.len(),
         train_pairs.len(),
@@ -2286,6 +2706,7 @@ fn main() {
         flipped_cnt
     );
 
+    // Phase 4: Unanchored Ridge initialization on true outcomes + joint AdamW RL
     let mut mdl = if let Some(ref ip) = init_path {
         let mut m = SpatialValueModel::load_from_file(ip).expect("load init model");
         m.fast_ready = false;
@@ -2295,52 +2716,41 @@ fn main() {
         m
     } else {
         let mut m = SpatialValueModel::default();
-        let mut mean = [0.0f64; DENSE_DIM];
-        let mut var = [0.0f64; DENSE_DIM];
-        let n_tr = train_state_idxs.len().max(1) as f64;
-        for &si in &train_state_idxs {
-            let s = &all_states[si];
-            for j in 0..DENSE_DIM {
-                mean[j] += s.dense[j] as f64;
-            }
-        }
-        for j in 0..DENSE_DIM {
-            mean[j] /= n_tr;
-        }
-        for &si in &train_state_idxs {
-            let s = &all_states[si];
-            for j in 0..DENSE_DIM {
-                let d = s.dense[j] as f64 - mean[j];
-                var[j] += d * d;
-            }
-        }
-        for j in 0..DENSE_DIM {
-            m.dense_mean[j] = mean[j] as f32;
-            let std = (var[j] / n_tr).sqrt().max(1e-3);
-            m.dense_inv_std[j] = (1.0 / std) as f32;
-        }
+        m.dense_mean = dense_mean;
+        m.dense_inv_std = dense_inv_std;
 
-        ridge_distill_teacher(&mut m, &all_states, &train_state_idxs);
+        let all_train_val_tuples: Vec<(usize, f32, f32)> = train_vals
+            .iter()
+            .map(|&vi| {
+                let s = &val_samples[vi];
+                (s.state_idx, s.target, s.weight)
+            })
+            .collect();
+        let train_pair_diffs: Vec<(usize, usize, f32, f32)> = train_pairs
+            .iter()
+            .map(|&pi| {
+                let pr = &pairs[pi];
+                let trap_mult = if pr.is_flipped {
+                    2.0
+                } else if pr.is_trap {
+                    1.5
+                } else {
+                    1.0
+                };
+                (pr.win_idx, pr.lose_idx, pr.dq, 1.5 * trap_mult)
+            })
+            .collect();
+        ridge_fit_values(
+            "ep0_init",
+            &mut m,
+            &all_states,
+            &all_train_val_tuples,
+            &train_pair_diffs,
+            1.0,
+            100.0,
+        );
 
-        // Shift lin_bias (constant, invariant for search) to match true CRN rem_pcs scale
-        let mut sum_err = 0.0f64;
-        let mut sum_w = 0.0f64;
-        for &vi in &train_vals {
-            let smp = &val_samples[vi];
-            if smp.weight < 0.5 {
-                continue;
-            }
-            let sf = &all_states[smp.state_idx];
-            let pred = m.predict_extracted(&sf.active, &sf.dense) as f64;
-            let wt = smp.weight as f64;
-            sum_err += wt * ((smp.target as f64) - pred);
-            sum_w += wt;
-        }
-        if sum_w > 0.0 {
-            m.lin_bias += (sum_err / sum_w) as f32;
-        }
-
-        // Initialize residual 2-layer MLP tiny so ep=0 starts squarely at distilled linear teacher
+        // Initialize tiny residual 2-layer MLP on top of unbiased Ridge linear skip
         let mut rng = Xorshift64(0x9E3779B97F4A7C15 ^ seed_base);
         let s1 = (2.0f32 / (DENSE_DIM as f32 + 40.0)).sqrt() * 0.20;
         let s2 = (2.0f32 / SPATIAL_H1 as f32).sqrt() * 0.20;
@@ -2367,10 +2777,8 @@ fn main() {
         m
     };
     mdl.fast_ready = false;
-    let anchor_sparse = mdl.lin_sparse;
-    let anchor_dense = mdl.lin_dense;
     let ep0_mdl = mdl.clone();
-    print_spatial_diagnostics("ep0_warm", &mdl);
+    print_spatial_diagnostics("ep0_init", &mdl);
 
     let mut opt = AdamW::new(wd);
     let mut grad = GradBuf::new();
@@ -2478,8 +2886,8 @@ fn main() {
                     }
                 }
 
-                opt.apply(&mut mdl, &grad, lr_cur, lin_lr_mult, &anchor_sparse, &anchor_dense);
-                clamp_linear_sanity(&mut mdl, &anchor_sparse, &anchor_dense);
+                opt.apply(&mut mdl, &grad, lr_cur, lin_lr_mult);
+                clamp_linear_sanity(&mut mdl);
             }
         }
 
