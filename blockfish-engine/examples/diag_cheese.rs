@@ -1263,7 +1263,395 @@ fn main() {
         if which == "all" || which == "4" {
             run_oracle_agg("4_p20_b480_noO", &ed2, 20, 480, 1, false, 0, &m_no_o);
         }
+    } else if mode == "whole_game" {
+        let which = args.get(2).map(|s| s.as_str()).unwrap_or("all");
+        let n_seeds: usize = args.get(3).and_then(|s| s.parse().ok()).unwrap_or(2);
+        let seeds: Vec<u64> = (101..101 + n_seeds as u64).collect();
+        let ed = collect_exact_seeds(&seeds);
+        println!("=== Whole-Game Exact Oracle Beam (seeds 101..={}, which={}) ===", 100 + n_seeds, which);
+        let mut m_clean_in_bucket = m_h2_nog0.clone();
+        // Inside same rem_g bucket, rank purely by clean/playable structure!
+        m_clean_in_bucket.linear_w[0] = 0.0; // rem_g handled by bucketing
+        m_clean_in_bucket.linear_w[9] = 0.09 / m_clean_in_bucket.inv_std[9];   // stack_cells
+        m_clean_in_bucket.linear_w[11] = 0.04 / m_clean_in_bucket.inv_std[11]; // stack_cells_above1
+        m_clean_in_bucket.linear_w[20] = 0.38 / m_clean_in_bucket.inv_std[20]; // covered_holes
+        m_clean_in_bucket.linear_w[24] = 0.25 / m_clean_in_bucket.inv_std[24]; // h1_blocks
+        m_clean_in_bucket.linear_w[36] = 0.20 / m_clean_in_bucket.inv_std[36]; // h2_blocks
+        m_clean_in_bucket.linear_w[39] = -0.18 / m_clean_in_bucket.inv_std[39];// h2_open
+        m_clean_in_bucket.linear_w[57] = -0.25 / m_clean_in_bucket.inv_std[57];// near_full_9
+        m_clean_in_bucket.linear_w[59] = -0.25 / m_clean_in_bucket.inv_std[59];// row_g_9_aligned
+        m_clean_in_bucket.linear_w[63] = 0.0; // no artificial O bias
+        m_clean_in_bucket.linear_w[88] = 0.22 / m_clean_in_bucket.inv_std[88]; // h2_only_row_g_blocked
+        m_clean_in_bucket.linear_w[92] = -0.20 / m_clean_in_bucket.inv_std[92];// clean_skim_rows
+        m_clean_in_bucket.prepare_fast();
+
+        if which == "all" || which == "1" {
+            run_whole_game_beam("WG_b1000_h2nog0", &ed, 1000, 0, &m_h2_nog0);
+        }
+        if which == "all" || which == "2" {
+            run_whole_game_beam("WG_b1400_buck_h2", &ed, 1400, 200, &m_h2_nog0);
+        }
+        if which == "all" || which == "3" {
+            run_whole_game_beam("WG_b1400_buck_clean", &ed, 1400, 200, &m_clean_in_bucket);
+        }
+        if which == "b4000" {
+            run_whole_game_beam("WG_b4000_buck_clean", &ed, 4000, 500, &m_clean_in_bucket);
+        }
+    } else if mode == "whole_game2" {
+        let which = args.get(2).map(|s| s.as_str()).unwrap_or("all");
+        let n_seeds: usize = args.get(3).and_then(|s| s.parse().ok()).unwrap_or(2);
+        let seeds: Vec<u64> = (101..101 + n_seeds as u64).collect();
+        let ed = collect_exact_seeds(&seeds);
+        println!("=== Whole-Game Conservation & Wide-Bucket Probe (seeds 101..={}, which={}) ===", 100 + n_seeds, which);
+
+        // Conservation-law clean model: zero/negative penalty on low clean stack_cells
+        // (lower K_so_far at fixed rem_g!), penalize only upper_cells/stack_over2_sq/holes/h12_blocks
+        let mut m_cons_global = m_h2_nog0.clone();
+        m_cons_global.linear_w[0] = 1.65 / m_cons_global.inv_std[0];    // rem_g
+        m_cons_global.linear_w[7] = 0.18 / m_cons_global.inv_std[7];    // pe_net
+        m_cons_global.linear_w[9] = 0.0;                                // stack_cells: NO blind penalty!
+        m_cons_global.linear_w[11] = 0.02 / m_cons_global.inv_std[11];  // stack_cells_above1
+        m_cons_global.linear_w[13] = 0.04 / m_cons_global.inv_std[13];  // upper_cells
+        m_cons_global.linear_w[18] = 0.03 / m_cons_global.inv_std[18];  // stack_over2_sq
+        m_cons_global.linear_w[20] = 0.45 / m_cons_global.inv_std[20];  // covered_holes
+        m_cons_global.linear_w[24] = 0.25 / m_cons_global.inv_std[24];  // h1_blocks
+        m_cons_global.linear_w[36] = 0.22 / m_cons_global.inv_std[36];  // h2_blocks
+        m_cons_global.linear_w[39] = -0.18 / m_cons_global.inv_std[39]; // h2_open
+        m_cons_global.linear_w[57] = -0.20 / m_cons_global.inv_std[57]; // near_full_9
+        m_cons_global.linear_w[59] = -0.25 / m_cons_global.inv_std[59]; // row_g_9_aligned
+        m_cons_global.linear_w[63] = 0.0;                               // no artificial O bias
+        m_cons_global.linear_w[88] = 0.20 / m_cons_global.inv_std[88];  // h2_only_row_g_blocked
+        m_cons_global.linear_w[92] = -0.18 / m_cons_global.inv_std[92]; // clean_skim_rows
+        m_cons_global.prepare_fast();
+
+        let mut m_cons_buck = m_cons_global.clone();
+        m_cons_buck.linear_w[0] = 0.0;                                  // rem_g handled by bucket
+        m_cons_buck.linear_w[9] = -0.06 / m_cons_buck.inv_std[9];       // prefer keeping clean stack cells (lower K_so_far!)
+        m_cons_buck.linear_w[10] = -0.06 / m_cons_buck.inv_std[10];     // cells on row g
+        m_cons_buck.linear_w[13] = 0.05 / m_cons_buck.inv_std[13];      // penalize high upper_cells
+        m_cons_buck.prepare_fast();
+
+        let mut m_h2fix_global = m_h2_nog0.clone();
+        m_h2fix_global.linear_w[63] = 0.0;
+        m_h2fix_global.linear_w[36] = 0.14 / m_h2fix_global.inv_std[36];
+        m_h2fix_global.linear_w[39] = -0.12 / m_h2fix_global.inv_std[39];
+        m_h2fix_global.linear_w[88] = 0.18 / m_h2fix_global.inv_std[88];
+        m_h2fix_global.prepare_fast();
+
+        if which == "all" || which == "1" {
+            run_whole_game_beam("WG_b1000_h2fix", &ed, 1000, 0, &m_h2fix_global);
+        }
+        if which == "all" || which == "2" {
+            run_whole_game_beam("WG_b1000_cons_glob", &ed, 1000, 0, &m_cons_global);
+        }
+        if which == "all" || which == "3" {
+            run_whole_game_beam("WG_b2000_buck16_cons", &ed, 2000, 125, &m_cons_buck);
+        }
+        if which == "b2000_h2" {
+            run_whole_game_beam("WG_b2000_h2nog0", &ed, 2000, 0, &m_h2_nog0);
+        }
+        if which == "b4000_h2" {
+            run_whole_game_beam("WG_b4000_h2nog0", &ed, 4000, 0, &m_h2_nog0);
+        }
+        if which == "b4000_cons" {
+            run_whole_game_beam("WG_b4000_cons_glob", &ed, 4000, 0, &m_cons_global);
+        }
+        if which == "b4000_h2fix" {
+            run_whole_game_beam("WG_b4000_h2fix", &ed, 4000, 0, &m_h2fix_global);
+        }
+    } else if mode == "cons_legal5" {
+        let mut m_cons = m_h2_nog0.clone();
+        m_cons.linear_w[0] = 1.65 / m_cons.inv_std[0];
+        m_cons.linear_w[7] = 0.18 / m_cons.inv_std[7];
+        m_cons.linear_w[9] = 0.0;
+        m_cons.linear_w[11] = 0.02 / m_cons.inv_std[11];
+        m_cons.linear_w[13] = 0.04 / m_cons.inv_std[13];
+        m_cons.linear_w[18] = 0.03 / m_cons.inv_std[18];
+        m_cons.linear_w[20] = 0.45 / m_cons.inv_std[20];
+        m_cons.linear_w[24] = 0.25 / m_cons.inv_std[24];
+        m_cons.linear_w[36] = 0.22 / m_cons.inv_std[36];
+        m_cons.linear_w[39] = -0.18 / m_cons.inv_std[39];
+        m_cons.linear_w[57] = -0.20 / m_cons.inv_std[57];
+        m_cons.linear_w[59] = -0.25 / m_cons.inv_std[59];
+        m_cons.linear_w[63] = 0.0;
+        m_cons.linear_w[88] = 0.20 / m_cons.inv_std[88];
+        m_cons.linear_w[92] = -0.18 / m_cons.inv_std[92];
+        m_cons.prepare_fast();
+
+        let which = args.get(2).map(|s| s.as_str()).unwrap_or("all");
+        if which == "all" || which == "legal" {
+            let mut c_cons = cfg_legal.clone();
+            c_cons.value_model = Some(Arc::new(m_cons.clone()));
+            run_legal_suite("LEGAL_cons_p5_b120", &seeds5, &c_cons);
+
+            let mut c_up = c_cons.clone();
+            c_up.bag_det_extend = true;
+            c_up.endgame_solver = true;
+            c_up.simulate_cheese_spawn = true;
+            run_legal_suite("LEGAL_cons_bdet_end_sim", &seeds5, &c_up);
+        }
+        if which == "all" || which == "oracle" {
+            let ed5 = collect_exact_seeds(&seeds5);
+            run_oracle_agg("OR_p6_b120_cons", &ed5, 6, 120, 1, false, 0, &m_cons);
+            run_oracle_agg("OR_p14_b240_cons", &ed5, 14, 240, 1, false, 0, &m_cons);
+        }
     }
+}
+
+fn run_whole_game_beam<M: DiagEvaluator>(
+    label: &str,
+    exact_data: &[ExactSeedData],
+    beam_w: usize,
+    bucket_cap: usize,
+    mdl: &M,
+) {
+    use blockfish::ai::fast::FastPlace;
+    type FxBuild = std::hash::BuildHasherDefault<blockfish::ai::beam::FxHasher>;
+    #[derive(Clone, Copy)]
+    struct WNode {
+        board: FastBoard,
+        held: Option<u8>,
+        q_cursor: u16,
+        rem_g: u16,
+        score: i64,
+        parent: u32,
+        fp_idx: u32,
+    }
+    #[derive(Clone, Copy, Eq, PartialEq, Hash)]
+    struct WKey {
+        board: FastBoard,
+        held: Option<u8>,
+        rem_g: u16,
+    }
+
+    let t0 = Instant::now();
+    let fst = FastShapeTable::srs();
+    let spawn_exact_cheese = |b: &mut FastBoard, rem_g: u16, lines_cleared: u8, holes: &[u16]| -> bool {
+        let target_g: usize = if lines_cleared > 0 { 4 } else { 9 };
+        let g = b.garbage_rows as usize;
+        let unspawned = (rem_g as usize).saturating_sub(g);
+        let num = target_g.saturating_sub(g).min(unspawned);
+        if num == 0 { return true; }
+        let old_rows = b.rows as usize;
+        if old_rows + num >= 32 { return false; }
+        let spawned_so_far = 100usize - unspawned;
+        if spawned_so_far + num > holes.len() { return false; }
+        for r in (0..old_rows).rev() { b.data[r + num] = b.data[r]; }
+        for k in 0..num {
+            let hole = holes[spawned_so_far + k];
+            b.data[num - 1 - k] = 0xFC00 | (0x3FF & !(1u16 << hole));
+        }
+        b.rows = (old_rows + num) as u8;
+        b.garbage_rows = (g + num) as u8;
+        true
+    };
+
+    let solve_one = |ed: &ExactSeedData| -> GameStat {
+        let mut game_cfg = BSConfig::default();
+        game_cfg.garbage.total_lines = Some(100);
+        game_cfg.prng_seed = Some(ed.seed);
+        let mut stacker = Stacker::new(Ruleset::guideline().into(), game_cfg);
+        let snap0 = stacker.snapshot().unwrap();
+        let g0 = garbage_rows(&stacker);
+        let b0 = FastBoard::from_basic_matrix(&snap0.matrix, g0);
+        let mut pgen = FastPlaceGen::new();
+        let mut tmp_places: Vec<FastPlace> = Vec::with_capacity(64);
+        let mut cur_beam: Vec<WNode> = Vec::with_capacity(beam_w);
+        let mut next_cands: Vec<WNode> = Vec::with_capacity(beam_w * 32);
+        let mut seen: HashSet<WKey, FxBuild> = HashSet::with_capacity_and_hasher(beam_w * 4, FxBuild::default());
+        let mut hist_parents: Vec<Vec<(u32, FastPlace)>> = Vec::with_capacity(240);
+
+        cur_beam.push(WNode {
+            board: b0,
+            held: None,
+            q_cursor: 0,
+            rem_g: 100,
+            score: 0,
+            parent: u32::MAX,
+            fp_idx: 0,
+        });
+
+        let mut win_moves: Option<Vec<FastPlace>> = None;
+        let q_len = ed.pieces.len();
+
+        for step in 1..=260usize {
+            next_cands.clear();
+            let mut step_places: Vec<FastPlace> = Vec::with_capacity(cur_beam.len() * 24);
+            let mut best_win: Option<(u32, FastPlace, u8)> = None;
+
+            for (ni, &node) in cur_beam.iter().enumerate() {
+                if node.rem_g == 0 { continue; }
+                let qc = node.q_cursor as usize;
+                let (c_nh, c_h) = if node.held.is_some() {
+                    (ed.pieces.get(qc).copied(), node.held)
+                } else {
+                    (ed.pieces.get(qc).copied(), ed.pieces.get(qc + 1).copied())
+                };
+                if c_nh.is_none() && c_h.is_none() { continue; }
+                pgen.generate_for_state(&fst, &node.board, c_nh, c_h, &mut tmp_places);
+                for &fp in &tmp_places {
+                    let mut b = node.board;
+                    let o = &fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
+                    let (lines, ds, _) = b.place_and_sift(o, fp.norm_i, fp.norm_j);
+                    let rem_g = node.rem_g.saturating_sub(ds as u16);
+                    if rem_g == 0 && b.rows < 20 {
+                        if best_win.map_or(true, |w| b.rows < w.2) {
+                            best_win = Some((ni as u32, fp, b.rows));
+                        }
+                        continue;
+                    }
+                    if !spawn_exact_cheese(&mut b, rem_g, lines, &ed.holes) { continue; }
+                    let (held, nqc) = if node.held.is_some() {
+                        if fp.did_hold { (c_nh, (qc + 1).min(q_len)) } else { (node.held, (qc + 1).min(q_len)) }
+                    } else if fp.did_hold {
+                        (c_nh, (qc + 2).min(q_len))
+                    } else {
+                        (None, (qc + 1).min(q_len))
+                    };
+                    let in_h = held.or_else(|| ed.pieces.get(nqc).copied());
+                    let sc = mdl.eval_b(&b, rem_g, in_h, 0x7F);
+                    let fpi = step_places.len() as u32;
+                    step_places.push(fp);
+                    next_cands.push(WNode {
+                        board: b,
+                        held,
+                        q_cursor: nqc as u16,
+                        rem_g,
+                        score: sc,
+                        parent: ni as u32,
+                        fp_idx: fpi,
+                    });
+                }
+            }
+
+            if let Some((mut p_idx, last_fp, _)) = best_win {
+                let mut rev = vec![last_fp];
+                let mut s = step - 1;
+                while s > 0 && p_idx != u32::MAX {
+                    let (prev_p, fp) = hist_parents[s - 1][p_idx as usize];
+                    rev.push(fp);
+                    p_idx = prev_p;
+                    s -= 1;
+                }
+                rev.reverse();
+                win_moves = Some(rev);
+                break;
+            }
+            if next_cands.is_empty() { break; }
+
+            cur_beam.clear();
+            seen.clear();
+            if bucket_cap > 0 {
+                let min_rg = next_cands.iter().map(|n| n.rem_g).min().unwrap_or(0);
+                next_cands.sort_unstable_by_key(|n| (n.rem_g, n.score));
+                let mut buck_cnt = [0usize; 20];
+                for &ch in &next_cands {
+                    let bi = ch.rem_g.saturating_sub(min_rg) as usize;
+                    if bi < 20 && buck_cnt[bi] < bucket_cap && cur_beam.len() < beam_w {
+                        if seen.insert(WKey { board: ch.board, held: ch.held, rem_g: ch.rem_g }) {
+                            buck_cnt[bi] += 1;
+                            cur_beam.push(ch);
+                        }
+                    }
+                }
+                if cur_beam.len() < beam_w {
+                    next_cands.sort_unstable_by_key(|n| (n.score, n.rem_g));
+                    for &ch in &next_cands {
+                        if cur_beam.len() >= beam_w { break; }
+                        if seen.insert(WKey { board: ch.board, held: ch.held, rem_g: ch.rem_g }) {
+                            cur_beam.push(ch);
+                        }
+                    }
+                }
+            } else {
+                next_cands.sort_unstable_by_key(|n| n.score);
+                for &ch in &next_cands {
+                    if cur_beam.len() >= beam_w { break; }
+                    if seen.insert(WKey { board: ch.board, held: ch.held, rem_g: ch.rem_g }) {
+                        cur_beam.push(ch);
+                    }
+                }
+            }
+
+            let mut step_hist = Vec::with_capacity(cur_beam.len());
+            for n in &cur_beam {
+                step_hist.push((n.parent, step_places[n.fp_idx as usize]));
+            }
+            hist_parents.push(step_hist);
+        }
+
+        let mut st = GameStat::default();
+        if let Some(moves) = win_moves {
+            let mut ai_in = FastAI::new(BeamConfig::default());
+            let mut ds_total = 0usize;
+            for fp in moves {
+                let snap = stacker.snapshot().unwrap();
+                let g_rows = garbage_rows(&stacker);
+                let rem_g0 = 100usize.saturating_sub(ds_total) as u16;
+                let (_, blocks_over, chute_min, cells_above) = h1_info(&stacker);
+                st.cells_sum += cells_above;
+                let cur_ch = snap.queue[0].as_char();
+                let hold_ch = snap.hold.or_else(|| snap.queue.get(1).copied()).map(|cc| cc.as_char());
+                let mut inputs = match ai_in.inputs_for_place(&snap.matrix, fp) {
+                    Some(inp) => inp,
+                    None => { st.topout = true; st.pcs = 400; return st; }
+                };
+                inputs.pop();
+                stacker.run(inputs);
+                let (lines, ds) = stacker.hard_drop();
+                st.pcs += 1;
+                ds_total += ds;
+                st.nds += lines.saturating_sub(ds);
+                if ds > 0 {
+                    st.ds_cnt += 1;
+                    if ds == 1 { st.ds1 += 1; } else if ds == 2 { st.ds2 += 1; } else { st.ds3 += 1; }
+                    let (_, new_bo, _, _) = h1_info(&stacker);
+                    if new_bo > 0 { st.ds_cov_next += 1; }
+                } else {
+                    st.zds += 1;
+                    if rem_g0 <= 7 && rem_g0 == g_rows { st.zds_end += 1; }
+                    else if g_rows == 0 { st.zds_g0 += 1; }
+                    else if blocks_over > 0 { st.zds_h1_cov += 1; }
+                    else {
+                        let is_o = fp.color_idx == 1;
+                        let has_i = cur_ch == 'I' || hold_ch == Some('I');
+                        if is_o { st.zds_o += 1; }
+                        else if chute_min >= 1 && !has_i { st.zds_nar += 1; }
+                        else { st.zds_wide += 1; }
+                    }
+                }
+            }
+            if ds_total < 100 { st.topout = true; st.pcs = 400; }
+            st.r_end = stacker.matrix().count();
+        } else {
+            st.topout = true;
+            st.pcs = 400;
+        }
+        st
+    };
+
+    let workers = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(2).min(exact_data.len().max(1));
+    let next_idx = std::sync::atomic::AtomicUsize::new(0);
+    let mut results: Vec<Option<GameStat>> = vec![None; exact_data.len()];
+    std::thread::scope(|sc| {
+        let mut handles = Vec::new();
+        for _ in 0..workers {
+            handles.push(sc.spawn(|| {
+                let mut local = Vec::new();
+                loop {
+                    let i = next_idx.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                    if i >= exact_data.len() { break; }
+                    local.push((i, solve_one(&exact_data[i])));
+                }
+                local
+            }));
+        }
+        for h in handles {
+            for (i, st) in h.join().unwrap() { results[i] = Some(st); }
+        }
+    });
+    let res: Vec<GameStat> = results.into_iter().map(|x| x.unwrap()).collect();
+    print_summary(label, &res, t0.elapsed().as_secs_f64());
 }
 
 fn run_oracle_agg<M: DiagEvaluator>(
