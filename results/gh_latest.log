@@ -1,4 +1,4 @@
-=== Round 2: Two-Phase Calibrated Finite-Horizon CRN SpatialValueModel RL (150 games, H=14, B=150) ===
+=== Round 3: OOD-Safe Calibrated Finite-Horizon CRN SpatialValueModel RL (150 games, H=14, B=150) ===
 [1m[33mwarning[0m[1m: unused build dependency `fontconfig`[0m
   [1m[94m--> [0mblockfish-client/Cargo.toml:29:1
    [1m[94m|[0m
@@ -97,35 +97,35 @@
    [1m[94m|[0m                                                         [92m++++[0m
 
 [1m[33mwarning[0m: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
-[1m[92m    Finished[0m `release` profile [optimized] target(s) in 4.66s
-[1m[92m     Running[0m `target/release/examples/train_spatial --teacher 'learned:models/crn_r3_h2stk03.txt' --out models/spatial_r2.txt --games 150 --horizon 14 --beam 150 --max-per-root 24 --roll-horizon 20 --roll-bw 16 --crn-worlds 6 --cf-per-game 20 --epochs 30 --batch 128 --lr 0.0005 --wd 0.015 --lin-lr-mult 0.45 --val-w 0.25 --diff-w 0.55 --rank-w 1.1 --cal-v-weight 0.55 --seed-base 1000 --eval-teacher --eval-oracle 5 --eval-legal 10`
-=== Round 2 Two-Phase Calibrated Finite-Horizon CRN SpatialValueModel RL ===
+[1m[92m    Finished[0m `release` profile [optimized] target(s) in 4.45s
+[1m[92m     Running[0m `target/release/examples/train_spatial --teacher 'learned:models/crn_r3_h2stk03.txt' --out models/spatial_r3.txt --games 150 --horizon 14 --beam 150 --max-per-root 24 --roll-horizon 20 --roll-bw 16 --crn-worlds 6 --cf-per-game 20 --epochs 30 --batch 128 --lr 0.0005 --wd 0.015 --lin-lr-mult 0.45 --val-w 0.25 --diff-w 0.55 --rank-w 1.1 --cal-v-weight 0.55 --seed-base 1000 --eval-teacher --eval-oracle 5 --eval-legal 10`
+=== Round 3 OOD-Safe Calibrated Finite-Horizon CRN SpatialValueModel RL ===
   teacher=learned:models/crn_r3_h2stk03.txt no_o_bias=true games=150 seeds=[1000..1150] H=14 B=150 MPR=24 roll_h=20 roll_bw=16 crn_w=6 cf/g=20 cal_v_w=0.55 lin_lr_mult=0.45 threads=4
-Phase 1: 150 valid games (0 topouts, 3000 cf_tasks) in 594.4s | teacher mean=187.33 [173..202] emp_rate=1.8733
-  Ridge [V_cal_MC] (23663 samples, sum_w=23663.0): mae=3.122 rmse=4.068
-  [V_cal_MC] bias=+97.63 g0_sp=+0.50 h_IOT=(-0.080,+0.080,-0.080) | lin_raw: rem_g:+1.902 g:+0.000 pe_net:+0.053 stk_cells:+0.015 max_sh:+0.000 over2_sq:+0.000 cov_holes:+0.080 blk_over_h:+0.000 h1_blk:+0.050 h2_blk:+0.030 bump:+0.000 near9:-0.426 clean_sk:+0.000 h2_only_rg:+0.000 h1_ds_rg_h2:+0.000
+Phase 1: 150 valid games (0 topouts, 3000 cf_tasks) in 568.9s | teacher mean=187.33 [173..202] emp_rate=1.8733
+  Ridge [V_cal_MC] (23663 samples, sum_w=23663.0): mae=3.139 rmse=4.087
+  [V_cal_MC] bias=+98.72 g0_sp=+0.50 h_IOT=(-0.080,+0.080,-0.080) | lin_raw: rem_g:+1.902 g:+0.000 pe_net:+0.000 stk_cells:+0.040 max_sh:+0.000 over2_sq:+0.000 cov_holes:+0.250 blk_over_h:+0.000 h1_blk:+0.120 h2_blk:+0.080 bump:+0.000 near9:-0.626 clean_sk:+0.000 h2_only_rg:+0.000 h1_ds_rg_h2:+0.000
   LeafEval calibration: emp_rate=1.8733 t_scale=0.8961 t_shift=+38.34 v_cal_w=0.55
-Phase 3: 3000 CF jobs finished in 399.5s | states=46892 train_vals=42204 val_vals=7688 train_pairs=21892 val_pairs=4048 crn_flipped=3019
-  Ridge [ep0_init] (42204 vals, 21892 pairs, sum_w=65962.2): mae=1.693 rmse=2.196 | train_pair=69.3% diff_mae=1.802
-  [ep0_init] bias=+97.60 g0_sp=+0.50 h_IOT=(-0.050,+0.080,-0.080) | lin_raw: rem_g:+1.899 g:+0.000 pe_net:+0.113 stk_cells:+0.015 max_sh:+0.000 over2_sq:+0.000 cov_holes:+0.080 blk_over_h:+0.000 h1_blk:+0.058 h2_blk:+0.030 bump:+0.007 near9:-0.149 clean_sk:+0.000 h2_only_rg:+0.206 h1_ds_rg_h2:+0.000
-  ep= 0/30 lr=0.00000 | cf_mae=1.439 diff_mae=1.810 pair=70.8% trap=36.1% flip=38.6% (427) rank_l=0.819 comb=2.293
-  ep= 1/30 lr=0.00025 | cf_mae=1.398 diff_mae=1.746 pair=72.6% trap=43.3% flip=45.4% (427) rank_l=0.769 comb=2.191
-  ep= 5/30 lr=0.00047 | cf_mae=1.343 diff_mae=1.702 pair=73.4% trap=50.9% flip=50.6% (427) rank_l=0.747 comb=2.129
-  ep=10/30 lr=0.00038 | cf_mae=1.367 diff_mae=1.742 pair=72.7% trap=53.2% flip=53.2% (427) rank_l=0.781 comb=2.197
-  ep=15/30 lr=0.00026 | cf_mae=1.397 diff_mae=1.764 pair=72.3% trap=53.3% flip=55.5% (427) rank_l=0.794 comb=2.229
-  ep=20/30 lr=0.00014 | cf_mae=1.395 diff_mae=1.778 pair=71.8% trap=53.5% flip=55.0% (427) rank_l=0.802 comb=2.247
-  ep=25/30 lr=0.00006 | cf_mae=1.400 diff_mae=1.787 pair=72.0% trap=54.6% flip=56.0% (427) rank_l=0.807 comb=2.259
-  ep=30/30 lr=0.00003 | cf_mae=1.405 diff_mae=1.791 pair=71.9% trap=54.2% flip=55.3% (427) rank_l=0.809 comb=2.265
-  [best] bias=+97.63 g0_sp=+0.50 h_IOT=(-0.055,+0.077,-0.075) | lin_raw: rem_g:+1.899 g:+0.006 pe_net:+0.121 stk_cells:+0.016 max_sh:+0.001 over2_sq:+0.001 cov_holes:+0.085 blk_over_h:+0.010 h1_blk:+0.062 h2_blk:+0.032 bump:+0.010 near9:-0.145 clean_sk:-0.001 h2_only_rg:+0.211 h1_ds_rg_h2:+0.000
-Saved best SpatialValueModel (best_comb=2.087) to models/spatial_r2.txt in 8.4s
+Phase 3: 3000 CF jobs finished in 418.5s | states=49265 train_vals=44212 val_vals=8053 train_pairs=28174 val_pairs=5228 crn_flipped=3049
+  Ridge [ep0_init] (44212 vals, 28174 pairs, sum_w=78605.9): mae=1.778 rmse=2.295 | train_pair=69.5% diff_mae=2.049
+  [ep0_init] bias=+99.06 g0_sp=+0.50 h_IOT=(-0.080,+0.080,-0.080) | lin_raw: rem_g:+1.899 g:+0.000 pe_net:+0.226 stk_cells:+0.040 max_sh:+0.000 over2_sq:+0.000 cov_holes:+0.250 blk_over_h:+0.000 h1_blk:+0.172 h2_blk:+0.080 bump:+0.000 near9:-0.005 clean_sk:-0.345 h2_only_rg:+0.174 h1_ds_rg_h2:+0.000
+  ep= 0/30 lr=0.00000 | cf_mae=1.555 diff_mae=2.078 pair=70.1% trap=27.4% flip=35.2% (438) rank_l=0.860 comb=2.530
+  ep= 1/30 lr=0.00025 | cf_mae=1.479 diff_mae=1.947 pair=74.0% trap=38.3% flip=44.7% (438) rank_l=0.768 comb=2.332
+  ep= 5/30 lr=0.00047 | cf_mae=1.405 diff_mae=1.854 pair=74.6% trap=47.7% flip=50.2% (438) rank_l=0.724 comb=2.213
+  ep=10/30 lr=0.00038 | cf_mae=1.413 diff_mae=1.863 pair=73.4% trap=47.6% flip=47.9% (438) rank_l=0.747 comb=2.245
+  ep=15/30 lr=0.00026 | cf_mae=1.420 diff_mae=1.872 pair=73.5% trap=48.5% flip=47.9% (438) rank_l=0.754 comb=2.259
+  ep=20/30 lr=0.00014 | cf_mae=1.426 diff_mae=1.872 pair=73.9% trap=49.7% flip=49.1% (438) rank_l=0.753 comb=2.260
+  ep=25/30 lr=0.00006 | cf_mae=1.430 diff_mae=1.884 pair=73.6% trap=50.3% flip=49.1% (438) rank_l=0.762 comb=2.278
+  ep=30/30 lr=0.00003 | cf_mae=1.434 diff_mae=1.883 pair=73.6% trap=49.9% flip=48.6% (438) rank_l=0.761 comb=2.276
+  [best] bias=+99.08 g0_sp=+0.50 h_IOT=(-0.076,+0.079,-0.080) | lin_raw: rem_g:+1.900 g:+0.000 pe_net:+0.191 stk_cells:+0.040 max_sh:+0.000 over2_sq:+0.000 cov_holes:+0.250 blk_over_h:+0.000 h1_blk:+0.164 h2_blk:+0.093 bump:+0.000 near9:-0.015 clean_sk:-0.334 h2_only_rg:+0.199 h1_ds_rg_h2:+0.000
+Saved best SpatialValueModel (best_comb=2.213) to models/spatial_r3.txt in 12.3s
 
 === Post-Training Held-Out Verification ===
-OR_p12_b140_teacher        mean=185.80 per_seed=[186, 185, 196, 183, 179] dt=21.6s
-OR_p12_b140_ep0            mean=189.80 per_seed=[181, 202, 194, 190, 182] dt=49.3s
-OR_p12_b140_best           mean=400.00 per_seed=[400, 400, 400, 400, 400] dt=30.6s
-LEGAL_p5_b120_spatial      mean=400.00 per_seed=[400, 400, 400, 400, 400, 400, 400, 400, 400, 400] dt=30.0s
+OR_p12_b140_teacher        mean=185.80 per_seed=[186, 185, 196, 183, 179] dt=21.8s
+OR_p12_b140_ep0            mean=188.40 per_seed=[178, 200, 192, 186, 186] dt=44.0s
+OR_p12_b140_best           mean=186.80 per_seed=[183, 189, 190, 188, 184] dt=48.1s
+LEGAL_p5_b120_spatial      mean=211.10 per_seed=[218, 193, 225, 212, 212, 201, 201, 195, 245, 209] dt=103.4s
 
-=== Post-Round2 Oracle & Legal Diagnostics ===
+=== Post-Round3 Oracle & Legal Diagnostics ===
 [1m[33mwarning[0m[1m: unused build dependency `fontconfig`[0m
   [1m[94m--> [0mblockfish-client/Cargo.toml:29:1
    [1m[94m|[0m
@@ -223,32 +223,32 @@ LEGAL_p5_b120_spatial      mean=400.00 per_seed=[400, 400, 400, 400, 400, 400, 4
 
 [1m[33mwarning[0m: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
 [1m[92m   Compiling[0m blockfish v0.1.0 (/home/runner/work/blockfish/blockfish/blockfish-engine)
-[1m[92m    Finished[0m `release` profile [optimized] target(s) in 2.82s
-[1m[92m     Running[0m `target/release/examples/diag_cheese spatial_probe models/spatial_r2.txt`
-=== Spatial Probe (models/spatial_r2.txt) (seeds 101..=105) ===
-OR_p6_b120_h2nog0        mean=240.80 [189..400] top=1 nds=70.00 0ds=108.80 (cov=32.6 O=21.4 nar=10.8 wide=35.0 g0=0.0 end=9.0) ds(1/2/3+)=99.4/0.0/0.0 cov_nxt=18.1% avg_c=12.1 r_end=38.8 dt=8.9s
+[1m[92m    Finished[0m `release` profile [optimized] target(s) in 2.75s
+[1m[92m     Running[0m `target/release/examples/diag_cheese spatial_probe models/spatial_r3.txt`
+=== Spatial Probe (models/spatial_r3.txt) (seeds 101..=105) ===
+OR_p6_b120_h2nog0        mean=240.80 [189..400] top=1 nds=70.00 0ds=108.80 (cov=32.6 O=21.4 nar=10.8 wide=35.0 g0=0.0 end=9.0) ds(1/2/3+)=99.4/0.0/0.0 cov_nxt=18.1% avg_c=12.1 r_end=38.8 dt=8.8s
   per_seed=[203, 213, 199, 189, 400]
-OR_p6_b120_sp_lin        mean=285.20 [203..400] top=2 nds=75.00 0ds=125.20 (cov=37.8 O=21.4 nar=12.4 wide=33.0 g0=0.0 end=20.6) ds(1/2/3+)=99.0/0.0/0.0 cov_nxt=17.4% avg_c=13.2 r_end=56.8 dt=21.7s
-  per_seed=[400, 203, 220, 203, 400]
-OR_p6_b120_sp_full       mean=400.00 [400..400] top=5 nds=46.20 0ds=127.00 (cov=118.2 O=2.4 nar=2.2 wide=4.2 g0=0.0 end=0.0) ds(1/2/3+)=10.8/0.0/0.0 cov_nxt=27.8% avg_c=15.2 r_end=159.4 dt=7.3s
-  per_seed=[400, 400, 400, 400, 400]
+OR_p6_b120_sp_lin        mean=206.40 [201..212] top=0 nds=71.20 0ds=106.40 (cov=39.0 O=18.6 nar=11.0 wide=31.6 g0=0.0 end=6.2) ds(1/2/3+)=100.0/0.0/0.0 cov_nxt=18.0% avg_c=14.0 r_end=13.6 dt=16.7s
+  per_seed=[210, 207, 212, 201, 202]
+OR_p6_b120_sp_full       mean=281.00 [194..400] top=2 nds=71.80 0ds=117.40 (cov=49.2 O=17.8 nar=10.4 wide=32.8 g0=0.0 end=7.2) ds(1/2/3+)=97.8/0.0/0.0 cov_nxt=19.0% avg_c=12.7 r_end=64.8 dt=17.7s
+  per_seed=[400, 194, 207, 204, 400]
 
 === 1-ply breakdown on first 12 moves of seed 101 (sp_full vs h2nog0) ===
-step= 1 bo=0->0  cells= 3 ds=1 l=1 | sp(lin=184.87 mlp= +0.44) same_as_h2=true
-step= 2 bo=0->0  cells= 6 ds=1 l=1 | sp(lin=182.99 mlp= -0.15) same_as_h2=true
-step= 3 bo=0->3  cells=10 ds=0 l=0 | sp(lin=185.61 mlp= -3.30) same_as_h2=false
-step= 4 bo=3->3  cells=13 ds=1 l=1 | sp(lin=184.52 mlp= -2.88) same_as_h2=true
-step= 5 bo=3->3  cells=17 ds=0 l=0 | sp(lin=183.79 mlp= -3.18) same_as_h2=true
-step= 6 bo=3->3  cells=21 ds=0 l=0 | sp(lin=182.81 mlp= -3.06) same_as_h2=true
-step= 7 bo=3->3  cells=25 ds=0 l=0 | sp(lin=183.28 mlp= -3.29) same_as_h2=false
-step= 8 bo=3->3  cells=29 ds=0 l=0 | sp(lin=183.20 mlp= -3.16) same_as_h2=true
-step= 9 bo=3->3  cells=33 ds=0 l=0 | sp(lin=184.09 mlp= -3.49) same_as_h2=false
-step=10 bo=3->5  cells=37 ds=0 l=0 | sp(lin=183.07 mlp= -3.52) same_as_h2=false
-step=11 bo=5->5  cells=41 ds=0 l=0 | sp(lin=183.96 mlp= -3.52) same_as_h2=false
-step=12 bo=5->6  cells=45 ds=0 l=0 | sp(lin=184.80 mlp= -3.53) same_as_h2=false
-step=13 bo=6->6  cells=49 ds=0 l=0 | sp(lin=185.43 mlp= -3.53) same_as_h2=false
-step=14 bo=6->8  cells=53 ds=0 l=0 | sp(lin=186.15 mlp= -3.54) same_as_h2=false
-step=15 bo=8->8  cells=57 ds=0 l=0 | sp(lin=185.89 mlp= -3.54) same_as_h2=false
+step= 1 bo=0->0  cells= 3 ds=1 l=1 | sp(lin=184.69 mlp= +0.66) same_as_h2=true
+step= 2 bo=0->0  cells= 6 ds=1 l=1 | sp(lin=183.38 mlp= -0.93) same_as_h2=true
+step= 3 bo=0->0  cells=10 ds=0 l=0 | sp(lin=183.63 mlp= -1.29) same_as_h2=true
+step= 4 bo=0->0  cells=14 ds=0 l=0 | sp(lin=184.07 mlp= -1.66) same_as_h2=false
+step= 5 bo=0->0  cells=17 ds=1 l=1 | sp(lin=182.29 mlp= -1.52) same_as_h2=true
+step= 6 bo=0->0  cells=10 ds=1 l=2 | sp(lin=180.16 mlp= -0.75) same_as_h2=true
+step= 7 bo=0->0  cells=14 ds=0 l=0 | sp(lin=181.31 mlp= -1.70) same_as_h2=false
+step= 8 bo=0->0  cells=18 ds=0 l=0 | sp(lin=181.92 mlp= -2.07) same_as_h2=false
+step= 9 bo=0->0  cells=21 ds=1 l=1 | sp(lin=180.84 mlp= -1.76) same_as_h2=true
+step=10 bo=0->0  cells=14 ds=1 l=2 | sp(lin=180.11 mlp= -0.95) same_as_h2=true
+step=11 bo=0->0  cells=18 ds=0 l=0 | sp(lin=179.94 mlp= -1.77) same_as_h2=false
+step=12 bo=0->0  cells=21 ds=1 l=1 | sp(lin=179.37 mlp= -1.67) same_as_h2=true
+step=13 bo=0->4  cells=25 ds=0 l=0 | sp(lin=177.70 mlp= -2.10) same_as_h2=false
+step=14 bo=4->4  cells=29 ds=0 l=0 | sp(lin=178.02 mlp= -2.10) same_as_h2=false
+step=15 bo=4->4  cells=33 ds=0 l=0 | sp(lin=178.37 mlp= -2.06) same_as_h2=false
 [1m[33mwarning[0m[1m: unused build dependency `fontconfig`[0m
   [1m[94m--> [0mblockfish-client/Cargo.toml:29:1
    [1m[94m|[0m
@@ -346,16 +346,16 @@ step=15 bo=8->8  cells=57 ds=0 l=0 | sp(lin=185.89 mlp= -3.54) same_as_h2=false
 
 [1m[33mwarning[0m: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
 [1m[92m   Compiling[0m blockfish v0.1.0 (/home/runner/work/blockfish/blockfish/blockfish-engine)
-[1m[92m    Finished[0m `release` profile [optimized] target(s) in 0.60s
-[1m[92m     Running[0m `target/release/examples/bench_legal spatial5_q models/spatial_r2.txt`
-=== Legal spatial5_q (models/spatial_r2.txt) ===
-sp_nosp_bdet_end           n= 5 mean=400.00 min=999 max=999 <=166: 0 top= 5 | nds=100.40 0ds=260.80 (cov=248.2 O=3.6 nar=1.0 wide=8.0 g0=0.0 end=0.0) cov_nxt=32.8% avg_c=31.2 | 20.1s
-  seeds: [101:999, 102:999, 103:999, 104:999, 105:999]
-sp_sim1w_bdet_end          n= 5 mean=400.00 min=999 max=999 <=166: 0 top= 5 | nds=31.20 0ds=88.00 (cov=70.2 O=3.8 nar=2.6 wide=11.4 g0=0.0 end=0.0) cov_nxt=26.9% avg_c=9.9 | 7.4s
-  seeds: [101:999, 102:999, 103:999, 104:999, 105:999]
-sp_rpimc_w8_h9             n= 5 mean=400.00 min=999 max=999 <=166: 0 top= 5 | nds=67.00 0ds=167.00 (cov=138.8 O=6.8 nar=5.8 wide=15.6 g0=0.0 end=0.0) cov_nxt=29.9% avg_c=17.8 | 387.1s
-  seeds: [101:999, 102:999, 103:999, 104:999, 105:999]
-sp_rpimc_sim_w8_h9         n= 5 mean=389.40 min=347 max=347 <=166: 0 top= 4 | nds=55.40 0ds=127.80 (cov=90.2 O=9.0 nar=6.2 wide=21.6 g0=0.0 end=0.8) cov_nxt=24.9% avg_c=13.7 | 223.2s
-  seeds: [101:999, 102:999, 103:347, 104:999, 105:999]
-sp_rpimc_linfast_w8_h9     n= 5 mean=207.40 min=195 max=223 <=166: 0 top= 0 | nds=71.80 0ds=107.40 (cov=35.6 O=18.0 nar=12.8 wide=37.8 g0=0.0 end=3.2) cov_nxt=17.6% avg_c=15.1 | 160.7s
-  seeds: [101:205, 102:223, 103:212, 104:202, 105:195]
+[1m[92m    Finished[0m `release` profile [optimized] target(s) in 0.59s
+[1m[92m     Running[0m `target/release/examples/bench_legal spatial5_q models/spatial_r3.txt`
+=== Legal spatial5_q (models/spatial_r3.txt) ===
+sp_nosp_bdet_end           n= 5 mean=210.80 min=199 max=218 <=166: 0 top= 0 | nds=72.80 0ds=110.80 (cov=36.2 O=18.6 nar=11.0 wide=34.2 g0=0.0 end=10.8) cov_nxt=17.6% avg_c=15.7 | 77.8s
+  seeds: [101:212, 102:213, 103:199, 104:212, 105:218]
+sp_sim1w_bdet_end          n= 5 mean=212.00 min=193 max=225 <=166: 0 top= 0 | nds=73.80 0ds=112.00 (cov=46.4 O=17.4 nar=11.4 wide=31.6 g0=0.0 end=5.2) cov_nxt=20.8% avg_c=15.1 | 52.4s
+  seeds: [101:218, 102:193, 103:225, 104:212, 105:212]
+sp_rpimc_w8_h9             n= 5 mean=192.80 min=185 max=201 <=166: 0 top= 0 | nds=66.00 0ds=92.80 (cov=33.0 O=17.2 nar=9.4 wide=29.2 g0=0.0 end=4.0) cov_nxt=18.4% avg_c=13.0 | 216.4s
+  seeds: [101:189, 102:197, 103:185, 104:192, 105:201]
+sp_rpimc_sim_w8_h9         n= 5 mean=202.80 min=185 max=216 <=166: 0 top= 0 | nds=70.00 0ds=102.80 (cov=36.0 O=18.6 nar=12.2 wide=30.4 g0=0.0 end=5.6) cov_nxt=18.6% avg_c=14.1 | 242.1s
+  seeds: [101:204, 102:185, 103:207, 104:202, 105:216]
+sp_rpimc_linfast_w8_h9     n= 5 mean=193.40 min=188 max=206 <=166: 0 top= 0 | nds=65.80 0ds=93.40 (cov=39.0 O=15.4 nar=8.8 wide=25.8 g0=0.0 end=4.4) cov_nxt=18.6% avg_c=13.6 | 131.1s
+  seeds: [101:188, 102:196, 103:206, 104:188, 105:189]
