@@ -67,6 +67,29 @@ fn load_learned_model(path: &str, nog0: bool, no_o_bias: bool) -> LearnedValueMo
     m
 }
 
+fn load_cons_model(path: &str, no_o_bias: bool) -> LearnedValueModel {
+    let mut m = load_learned_model(path, true, no_o_bias);
+    m.linear_w[0] = 1.65 / m.inv_std[0];    // rem_g
+    m.linear_w[7] = 0.18 / m.inv_std[7];    // pe_net
+    m.linear_w[9] = 0.0;                    // stack_cells: conservation law (no blind penalty)
+    m.linear_w[11] = 0.02 / m.inv_std[11];  // stack_cells_above1
+    m.linear_w[13] = 0.04 / m.inv_std[13];  // upper_cells
+    m.linear_w[18] = 0.03 / m.inv_std[18];  // stack_over2_sq
+    m.linear_w[20] = 0.45 / m.inv_std[20];  // covered_holes
+    m.linear_w[24] = 0.25 / m.inv_std[24];  // h1_blocks
+    m.linear_w[36] = 0.22 / m.inv_std[36];  // h2_blocks
+    m.linear_w[39] = -0.18 / m.inv_std[39]; // h2_open
+    m.linear_w[57] = -0.20 / m.inv_std[57]; // near_full_9
+    m.linear_w[59] = -0.25 / m.inv_std[59]; // row_g_9_aligned
+    if no_o_bias {
+        m.linear_w[63] = 0.0;
+    }
+    m.linear_w[88] = 0.20 / m.inv_std[88];  // h2_only_row_g_blocked
+    m.linear_w[92] = -0.18 / m.inv_std[92]; // clean_skim_rows
+    m.prepare_fast();
+    m
+}
+
 #[derive(Clone)]
 enum Teacher {
     Learned(Arc<LearnedValueModel>),
@@ -1138,6 +1161,769 @@ fn generate_game_data(
     }
 }
 
+fn generate_game_data_wg(
+    seed: u64,
+    wg_beam: usize,
+    cf_per_game: usize,
+    teacher: &Teacher,
+) -> GameGenerated {
+    use blockfish::ai::fast::FastPlace;
+    let ed = match collect_exact_seed(seed) {
+        Some(e) => e,
+        None => {
+            return GameGenerated {
+                ed: None,
+                pieces: 400,
+                ds_cleared: 0,
+                topout: true,
+                states: Vec::new(),
+                traj_recs: Vec::new(),
+                cf_tasks: Vec::new(),
+            };
+        }
+    };
+    let fst = FastShapeTable::srs();
+
+    #[derive(Clone, Copy)]
+    struct WNode {
+        board: FastBoard,
+        held: Option<u8>,
+        q_cursor: u16,
+        rem_g: u16,
+        score: i64,
+        parent: u32,
+        fp_idx: u32,
+    }
+    #[derive(Clone, Copy, Eq, PartialEq, Hash)]
+    struct WKey {
+        board: FastBoard,
+        held: Option<u8>,
+        rem_g: u16,
+    }
+
+    let mut game_cfg = BSConfig::default();
+    game_cfg.garbage.total_lines = Some(100);
+    game_cfg.prng_seed = Some(seed);
+    let stacker = Stacker::new(Ruleset::guideline().into(), game_cfg.clone());
+    let snap0 = stacker.snapshot().unwrap();
+    let g0 = garbage_rows(&stacker);
+    let b0 = FastBoard::from_basic_matrix(&snap0.matrix, g0);
+
+    let mut pgen = FastPlaceGen::new();
+    let mut tmp_places: Vec<FastPlace> = Vec::with_capacity(64);
+    let mut cur_beam: Vec<WNode> = Vec::with_capacity(wg_beam);
+    let mut next_cands: Vec<WNode> = Vec::with_capacity(wg_beam * 32);
+    let mut seen: HashSet<WKey, FxBuild> =
+        HashSet::with_capacity_and_hasher(wg_beam * 4, FxBuild::default());
+    let mut hist_parents: Vec<Vec<(u32, FastPlace)>> = Vec::with_capacity(240);
+
+    cur_beam.push(WNode {
+        board: b0,
+        held: None,
+        q_cursor: 0,
+        rem_g: 100,
+        score: 0,
+        parent: u32::MAX,
+        fp_idx: 0,
+    });
+
+    let mut win_moves: Option<Vec<FastPlace>> = None;
+    let q_len_ed = ed.pieces.len();
+
+    for step in 1..=260usize {
+        next_cands.clear();
+        let mut step_places: Vec<FastPlace> = Vec::with_capacity(cur_beam.len() * 24);
+        let mut best_win: Option<(u32, FastPlace, u8)> = None;
+
+        for (ni, &node) in cur_beam.iter().enumerate() {
+            if node.rem_g == 0 {
+                continue;
+            }
+            let qc = node.q_cursor as usize;
+            let (c_nh, c_h) = if node.held.is_some() {
+                (ed.pieces.get(qc).copied(), node.held)
+            } else {
+                (ed.pieces.get(qc).copied(), ed.pieces.get(qc + 1).copied())
+            };
+            if c_nh.is_none() && c_h.is_none() {
+                continue;
+            }
+            pgen.generate_for_state(&fst, &node.board, c_nh, c_h, &mut tmp_places);
+            for &fp in &tmp_places {
+                let mut b = node.board;
+                let o = &fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
+                let (lines, ds, _) = b.place_and_sift(o, fp.norm_i, fp.norm_j);
+                let rem_g = node.rem_g.saturating_sub(ds as u16);
+                if rem_g == 0 && b.rows < 20 {
+                    if best_win.map_or(true, |w| b.rows < w.2) {
+                        best_win = Some((ni as u32, fp, b.rows));
+                    }
+                    continue;
+                }
+                if !spawn_exact_cheese_ed(&mut b, rem_g, lines, &ed.holes) {
+                    continue;
+                }
+                let (held, nqc) = if node.held.is_some() {
+                    if fp.did_hold {
+                        (c_nh, (qc + 1).min(q_len_ed))
+                    } else {
+                        (node.held, (qc + 1).min(q_len_ed))
+                    }
+                } else if fp.did_hold {
+                    (c_nh, (qc + 2).min(q_len_ed))
+                } else {
+                    (None, (qc + 1).min(q_len_ed))
+                };
+                let in_h = held.or_else(|| ed.pieces.get(nqc).copied());
+                let sc = teacher.eval(&b, rem_g, in_h, 0x7F);
+                let fpi = step_places.len() as u32;
+                step_places.push(fp);
+                next_cands.push(WNode {
+                    board: b,
+                    held,
+                    q_cursor: nqc as u16,
+                    rem_g,
+                    score: sc,
+                    parent: ni as u32,
+                    fp_idx: fpi,
+                });
+            }
+        }
+
+        if let Some((mut p_idx, last_fp, _)) = best_win {
+            let mut rev = vec![last_fp];
+            let mut s = step - 1;
+            while s > 0 && p_idx != u32::MAX {
+                let (prev_p, fp) = hist_parents[s - 1][p_idx as usize];
+                rev.push(fp);
+                p_idx = prev_p;
+                s -= 1;
+            }
+            rev.reverse();
+            win_moves = Some(rev);
+            break;
+        }
+        if next_cands.is_empty() {
+            break;
+        }
+
+        cur_beam.clear();
+        seen.clear();
+        next_cands.sort_unstable_by_key(|n| n.score);
+        for &ch in &next_cands {
+            if cur_beam.len() >= wg_beam {
+                break;
+            }
+            if seen.insert(WKey {
+                board: ch.board,
+                held: ch.held,
+                rem_g: ch.rem_g,
+            }) {
+                cur_beam.push(ch);
+            }
+        }
+
+        let mut step_hist = Vec::with_capacity(cur_beam.len());
+        for n in &cur_beam {
+            step_hist.push((n.parent, step_places[n.fp_idx as usize]));
+        }
+        hist_parents.push(step_hist);
+    }
+
+    let moves = match win_moves {
+        Some(m) => m,
+        None => {
+            return GameGenerated {
+                ed: None,
+                pieces: 400,
+                ds_cleared: 0,
+                topout: true,
+                states: Vec::new(),
+                traj_recs: Vec::new(),
+                cf_tasks: Vec::new(),
+            };
+        }
+    };
+
+    // Replay winning moves on Stacker to collect legal features + Root & H=6 CF traps
+    let mut stacker = Stacker::new(Ruleset::guideline().into(), game_cfg);
+    let mut bag_tracker = BagTracker::new();
+    let mut ai_in = FastAI::new(BeamConfig::default());
+    let mut root_places = Vec::with_capacity(64);
+    let mut states: Vec<StateFeat> = Vec::with_capacity(600);
+    let mut traj_recs: Vec<(usize, u16)> = Vec::with_capacity(moves.len() + 4);
+    let mut cf_tasks: Vec<CfTask> = Vec::with_capacity(cf_per_game + 4);
+
+    #[derive(Clone, Copy)]
+    struct H6Node {
+        board: FastBoard,
+        held: Option<u8>,
+        q_cursor: usize,
+        rem_g: u16,
+        first_idx: u16,
+        score: i64,
+    }
+    #[derive(Clone, Copy, Eq, PartialEq, Hash)]
+    struct H6Key {
+        board: FastBoard,
+        held: Option<u8>,
+        rem_g: u16,
+    }
+    let mut h6_beam: Vec<H6Node> = Vec::with_capacity(48);
+    let mut h6_children: Vec<H6Node> = Vec::with_capacity(48 * 32);
+    let mut h6_seen: HashSet<H6Key, FxBuild> =
+        HashSet::with_capacity_and_hasher(48 * 4, FxBuild::default());
+
+    let mut ds_total = 0usize;
+    let mut q_pos = 0usize;
+    let mut pcs = 0usize;
+    let max_cf_rem_g: u16 = 99;
+    let mut next_cf_rem_g: u16 = max_cf_rem_g;
+    let cf_step_g: u16 = (92u16 / (cf_per_game.max(1) as u16)).max(2);
+
+    for (step_idx, &win_fp) in moves.iter().enumerate() {
+        let snap = match stacker.snapshot() {
+            Some(s) => s,
+            None => break,
+        };
+        let legal_bag = bag_tracker.observe(snap.hold, &snap.queue);
+        let legal_q_len = snap.queue.len().min(6);
+        let mut legal_q = [0u8; 6];
+        for (i, &c) in snap.queue.iter().take(legal_q_len).enumerate() {
+            legal_q[i] = color_to_idx(c) as u8;
+        }
+        let g_rows = garbage_rows(&stacker);
+        let root_board = FastBoard::from_basic_matrix(&snap.matrix, g_rows);
+        let rem_g0 = 100usize.saturating_sub(ds_total) as u16;
+        let hold0 = snap.hold.map(|cc| color_to_idx(cc) as u8);
+        let q_start = q_pos.min(ed.pieces.len());
+        let q_full = &ed.pieces[q_start..];
+        let q_full_len = q_full.len();
+        if q_full_len == 0 {
+            break;
+        }
+        let cur0 = Some(q_full[0]);
+        let alt0 = hold0.or_else(|| q_full.get(1).copied());
+
+        // Fast 1-ply transition for winning move
+        let mut b_w = root_board;
+        let o_w = &fst.shapes[win_fp.color_idx as usize].orients[win_fp.tf.2 as usize];
+        let (lines_w, ds_w, _) = b_w.place_and_sift(o_w, win_fp.norm_i, win_fp.norm_j);
+        let rem_w = rem_g0.saturating_sub(ds_w as u16);
+        if rem_w > 0 && !spawn_exact_cheese_ed(&mut b_w, rem_w, lines_w, &ed.holes) {
+            break;
+        }
+        let (held_w, qc_w) = if hold0.is_some() {
+            if win_fp.did_hold {
+                (cur0, 1.min(q_full_len))
+            } else {
+                (hold0, 1.min(q_full_len))
+            }
+        } else if win_fp.did_hold {
+            (cur0, 2.min(q_full_len))
+        } else {
+            (None, 1.min(q_full_len))
+        };
+
+        if rem_w > 0 {
+            let l_ih_w = held_w.or_else(|| legal_q[..legal_q_len].get(qc_w).copied());
+            let l_av_w = avail_mask_from_q(held_w, qc_w, &legal_q[..legal_q_len], legal_bag);
+            let win_s_idx = states.len();
+            states.push(StateFeat::from_board(&b_w, rem_w, l_ih_w, l_av_w, teacher));
+            traj_recs.push((win_s_idx, rem_w));
+
+            let do_cf = rem_g0 <= next_cf_rem_g
+                && rem_g0 > 6
+                && cf_tasks.len() < cf_per_game
+                && q_full_len > 24
+                && step_idx + 6 < moves.len();
+
+            if do_cf {
+                next_cf_rem_g = rem_g0.saturating_sub(cf_step_g);
+                pgen.generate_for_state(&fst, &root_board, cur0, alt0, &mut root_places);
+                if let Some(chosen_idx) = root_places.iter().position(|&fp| {
+                    fp.color_idx == win_fp.color_idx
+                        && fp.tf == win_fp.tf
+                        && fp.did_hold == win_fp.did_hold
+                }) {
+                    let h6_q_len = (if hold0.is_some() { 6 } else { 7 }).min(q_full_len);
+                    let q6 = &q_full[..h6_q_len];
+                    let bw6 = 48usize;
+                    let mpr6 = 12usize;
+                    h6_beam.clear();
+                    h6_seen.clear();
+                    let mut root_after1: Vec<
+                        Option<(FastBoard, Option<u8>, usize, Option<u8>, u16, u8, u8, i64)>,
+                    > = vec![None; root_places.len()];
+                    let mut root_best_goal: Vec<Option<usize>> = vec![None; root_places.len()];
+
+                    for (idx, &fp) in root_places.iter().enumerate() {
+                        let mut b = root_board;
+                        let o = &fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
+                        let (lines, ds, _) = b.place_and_sift(o, fp.norm_i, fp.norm_j);
+                        let rem_g = rem_g0.saturating_sub(ds as u16);
+                        if rem_g > 0 && !spawn_exact_cheese_ed(&mut b, rem_g, lines, &ed.holes) {
+                            continue;
+                        }
+                        let (held, qc) = if hold0.is_some() {
+                            if fp.did_hold {
+                                (cur0, 1.min(h6_q_len))
+                            } else {
+                                (hold0, 1.min(h6_q_len))
+                            }
+                        } else if fp.did_hold {
+                            (cur0, 2.min(h6_q_len))
+                        } else {
+                            (None, 1.min(h6_q_len))
+                        };
+                        if rem_g == 0 && b.rows < 20 {
+                            root_best_goal[idx] = Some(1);
+                        }
+                        let in_h = held.or_else(|| q6.get(qc).copied());
+                        let sc = teacher.eval(&b, rem_g, in_h, 0x7F);
+                        let l_in_h = held.or_else(|| legal_q[..legal_q_len].get(qc).copied());
+                        let l_avail = avail_mask_from_q(held, qc, &legal_q[..legal_q_len], legal_bag);
+                        let sc_legal_1ply = teacher.eval(&b, rem_g, l_in_h, l_avail);
+                        root_after1[idx] =
+                            Some((b, held, qc, l_in_h, rem_g, l_avail, ds, sc_legal_1ply));
+                        if h6_seen.insert(H6Key { board: b, held, rem_g }) {
+                            h6_beam.push(H6Node {
+                                board: b,
+                                held,
+                                q_cursor: qc,
+                                rem_g,
+                                first_idx: idx as u16,
+                                score: sc,
+                            });
+                        }
+                    }
+
+                    for depth in 2..=6usize {
+                        h6_children.clear();
+                        for node in &h6_beam {
+                            if node.rem_g == 0 {
+                                continue;
+                            }
+                            let qc = node.q_cursor;
+                            let (c_nh, c_h) = if node.held.is_some() {
+                                (q6.get(qc).copied(), node.held)
+                            } else {
+                                (q6.get(qc).copied(), q6.get(qc + 1).copied())
+                            };
+                            pgen.generate_for_state(&fst, &node.board, c_nh, c_h, &mut tmp_places);
+                            for &fp in &tmp_places {
+                                let mut b = node.board;
+                                let o =
+                                    &fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
+                                let (lines, ds, _) = b.place_and_sift(o, fp.norm_i, fp.norm_j);
+                                let rem_g = node.rem_g.saturating_sub(ds as u16);
+                                if rem_g > 0
+                                    && !spawn_exact_cheese_ed(&mut b, rem_g, lines, &ed.holes)
+                                {
+                                    continue;
+                                }
+                                let (held, nqc) = if node.held.is_some() {
+                                    if fp.did_hold {
+                                        (c_nh, (qc + 1).min(h6_q_len))
+                                    } else {
+                                        (node.held, (qc + 1).min(h6_q_len))
+                                    }
+                                } else if fp.did_hold {
+                                    (c_nh, (qc + 2).min(h6_q_len))
+                                } else {
+                                    (None, (qc + 1).min(h6_q_len))
+                                };
+                                if rem_g == 0 && b.rows < 20 {
+                                    let ri = node.first_idx as usize;
+                                    if root_best_goal[ri].map_or(true, |gd| depth < gd) {
+                                        root_best_goal[ri] = Some(depth);
+                                    }
+                                }
+                                let in_h = held.or_else(|| q6.get(nqc).copied());
+                                let sc = teacher.eval(&b, rem_g, in_h, 0x7F);
+                                h6_children.push(H6Node {
+                                    board: b,
+                                    held,
+                                    q_cursor: nqc,
+                                    rem_g,
+                                    first_idx: node.first_idx,
+                                    score: sc,
+                                });
+                            }
+                        }
+                        if h6_children.is_empty() {
+                            break;
+                        }
+                        h6_children.sort_unstable_by_key(|n| (n.score, n.first_idx));
+                        h6_beam.clear();
+                        h6_seen.clear();
+                        let mut rc = vec![0usize; root_places.len()];
+                        for &ch in &h6_children {
+                            if h6_beam.len() >= bw6 {
+                                break;
+                            }
+                            if rc[ch.first_idx as usize] >= mpr6 {
+                                continue;
+                            }
+                            if h6_seen.insert(H6Key {
+                                board: ch.board,
+                                held: ch.held,
+                                rem_g: ch.rem_g,
+                            }) {
+                                rc[ch.first_idx as usize] += 1;
+                                h6_beam.push(ch);
+                            }
+                        }
+                    }
+
+                    let mut root_beam_rank: Vec<Option<i64>> = vec![None; root_places.len()];
+                    for (ri, &gd) in root_best_goal.iter().enumerate() {
+                        if let Some(d) = gd {
+                            root_beam_rank[ri] = Some(-30_000_000 + (d as i64) * 100);
+                        }
+                    }
+                    for node in &h6_beam {
+                        let ri = node.first_idx as usize;
+                        if root_beam_rank[ri].is_none() {
+                            root_beam_rank[ri] = Some(node.score);
+                        }
+                    }
+
+                    // 1) Root 1-ply candidates
+                    let sc_w_1ply = root_after1[chosen_idx].map(|x| x.7).unwrap_or(0);
+                    let mut best_runner: Option<(usize, i64)> = None;
+                    let mut best_opp_ds: Option<(usize, i64)> = None;
+                    let mut best_1ply_other: Option<(usize, i64)> = None;
+                    let mut best_clean_alt: Option<(usize, i64)> = None;
+                    let mut sorted_1ply: Vec<(usize, i64, i32)> =
+                        Vec::with_capacity(root_places.len());
+
+                    for ri in 0..root_places.len() {
+                        if let Some((b_l, _, _, _, rem_l, _, ds_l, sc_l_1ply)) = root_after1[ri] {
+                            if rem_l == 0 {
+                                continue;
+                            }
+                            let (stk_c, cov_h, h1_b) = fast_leaf_clean_metrics(&b_l);
+                            if b_l.rows < 20 {
+                                sorted_1ply.push((ri, sc_l_1ply, cov_h));
+                            }
+                            if ri == chosen_idx {
+                                continue;
+                            }
+                            if best_1ply_other.map_or(true, |x| sc_l_1ply < x.1) {
+                                best_1ply_other = Some((ri, sc_l_1ply));
+                            }
+                            if let Some(br) = root_beam_rank[ri] {
+                                if best_runner.map_or(true, |x| br < x.1) {
+                                    best_runner = Some((ri, br));
+                                }
+                            }
+                            if (ds_l > 0) != (ds_w > 0) {
+                                let metric = root_beam_rank[ri].unwrap_or(sc_l_1ply + 500_000);
+                                if best_opp_ds.map_or(true, |x| metric < x.1) {
+                                    best_opp_ds = Some((ri, metric));
+                                }
+                            }
+                            let clean_metric = (cov_h * 80 + h1_b * 40 + stk_c * 4) as i64;
+                            if best_clean_alt.map_or(true, |x| clean_metric < x.1) {
+                                best_clean_alt = Some((ri, clean_metric));
+                            }
+                        }
+                    }
+                    sorted_1ply.sort_unstable_by_key(|x| x.1);
+                    let mut best_hole_alt: Option<usize> = None;
+                    for &(ri, _, cov_h) in sorted_1ply.iter().take(15) {
+                        if ri != chosen_idx && cov_h > 0 {
+                            best_hole_alt = Some(ri);
+                            break;
+                        }
+                    }
+
+                    let mut cand_ris: Vec<usize> = Vec::with_capacity(5);
+                    let mut root_cands: Vec<CfCand> = Vec::with_capacity(5);
+                    cand_ris.push(chosen_idx);
+                    root_cands.push(CfCand {
+                        state_idx: win_s_idx,
+                        board: b_w,
+                        held: held_w,
+                        qc: qc_w,
+                        rem_g: rem_w,
+                        ref_score: sc_w_1ply,
+                    });
+                    for opt_ri in [
+                        best_opp_ds.map(|x| x.0),
+                        best_runner.map(|x| x.0),
+                        best_hole_alt,
+                        best_1ply_other.map(|x| x.0),
+                        best_clean_alt.map(|x| x.0),
+                    ] {
+                        if root_cands.len() >= 5 {
+                            break;
+                        }
+                        if let Some(ri) = opt_ri {
+                            if !cand_ris.contains(&ri) {
+                                if let Some((b_l, held_l, qc_l, l_ih_l, rem_l, l_av_l, _, sc_l_1ply)) =
+                                    root_after1[ri]
+                                {
+                                    let l_s_idx = states.len();
+                                    states.push(StateFeat::from_board(
+                                        &b_l, rem_l, l_ih_l, l_av_l, teacher,
+                                    ));
+                                    cand_ris.push(ri);
+                                    root_cands.push(CfCand {
+                                        state_idx: l_s_idx,
+                                        board: b_l,
+                                        held: held_l,
+                                        qc: qc_l,
+                                        rem_g: rem_l,
+                                        ref_score: sc_l_1ply,
+                                    });
+                                }
+                            }
+                        }
+                    }
+
+                    // 2) H=6 leaf cands: pair WG-winning 6-step future state against H=6 beam traps
+                    let mut b_wg6 = root_board;
+                    let mut held_wg6 = hold0;
+                    let mut qc_wg6 = 0usize;
+                    let mut rem_wg6 = rem_g0;
+                    let mut ok_wg6 = true;
+                    for &mfp in &moves[step_idx..step_idx + 6] {
+                        let (c_nh, _) = if held_wg6.is_some() {
+                            (q6.get(qc_wg6).copied(), held_wg6)
+                        } else {
+                            (q6.get(qc_wg6).copied(), q6.get(qc_wg6 + 1).copied())
+                        };
+                        let o = &fst.shapes[mfp.color_idx as usize].orients[mfp.tf.2 as usize];
+                        let (lines, ds, _) = b_wg6.place_and_sift(o, mfp.norm_i, mfp.norm_j);
+                        rem_wg6 = rem_wg6.saturating_sub(ds as u16);
+                        if rem_wg6 == 0 || !spawn_exact_cheese_ed(&mut b_wg6, rem_wg6, lines, &ed.holes) {
+                            ok_wg6 = false;
+                            break;
+                        }
+                        let (nh, nqc) = if held_wg6.is_some() {
+                            if mfp.did_hold {
+                                (c_nh, (qc_wg6 + 1).min(h6_q_len))
+                            } else {
+                                (held_wg6, (qc_wg6 + 1).min(h6_q_len))
+                            }
+                        } else if mfp.did_hold {
+                            (c_nh, (qc_wg6 + 2).min(h6_q_len))
+                        } else {
+                            (None, (qc_wg6 + 1).min(h6_q_len))
+                        };
+                        held_wg6 = nh;
+                        qc_wg6 = nqc;
+                    }
+
+                    let mut leaf_cands: Vec<CfCand> = Vec::with_capacity(5);
+                    let mut max_spawned_leaf = 0usize;
+                    let valid_leaves: Vec<usize> = h6_beam
+                        .iter()
+                        .enumerate()
+                        .filter(|(_, n)| {
+                            n.rem_g > 0
+                                && n.board.rows < 20
+                                && (!ok_wg6
+                                    || n.board != b_wg6
+                                    || n.held != held_wg6
+                                    || n.rem_g != rem_wg6)
+                        })
+                        .map(|(i, _)| i)
+                        .collect();
+
+                    let mut leaf_idxs: Vec<usize> = Vec::with_capacity(4);
+                    if !valid_leaves.is_empty() {
+                        let best_li = valid_leaves[0];
+                        let ref_rem_g = if ok_wg6 { rem_wg6 } else { h6_beam[best_li].rem_g };
+                        let mut opp_rem_li: Option<usize> = None;
+                        let mut low_stk_li: Option<(usize, i32)> = None;
+                        let mut clean_li: Option<(usize, i32)> = None;
+
+                        for &li in &valid_leaves {
+                            let nd = &h6_beam[li];
+                            if opp_rem_li.is_none() && nd.rem_g != ref_rem_g {
+                                opp_rem_li = Some(li);
+                            }
+                            let (stk_c, cov_h, h1_b) = fast_leaf_clean_metrics(&nd.board);
+                            let low_m = (nd.rem_g as i32) * 200 + stk_c * 10 + h1_b * 25;
+                            if low_stk_li.map_or(true, |x| low_m < x.1) {
+                                low_stk_li = Some((li, low_m));
+                            }
+                            let clean_m = cov_h * 40
+                                + h1_b * 25
+                                + stk_c * 3
+                                + ((nd.rem_g as i32 - ref_rem_g as i32).max(0)) * 180;
+                            if clean_li.map_or(true, |x| clean_m < x.1) {
+                                clean_li = Some((li, clean_m));
+                            }
+                        }
+
+                        leaf_idxs.push(best_li);
+                        for opt in [opp_rem_li, low_stk_li.map(|x| x.0), clean_li.map(|x| x.0)] {
+                            if let Some(li) = opt {
+                                if !leaf_idxs.contains(&li) {
+                                    leaf_idxs.push(li);
+                                }
+                            }
+                        }
+                        for &li in &valid_leaves {
+                            if leaf_idxs.len() >= 4 {
+                                break;
+                            }
+                            if !leaf_idxs.contains(&li) {
+                                leaf_idxs.push(li);
+                            }
+                        }
+                    }
+
+                    let max_leaf_qc = leaf_idxs
+                        .iter()
+                        .map(|&li| h6_beam[li].q_cursor)
+                        .max()
+                        .unwrap_or(0);
+                    let q_win_len = (if ok_wg6 { qc_wg6 } else { 0 })
+                        .max(max_leaf_qc)
+                        .max(legal_q_len)
+                        .min(q_full_len);
+                    let mut bag_at_q_end = legal_bag;
+                    for &p in q_full[..q_win_len].iter().skip(legal_q_len) {
+                        consume_bag_bit(&mut bag_at_q_end, p);
+                    }
+                    let q_win = &q_full[..q_win_len];
+
+                    if ok_wg6 && rem_wg6 > 0 && b_wg6.rows < 20 && !leaf_idxs.is_empty() {
+                        let unsp_w =
+                            (rem_wg6 as usize).saturating_sub(b_wg6.garbage_rows as usize);
+                        max_spawned_leaf = max_spawned_leaf.max(100usize.saturating_sub(unsp_w));
+                        let w_ih = held_wg6.or_else(|| q_win.get(qc_wg6).copied());
+                        let w_av = avail_mask_from_q(held_wg6, qc_wg6, q_win, bag_at_q_end);
+                        let sc_wg6 = teacher.eval(&b_wg6, rem_wg6, w_ih, w_av);
+                        let s_idx = states.len();
+                        states.push(StateFeat::from_board(&b_wg6, rem_wg6, w_ih, w_av, teacher));
+                        leaf_cands.push(CfCand {
+                            state_idx: s_idx,
+                            board: b_wg6,
+                            held: held_wg6,
+                            qc: qc_wg6,
+                            rem_g: rem_wg6,
+                            ref_score: sc_wg6,
+                        });
+                    }
+                    if leaf_idxs.len() + leaf_cands.len() >= 2 {
+                        for &li in &leaf_idxs {
+                            if leaf_cands.len() >= 5 {
+                                break;
+                            }
+                            let nd = &h6_beam[li];
+                            let unsp =
+                                (nd.rem_g as usize).saturating_sub(nd.board.garbage_rows as usize);
+                            max_spawned_leaf =
+                                max_spawned_leaf.max(100usize.saturating_sub(unsp));
+                            let l_ih = nd.held.or_else(|| q_win.get(nd.q_cursor).copied());
+                            let l_av =
+                                avail_mask_from_q(nd.held, nd.q_cursor, q_win, bag_at_q_end);
+                            let s_idx = states.len();
+                            states.push(StateFeat::from_board(
+                                &nd.board, nd.rem_g, l_ih, l_av, teacher,
+                            ));
+                            leaf_cands.push(CfCand {
+                                state_idx: s_idx,
+                                board: nd.board,
+                                held: nd.held,
+                                qc: nd.q_cursor,
+                                rem_g: nd.rem_g,
+                                ref_score: nd.score,
+                            });
+                        }
+                    } else {
+                        leaf_cands.clear();
+                    }
+
+                    if root_cands.len() >= 2 || leaf_cands.len() >= 2 {
+                        let base_rng = seed.wrapping_mul(0x9E3779B97F4A7C15)
+                            ^ ((pcs as u64) + 1).wrapping_mul(0xBF58476D1CE4E5B9);
+                        let unspawned0 = (rem_g0 as usize).saturating_sub(g_rows as usize);
+                        let spawned_so_far0 = 100usize.saturating_sub(unspawned0);
+                        let prev_hole0 =
+                            if spawned_so_far0 > 0 && spawned_so_far0 <= ed.holes.len() {
+                                ed.holes[spawned_so_far0 - 1]
+                            } else if g_rows > 0 {
+                                (!root_board.data[0] & 0x3FF).trailing_zeros() as u16
+                            } else {
+                                4
+                            };
+                        let prev_hole_leaf =
+                            if max_spawned_leaf > 0 && max_spawned_leaf <= ed.holes.len() {
+                                ed.holes[max_spawned_leaf - 1]
+                            } else {
+                                4
+                            };
+                        cf_tasks.push(CfTask {
+                            base_rng,
+                            q_start,
+                            q_win_len,
+                            legal_q,
+                            legal_q_len,
+                            legal_bag,
+                            bag_at_q_end,
+                            spawned_so_far0,
+                            prev_hole0,
+                            sc_w_1ply,
+                            root_cands,
+                            leaf_cands,
+                            max_spawned_leaf,
+                            prev_hole_leaf,
+                        });
+                    }
+                }
+            }
+        }
+
+        let mut inputs = match ai_in.inputs_for_place(&snap.matrix, win_fp) {
+            Some(inp) => inp,
+            None => break,
+        };
+        inputs.pop();
+        if win_fp.did_hold {
+            if hold0.is_none() {
+                q_pos += 2;
+            } else {
+                q_pos += 1;
+            }
+        } else {
+            q_pos += 1;
+        }
+        stacker.run(inputs);
+        let (_, ds) = stacker.hard_drop();
+        pcs += 1;
+        ds_total += ds;
+    }
+
+    if ds_total < 100 {
+        return GameGenerated {
+            ed: None,
+            pieces: 400,
+            ds_cleared: ds_total,
+            topout: true,
+            states: Vec::new(),
+            traj_recs: Vec::new(),
+            cf_tasks: Vec::new(),
+        };
+    }
+
+    GameGenerated {
+        ed: Some(ed),
+        pieces: pcs,
+        ds_cleared: ds_total,
+        topout: false,
+        states,
+        traj_recs,
+        cf_tasks,
+    }
+}
+
 #[allow(clippy::too_many_arguments)]
 fn run_cf_task(
     task: &CfTask,
@@ -1458,6 +2244,9 @@ impl AdamW {
             Self::step_param(&mut mdl.b1[h], g.b1[h], &mut self.m_b1[h], &mut self.v_b1[h], 0.0, lr_cur, b1, b2, b1t, b2t, eps);
         }
         for i in 0..SPARSE_DIM {
+            if !sparse_mlp_allowed(i) {
+                continue;
+            }
             for h in 0..SPATIAL_H1 {
                 Self::step_param(&mut mdl.w_sparse[i][h], g.w_sparse[i][h], &mut self.m_ws[i][h], &mut self.v_ws[i][h], wd_mlp, lr_cur, b1, b2, b1t, b2t, eps);
             }
@@ -1483,6 +2272,11 @@ impl AdamW {
             Self::step_param(&mut mdl.w3[k], g.w3[k], &mut self.m_w3[k], &mut self.v_w3[k], wd_mlp, lr_cur, b1, b2, b1t, b2t, eps);
         }
     }
+}
+
+#[inline]
+const fn sparse_mlp_allowed(i: usize) -> bool {
+    !(i >= 20 && i < 80)
 }
 
 #[inline]
@@ -1553,9 +2347,11 @@ fn forward_cache(
     for &bit in &sf.active {
         let idx = bit as usize;
         lin += mdl.lin_sparse[idx];
-        let row = &mdl.w_sparse[idx];
-        for h in 0..SPATIAL_H1 {
-            h1[h] += row[h];
+        if sparse_mlp_allowed(idx) {
+            let row = &mdl.w_sparse[idx];
+            for h in 0..SPATIAL_H1 {
+                h1[h] += row[h];
+            }
         }
     }
     for j in 0..DENSE_DIM {
@@ -1651,7 +2447,11 @@ fn backward_add(
             if dh != 0.0 {
                 g.b1[h] += dh;
                 for &bit in &sf.active {
-                    let gs_row = &mut g.w_sparse[bit as usize];
+                    let idx = bit as usize;
+                    if !sparse_mlp_allowed(idx) {
+                        continue;
+                    }
+                    let gs_row = &mut g.w_sparse[idx];
                     gs_row[h] += dh;
                 }
                 for j in 1..DENSE_DIM {
@@ -1688,13 +2488,13 @@ impl Xorshift64 {
     }
 }
 
-fn eval_legal_quick(label: &str, seeds: &[u64], mdl: &Arc<SpatialValueModel>) {
+fn eval_legal_quick(label: &str, seeds: &[u64], mdl: &Arc<SpatialValueModel>, sim_spawn: bool) {
     let t0 = Instant::now();
     let mut cfg = BeamConfig::default();
     cfg.beam_width = 120;
     cfg.max_per_root = 24;
     cfg.rollout_top_k = 12;
-    cfg.simulate_cheese_spawn = true;
+    cfg.simulate_cheese_spawn = sim_spawn;
     cfg.bag_det_extend = true;
     cfg.endgame_wide = true;
     cfg.endgame_solver = true;
@@ -1992,9 +2792,13 @@ fn compute_gentle_bounds(dense_inv_std: &[f32; DENSE_DIM]) -> (Vec<f64>, Vec<f64
     let mut ub = vec![6.0f64; P];
 
     // Sparse spatial/bag bounds
-    for i in 0..80 {
-        lb[i] = -0.01;
+    for i in 0..20 {
+        lb[i] = 0.0;
         ub[i] = 0.15;
+    }
+    for i in 20..80 {
+        lb[i] = 0.0;
+        ub[i] = 0.12;
     }
     for i in 80..90 {
         lb[i] = 0.0;
@@ -2002,24 +2806,24 @@ fn compute_gentle_bounds(dense_inv_std: &[f32; DENSE_DIM]) -> (Vec<f64>, Vec<f64
     }
     for i in 90..120 {
         // Prevent overfitting to absolute seed hole column indices
-        lb[i] = -0.03;
-        ub[i] = 0.03;
+        lb[i] = -0.015;
+        ub[i] = 0.015;
     }
     for i in 120..160 {
-        lb[i] = -0.15;
+        lb[i] = 0.0;
         ub[i] = 0.30;
     }
     for i in 160..166 {
-        lb[i] = -0.25;
-        ub[i] = 0.25;
+        lb[i] = -0.12;
+        ub[i] = 0.12;
     }
     for i in 166..180 {
-        lb[i] = -0.08;
-        ub[i] = 0.08;
+        lb[i] = -0.06;
+        ub[i] = 0.06;
     }
     // Constrain hand_O (sparse bit 167) to prevent artificial O-dumping bias
-    lb[167] = -0.05;
-    ub[167] = 0.08;
+    lb[167] = -0.04;
+    ub[167] = 0.06;
 
     lb[180] = 0.50;
     ub[180] = 5.00; // g == 0 && rem_g > 0
@@ -2027,9 +2831,11 @@ fn compute_gentle_bounds(dense_inv_std: &[f32; DENSE_DIM]) -> (Vec<f64>, Vec<f64
     ub[181] = 0.60; // g >= 5
     lb[182] = -0.35;
     ub[182] = 0.35;
-    for i in 183..186 {
-        lb[i] = -0.45;
-        ub[i] = 0.0; // h1_open / h2_open are bonuses <= 0
+    lb[183] = -0.18;
+    ub[183] = 0.0; // h1_open
+    for i in 184..186 {
+        lb[i] = -0.25;
+        ub[i] = 0.0; // h2_open / h12_open bonuses <= 0
     }
 
     let set_raw_range = |lb: &mut [f64], ub: &mut [f64], j: usize, min_raw: f64, max_raw: f64| {
@@ -2044,7 +2850,7 @@ fn compute_gentle_bounds(dense_inv_std: &[f32; DENSE_DIM]) -> (Vec<f64>, Vec<f64
     };
 
     // Wide empirical bounds for rem_g, g, and stack_cells
-    set_raw_range(&mut lb, &mut ub, 0, 1.35, 2.35); // rem_g
+    set_raw_range(&mut lb, &mut ub, 0, 1.45, 2.35); // rem_g
     set_raw_range(&mut lb, &mut ub, 1, 0.0, 0.45);  // g
 
     for j in 2..DENSE_DIM {
@@ -2060,27 +2866,45 @@ fn compute_gentle_bounds(dense_inv_std: &[f32; DENSE_DIM]) -> (Vec<f64>, Vec<f64
         }
     }
 
-    set_raw_range(&mut lb, &mut ub, 3, 0.04, 0.25); // stack_cells
-    set_raw_range(&mut lb, &mut ub, 19, 0.0, 0.25); // min_stack_h
-    set_raw_range(&mut lb, &mut ub, 34, -0.35, 0.0); // hand_fits_h1
-    set_raw_range(&mut lb, &mut ub, 35, -0.35, 0.0); // bag_fit_frac
+    set_raw_range(&mut lb, &mut ub, 3, 0.0, 0.12); // stack_cells (conservation-law safe)
+    set_raw_range(&mut lb, &mut ub, 19, 0.0, 0.20); // min_stack_h
+    set_raw_range(&mut lb, &mut ub, 33, -0.06, 0.0); // h1_fit_cnt
+    set_raw_range(&mut lb, &mut ub, 34, -0.18, 0.0); // hand_fits_h1
+    set_raw_range(&mut lb, &mut ub, 35, -0.18, 0.0); // bag_fit_frac
     set_raw_range(&mut lb, &mut ub, 39, 0.0, 0.35); // h2_narrow_1
     set_raw_range(&mut lb, &mut ub, 40, 0.0, 0.35); // h2_narrow_2plus
+    set_raw_range(&mut lb, &mut ub, 41, -0.05, 0.0); // h2_fit_cnt
     set_raw_range(&mut lb, &mut ub, 53, 0.0, 0.35); // two_well_cnt
+    set_raw_range(&mut lb, &mut ub, 54, -0.06, 0.0); // clean_o_spots
+    set_raw_range(&mut lb, &mut ub, 55, -0.03, 0.0); // total_o_spots
+    set_raw_range(&mut lb, &mut ub, 56, -0.22, 0.0); // near_full_9
+    set_raw_range(&mut lb, &mut ub, 57, -0.08, 0.0); // near_full_8
+    set_raw_range(&mut lb, &mut ub, 58, -0.30, 0.0); // row_g_9_aligned
+    set_raw_range(&mut lb, &mut ub, 59, -0.12, 0.0); // row_g_8_aligned
+    set_raw_range(&mut lb, &mut ub, 60, -0.18, 0.0); // row_g_clearable_with_h1
+    set_raw_range(&mut lb, &mut ub, 61, -0.18, 0.0); // clean_skim_rows
     set_raw_range(&mut lb, &mut ub, 66, 0.0, 0.60); // o_trapped
+    set_raw_range(&mut lb, &mut ub, 67, -0.05, 0.0); // avail_mask_cnt
     set_raw_range(&mut lb, &mut ub, 68, 0.0, 0.60); // no_i_when_i_only
     set_raw_range(&mut lb, &mut ub, 69, 0.0, 0.60); // i_dep_cols_no_i
+    set_raw_range(&mut lb, &mut ub, 71, -0.30, 0.0); // h1_ds_clears_rg_open_h2
 
     for c in 0..10 {
-        set_raw_range(&mut lb, &mut ub, 8 + c, 0.0, 0.08);
+        set_raw_range(&mut lb, &mut ub, 8 + c, 0.0, 0.06);
     }
 
-    // Minimal safety floors only
-    let floors: [(usize, f64); 4] = [
-        (22, 0.03),  // ex13_sq
-        (23, 0.25),  // covered_holes
-        (28, 0.12),  // h1_blocks
-        (36, 0.08),  // h2_blocks
+    // Structural safety floors so Ridge/AdamW never collapse height/hole penalties to 0
+    let floors: [(usize, f64); 10] = [
+        (2, 0.12),   // pe_net
+        (5, 0.015),  // stack_cells_above1
+        (7, 0.028),  // upper_cells
+        (21, 0.022), // stack_over2_sq
+        (22, 0.06),  // ex13_sq
+        (23, 0.34),  // covered_holes
+        (25, 0.06),  // blocks_over_holes
+        (28, 0.18),  // h1_blocks
+        (36, 0.15),  // h2_blocks
+        (47, 0.025), // bumpiness
     ];
     for &(j, min_raw) in &floors {
         let inv = dense_inv_std[j] as f64;
@@ -2230,10 +3054,16 @@ fn ridge_fit_values(
         }
     }
 
-    let lam_sparse = (sum_w * 0.015).clamp(30.0, 1200.0);
-    let lam_dense = (sum_w * 0.015).clamp(15.0, 900.0);
+    let lam_sparse = (sum_w * 0.035).clamp(80.0, 2400.0);
+    let lam_dense = (sum_w * 0.012).clamp(20.0, 900.0);
     for i in 0..SPARSE_DIM {
-        let mult = if (90..120).contains(&i) { 4.0 } else { 1.0 };
+        let mult = if (90..120).contains(&i) {
+            5.0
+        } else if (0..80).contains(&i) || (120..180).contains(&i) {
+            3.0
+        } else {
+            1.5
+        };
         a[i * P1 + i] += lam_sparse * mult;
     }
     a[SPARSE_DIM * P1 + SPARSE_DIM] += 0.5;
@@ -2385,6 +3215,7 @@ fn main() {
     let mut out_path = "models/spatial_v1.txt".to_string();
     let mut init_path: Option<String> = None;
     let mut games: usize = 120;
+    let mut wg_beam: usize = 0;
     let mut horizon: usize = 12;
     let mut beam_w: usize = 140;
     let mut max_per_root: usize = 20;
@@ -2392,15 +3223,16 @@ fn main() {
     let mut roll_bw: usize = 16;
     let mut crn_worlds: usize = 6;
     let mut cf_per_game: usize = 24;
+    let mut roll_vcal_opt: Option<bool> = None;
     let mut epochs: usize = 35;
     let mut batch_size: usize = 128;
     let mut lr: f32 = 0.0006;
     let mut wd: f32 = 0.015;
     let mut lin_lr_mult: f32 = 0.45;
-    let mut rank_w: f32 = 1.5;
-    let mut diff_w: f32 = 0.45;
-    let mut val_w: f32 = 0.25;
-    let mut cal_v_weight: f32 = 0.55;
+    let mut rank_w: f32 = 2.0;
+    let mut diff_w: f32 = 0.65;
+    let mut val_w: f32 = 0.08;
+    let mut cal_v_weight: f32 = 0.0;
     let mut keep_o_bias: bool = false;
     let mut seed_base: u64 = 1000;
     let mut eval_oracle: usize = 5;
@@ -2414,6 +3246,7 @@ fn main() {
             "--out" => { out_path = args[i + 1].clone(); i += 2; }
             "--init" => { init_path = Some(args[i + 1].clone()); i += 2; }
             "--games" => { games = args[i + 1].parse().unwrap(); i += 2; }
+            "--wg-beam" => { wg_beam = args[i + 1].parse().unwrap(); i += 2; }
             "--horizon" => { horizon = args[i + 1].parse().unwrap(); i += 2; }
             "--beam" => { beam_w = args[i + 1].parse().unwrap(); i += 2; }
             "--max-per-root" => { max_per_root = args[i + 1].parse().unwrap(); i += 2; }
@@ -2421,6 +3254,8 @@ fn main() {
             "--roll-bw" => { roll_bw = args[i + 1].parse().unwrap(); i += 2; }
             "--crn-worlds" => { crn_worlds = args[i + 1].parse().unwrap(); i += 2; }
             "--cf-per-game" => { cf_per_game = args[i + 1].parse().unwrap(); i += 2; }
+            "--roll-vcal" => { roll_vcal_opt = Some(true); i += 1; }
+            "--no-roll-vcal" => { roll_vcal_opt = Some(false); i += 1; }
             "--epochs" => { epochs = args[i + 1].parse().unwrap(); i += 2; }
             "--batch" => { batch_size = args[i + 1].parse().unwrap(); i += 2; }
             "--lr" => { lr = args[i + 1].parse().unwrap(); i += 2; }
@@ -2445,12 +3280,15 @@ fn main() {
         }
     }
 
+    let use_roll_vcal = roll_vcal_opt.unwrap_or(false);
     let teacher = if let Some(p) = teacher_arg.strip_prefix("spatial:") {
         Teacher::Spatial(Arc::new(SpatialValueModel::load_from_file(p).expect("load spatial teacher")))
+    } else if let Some(p) = teacher_arg.strip_prefix("cons:") {
+        Teacher::Learned(Arc::new(load_cons_model(p, !keep_o_bias)))
     } else if let Some(p) = teacher_arg.strip_prefix("learned:") {
         Teacher::Learned(Arc::new(load_learned_model(p, true, !keep_o_bias)))
     } else {
-        panic!("--teacher must start with learned: or spatial:");
+        panic!("--teacher must start with cons:, learned:, or spatial:");
     };
 
     let avail_threads = std::thread::available_parallelism()
@@ -2458,8 +3296,8 @@ fn main() {
         .unwrap_or(2);
     let n_threads = avail_threads.min(games.max(1));
     println!(
-        "=== Round 3 OOD-Safe Calibrated Finite-Horizon CRN SpatialValueModel RL ===\n  teacher={} no_o_bias={} games={} seeds=[{}..{}] H={} B={} MPR={} roll_h={} roll_bw={} crn_w={} cf/g={} cal_v_w={} lin_lr_mult={} threads={}",
-        teacher_arg, !keep_o_bias, games, seed_base, seed_base + games as u64, horizon, beam_w, max_per_root, roll_horizon, roll_bw, crn_worlds, cf_per_game, cal_v_weight, lin_lr_mult, avail_threads
+        "=== OOD-Safe Calibrated SpatialValueModel RL ===\n  teacher={} wg_beam={} roll_vcal={} no_o_bias={} games={} seeds=[{}..{}] H={} B={} MPR={} roll_h={} roll_bw={} crn_w={} cf/g={} cal_v_w={} lin_lr_mult={} threads={}",
+        teacher_arg, wg_beam, use_roll_vcal, !keep_o_bias, games, seed_base, seed_base + games as u64, horizon, beam_w, max_per_root, roll_horizon, roll_bw, crn_worlds, cf_per_game, cal_v_weight, lin_lr_mult, avail_threads
     );
     let _ = std::io::Write::flush(&mut std::io::stdout());
 
@@ -2476,14 +3314,18 @@ fn main() {
                     chunk
                         .iter()
                         .map(|&s| {
-                            generate_game_data(
-                                s,
-                                horizon,
-                                beam_w,
-                                max_per_root,
-                                cf_per_game,
-                                t_ref,
-                            )
+                            if wg_beam > 0 {
+                                generate_game_data_wg(s, wg_beam, cf_per_game, t_ref)
+                            } else {
+                                generate_game_data(
+                                    s,
+                                    horizon,
+                                    beam_w,
+                                    max_per_root,
+                                    cf_per_game,
+                                    t_ref,
+                                )
+                            }
                         })
                         .collect::<Vec<_>>()
                 })
@@ -2626,36 +3468,43 @@ fn main() {
         t_shift,
     };
 
-    // Build blended 0.5*MC + 0.5*TD(K) trajectory targets (using train-fit V_cal)
+    // Build trajectory targets only as fallback when no CF tasks exist (avoids retrospective MC-investment confounding)
     let td_k = if roll_horizon > 0 { roll_horizon } else { 20 };
     let mut val_samples: Vec<ValueSample> = Vec::new();
-    for (gi, g) in valid_games.iter().enumerate() {
-        let is_val = gi >= val_start;
-        let base = game_state_bases[gi];
-        for (step_idx, &(local_si, rem_w)) in g.traj_recs.iter().enumerate() {
-            if rem_w == 0 {
-                continue;
+    if sum_cf_tasks == 0 {
+        for (gi, g) in valid_games.iter().enumerate() {
+            let is_val = gi >= val_start;
+            let base = game_state_bases[gi];
+            for (step_idx, &(local_si, rem_w)) in g.traj_recs.iter().enumerate() {
+                if rem_w == 0 {
+                    continue;
+                }
+                let mc_rem = (g.pieces.saturating_sub(step_idx + 1)) as f32;
+                let targ = if step_idx + td_k < g.traj_recs.len() {
+                    let (fut_si, _) = g.traj_recs[step_idx + td_k];
+                    let f_sf = &all_states[base + fut_si];
+                    let v_fut = v_cal_arc.predict_extracted(&f_sf.active, &f_sf.dense).max(0.5);
+                    let td_rem = (td_k as f32) + v_fut;
+                    (0.5 * mc_rem + 0.5 * td_rem).clamp(0.5, 280.0)
+                } else {
+                    mc_rem.clamp(0.5, 280.0)
+                };
+                val_samples.push(ValueSample {
+                    state_idx: base + local_si,
+                    target: targ,
+                    weight: 0.30,
+                    is_val,
+                });
             }
-            let mc_rem = (g.pieces.saturating_sub(step_idx + 1)) as f32;
-            let targ = if step_idx + td_k < g.traj_recs.len() {
-                let (fut_si, _) = g.traj_recs[step_idx + td_k];
-                let f_sf = &all_states[base + fut_si];
-                let v_fut = v_cal_arc.predict_extracted(&f_sf.active, &f_sf.dense).max(0.5);
-                let td_rem = (td_k as f32) + v_fut;
-                (0.5 * mc_rem + 0.5 * td_rem).clamp(0.5, 280.0)
-            } else {
-                mc_rem.clamp(0.5, 280.0)
-            };
-            val_samples.push(ValueSample {
-                state_idx: base + local_si,
-                target: targ,
-                weight: 0.30,
-                is_val,
-            });
         }
     }
 
     // Phase 3: Execute all counterfactual tasks across all threads via work-stealing
+    let roll_policy = if use_roll_vcal {
+        Teacher::Spatial(v_cal_arc.clone())
+    } else {
+        teacher.clone()
+    };
     let t_cf = Instant::now();
     let mut jobs: Vec<(usize, usize)> = Vec::with_capacity(sum_cf_tasks);
     for (gi, g) in valid_games.iter().enumerate() {
@@ -2672,7 +3521,7 @@ fn main() {
                 let bases_ref = &game_state_bases;
                 let jobs_ref = &jobs;
                 let nj_ref = &next_job;
-                let t_ref = &teacher;
+                let t_ref = &roll_policy;
                 let le_ref = &leaf_eval;
                 sc.spawn(move || {
                     let fst = FastShapeTable::srs();
@@ -2743,6 +3592,13 @@ fn main() {
     let mut mdl = if let Some(ref ip) = init_path {
         let mut m = SpatialValueModel::load_from_file(ip).expect("load init model");
         m.fast_ready = false;
+        for i in 0..SPARSE_DIM {
+            if !sparse_mlp_allowed(i) {
+                for h in 0..SPATIAL_H1 {
+                    m.w_sparse[i][h] = 0.0;
+                }
+            }
+        }
         for j in 0..DENSE_DIM {
             if !dense_mlp_allowed(j) {
                 for h in 0..SPATIAL_H1 {
@@ -2756,11 +3612,12 @@ fn main() {
         m.dense_mean = dense_mean;
         m.dense_inv_std = dense_inv_std;
 
+        let val_scale = if train_pairs.is_empty() { 1.0f32 } else { 0.06f32 };
         let all_train_val_tuples: Vec<(usize, f32, f32)> = train_vals
             .iter()
             .map(|&vi| {
                 let s = &val_samples[vi];
-                (s.state_idx, s.target, s.weight)
+                (s.state_idx, s.target, s.weight * val_scale)
             })
             .collect();
         let train_pair_diffs: Vec<(usize, usize, f32, f32)> = train_pairs
@@ -2774,7 +3631,7 @@ fn main() {
                 } else {
                     1.0
                 };
-                (pr.win_idx, pr.lose_idx, pr.dq, 1.5 * trap_mult)
+                (pr.win_idx, pr.lose_idx, pr.dq, 4.0 * trap_mult)
             })
             .collect();
         ridge_fit_values(
@@ -2793,6 +3650,9 @@ fn main() {
         let s2 = (2.0f32 / SPATIAL_H1 as f32).sqrt() * 0.20;
         let s3 = 0.008f32;
         for i in 0..SPARSE_DIM {
+            if !sparse_mlp_allowed(i) {
+                continue;
+            }
             for h in 0..SPATIAL_H1 {
                 m.w_sparse[i][h] = rng.next_normal() * s1 * 0.5;
             }
@@ -2817,7 +3677,20 @@ fn main() {
         m
     };
     mdl.fast_ready = false;
-    let ep0_mdl = mdl.clone();
+    let mut ep0_lin = mdl.clone();
+    ep0_lin.b3 = 0.0;
+    ep0_lin.w3.fill(0.0);
+    if let Some(parent) = std::path::Path::new(&out_path).parent() {
+        let _ = std::fs::create_dir_all(parent);
+    }
+    let ep0_path = if let Some(stem) = out_path.strip_suffix(".txt") {
+        format!("{}_ep0.txt", stem)
+    } else {
+        format!("{}_ep0.txt", out_path)
+    };
+    ep0_lin.save_to_file(&ep0_path).expect("save ep0 linear model");
+    println!("  Saved pure-Ridge ep0 model to {}", ep0_path);
+    let ep0_mdl = ep0_lin;
     print_spatial_diagnostics("ep0_init", &mdl);
 
     let mut opt = AdamW::new(wd);
@@ -3015,24 +3888,38 @@ fn main() {
 
     if eval_oracle > 0 || eval_legal > 0 {
         let mdl_arc = Arc::new(best_mdl);
+        let mut ep0_fast = ep0_mdl;
+        ep0_fast.prepare_fast();
+        let ep0_arc = Arc::new(ep0_fast);
         println!("\n=== Post-Training Held-Out Verification ===");
         if eval_oracle > 0 {
             let test_seeds: Vec<u64> = (101..101 + eval_oracle as u64).collect();
             if eval_teacher {
-                let _ = eval_oracle_quick("OR_p12_b140_teacher", &test_seeds, 12, 140, &teacher);
+                let _ = eval_oracle_quick("OR_p6_b120_teacher", &test_seeds, 6, 120, &teacher);
+                if eval_oracle >= 4 {
+                    let _ = eval_oracle_quick("OR_p12_b140_teacher", &test_seeds, 12, 140, &teacher);
+                }
             }
             if init_path.is_none() {
-                let mut ep0_fast = ep0_mdl;
-                ep0_fast.prepare_fast();
-                let ep0_t = Teacher::Spatial(Arc::new(ep0_fast));
-                let _ = eval_oracle_quick("OR_p12_b140_ep0", &test_seeds, 12, 140, &ep0_t);
+                let ep0_t = Teacher::Spatial(ep0_arc.clone());
+                let _ = eval_oracle_quick("OR_p6_b120_ep0", &test_seeds, 6, 120, &ep0_t);
+                if eval_oracle >= 4 {
+                    let _ = eval_oracle_quick("OR_p12_b140_ep0", &test_seeds, 12, 140, &ep0_t);
+                }
             }
             let sp_teacher = Teacher::Spatial(mdl_arc.clone());
-            let _ = eval_oracle_quick("OR_p12_b140_best", &test_seeds, 12, 140, &sp_teacher);
+            let _ = eval_oracle_quick("OR_p6_b120_best", &test_seeds, 6, 120, &sp_teacher);
+            if eval_oracle >= 4 {
+                let _ = eval_oracle_quick("OR_p12_b140_best", &test_seeds, 12, 140, &sp_teacher);
+            }
         }
         if eval_legal > 0 {
             let test_seeds: Vec<u64> = (101..101 + eval_legal as u64).collect();
-            eval_legal_quick("LEGAL_p5_b120_spatial", &test_seeds, &mdl_arc);
+            if init_path.is_none() {
+                eval_legal_quick("LEGAL_p5_b120_ep0_nosp", &test_seeds, &ep0_arc, false);
+            }
+            eval_legal_quick("LEGAL_p5_b120_best_nosp", &test_seeds, &mdl_arc, false);
+            eval_legal_quick("LEGAL_p5_b120_best_sim1w", &test_seeds, &mdl_arc, true);
         }
     }
 }
