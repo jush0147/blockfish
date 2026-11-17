@@ -1174,9 +1174,9 @@ fn main() {
         let seeds2: Vec<u64> = vec![101, 102];
         let ed2 = collect_exact_seeds(&seeds2);
         println!("=== Oracle H=20 Root Aggregation & Annealing Probe (seeds 101..=102) ===");
-        run_oracle_agg("OR_p20_b240_top1", &ed2, 20, 240, 1, false, &m_h2_nog0);
-        run_oracle_agg("OR_p20_b240_top3mean", &ed2, 20, 240, 3, false, &m_h2_nog0);
-        run_oracle_agg("OR_p20_b240_anneal_top3", &ed2, 20, 240, 3, true, &m_h2_nog0);
+        run_oracle_agg("OR_p20_b240_top1", &ed2, 20, 240, 1, false, 0, &m_h2_nog0);
+        run_oracle_agg("OR_p20_b240_top3mean", &ed2, 20, 240, 3, false, 0, &m_h2_nog0);
+        run_oracle_agg("OR_p20_b240_anneal_top3", &ed2, 20, 240, 3, true, 0, &m_h2_nog0);
     } else if mode == "or_deep_roll" {
         let which = args.get(2).map(|s| s.as_str()).unwrap_or("true36");
         let seeds2: Vec<u64> = vec![101, 102];
@@ -1216,21 +1216,69 @@ fn main() {
         } else if which == "h30_ann" {
             run_oracle_deep_roll("OR_p30_b360_ann50", &ed2, 30, 360, 50, 3, 0, 8, &m_h2_nog0, &m_h2_nog0);
         }
+    } else if mode == "spatial_or_p20" {
+        let model_path = args.get(2).map(|s| s.as_str()).unwrap_or("models/spatial_r1.txt");
+        let sm = SpatialValueModel::load_from_file(model_path).expect("load spatial model");
+        let seeds2: Vec<u64> = vec![101, 102];
+        let ed2 = collect_exact_seeds(&seeds2);
+        println!("=== Spatial OR_p20 ({}) (seeds 101..=102) ===", model_path);
+        run_oracle_agg("OR_p20_b240_sp_top1", &ed2, 20, 240, 1, false, 0, &sm);
+        run_oracle_agg("OR_p20_b240_sp_ann_top3", &ed2, 20, 240, 3, true, 0, &sm);
+    } else if mode == "or_break_probe" {
+        let seeds2: Vec<u64> = vec![101, 102];
+        let ed2 = collect_exact_seeds(&seeds2);
+        println!("=== Oracle Ceiling Break Probe (seeds 101..=102) ===");
+        let mut m_no_o = m_h2_nog0.clone();
+        m_no_o.linear_w[63] = 0.0; // remove hand_O bias
+        m_no_o.prepare_fast();
+        run_oracle_agg("1_p20_b240_noO", &ed2, 20, 240, 1, false, 0, &m_no_o);
+        run_oracle_agg("2_p20_b240_noO_ann_top3", &ed2, 20, 240, 3, true, 0, &m_no_o);
+        run_oracle_deep_roll("3_p14_b240_roll24_bw12", &ed2, 14, 240, 0, 1, 24, 12, &m_h2_nog0, &m_h2_nog0);
+        run_oracle_deep_roll("4_p20_b240_roll18_bw10", &ed2, 20, 240, 0, 1, 18, 10, &m_h2_nog0, &m_h2_nog0);
+    } else if mode == "or_break_probe2" {
+        let which = args.get(2).map(|s| s.as_str()).unwrap_or("all");
+        let seeds2: Vec<u64> = vec![101, 102];
+        let ed2 = collect_exact_seeds(&seeds2);
+        println!("=== Oracle Trajectory & Clean-Sign Probe (seeds 101..=102, which={}) ===", which);
+        let mut m_no_o = m_h2_nog0.clone();
+        m_no_o.linear_w[63] = 0.0;
+        m_no_o.prepare_fast();
+
+        let mut m_fix = m_no_o.clone();
+        m_fix.linear_w[36] = 0.08 / m_fix.inv_std[36];  // h2_blocks: 0 -> +0.08
+        m_fix.linear_w[39] = -0.08 / m_fix.inv_std[39]; // h2_open: 0 -> -0.08
+        m_fix.linear_w[57] = -0.10 / m_fix.inv_std[57]; // near_full_9: 0 -> -0.10
+        m_fix.linear_w[88] = 0.16 / m_fix.inv_std[88];  // h2_only_row_g_blocked: -0.127 -> +0.16
+        m_fix.prepare_fast();
+
+        if which == "all" || which == "1" {
+            run_oracle_agg("1_p20_b240_noO_early12", &ed2, 20, 240, 1, false, 12, &m_no_o);
+        }
+        if which == "all" || which == "2" {
+            run_oracle_agg("2_p20_b240_noO_h2fix", &ed2, 20, 240, 1, false, 0, &m_fix);
+        }
+        if which == "all" || which == "3" {
+            run_oracle_agg("3_p20_b240_h2fix_early12", &ed2, 20, 240, 1, false, 12, &m_fix);
+        }
+        if which == "all" || which == "4" {
+            run_oracle_agg("4_p20_b480_noO", &ed2, 20, 480, 1, false, 0, &m_no_o);
+        }
     }
 }
 
-fn run_oracle_agg(
+fn run_oracle_agg<M: DiagEvaluator>(
     label: &str,
     exact_data: &[ExactSeedData],
     horizon: usize,
     beam_w: usize,
     top_k_mean: usize,
     anneal_rg: bool,
-    mdl: &LearnedValueModel,
+    early_w: i64,
+    mdl: &M,
 ) {
     type FxBuild = std::hash::BuildHasherDefault<blockfish::ai::beam::FxHasher>;
     #[derive(Clone, Copy)]
-    struct ONode { board: FastBoard, held: Option<u8>, q_cursor: usize, rem_g: u16, first_idx: u16, score: i64 }
+    struct ONode { board: FastBoard, held: Option<u8>, q_cursor: usize, rem_g: u16, first_idx: u16, cum_rg: i64, score: i64 }
     #[derive(Clone, Copy, Eq, PartialEq, Hash)]
     struct OKey { board: FastBoard, held: Option<u8>, rem_g: u16 }
 
@@ -1316,13 +1364,16 @@ fn run_oracle_agg(
                     if best_goal.map_or(true, |x| gr < x.2) { best_goal = Some((1, idx as u16, gr)); }
                 }
                 let in_h = held.or_else(|| q.get(qc).copied());
-                let mut sc = mdl.evaluate_board_with_bag(&b, rem_g, in_h, 0x7F);
+                let mut sc = mdl.eval_b(&b, rem_g, in_h, 0x7F);
+                let cleared1 = rem_g0.saturating_sub(rem_g) as i64;
                 if anneal_rg && !is_end && target_d > 1 {
-                    let cleared = rem_g0.saturating_sub(rem_g) as i64;
-                    sc += cleared * 35; // reduce greedy rg incentive in early beam depths
+                    sc += cleared1 * 35; // reduce greedy rg incentive in early beam depths
+                }
+                if early_w > 0 && !is_end && target_d > 1 {
+                    sc -= (early_w * cleared1) / (target_d as i64);
                 }
                 if seen.insert(OKey { board: b, held, rem_g }) {
-                    cur_beam.push(ONode { board: b, held, q_cursor: qc, rem_g, first_idx: idx as u16, score: sc });
+                    cur_beam.push(ONode { board: b, held, q_cursor: qc, rem_g, first_idx: idx as u16, cum_rg: cleared1, score: sc });
                 }
             }
 
@@ -1351,12 +1402,16 @@ fn run_oracle_agg(
                             if best_goal.map_or(true, |x| gr < x.2) { best_goal = Some((depth, node.first_idx, gr)); }
                         }
                         let in_h = held.or_else(|| q.get(nqc).copied());
-                        let mut sc = mdl.evaluate_board_with_bag(&b, rem_g, in_h, 0x7F);
+                        let mut sc = mdl.eval_b(&b, rem_g, in_h, 0x7F);
+                        let cleared = rem_g0.saturating_sub(rem_g) as i64;
+                        let new_cum = node.cum_rg + cleared;
                         if mid_pen > 0 {
-                            let cleared = rem_g0.saturating_sub(rem_g) as i64;
                             sc += cleared * mid_pen;
                         }
-                        children.push(ONode { board: b, held, q_cursor: nqc, rem_g, first_idx: node.first_idx, score: sc });
+                        if early_w > 0 && !is_end {
+                            sc -= (early_w * new_cum) / (target_d as i64);
+                        }
+                        children.push(ONode { board: b, held, q_cursor: nqc, rem_g, first_idx: node.first_idx, cum_rg: new_cum, score: sc });
                     }
                 }
                 if children.is_empty() { break; }

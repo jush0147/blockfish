@@ -520,6 +520,42 @@ fn main() {
         return;
     }
 
+    if mode == "sp1_probe" {
+        let model_path = std::env::args()
+            .nth(2)
+            .unwrap_or_else(|| "models/spatial_r1.txt".to_string());
+        let which = std::env::args().nth(3).unwrap_or_else(|| "all".to_string());
+        let sm = Arc::new(SpatialValueModel::load_from_file(&model_path).expect("load spatial model"));
+        println!("=== Legal sp1_probe ({}, which={}) ===", model_path, which);
+
+        let mut c_rr = make_cfg(m_h2_nog0.clone());
+        c_rr.spatial_model = Some(sm.clone());
+        c_rr.spatial_rerank_only = true;
+        c_rr.bag_det_extend = true;
+        c_rr.endgame_solver = true;
+        if which == "all" || which == "1" {
+            eval_seeds("rr_h2beam_spleaf", &seeds5, &c_rr);
+        }
+
+        let mut c_rr_sim = c_rr.clone();
+        c_rr_sim.simulate_cheese_spawn = true;
+        if which == "all" || which == "2" {
+            eval_seeds("rr_sim1w_spleaf", &seeds5, &c_rr_sim);
+        }
+
+        let mut c_rr_rp = c_rr.clone();
+        c_rr_rp.root_pimc_worlds = 8;
+        c_rr_rp.root_pimc_horizon = 8;
+        c_rr_rp.root_pimc_roots = 8;
+        c_rr_rp.root_pimc_width = 24;
+        c_rr_rp.root_pimc_margin = 350;
+        c_rr_rp.root_pimc_weight_pct = 100;
+        if which == "all" || which == "3" {
+            eval_seeds("rr_rpimc_w8_h9", &seeds5, &c_rr_rp);
+        }
+        return;
+    }
+
     if mode == "spatial5_1" {
         let model_path = std::env::args()
             .nth(2)
@@ -573,7 +609,38 @@ fn main() {
 
         let mut c2 = c1.clone();
         c2.endgame_solver = true;
-        eval_seeds("2_bagdet_end_minibeam", &seeds5, &c2);
+        eval_seeds("2_bagdet_new_end", &seeds5, &c2);
+        return;
+    }
+
+    if mode == "legal_search_probe" {
+        println!("=== Legal 5-seed Search Probe (101..=105) ===");
+        let mut c_base = make_cfg(m_h2_nog0.clone());
+        c_base.bag_det_extend = true;
+        c_base.endgame_solver = true;
+
+        let mut c_ann = c_base.clone();
+        c_ann.anneal_mid_pen = 35;
+        eval_seeds("anneal_35", &seeds5, &c_ann);
+
+        let mut c_k3 = c_base.clone();
+        c_k3.rollout_top_k = 0;
+        c_k3.root_top_k_mean = 3;
+        eval_seeds("top3mean_noroll", &seeds5, &c_k3);
+
+        let mut c_ann_k3 = c_k3.clone();
+        c_ann_k3.anneal_mid_pen = 35;
+        eval_seeds("ann35_top3mean", &seeds5, &c_ann_k3);
+
+        let mut c_rp = c_base.clone();
+        c_rp.anneal_mid_pen = 35;
+        c_rp.root_pimc_worlds = 8;
+        c_rp.root_pimc_horizon = 11;
+        c_rp.root_pimc_roots = 8;
+        c_rp.root_pimc_width = 24;
+        c_rp.root_pimc_margin = 350;
+        c_rp.root_pimc_weight_pct = 100;
+        eval_seeds("ann35_rpimc_w8_h12", &seeds5, &c_rp);
         return;
     }
 
@@ -583,6 +650,47 @@ fn main() {
         seeds40.extend_from_slice(&train20);
         println!("=== Legal 40-seed baseline (1..=20 + 101..=120) ===");
         eval_seeds("h2stk03_nog0_b120", &seeds40, &make_cfg(m_h2_nog0));
+        return;
+    }
+
+    if mode == "trace_end" {
+        let seed: u64 = std::env::args().nth(2).and_then(|s| s.parse().ok()).unwrap_or(101);
+        let mut c = make_cfg(m_h2_nog0.clone());
+        c.bag_det_extend = true;
+        c.endgame_solver = true;
+        let mut game_cfg = BSConfig::default();
+        game_cfg.garbage.total_lines = Some(100);
+        game_cfg.prng_seed = Some(seed);
+        let mut stacker = Stacker::new(Ruleset::guideline().into(), game_cfg);
+        let mut ai = FastAI::new(c);
+        let mut ds_total = 0usize;
+        let mut step = 0usize;
+        while ds_total < 100 && stacker.current_piece_type().is_some() {
+            let snap = stacker.snapshot().unwrap();
+            let g_rows = garbage_rows(&stacker);
+            let rem_g = 100usize.saturating_sub(ds_total) as u16;
+            let res = match ai.best_move(&snap, Some(g_rows), Some(rem_g)) {
+                Some(r) => r,
+                None => {
+                    println!("step={} NONE! g={} rem_g={}", step, g_rows, rem_g);
+                    break;
+                }
+            };
+            let mut inputs = res.inputs;
+            inputs.pop();
+            stacker.run(inputs);
+            let (lines, ds) = stacker.hard_drop();
+            step += 1;
+            ds_total += ds;
+            if rem_g <= 12 {
+                let top_c = ai.last_top_candidates();
+                println!(
+                    "step={:3} rem_g={:2} g={} -> ds={} lines={} rating={} top0={:?} top1={:?}",
+                    step, rem_g, g_rows, ds, lines, res.rating, top_c.get(0), top_c.get(1)
+                );
+            }
+        }
+        println!("Done seed={} pcs={} ds_total={}", seed, step, ds_total);
         return;
     }
 

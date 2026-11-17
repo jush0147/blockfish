@@ -175,6 +175,9 @@ pub struct BeamConfig {
     pub value_model: Option<Arc<LearnedValueModel>>,
     pub spatial_model: Option<Arc<SpatialValueModel>>,
     pub value_fast_micro: i64,
+    pub spatial_rerank_only: bool,
+    pub anneal_mid_pen: i64,
+    pub root_top_k_mean: usize,
 }
 
 impl Default for BeamConfig {
@@ -216,6 +219,9 @@ impl Default for BeamConfig {
             value_model: None,
             spatial_model: None,
             value_fast_micro: 0,
+            spatial_rerank_only: false,
+            anneal_mid_pen: 0,
+            root_top_k_mean: 1,
         }
     }
 }
@@ -350,7 +356,7 @@ impl BeamSearcher {
             .remaining_garbage
             .unwrap_or(garbage_rows)
             .max(garbage_rows);
-        let is_endgame_exact = cfg.endgame_solver && rem_g0 > 0 && rem_g0 == garbage_rows && rem_g0 <= 9;
+        let is_endgame_exact = cfg.endgame_solver && rem_g0 > 0 && rem_g0 == garbage_rows && rem_g0 <= 7;
         let is_pure_endgame =
             is_endgame_exact || (cfg.endgame_wide && rem_g0 <= 7 && rem_g0 == garbage_rows);
         let eff_beam_width = if is_endgame_exact {
@@ -361,7 +367,7 @@ impl BeamSearcher {
             cfg.beam_width
         };
         let eff_max_per_root = if is_endgame_exact {
-            cfg.max_per_root.max(96)
+            cfg.max_per_root.max(120)
         } else if is_pure_endgame {
             cfg.max_per_root.max(80)
         } else {
@@ -471,11 +477,11 @@ impl BeamSearcher {
             let no_g_inc = u8::from(root_board.garbage_rows == 0 && rem_g0 > 0);
             let in_hand = Self::hand_piece(held, q_cursor, &q[..q_len]);
             let avail = Self::avail_mask_from_q(held, q_cursor, &q[..q_len], bag_mask);
-            let sc = if is_endgame_exact {
-                Self::eval_state(&b, rem_g, in_hand, avail, cfg)
-            } else {
-                Self::eval_state(&b, rem_g, in_hand, avail, cfg) - cfg.no_g_credit * (no_g_inc as i64)
-            };
+            let mut sc = Self::eval_state(&b, rem_g, in_hand, avail, cfg)
+                - cfg.no_g_credit * (no_g_inc as i64);
+            if cfg.anneal_mid_pen > 0 && !is_endgame_exact && target_depth > 1 {
+                sc += (rem_g0.saturating_sub(rem_g) as i64) * cfg.anneal_mid_pen;
+            }
             nodes_evaluated += 1;
 
             let key = DedupKey {
@@ -500,6 +506,11 @@ impl BeamSearcher {
         if !(is_endgame_exact && best_goal.is_some()) {
         for depth in 2..=target_depth {
             self.children.clear();
+            let mid_pen = if cfg.anneal_mid_pen > 0 && !is_endgame_exact && depth < target_depth {
+                (cfg.anneal_mid_pen * ((target_depth - depth) as i64)) / (target_depth as i64)
+            } else {
+                0
+            };
             let depth_rng_base =
                 beam_spawn_rng.wrapping_add((depth as u64).wrapping_mul(0x517CC1B727220A95));
             for node_idx in 0..self.cur_beam.len() {
@@ -562,12 +573,11 @@ impl BeamSearcher {
 
                     let in_hand = Self::hand_piece(held, next_qc, &q[..q_len]);
                     let avail = Self::avail_mask_from_q(held, next_qc, &q[..q_len], bag_mask);
-                    let sc = if is_endgame_exact {
-                        Self::eval_state(&b, rem_g, in_hand, avail, cfg)
-                    } else {
-                        Self::eval_state(&b, rem_g, in_hand, avail, cfg)
-                            - cfg.no_g_credit * (ng as i64)
-                    };
+                    let mut sc = Self::eval_state(&b, rem_g, in_hand, avail, cfg)
+                        - cfg.no_g_credit * (ng as i64);
+                    if mid_pen > 0 {
+                        sc += (rem_g0.saturating_sub(rem_g) as i64) * mid_pen;
+                    }
                     nodes_evaluated += 1;
 
                     self.children.push(BeamNode {
@@ -712,22 +722,32 @@ impl BeamSearcher {
         self.best_per_root.clear();
         self.best_leaf_idx.clear();
 
-        if !self.cur_beam.is_empty() && total_known > 1 && best_goal.is_none() {
+        if !self.cur_beam.is_empty() && total_known > 1 && best_goal.is_none() && (is_endgame_exact || cfg.rollout_top_k > 0 || cfg.root_top_k_mean <= 1) {
             // Stage 1: 1-ply 7-bag rollout on top K leaves AND best `rollout_per_root` leaves per root
             // (If rerank_roots > 0, defer deep rollout_horizon to Stage 2 top roots)
             let s1_horizon = if cfg.rerank_roots > 0 { 0 } else { cfg.rollout_horizon };
             let max_per_root = if is_endgame_exact {
-                cfg.rollout_per_root.max(2)
+                cfg.rollout_per_root.max(3)
             } else {
                 cfg.rollout_per_root.max(1)
+            };
+            let eff_roll_top_k = if is_endgame_exact {
+                cfg.rollout_top_k.max(24)
+            } else {
+                cfg.rollout_top_k
             };
             self.per_root_rolled.clear();
 
             for i in 0..self.cur_beam.len() {
                 let node = self.cur_beam[i];
                 let rolled_cnt = self.per_root_rolled.get(&node.first_idx).copied().unwrap_or(0);
+                if is_endgame_exact && rolled_cnt == 0 && self.per_root_rolled.len() >= 12 {
+                    self.best_per_root.entry(node.first_idx).or_insert(-20_000_000 + 5_000 + node.score);
+                    self.best_leaf_idx.entry(node.first_idx).or_insert(i);
+                    continue;
+                }
                 let need_for_root = rolled_cnt < max_per_root;
-                if i >= cfg.rollout_top_k && !need_for_root {
+                if i >= eff_roll_top_k && !need_for_root {
                     continue;
                 }
 
@@ -739,7 +759,7 @@ impl BeamSearcher {
                         node.rem_garbage,
                         bag_mask,
                         crn_seed,
-                        8,
+                        14,
                         cfg,
                     );
                     nodes_evaluated += evals;
@@ -769,11 +789,56 @@ impl BeamSearcher {
                     self.best_leaf_idx.insert(node.first_idx, i);
                 }
             }
+        } else if cfg.root_top_k_mean > 1 && !self.cur_beam.is_empty() && best_goal.is_none() {
+            let k_mean = cfg.root_top_k_mean;
+            let mut sums: HashMap<u16, i64, FxBuildHasher> =
+                HashMap::with_capacity_and_hasher(self.root_places.len(), FxBuildHasher::default());
+            let mut cnts: HashMap<u16, usize, FxBuildHasher> =
+                HashMap::with_capacity_and_hasher(self.root_places.len(), FxBuildHasher::default());
+            let mut min_sc: HashMap<u16, i64, FxBuildHasher> =
+                HashMap::with_capacity_and_hasher(self.root_places.len(), FxBuildHasher::default());
+            for (i, &node) in self.cur_beam.iter().enumerate() {
+                let ri = node.first_idx;
+                let c = cnts.entry(ri).or_insert(0);
+                if *c < k_mean {
+                    let leaf_sc = if cfg.spatial_rerank_only && cfg.spatial_model.is_some() {
+                        let hc = Self::hand_piece(node.held, node.q_cursor as usize, &q[..q_len]);
+                        let av = Self::avail_mask_from_q(node.held, node.q_cursor as usize, &q[..q_len], bag_mask);
+                        nodes_evaluated += 1;
+                        Self::eval_leaf_state(&node.board, node.rem_garbage, hc, av, cfg)
+                            - cfg.no_g_credit * (node.no_g_moves as i64)
+                    } else {
+                        node.score
+                    };
+                    let mn = min_sc.entry(ri).or_insert(i64::MAX);
+                    if leaf_sc < *mn {
+                        *mn = leaf_sc;
+                        self.best_leaf_idx.insert(ri, i);
+                    }
+                    *sums.entry(ri).or_insert(0) += leaf_sc;
+                    *c += 1;
+                }
+            }
+            for (ri, sum) in sums {
+                let cnt = cnts[&ri];
+                let mn = min_sc[&ri];
+                let padded = sum + ((k_mean - cnt) as i64) * (mn + 35);
+                self.best_per_root.insert(ri, padded / (k_mean as i64));
+            }
         } else {
             for (i, &node) in self.cur_beam.iter().enumerate() {
+                let sc = if cfg.spatial_rerank_only && cfg.spatial_model.is_some() {
+                    let hc = Self::hand_piece(node.held, node.q_cursor as usize, &q[..q_len]);
+                    let av = Self::avail_mask_from_q(node.held, node.q_cursor as usize, &q[..q_len], bag_mask);
+                    nodes_evaluated += 1;
+                    Self::eval_leaf_state(&node.board, node.rem_garbage, hc, av, cfg)
+                        - cfg.no_g_credit * (node.no_g_moves as i64)
+                } else {
+                    node.score
+                };
                 let entry = self.best_per_root.entry(node.first_idx).or_insert(i64::MAX);
-                if node.score < *entry {
-                    *entry = node.score;
+                if sc < *entry {
+                    *entry = sc;
                     self.best_leaf_idx.insert(node.first_idx, i);
                 }
             }
@@ -1214,15 +1279,18 @@ impl BeamSearcher {
     }
 
     #[inline]
-    fn eval_core(
+    fn eval_core_ex(
         board: &FastBoard,
         rem_g: u16,
         in_hand: Option<u8>,
         avail_mask: u8,
         cfg: &BeamConfig,
+        allow_spatial: bool,
     ) -> i64 {
-        if let Some(ref sm) = cfg.spatial_model {
-            return sm.evaluate_board_with_bag(board, rem_g, in_hand, avail_mask);
+        if allow_spatial {
+            if let Some(ref sm) = cfg.spatial_model {
+                return sm.evaluate_board_with_bag(board, rem_g, in_hand, avail_mask);
+            }
         }
         if let Some(ref model) = cfg.value_model {
             let m_sc = model.evaluate_board_with_bag(board, rem_g, in_hand, avail_mask);
@@ -1232,9 +1300,33 @@ impl BeamSearcher {
             } else {
                 m_sc
             }
+        } else if let Some(ref sm) = cfg.spatial_model {
+            sm.evaluate_board_with_bag(board, rem_g, in_hand, avail_mask)
         } else {
             eval_fast_with_bag(board, rem_g, in_hand, avail_mask, &cfg.weights)
         }
+    }
+
+    #[inline]
+    fn eval_state_ex(
+        board: &FastBoard,
+        rem_g: u16,
+        in_hand: Option<u8>,
+        avail_mask: u8,
+        cfg: &BeamConfig,
+        allow_spatial: bool,
+    ) -> i64 {
+        if cfg.fog_spawn && board.has_opaque_top_garbage() {
+            let g = board.garbage_rows as usize;
+            let mut sum: i64 = 0;
+            let mut b_tmp = *board;
+            for c in 0..10u16 {
+                b_tmp.data[g - 1] = EMPTY_ROW | (0x3FF & !(1u16 << c));
+                sum += Self::eval_core_ex(&b_tmp, rem_g, in_hand, avail_mask, cfg, allow_spatial);
+            }
+            return sum / 10;
+        }
+        Self::eval_core_ex(board, rem_g, in_hand, avail_mask, cfg, allow_spatial)
     }
 
     #[inline]
@@ -1245,148 +1337,20 @@ impl BeamSearcher {
         avail_mask: u8,
         cfg: &BeamConfig,
     ) -> i64 {
-        if cfg.fog_spawn && board.has_opaque_top_garbage() {
-            let g = board.garbage_rows as usize;
-            let mut sum: i64 = 0;
-            let mut b_tmp = *board;
-            for c in 0..10u16 {
-                b_tmp.data[g - 1] = EMPTY_ROW | (0x3FF & !(1u16 << c));
-                sum += Self::eval_core(&b_tmp, rem_g, in_hand, avail_mask, cfg);
-            }
-            return sum / 10;
-        }
-        Self::eval_core(board, rem_g, in_hand, avail_mask, cfg)
+        Self::eval_state_ex(board, rem_g, in_hand, avail_mask, cfg, !cfg.spatial_rerank_only)
     }
 
-    #[allow(dead_code)]
     #[inline]
-    fn eval_endgame(
+    fn eval_leaf_state(
         board: &FastBoard,
         rem_g: u16,
         in_hand: Option<u8>,
-        _avail_mask: u8,
-        _cfg: &BeamConfig,
+        avail_mask: u8,
+        cfg: &BeamConfig,
     ) -> i64 {
-        if rem_g == 0 {
-            return if board.rows < 20 {
-                -20_000_000 + (board.rows as i64) * 5
-            } else {
-                5_000_000 + (board.rows as i64) * 10_000
-            };
-        }
-        let col_h = board.col_heights();
-        let max_h = *col_h.iter().max().unwrap() as i64;
-        let center_max_h = col_h[3..=6].iter().copied().max().unwrap() as i64;
-        if max_h >= 20 || center_max_h >= 19 {
-            return 5_000_000 + max_h * 10_000 + center_max_h * 10_000;
-        }
-
-        let g = board.garbage_rows as usize;
-        let n = board.rows as usize;
-        let mut stack_cells: i64 = 0;
-        let mut covered_holes: i64 = 0;
-        let mut above_mask: u16 = 0;
-        let mut row_empty_cnt = [0i64; 32];
-
-        let mut i = n;
-        while i > g {
-            i -= 1;
-            let bits = board.data[i] & 0x3FF;
-            let cnt = bits.count_ones() as i64;
-            stack_cells += cnt;
-            row_empty_cnt[i - g] = 10 - cnt;
-            let rholes = (!bits & 0x3FF) & above_mask;
-            covered_holes += rholes.count_ones() as i64;
-            above_mask |= bits;
-        }
-
-        let mut h1_blocks: i64 = 0;
-        let mut h1_empty: i64 = 0;
-        let mut h1_open = false;
-        let mut h1_hand_fits = false;
-        let mut h2_blocks: i64 = 0;
-        let mut h2_empty: i64 = 0;
-        let mut h2_open = false;
-        let mut h3_blocks: i64 = 0;
-
-        if g >= 1 {
-            let c1 = (!board.data[g - 1] & 0x3FF).trailing_zeros() as usize;
-            if c1 < 10 {
-                let ch = col_h[c1] as usize;
-                if ch <= g {
-                    h1_open = true;
-                    if let Some(p) = in_hand {
-                        let l1 = if c1 == 0 { 99 } else { (col_h[c1 - 1] as usize).saturating_sub(g) };
-                        let r1 = if c1 == 9 { 99 } else { (col_h[c1 + 1] as usize).saturating_sub(g) };
-                        let fits = match p {
-                            0 => true,                              // I
-                            2 => l1 == 0 || r1 == 0,                // T
-                            3 => l1 == 0,                           // S
-                            4 => r1 == 0,                           // Z
-                            5 => r1 <= 1 || l1 == 0,                // J
-                            6 => l1 <= 1 || r1 == 0,                // L
-                            _ => false,                             // O cannot clear 1-wide
-                        };
-                        h1_hand_fits = fits;
-                    }
-                } else {
-                    for r in g..ch {
-                        if ((board.data[r] >> c1) & 1) != 0 {
-                            h1_blocks += 1;
-                        }
-                        h1_empty += row_empty_cnt[r - g];
-                    }
-                }
-            }
-        }
-        if g >= 2 {
-            let c2 = (!board.data[g - 2] & 0x3FF).trailing_zeros() as usize;
-            if c2 < 10 {
-                let ch = col_h[c2] as usize;
-                if ch <= g {
-                    h2_open = true;
-                } else {
-                    for r in g..ch {
-                        if ((board.data[r] >> c2) & 1) != 0 {
-                            h2_blocks += 1;
-                        }
-                        h2_empty += row_empty_cnt[r - g];
-                    }
-                }
-            }
-        }
-        if g >= 3 {
-            let c3 = (!board.data[g - 3] & 0x3FF).trailing_zeros() as usize;
-            if c3 < 10 {
-                let ch = col_h[c3] as usize;
-                for r in g..ch {
-                    if ((board.data[r] >> c3) & 1) != 0 {
-                        h3_blocks += 1;
-                    }
-                }
-            }
-        }
-
-        let mut bumpiness: i64 = 0;
-        for c in 0..9 {
-            let h_a = (col_h[c] as i64 - g as i64).max(0);
-            let h_b = (col_h[c + 1] as i64 - g as i64).max(0);
-            bumpiness += (h_a - h_b).abs();
-        }
-
-        (rem_g as i64) * 260
-            + covered_holes * 95
-            + h1_blocks * 85
-            + h1_empty * 28
-            + h2_blocks * 55
-            + h2_empty * 16
-            + h3_blocks * 25
-            + stack_cells * 6
-            + bumpiness * 4
-            - if h1_open { 50 } else { 0 }
-            - if h2_open { 25 } else { 0 }
-            - if h1_hand_fits { 45 } else { 0 }
+        Self::eval_state_ex(board, rem_g, in_hand, avail_mask, cfg, true)
     }
+
 
     fn endgame_rollout_crn(
         &mut self,
@@ -1401,7 +1365,7 @@ impl BeamSearcher {
         if rem_g == 0 {
             return (
                 if board.rows < 20 {
-                    -20_000_000 + (board.rows as i64) * 5
+                    -20_000_000 + (board.rows as i64) * 2
                 } else {
                     5_000_000
                 },
@@ -1417,9 +1381,10 @@ impl BeamSearcher {
             bag_n += 1;
             bm &= bm - 1;
         }
-        let h = horizon.clamp(1, 12);
-        let w_cnt = bag_n.max(1);
-        let end_beam_w = 8usize;
+        let h = horizon.clamp(1, 16);
+        let mult = if bag_n <= 2 { 3 } else if bag_n <= 4 { 2 } else { 1 };
+        let w_cnt = (bag_n.max(1) * mult).min(12);
+        let end_beam_w = 16usize;
         let mut evals = 0usize;
         let mut sum_w: i64 = 0;
 
@@ -1437,8 +1402,8 @@ impl BeamSearcher {
                 Some(ih) => ih,
                 None => p0,
             };
-            let mut wq = [0u8; 12];
-            let mut w_bags = [0x7Fu8; 12];
+            let mut wq = [0u8; 16];
+            let mut w_bags = [0x7Fu8; 16];
             if in_hand_opt.is_some() {
                 wq[0] = p0;
                 w_bags[0] = bag;
@@ -1493,14 +1458,14 @@ impl BeamSearcher {
                         let (_, ds, _) = b2.place_and_sift(orient, fp.norm_i, fp.norm_j);
                         let rem2 = node.rem_garbage.saturating_sub(ds as u16);
                         if rem2 == 0 && b2.rows < 20 {
-                            let done_sc = ((step as i64) + 1) * 1000 + (b2.rows as i64) * 5;
+                            let done_sc = ((step as i64) + 1) * 100 + (b2.rows as i64) * 2;
                             if done_sc < best_done {
                                 best_done = done_sc;
                             }
                             continue;
                         }
                         let new_hand = if fp.color_idx == next_p { cur_h } else { next_p };
-                        let sc = Self::eval_endgame(&b2, rem2, Some(new_hand), step_bag, cfg);
+                        let sc = Self::eval_state(&b2, rem2, Some(new_hand), step_bag, cfg);
                         evals += 1;
                         self.pimc_next.push(BeamNode {
                             board: b2,
@@ -1543,7 +1508,7 @@ impl BeamSearcher {
             let w_cost = if best_done != i64::MAX {
                 best_done
             } else if let Some(top) = self.pimc_beam.first() {
-                ((h as i64) + 1) * 1000 + top.score.max(0).min(200_000)
+                50_000 + (top.rem_garbage as i64) * 300 + top.score.clamp(-30_000, 30_000)
             } else {
                 1_000_000
             };
@@ -1680,7 +1645,7 @@ impl BeamSearcher {
             }
         }
         (
-            Self::eval_state(&board, rem_g, Some(in_hand), bag, cfg)
+            Self::eval_leaf_state(&board, rem_g, Some(in_hand), bag, cfg)
                 - cfg.no_g_credit * (ng as i64),
             evals,
         )
@@ -1738,7 +1703,11 @@ impl BeamSearcher {
                 } else {
                     next_p
                 };
-                let sc = Self::eval_state(&b2, rem2, Some(new_hand), rem_after_p, cfg) - ng_bonus;
+                let sc = if horizon == 0 {
+                    Self::eval_leaf_state(&b2, rem2, Some(new_hand), rem_after_p, cfg) - ng_bonus
+                } else {
+                    Self::eval_state(&b2, rem2, Some(new_hand), rem_after_p, cfg) - ng_bonus
+                };
                 evals += 1;
                 if sc < best_for_p {
                     second_for_p = best_for_p;
@@ -1815,7 +1784,7 @@ impl BeamSearcher {
 
         if bag_count == 0 {
             (
-                Self::eval_state(&board, rem_g, Some(in_hand), bag_mask, cfg)
+                Self::eval_leaf_state(&board, rem_g, Some(in_hand), bag_mask, cfg)
                     - cfg.no_g_credit * (no_g_moves as i64),
                 evals,
             )
@@ -2225,6 +2194,21 @@ impl BeamSearcher {
                 }
             }
             (best_roll, evals)
+        } else if cfg.spatial_rerank_only && cfg.spatial_model.is_some() {
+            let check_k = self.pimc_beam.len().min(4);
+            let mut best_leaf = i64::MAX;
+            for li in 0..check_k {
+                let leaf = self.pimc_beam[li];
+                let hc = Self::hand_piece(leaf.held, leaf.q_cursor as usize, world_q);
+                let av = Self::avail_mask_from_q(leaf.held, leaf.q_cursor as usize, world_q, end_bag);
+                evals += 1;
+                let sc = Self::eval_leaf_state(&leaf.board, leaf.rem_garbage, hc, av, cfg)
+                    - cfg.no_g_credit * (leaf.no_g_moves as i64);
+                if sc < best_leaf {
+                    best_leaf = sc;
+                }
+            }
+            (best_leaf, evals)
         } else {
             (self.pimc_beam[0].score, evals)
         }
