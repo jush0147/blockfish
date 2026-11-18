@@ -3,7 +3,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
 
 pub const SPARSE_DIM: usize = 186;
-pub const DENSE_DIM: usize = 72;
+pub const DENSE_DIM: usize = 74;
 pub const SPATIAL_H1: usize = 64;
 pub const SPATIAL_H2: usize = 32;
 
@@ -169,9 +169,11 @@ pub fn extract_spatial_features(
     let mut h1_col: Option<usize> = None;
     let mut h2_col: Option<usize> = None;
     let mut h1_blocks: i32 = 0;
+    let mut h1_contig_cover: i32 = 0;
     let mut h1_empty_blocking: i32 = 0;
     let mut h1_height: i32 = 0;
     let mut h2_blocks: i32 = 0;
+    let mut h2_contig_cover: i32 = 0;
     let mut h2_empty_blocking: i32 = 0;
     let mut h2_extra_empty: i32 = 0;
     let mut h3_blocks: i32 = 0;
@@ -190,9 +192,15 @@ pub fn extract_spatial_features(
             if ch > g {
                 req1 = ch - g;
                 h1_height = req1 as i32;
+                let mut contig = true;
                 for r in g..ch {
                     if (board.data[r] >> c1) & 1 != 0 {
                         h1_blocks += 1;
+                        if contig {
+                            h1_contig_cover += 1;
+                        }
+                    } else {
+                        contig = false;
                     }
                     h1_empty_blocking += row_empty_cnt[r - g];
                 }
@@ -208,9 +216,15 @@ pub fn extract_spatial_features(
             let ch = col_h[c2] as usize;
             if ch > g {
                 req2 = ch - g;
+                let mut contig = true;
                 for r in g..ch {
                     if (board.data[r] >> c2) & 1 != 0 {
                         h2_blocks += 1;
+                        if contig {
+                            h2_contig_cover += 1;
+                        }
+                    } else {
+                        contig = false;
                     }
                     h2_empty_blocking += row_empty_cnt[r - g];
                 }
@@ -662,12 +676,14 @@ pub fn extract_spatial_features(
     dense[69] = i_dep_cols_no_i;
     dense[70] = h2_only_row_g_blocked;
     dense[71] = h1_ds_clears_rg_open_h2;
+    dense[72] = h1_contig_cover as f32;
+    dense[73] = h2_contig_cover as f32;
 
     n_act
 }
 
 /// Fast NNUE-style spatial + tactical value network with linear skip connection:
-/// `(Sparse(186) + Dense(72)) -> H1(64, ReLU) -> H2(32, ReLU) -> 1 + Linear(Sparse + Dense)`.
+/// `(Sparse(186) + Dense(74)) -> H1(64, ReLU) -> H2(32, ReLU) -> 1 + Linear(Sparse + Dense)`.
 /// Output is predicted expected remaining pieces until finishing all garbage (lower is better).
 #[derive(Clone, Debug)]
 pub struct SpatialValueModel {
@@ -922,7 +938,7 @@ impl SpatialValueModel {
         let mut w = BufWriter::new(f);
         writeln!(
             w,
-            "SPATIAL_VAL_V2 {} {} {} {}",
+            "SPATIAL_VAL_V3 {} {} {} {}",
             SPARSE_DIM, DENSE_DIM, SPATIAL_H1, SPATIAL_H2
         )?;
         for j in 0..DENSE_DIM {
@@ -1025,7 +1041,11 @@ impl SpatialValueModel {
                 .collect()
         };
         let parts: Vec<&str> = header.split_whitespace().collect();
-        if parts.len() != 5 || (parts[0] != "SPATIAL_VAL_V1" && parts[0] != "SPATIAL_VAL_V2") {
+        if parts.len() != 5
+            || (parts[0] != "SPATIAL_VAL_V1"
+                && parts[0] != "SPATIAL_VAL_V2"
+                && parts[0] != "SPATIAL_VAL_V3")
+        {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::InvalidData,
                 "bad SPATIAL_VAL header",
@@ -1035,8 +1055,9 @@ impl SpatialValueModel {
         let dd: usize = parts[2].parse().unwrap_or(0);
         let h1: usize = parts[3].parse().unwrap_or(0);
         let h2: usize = parts[4].parse().unwrap_or(0);
-        let dd_ok = (parts[0] == "SPATIAL_VAL_V1" && (dd == 68 || dd == DENSE_DIM))
-            || (parts[0] == "SPATIAL_VAL_V2" && dd == DENSE_DIM);
+        let dd_ok = (parts[0] == "SPATIAL_VAL_V1" && (dd == 68 || dd == 72 || dd == DENSE_DIM))
+            || (parts[0] == "SPATIAL_VAL_V2" && (dd == 72 || dd == DENSE_DIM))
+            || (parts[0] == "SPATIAL_VAL_V3" && dd == DENSE_DIM);
         if sd != SPARSE_DIM || !dd_ok || h1 != SPATIAL_H1 || h2 != SPATIAL_H2 {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::InvalidData,
@@ -1104,20 +1125,33 @@ mod tests {
         assert_eq!(dense[59], 1.0); // row_g_8_aligned (empty at 7 and 8; col 3 is filled!)
         assert_eq!(dense[70], 1.0); // h2_only_row_g_blocked (h2=3 has 1 block on row g)
         assert_eq!(dense[71], 0.0); // h1_ds_clears_rg_open_h2
+        assert_eq!(dense[72], 0.0); // h1_contig_cover (h1=7 empty on row g)
+        assert_eq!(dense[73], 1.0); // h2_contig_cover (h2=3 filled on row g)
 
-        // Check row_g_9_aligned + h2_only_row_g_blocked + h1_ds_clears_rg_open_h2
+        // Check row_g_9_aligned + h2_only_row_g_blocked + h1_ds_clears_rg_open_h2 + contig covers
         fb.data[2] = EMPTY_ROW | (0x3FF & !(1u16 << 7)); // row g has 9 filled, col 3 filled, col 7 empty
+        fb.data[3] = EMPTY_ROW | (1u16 << 3) | (1u16 << 7); // row g+1 filled at 3 and 7 (contiguous for h2=2, gap for h1=0)
+        fb.rows = 4;
         let _ = extract_spatial_features(&fb, 50, Some(1), 0x7E, &mut active, &mut dense);
         assert_eq!(dense[58], 1.0); // row_g_9_aligned
-        assert_eq!(dense[70], 1.0); // h2_only_row_g_blocked
+        assert_eq!(dense[70], 0.0); // h2 has 2 blocks
         assert_eq!(dense[71], 0.0); // h2 is blocked
+        assert_eq!(dense[72], 0.0); // h1 empty at row g -> contig=0
+        assert_eq!(dense[73], 2.0); // h2 contiguous at row g and g+1 -> contig=2
 
-        // Now check h2 open + row_g_9_aligned (col 3 = h1, col 7 = h2, or make h2=col 3 open and row g filled except 3? Wait: if h1=7 and h2=3, row g empty at 3 & 7 is 8 filled; test h1_ds_clears_rg_open_h2 with h2=7 and h1=7 same col)
+        fb.data[3] = EMPTY_ROW;
+        fb.rows = 3;
+        let _ = extract_spatial_features(&fb, 50, Some(1), 0x7E, &mut active, &mut dense);
+        assert_eq!(dense[70], 1.0); // h2_only_row_g_blocked (h2=3 has 1 block on row g)
+
+        // Now check h2 open + row_g_9_aligned
         fb.data[0] = EMPTY_ROW | (0x3FF & !(1u16 << 7)); // h2 col = 7 (same as h1)
         let n_act = extract_spatial_features(&fb, 50, Some(1), 0x7E, &mut active, &mut dense);
         assert_eq!(dense[58], 1.0); // row_g_9_aligned
         assert_eq!(dense[70], 0.0); // h2 is open
         assert_eq!(dense[71], 1.0); // h1_ds_clears_rg_open_h2
+        assert_eq!(dense[72], 0.0);
+        assert_eq!(dense[73], 0.0);
 
         let mut m = SpatialValueModel::default();
         for j in 0..DENSE_DIM {

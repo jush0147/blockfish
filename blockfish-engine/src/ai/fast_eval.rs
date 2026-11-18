@@ -17,9 +17,11 @@ pub struct EvalWeights {
     pub hole_row: i64,
     pub blocks_over_hole: i64,
     pub h1_block: i64,
+    pub h1_contig_cover: i64,
     pub h1_empty_blocking: i64,
     pub h1_height: i64,
     pub h2_block: i64,
+    pub h2_contig_cover: i64,
     pub h2_extra_empty: i64,
     pub h3_block: i64,
     pub h3_extra_empty: i64,
@@ -47,6 +49,7 @@ pub struct EvalWeights {
     pub height_limit: i64,
     pub height_excess: i64,
     pub center_height_excess: i64,
+    pub endgame_cell_taper: i64,
     pub hold_bonus: [i64; 7], // I, O, T, S, Z, J, L
 }
 
@@ -66,9 +69,11 @@ impl Default for EvalWeights {
             hole_row: 45,
             blocks_over_hole: 30,
             h1_block: 60,
+            h1_contig_cover: 0,
             h1_empty_blocking: 18,
             h1_height: 15,
             h2_block: 36,
+            h2_contig_cover: 0,
             h2_extra_empty: 14,
             h3_block: 18,
             h3_extra_empty: 7,
@@ -96,6 +101,7 @@ impl Default for EvalWeights {
             height_limit: 13,
             height_excess: 70,
             center_height_excess: 140,
+            endgame_cell_taper: 0,
             // Prefer keeping versatile pieces (I, T, J, L) over O/S/Z in hold/hand
             hold_bonus: [-16, 10, -10, 2, 2, -4, -4],
         }
@@ -397,9 +403,11 @@ pub fn eval_fast_with_bag(
     let mut h1_col: Option<usize> = None;
     let mut h2_col: Option<usize> = None;
     let mut h1_blocks: i64 = 0;
+    let mut h1_contig_cover: i64 = 0;
     let mut h1_empty_blocking: i64 = 0;
     let mut h1_height: i64 = 0;
     let mut h2_blocks: i64 = 0;
+    let mut h2_contig_cover: i64 = 0;
     let mut h2_extra_empty: i64 = 0;
     let mut h3_blocks: i64 = 0;
     let mut h3_extra_empty: i64 = 0;
@@ -416,9 +424,15 @@ pub fn eval_fast_with_bag(
             if ch > g {
                 req1 = ch - g;
                 h1_height = req1 as i64;
+                let mut contig = true;
                 for r in g..ch {
                     if (board.data[r] >> c1) & 1 != 0 {
                         h1_blocks += 1;
+                        if contig {
+                            h1_contig_cover += 1;
+                        }
+                    } else {
+                        contig = false;
                     }
                     h1_empty_blocking += row_empty_cnt[r - g];
                 }
@@ -432,9 +446,15 @@ pub fn eval_fast_with_bag(
             let ch = col_h[c2] as usize;
             if ch > g {
                 req2 = ch - g;
+                let mut contig = true;
                 for r in g..ch {
                     if (board.data[r] >> c2) & 1 != 0 {
                         h2_blocks += 1;
+                        if contig {
+                            h2_contig_cover += 1;
+                        }
+                    } else {
+                        contig = false;
                     }
                 }
                 if req2 > req1 {
@@ -684,9 +704,16 @@ pub fn eval_fast_with_bag(
         0
     };
 
+    let endgame_cell_pen = if w.endgame_cell_taper != 0 && rem_garbage <= 5 {
+        (stack_cells * w.endgame_cell_taper * (6 - rem_garbage as i64)) / 6
+    } else {
+        0
+    };
+
     w.garbage_row * (rem_garbage as i64)
         + w.piece_estimate * pe
         + w.stack_cell * stack_cells
+        + endgame_cell_pen
         + w.upper_cell * upper_cells
         + w.stack_h_sq * stack_h_sq
         + w.stack_over2_sq * stack_over2_sq
@@ -695,9 +722,11 @@ pub fn eval_fast_with_bag(
         + w.hole_row * hole_rows
         + w.blocks_over_hole * blocks_over_holes
         + w.h1_block * h1_blocks
+        + w.h1_contig_cover * h1_contig_cover
         + w.h1_empty_blocking * h1_empty_blocking
         + w.h1_height * h1_height
         + w.h2_block * h2_blocks
+        + w.h2_contig_cover * h2_contig_cover
         + w.h2_extra_empty * h2_extra_empty
         + w.h3_block * h3_blocks
         + w.h3_extra_empty * h3_extra_empty

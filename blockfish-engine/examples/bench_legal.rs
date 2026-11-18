@@ -225,7 +225,23 @@ fn eval_seeds(label: &str, seeds: &[u64], cfg: &BeamConfig) -> Vec<GameStats> {
                     if i >= seeds.len() {
                         break;
                     }
-                    local.push((i, play_legal_seed(seeds[i], cfg)));
+                    let st = play_legal_seed(seeds[i], cfg);
+                    println!(
+                        "  [seed {:3}] pcs={:3} nds={:2} 0ds={:2} (cov={:2} O={:2} nar={:2} wide={:2} end={:2}) cov_nxt={:4.1}% | {:.1}s",
+                        st.seed,
+                        if st.topout { 999 } else { st.pieces },
+                        st.nds,
+                        st.zds,
+                        st.zds_h1_cov,
+                        st.zds_open_o,
+                        st.zds_open_nar,
+                        st.zds_open_wide,
+                        st.zds_end,
+                        100.0 * st.ds_cov_next as f64 / st.ds1.max(1) as f64,
+                        t0.elapsed().as_secs_f64()
+                    );
+                    let _ = std::io::stdout().flush();
+                    local.push((i, st));
                 }
                 local
             }));
@@ -311,6 +327,59 @@ fn make_spatial_cfg(m: Arc<SpatialValueModel>) -> BeamConfig {
     c.no_g_credit = 0;
     c.value_fast_micro = 0;
     c.spatial_model = Some(m);
+    c
+}
+
+fn make_ew_cons_cfg() -> BeamConfig {
+    let mut c = BeamConfig::default();
+    c.beam_width = 120;
+    c.max_per_root = 24;
+    c.rollout_top_k = 0;
+    c.endgame_wide = true;
+    c.endgame_solver = true;
+    c.bag_det_extend = true;
+    c.value_model = None;
+    c.spatial_model = None;
+    let w = &mut c.weights;
+    w.garbage_row = 165;
+    w.piece_estimate = 0;
+    w.stack_cell = 6;
+    w.upper_cell = 5;
+    w.stack_h_sq = 0;
+    w.stack_over2_sq = 4;
+    w.max_stack_h_excess = 14;
+    w.covered_hole = 55;
+    w.hole_row = 20;
+    w.blocks_over_hole = 20;
+    w.h1_block = 32;
+    w.h1_empty_blocking = 8;
+    w.h1_height = 10;
+    w.h2_block = 26;
+    w.h2_extra_empty = 6;
+    w.h3_block = 10;
+    w.h3_extra_empty = 3;
+    w.h4_block = 4;
+    w.h1_narrow_1 = 16;
+    w.h1_narrow_2plus = 26;
+    w.h1_fit_scarcity = 8;
+    w.h1_unfit_hand = 28;
+    w.zero_o_spot_pen = 14;
+    w.bag_no_i_chute_pen = 18;
+    w.g0_row0_cell = 0;
+    w.open_h1_bonus = 24;
+    w.combo2_bonus = 22;
+    w.h1_h2_adj = 4;
+    w.bumpiness = 3;
+    w.sharp_diff = 5;
+    w.i_dep = 35;
+    w.two_well = 10;
+    w.i_dep_multi = 50;
+    w.i_dep_chute = 12;
+    w.row_transition = 3;
+    w.near_full_9_bonus = 22;
+    w.near_full_8_bonus = 6;
+    w.row_g_aligned_bonus = 20;
+    w.hold_bonus = [-10, 4, -8, 4, 4, -2, -2];
     c
 }
 
@@ -648,6 +717,474 @@ fn main() {
         c_rp.root_pimc_margin = 350;
         c_rp.root_pimc_weight_pct = 100;
         eval_seeds("ann35_rpimc_w8_h12", &seeds5, &c_rp);
+        return;
+    }
+
+    if mode == "sh_rpimc" {
+        let model_arg = std::env::args().nth(2).unwrap_or_else(|| "h2nog0".to_string());
+        let which = std::env::args().nth(3).unwrap_or_else(|| "all".to_string());
+        let m_use = if model_arg == "h2nog0" {
+            m_h2_nog0.clone()
+        } else {
+            load_model(&model_arg)
+        };
+        println!("=== Legal 5-seed Successive-Halving CRN-PIMC (model={}, which={}) ===", model_arg, which);
+
+        let mut c_base = make_cfg(m_use.clone());
+        c_base.bag_det_extend = true;
+        c_base.endgame_solver = true;
+        c_base.simulate_cheese_spawn = false;
+        if which == "all" || which == "base" {
+            eval_seeds("base_end7_nosp", &seeds5, &c_base);
+        }
+
+        let mut c_fast = c_base.clone();
+        c_fast.beam_width = 60;
+        c_fast.max_per_root = 12;
+        c_fast.root_pimc_prescreen_worlds = 3;
+        c_fast.root_pimc_roots = 28;
+        c_fast.root_pimc_fine_roots = 6;
+        c_fast.root_pimc_worlds = 10;
+        c_fast.root_pimc_horizon = 9;
+        c_fast.root_pimc_width = 20;
+        c_fast.root_pimc_weight_pct = 100;
+        if which == "all" || which == "fast" {
+            eval_seeds("sh_w10_h9_pw20_k6", &seeds5, &c_fast);
+        }
+
+        let mut c_med = c_base.clone();
+        c_med.beam_width = 60;
+        c_med.max_per_root = 12;
+        c_med.root_pimc_prescreen_worlds = 4;
+        c_med.root_pimc_roots = 36;
+        c_med.root_pimc_fine_roots = 8;
+        c_med.root_pimc_worlds = 12;
+        c_med.root_pimc_horizon = 9;
+        c_med.root_pimc_width = 24;
+        c_med.root_pimc_weight_pct = 100;
+        if which == "all" || which == "med" {
+            eval_seeds("sh_w12_h9_pw24_k8", &seeds5, &c_med);
+        }
+        return;
+    }
+
+    if mode == "ds_probe" {
+        let which = std::env::args().nth(2).unwrap_or_else(|| "all".to_string());
+        let sm = Arc::new(
+            SpatialValueModel::load_from_file(concat!(
+                env!("CARGO_MANIFEST_DIR"),
+                "/../models/spatial_wg1.txt"
+            ))
+            .expect("load spatial_wg1"),
+        );
+        println!("=== Legal ds_probe (which={}) ===", which);
+
+        let mut c_ew = make_ew_cons_cfg();
+        c_ew.beam_width = 64;
+        c_ew.max_per_root = 12;
+        c_ew.rollout_top_k = 0;
+        c_ew.weights.garbage_row = 220;
+        c_ew.weights.stack_cell = -22;
+        c_ew.weights.upper_cell = 3;
+        c_ew.weights.stack_over2_sq = 3;
+        c_ew.weights.blocks_over_hole = 14;
+        c_ew.weights.zero_o_spot_pen = 0;
+        c_ew.weights.bumpiness = 11;
+        c_ew.weights.near_full_9_bonus = 0;
+        c_ew.weights.near_full_8_bonus = 0;
+        c_ew.weights.row_g_aligned_bonus = 0;
+        c_ew.weights.h1_contig_cover = 140;
+        c_ew.weights.h2_contig_cover = 95;
+        c_ew.weights.h3_block = 22;
+        c_ew.weights.h4_block = 8;
+
+        c_ew.root_pimc_prescreen_worlds = 3;
+        c_ew.root_pimc_roots = 32;
+        c_ew.root_pimc_fine_roots = 8;
+        c_ew.root_pimc_worlds = 10;
+        c_ew.root_pimc_horizon = 10;
+        c_ew.root_pimc_width = 16;
+        c_ew.root_pimc_weight_pct = 100;
+        c_ew.root_pimc_ds_target = 5;
+
+        if which == "fast_cmp" || which == "fast_ew4" {
+            // 1. Ultra-fast ew_sc4 internal + spatial_wg1 leaf, flat w8 h9
+            let mut c_ew4_sp = make_ew_cons_cfg();
+            c_ew4_sp.beam_width = 64;
+            c_ew4_sp.max_per_root = 16;
+            c_ew4_sp.spatial_model = Some(sm.clone());
+            c_ew4_sp.spatial_rerank_only = true;
+            c_ew4_sp.spatial_fast_ew_internal = true;
+            c_ew4_sp.weights.garbage_row = 225;
+            c_ew4_sp.weights.stack_cell = 4;
+            c_ew4_sp.weights.upper_cell = 5;
+            c_ew4_sp.weights.blocks_over_hole = 14;
+            c_ew4_sp.weights.zero_o_spot_pen = 0;
+            c_ew4_sp.weights.bumpiness = 11;
+            c_ew4_sp.weights.near_full_9_bonus = 0;
+            c_ew4_sp.weights.near_full_8_bonus = 0;
+            c_ew4_sp.weights.row_g_aligned_bonus = 0;
+            c_ew4_sp.weights.h1_contig_cover = 120;
+            c_ew4_sp.weights.h2_contig_cover = 60;
+            c_ew4_sp.root_pimc_worlds = 8;
+            c_ew4_sp.root_pimc_horizon = 9;
+            c_ew4_sp.root_pimc_roots = 8;
+            c_ew4_sp.root_pimc_width = 24;
+            c_ew4_sp.root_pimc_margin = 400;
+            c_ew4_sp.root_pimc_weight_pct = 100;
+            eval_seeds("ew4_sp_flat_w8_h9", &seeds5, &c_ew4_sp);
+
+            // 2. Same ew4 + ds_target = 3 (fast pure-bitwise internal)
+            let mut c_ew4_ds3 = c_ew4_sp.clone();
+            c_ew4_ds3.root_pimc_ds_target = 3;
+            c_ew4_ds3.root_pimc_horizon = 10;
+            c_ew4_ds3.root_pimc_width = 16;
+            eval_seeds("ew4_sp_ds3_w8_b16", &seeds5, &c_ew4_ds3);
+
+            // 3. ew4 + ds_target = 3 with ds-conservation stack_cell=-22 ONLY? Wait: Stage 1 uses weights too, so test ds_target=4
+            if which == "fast_cmp" {
+                let mut c_h2_sp = make_cfg(m_h2_nog0.clone());
+                c_h2_sp.beam_width = 64;
+                c_h2_sp.max_per_root = 16;
+                c_h2_sp.spatial_model = Some(sm.clone());
+                c_h2_sp.spatial_rerank_only = true;
+                c_h2_sp.bag_det_extend = true;
+                c_h2_sp.endgame_solver = true;
+                c_h2_sp.rollout_top_k = 0;
+                c_h2_sp.root_pimc_worlds = 8;
+                c_h2_sp.root_pimc_horizon = 9;
+                c_h2_sp.root_pimc_roots = 6;
+                c_h2_sp.root_pimc_width = 16;
+                c_h2_sp.root_pimc_margin = 350;
+                c_h2_sp.root_pimc_weight_pct = 100;
+                eval_seeds("h2_sp_flat_w8_h9_b16", &seeds5, &c_h2_sp);
+
+                let mut c_h2_ds3 = c_h2_sp.clone();
+                c_h2_ds3.root_pimc_ds_target = 3;
+                c_h2_ds3.root_pimc_horizon = 10;
+                eval_seeds("h2_sp_ds3_w8_b16", &seeds5, &c_h2_ds3);
+            }
+            return;
+        }
+        if which == "ds_fix" {
+            let mut s1w = make_ew_cons_cfg().weights;
+            s1w.garbage_row = 225;
+            s1w.stack_cell = 4;
+            s1w.upper_cell = 5;
+            s1w.blocks_over_hole = 14;
+            s1w.zero_o_spot_pen = 0;
+            s1w.bumpiness = 11;
+            s1w.near_full_9_bonus = 0;
+            s1w.near_full_8_bonus = 0;
+            s1w.row_g_aligned_bonus = 0;
+            s1w.h1_contig_cover = 130;
+            s1w.h2_contig_cover = 80;
+
+            let mut c_ds3 = make_ew_cons_cfg();
+            c_ds3.beam_width = 64;
+            c_ds3.max_per_root = 16;
+            c_ds3.rollout_top_k = 0;
+            c_ds3.stage1_weights = Some(s1w.clone());
+            c_ds3.weights.garbage_row = 225;
+            c_ds3.weights.stack_cell = -22;
+            c_ds3.weights.upper_cell = 3;
+            c_ds3.weights.stack_over2_sq = 3;
+            c_ds3.weights.blocks_over_hole = 14;
+            c_ds3.weights.zero_o_spot_pen = 0;
+            c_ds3.weights.bumpiness = 11;
+            c_ds3.weights.near_full_9_bonus = 0;
+            c_ds3.weights.near_full_8_bonus = 0;
+            c_ds3.weights.row_g_aligned_bonus = 0;
+            c_ds3.weights.h1_contig_cover = 140;
+            c_ds3.weights.h2_contig_cover = 95;
+            c_ds3.weights.h3_block = 22;
+            c_ds3.weights.h4_block = 8;
+            c_ds3.weights.endgame_cell_taper = 47;
+            c_ds3.nds_pen = 0;
+            c_ds3.root_pimc_prescreen_worlds = 3;
+            c_ds3.root_pimc_roots = 24;
+            c_ds3.root_pimc_fine_roots = 8;
+            c_ds3.root_pimc_worlds = 8;
+            c_ds3.root_pimc_horizon = 11;
+            c_ds3.root_pimc_width = 12;
+            c_ds3.root_pimc_weight_pct = 100;
+            c_ds3.root_pimc_ds_target = 3;
+            eval_seeds("ew22_ds3_s1p4_w8", &seeds5, &c_ds3);
+
+            let mut c_ds3_sp = c_ds3.clone();
+            c_ds3_sp.spatial_model = Some(sm.clone());
+            c_ds3_sp.spatial_rerank_only = true;
+            c_ds3_sp.spatial_fast_ew_internal = true;
+            eval_seeds("ew22_ds3_sp_wg1_s1p4", &seeds5, &c_ds3_sp);
+            return;
+        }
+        if which == "nds_cal" {
+            let mut c_ew4_sp = make_ew_cons_cfg();
+            c_ew4_sp.beam_width = 64;
+            c_ew4_sp.max_per_root = 16;
+            c_ew4_sp.spatial_model = Some(sm.clone());
+            c_ew4_sp.spatial_rerank_only = true;
+            c_ew4_sp.spatial_fast_ew_internal = true;
+            c_ew4_sp.weights.garbage_row = 225;
+            c_ew4_sp.weights.stack_cell = -18;
+            c_ew4_sp.weights.upper_cell = 4;
+            c_ew4_sp.weights.stack_over2_sq = 3;
+            c_ew4_sp.weights.blocks_over_hole = 14;
+            c_ew4_sp.weights.zero_o_spot_pen = 0;
+            c_ew4_sp.weights.bumpiness = 11;
+            c_ew4_sp.weights.near_full_9_bonus = 0;
+            c_ew4_sp.weights.near_full_8_bonus = 0;
+            c_ew4_sp.weights.row_g_aligned_bonus = 0;
+            c_ew4_sp.weights.h1_contig_cover = 130;
+            c_ew4_sp.weights.h2_contig_cover = 80;
+            c_ew4_sp.weights.endgame_cell_taper = 43;
+            c_ew4_sp.nds_pen = 70;
+            c_ew4_sp.root_pimc_worlds = 8;
+            c_ew4_sp.root_pimc_horizon = 10;
+            c_ew4_sp.root_pimc_roots = 8;
+            c_ew4_sp.root_pimc_width = 16;
+            c_ew4_sp.root_pimc_margin = 400;
+            c_ew4_sp.root_pimc_weight_pct = 100;
+            c_ew4_sp.root_pimc_ds_target = 3;
+            eval_seeds("ew18_sp_ds3_nds70", &seeds5, &c_ew4_sp);
+
+            let mut c_sp_ds3 = make_spatial_cfg(sm.clone());
+            c_sp_ds3.bag_det_extend = true;
+            c_sp_ds3.endgame_solver = true;
+            c_sp_ds3.beam_width = 64;
+            c_sp_ds3.max_per_root = 16;
+            c_sp_ds3.root_pimc_worlds = 8;
+            c_sp_ds3.root_pimc_horizon = 10;
+            c_sp_ds3.root_pimc_roots = 8;
+            c_sp_ds3.root_pimc_width = 16;
+            c_sp_ds3.root_pimc_margin = 350;
+            c_sp_ds3.root_pimc_weight_pct = 100;
+            c_sp_ds3.root_pimc_ds_target = 3;
+            eval_seeds("sp_wg1_ds3_nds0", &seeds5, &c_sp_ds3);
+
+            let mut c_sp_ds3_n80 = c_sp_ds3.clone();
+            c_sp_ds3_n80.nds_pen = 80;
+            eval_seeds("sp_wg1_ds3_nds80", &seeds5, &c_sp_ds3_n80);
+            return;
+        }
+        if which == "all" || which == "ew" {
+            eval_seeds("ew_ds5_w10_b16", &seeds5, &c_ew);
+            let mut c_r12 = c_ew.clone();
+            c_r12.rollout_top_k = 12;
+            eval_seeds("ew_ds5_w10_b16_r12", &seeds5, &c_r12);
+        }
+        if which == "all" || which == "sp" {
+            let mut c_sp_ds = c_ew.clone();
+            c_sp_ds.spatial_model = Some(sm.clone());
+            c_sp_ds.spatial_rerank_only = true;
+            c_sp_ds.spatial_fast_ew_internal = true;
+            eval_seeds("sp_ew_ds5_w10_b16", &seeds5, &c_sp_ds);
+
+            let mut c_sp_flat = c_sp_ds.clone();
+            c_sp_flat.root_pimc_ds_target = 0;
+            c_sp_flat.root_pimc_width = 24;
+            eval_seeds("sp_ew_flat_w10_h10", &seeds5, &c_sp_flat);
+        }
+        return;
+    }
+
+    if mode == "ew_sh" {
+        let which = std::env::args().nth(2).unwrap_or_else(|| "all".to_string());
+        println!("=== Legal 5-seed Pure-Bitwise EvalWeights + SH CRN-PIMC (which={}) ===", which);
+        let c_base = make_ew_cons_cfg();
+        if which == "all" || which == "base" {
+            eval_seeds("ew_base_b120_end7", &seeds5, &c_base);
+        }
+
+        if which == "contig" || which == "all" {
+            let mut c_g220 = c_base.clone();
+            c_g220.weights.garbage_row = 220;
+            c_g220.weights.stack_cell = -18;
+            c_g220.weights.upper_cell = 6;
+            c_g220.weights.blocks_over_hole = 14;
+            c_g220.weights.zero_o_spot_pen = 0;
+            c_g220.weights.bumpiness = 11;
+            c_g220.weights.h1_contig_cover = 140;
+            c_g220.weights.h2_contig_cover = 50;
+            eval_seeds("ew_nosp_g220_sc-18_c140", &seeds5, &c_g220);
+
+            let mut c_g240_sc4 = c_g220.clone();
+            c_g240_sc4.weights.garbage_row = 225;
+            c_g240_sc4.weights.stack_cell = 4;
+            c_g240_sc4.weights.upper_cell = 5;
+            c_g240_sc4.weights.h1_contig_cover = 120;
+            c_g240_sc4.weights.h2_contig_cover = 40;
+            eval_seeds("ew_nosp_g225_sc4_c120", &seeds5, &c_g240_sc4);
+
+            let mut c_g220_roll = c_g220.clone();
+            c_g220_roll.rollout_top_k = 12;
+            eval_seeds("ew_nosp_g220_sc-18_r12", &seeds5, &c_g220_roll);
+        }
+
+        let mut c_sh = c_base.clone();
+        c_sh.weights.garbage_row = 220;
+        c_sh.weights.stack_cell = -18;
+        c_sh.weights.upper_cell = 6;
+        c_sh.weights.blocks_over_hole = 14;
+        c_sh.weights.zero_o_spot_pen = 0;
+        c_sh.weights.bumpiness = 11;
+        c_sh.weights.h1_contig_cover = 140;
+        c_sh.weights.h2_contig_cover = 50;
+        c_sh.beam_width = 60;
+        c_sh.max_per_root = 12;
+        c_sh.root_pimc_prescreen_worlds = 4;
+        c_sh.root_pimc_roots = 48;
+        c_sh.root_pimc_fine_roots = 10;
+        c_sh.root_pimc_worlds = 12;
+        c_sh.root_pimc_horizon = 11;
+        c_sh.root_pimc_width = 24;
+        c_sh.root_pimc_weight_pct = 100;
+        if which == "all" || which == "sh" {
+            eval_seeds("ew_sh_w12_h11_k10", &seeds5, &c_sh);
+        }
+
+        let mut c_cvar = c_sh.clone();
+        c_cvar.root_pimc_cvar_pct = 25;
+        if which == "all" || which == "cvar" {
+            eval_seeds("ew_sh_w12_h11_cvar25", &seeds5, &c_cvar);
+        }
+        return;
+    }
+
+    if mode == "opt_legal" {
+        let iters: usize = std::env::args().nth(2).and_then(|s| s.parse().ok()).unwrap_or(50);
+        let t0 = Instant::now();
+        let mut base_cfg = make_ew_cons_cfg();
+        base_cfg.beam_width = 80;
+        base_cfg.max_per_root = 16;
+        base_cfg.rollout_top_k = 0;
+        base_cfg.endgame_solver = false; // fast inner eval
+        base_cfg.simulate_cheese_spawn = false;
+        base_cfg.weights.garbage_row = 220;
+        base_cfg.weights.stack_cell = -18;
+        base_cfg.weights.upper_cell = 6;
+        base_cfg.weights.blocks_over_hole = 14;
+        base_cfg.weights.zero_o_spot_pen = 0;
+        base_cfg.weights.bumpiness = 11;
+        base_cfg.weights.h1_contig_cover = 120;
+        base_cfg.weights.h2_contig_cover = 40;
+
+        let eval_fast5 = |cfg: &BeamConfig| -> (i64, f64, usize, f64) {
+            let workers = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(2).min(5);
+            let next_idx = std::sync::atomic::AtomicUsize::new(0);
+            let mut results: Vec<Option<GameStats>> = vec![None; 5];
+            std::thread::scope(|sc| {
+                let mut hs = Vec::new();
+                for _ in 0..workers {
+                    hs.push(sc.spawn(|| {
+                        let mut loc = Vec::new();
+                        loop {
+                            let i = next_idx.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                            if i >= 5 { break; }
+                            loc.push((i, play_legal_seed(seeds5[i], cfg)));
+                        }
+                        loc
+                    }));
+                }
+                for h in hs {
+                    for (i, st) in h.join().unwrap() { results[i] = Some(st); }
+                }
+            });
+            let stats: Vec<GameStats> = results.into_iter().map(|x| x.unwrap()).collect();
+            let sum_pcs: usize = stats.iter().map(|s| s.pieces).sum();
+            let sum_cov: usize = stats.iter().map(|s| s.zds_h1_cov).sum();
+            let ds_c: usize = stats.iter().map(|s| s.ds1).sum();
+            let cov_n: usize = stats.iter().map(|s| s.ds_cov_next).sum();
+            let cov_pct = 100.0 * cov_n as f64 / ds_c.max(1) as f64;
+            let obj = (sum_pcs as i64) * 100_000 + (sum_cov as i64) * 500 + (cov_n as i64) * 200;
+            (obj, sum_pcs as f64 / 5.0, sum_pcs, cov_pct)
+        };
+
+        let mut cur = base_cfg.weights.clone();
+        let (mut best_obj, mut best_mean, _, mut best_cov) = eval_fast5(&base_cfg);
+        println!("=== Legal 5-seed EvalWeights Optimizer (b={}, iters={}) init mean={:.2} cov_nxt={:.1}% ===",
+            base_cfg.beam_width, iters, best_mean, best_cov);
+        let _ = std::io::stdout().flush();
+
+        let mut rng: u64 = 0xD1B54A32D192ED03u64;
+        let mut next_u64 = || {
+            rng = rng.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+            rng
+        };
+
+        for iter in 1..=iters {
+            let mut cand = cur.clone();
+            let k_mut = 1 + ((next_u64() >> 32) % 3) as usize;
+            for _ in 0..k_mut {
+                let idx = ((next_u64() >> 32) % 24) as usize;
+                let sign: i64 = if (next_u64() & 1) == 0 { 1 } else { -1 };
+                let scale = if iter <= iters / 2 { 2 } else { 1 };
+                let delta = sign * scale * (1 + ((next_u64() >> 40) % 4) as i64);
+                match idx {
+                    0 => cand.garbage_row = (cand.garbage_row + delta * 10).clamp(120, 340),
+                    1 => cand.stack_cell = (cand.stack_cell + delta * 3).clamp(-26, 20),
+                    2 => cand.upper_cell = (cand.upper_cell + delta).clamp(0, 20),
+                    3 => cand.stack_over2_sq = (cand.stack_over2_sq + delta).clamp(0, 20),
+                    4 => cand.max_stack_h_excess = (cand.max_stack_h_excess + delta * 2).clamp(0, 40),
+                    5 => cand.covered_hole = (cand.covered_hole + delta * 6).clamp(20, 220),
+                    6 => cand.hole_row = (cand.hole_row + delta * 4).clamp(0, 100),
+                    7 => cand.blocks_over_hole = (cand.blocks_over_hole + delta * 3).clamp(0, 60),
+                    8 => cand.h1_block = (cand.h1_block + delta * 5).clamp(10, 160),
+                    9 => cand.h1_contig_cover = (cand.h1_contig_cover + delta * 10).clamp(0, 320),
+                    10 => cand.h1_empty_blocking = (cand.h1_empty_blocking + delta * 2).clamp(0, 40),
+                    11 => cand.h1_height = (cand.h1_height + delta * 2).clamp(0, 50),
+                    12 => cand.h2_block = (cand.h2_block + delta * 4).clamp(0, 100),
+                    13 => cand.h2_contig_cover = (cand.h2_contig_cover + delta * 8).clamp(0, 200),
+                    14 => cand.h1_narrow_1 = (cand.h1_narrow_1 + delta * 3).clamp(0, 60),
+                    15 => cand.h1_narrow_2plus = (cand.h1_narrow_2plus + delta * 4).clamp(0, 70),
+                    16 => cand.open_h1_bonus = (cand.open_h1_bonus + delta * 5).clamp(0, 120),
+                    17 => cand.combo2_bonus = (cand.combo2_bonus + delta * 4).clamp(0, 100),
+                    18 => cand.bumpiness = (cand.bumpiness + delta).clamp(0, 20),
+                    19 => cand.sharp_diff = (cand.sharp_diff + delta).clamp(0, 20),
+                    20 => cand.i_dep = (cand.i_dep + delta * 5).clamp(0, 90),
+                    21 => cand.near_full_9_bonus = (cand.near_full_9_bonus + delta * 3).clamp(-40, 50),
+                    22 => cand.row_g_aligned_bonus = (cand.row_g_aligned_bonus + delta * 4).clamp(-40, 50),
+                    _ => {
+                        let hi = ((next_u64() >> 48) % 7) as usize;
+                        cand.hold_bonus[hi] = (cand.hold_bonus[hi] + delta * 3).clamp(-35, 35);
+                    }
+                }
+            }
+            let mut c_try = base_cfg.clone();
+            c_try.weights = cand.clone();
+            let (obj, mean, _, cov_pct) = eval_fast5(&c_try);
+            if obj < best_obj {
+                best_obj = obj;
+                best_mean = mean;
+                best_cov = cov_pct;
+                cur = cand;
+                println!("  [iter {:2} {:.1}s] NEW BEST mean={:.2} cov_nxt={:.1}% obj={}",
+                    iter, t0.elapsed().as_secs_f64(), best_mean, best_cov, best_obj);
+                let _ = std::io::stdout().flush();
+            }
+        }
+        println!("=== Best Legal EvalWeights ({:.1}s) mean={:.2} ===", t0.elapsed().as_secs_f64(), best_mean);
+        println!("{:#?}", cur);
+
+        let mut c_ver = make_ew_cons_cfg();
+        c_ver.weights = cur.clone();
+        eval_seeds("opt_legal_b120_end7", &seeds5, &c_ver);
+
+        let mut c_ver_r = c_ver.clone();
+        c_ver_r.rollout_top_k = 12;
+        eval_seeds("opt_legal_b120_r12", &seeds5, &c_ver_r);
+
+        let mut c_sh = c_ver_r.clone();
+        c_sh.beam_width = 60;
+        c_sh.max_per_root = 12;
+        c_sh.root_pimc_prescreen_worlds = 4;
+        c_sh.root_pimc_roots = 48;
+        c_sh.root_pimc_fine_roots = 10;
+        c_sh.root_pimc_worlds = 12;
+        c_sh.root_pimc_horizon = 11;
+        c_sh.root_pimc_width = 24;
+        c_sh.root_pimc_weight_pct = 100;
+        eval_seeds("opt_legal_sh_w12_h11", &seeds5, &c_sh);
         return;
     }
 

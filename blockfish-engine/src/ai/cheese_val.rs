@@ -149,21 +149,38 @@ pub fn extract_features_opt(
     need_nosub: bool,
     out: &mut [f32; FEAT_DIM],
 ) {
+    extract_features_ex(board, rem_garbage, in_hand, avail_mask, true, need_nosub, out);
+}
+
+#[inline]
+pub fn extract_features_ex(
+    board: &FastBoard,
+    rem_garbage: u16,
+    in_hand: Option<u8>,
+    avail_mask: u8,
+    need_pe: bool,
+    need_nosub: bool,
+    out: &mut [f32; FEAT_DIM],
+) {
     out.fill(0.0);
     let col_h = board.col_heights();
     let max_h = *col_h.iter().max().unwrap() as i32;
     let g = board.garbage_rows as usize;
     let n = board.rows as usize;
 
-    let pe = fast_piece_estimate_ex(board, false) as i32;
+    let pe = if need_pe || need_nosub {
+        fast_piece_estimate_ex(board, false) as i32
+    } else {
+        0
+    };
     let pe_nosub = if need_nosub {
         fast_piece_estimate_ex(board, true) as i32
     } else {
         pe
     };
     let g_off = (g as i32 - 1).max(0);
-    let pe_net = (pe - g_off).max(0);
-    let pe_nosub_net = (pe_nosub - g_off).max(0);
+    let pe_net = if need_pe || need_nosub { (pe - g_off).max(0) } else { 0 };
+    let pe_nosub_net = if need_nosub { (pe_nosub - g_off).max(0) } else { pe_net };
 
     out[0] = rem_garbage as f32;
     out[1] = g as f32;
@@ -853,8 +870,9 @@ impl LearnedValueModel {
         }
 
         let need_nosub = self.mlp_weight > 0.0 || !self.fast_ready || self.fast_w[8] != 0.0;
+        let need_pe = need_nosub || self.fast_w[6] != 0.0 || self.fast_w[7] != 0.0;
         let mut feats = [0.0f32; FEAT_DIM];
-        extract_features_opt(board, rem_garbage, in_hand, avail_mask, need_nosub, &mut feats);
+        extract_features_ex(board, rem_garbage, in_hand, avail_mask, need_pe, need_nosub, &mut feats);
         (self.predict_features(&feats) * 100.0).round() as i64
     }
 }
