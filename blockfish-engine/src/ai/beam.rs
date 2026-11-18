@@ -373,7 +373,7 @@ impl BeamSearcher {
             .remaining_garbage
             .unwrap_or(garbage_rows)
             .max(garbage_rows);
-        let is_endgame_exact = cfg.endgame_solver && rem_g0 > 0 && rem_g0 == garbage_rows && rem_g0 <= 7;
+        let is_endgame_exact = cfg.endgame_solver && rem_g0 > 0 && rem_g0 == garbage_rows && rem_g0 <= 9;
         let is_pure_endgame =
             is_endgame_exact || (cfg.endgame_wide && rem_g0 <= 9 && rem_g0 == garbage_rows);
         let eff_beam_width = if is_endgame_exact {
@@ -486,7 +486,10 @@ impl BeamSearcher {
             };
 
             if rem_g == 0 && b.rows < 20 {
-                let g_rating = -30_000_000 + 100 + (b.rows as i64);
+                let res_cells: i64 = (0..b.rows as usize)
+                    .map(|r| (b.data[r] & 0x3FF).count_ones() as i64)
+                    .sum();
+                let g_rating = -30_000_000 + 200 + res_cells;
                 if best_goal.map_or(true, |(_, _, r)| g_rating < r) {
                     best_goal = Some((1, idx as u16, g_rating));
                 }
@@ -588,7 +591,10 @@ impl BeamSearcher {
                     };
 
                     if rem_g == 0 && b.rows < 20 {
-                        let g_rating = -30_000_000 + (depth as i64) * 100 + (b.rows as i64);
+                        let res_cells: i64 = (0..b.rows as usize)
+                            .map(|r| (b.data[r] & 0x3FF).count_ones() as i64)
+                            .sum();
+                        let g_rating = -30_000_000 + (depth as i64) * 200 + res_cells;
                         if best_goal.map_or(true, |(_, _, r)| g_rating < r) {
                             best_goal = Some((depth, node.first_idx, g_rating));
                         }
@@ -732,9 +738,12 @@ impl BeamSearcher {
                             &self.fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
                         let (_, ds, _) = b.place_and_sift(orient, fp.norm_i, fp.norm_j);
                         if node.rem_garbage.saturating_sub(ds as u16) == 0 && b.rows < 20 {
+                            let res_cells: i64 = (0..b.rows as usize)
+                                .map(|r| (b.data[r] & 0x3FF).count_ones() as i64)
+                                .sum();
                             let g_rating = -30_000_000
-                                + ((target_depth + 1) as i64) * 100
-                                + (b.rows as i64);
+                                + ((target_depth + 1) as i64) * 200
+                                + res_cells;
                             if best_goal.map_or(true, |(_, _, r)| g_rating < r) {
                                 best_goal = Some((target_depth + 1, node.first_idx, g_rating));
                             }
@@ -757,7 +766,7 @@ impl BeamSearcher {
                 cfg.rollout_per_root.max(1)
             };
             let eff_roll_top_k = if is_endgame_exact {
-                cfg.rollout_top_k.max(12)
+                cfg.rollout_top_k.max(18)
             } else {
                 cfg.rollout_top_k
             };
@@ -766,7 +775,7 @@ impl BeamSearcher {
             for i in 0..self.cur_beam.len() {
                 let node = self.cur_beam[i];
                 let rolled_cnt = self.per_root_rolled.get(&node.first_idx).copied().unwrap_or(0);
-                if is_endgame_exact && rolled_cnt == 0 && self.per_root_rolled.len() >= 12 {
+                if is_endgame_exact && rolled_cnt == 0 && self.per_root_rolled.len() >= 18 {
                     self.best_per_root.entry(node.first_idx).or_insert(-20_000_000 + 5_000 + node.score);
                     self.best_leaf_idx.entry(node.first_idx).or_insert(i);
                     continue;
@@ -1532,9 +1541,12 @@ impl BeamSearcher {
         cfg: &BeamConfig,
     ) -> (i64, usize) {
         if rem_g == 0 {
+            let res_cells: i64 = (0..board.rows as usize)
+                .map(|r| (board.data[r] & 0x3FF).count_ones() as i64)
+                .sum();
             return (
                 if board.rows < 20 {
-                    -20_000_000 + (board.rows as i64) * 2
+                    -20_000_000 + res_cells
                 } else {
                     5_000_000
                 },
@@ -1553,7 +1565,7 @@ impl BeamSearcher {
         let h = horizon.clamp(1, 16);
         let mult = if bag_n <= 2 { 3 } else if bag_n <= 4 { 2 } else { 1 };
         let w_cnt = (bag_n.max(1) * mult).min(12);
-        let end_beam_w = if rem_g <= 6 { 48usize } else { 32usize };
+        let end_beam_w = if rem_g <= 6 { 128usize } else { 96usize };
         let mut evals = 0usize;
         let mut sum_w: i64 = 0;
 
@@ -1629,7 +1641,10 @@ impl BeamSearcher {
                         let rem2 = node.rem_garbage.saturating_sub(ds as u16);
                         let nds_new = node.nds_used.saturating_add(lines.saturating_sub(ds) as u16);
                         if rem2 == 0 && b2.rows < 20 {
-                            let done_sc = ((step as i64) + 1) * 100 + (b2.rows as i64) * 2;
+                            let res_cells: i64 = (0..b2.rows as usize)
+                                .map(|r| (b2.data[r] & 0x3FF).count_ones() as i64)
+                                .sum();
+                            let done_sc = ((step as i64) + 1) * 200 + res_cells;
                             if done_sc < best_done {
                                 best_done = done_sc;
                             }
@@ -2750,7 +2765,7 @@ impl BeamSearcher {
             }
             (best_roll, evals)
         } else if cfg.spatial_rerank_only && cfg.spatial_model.is_some() {
-            let check_k = self.pimc_beam.len().min(4);
+            let check_k = self.pimc_beam.len().min(10);
             let mut best_leaf = i64::MAX;
             for li in 0..check_k {
                 let leaf = self.pimc_beam[li];

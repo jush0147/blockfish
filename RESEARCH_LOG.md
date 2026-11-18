@@ -68,15 +68,25 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
 - **Actions Run #2 (`spatial_r1` / `spatial_r2`) postmortem**: `OR_p6=242.40` because `train_spatial.rs` trained ~97% on pairwise ranking imitating weak depth-6/12 beam preferences (`val_w=0.03`) and `B=8` rollouts using heuristic `clean_physics_cost(..., 1.88)` instead of true multi-move piece-to-finish outcomes.
 - **Implication**: Breaking `<= 166` legally requires breaking the **Oracle ceiling down to <= 158–160** (cutting non-`O` `0ds` from `~60` down to `<= 42–44`). Simply widening/deepening beam with `m_h2_nog0` plateaus at `~176` because intermediate linear beam pruning (`d=2..10`) rejects temporary clean setups that save 2–4 pieces over the next 6–15 placements.
 
+### 3.4 Whole-Game DS-Bucketed Oracle (`164.60 [160..170]`) & Round WG-1 Postmortem
+- **Cell-Conservation Whole-Game DS-Bucketed Search (`diag_cheese -- wg_break`)**:
+  - `WG_ds_init` (`ew_cons22` with `taper_rem=5`, `B=3000`, `strat_np=true`, seeds `101..=105`): **`mean=164.60 [160..170]`** (`per_seed=[163, 163, 160, 167, 170]`, `nds=54.80`, `0ds=64.60 (cov=19.2 O=17.8 nar=3.8 wide=22.0 end=1.8)`, `cov_nxt=13.2%`, `r_end=10.4`). Seed `103` hit **`160`**.
+- **Round WG-1 (`models/spatial_wg1.txt`, GitHub Actions Run #6)**:
+  - Spatial MLP improved `+41.4` pieces over its own linear skip (`OR_p6_b120_sp_lin = 247.20 -> OR_p6_b120_sp_full = 205.80`) and beat its `cons:crn_r3` teacher at `OR_p12` (`186.40/188.00` vs `192.00`).
+  - Legal `p=5` (`bench_legal spatial5_q models/spatial_wg1.txt`): `sp_rpimc_w8_h9 = 191.80 [183..202]` (`cov=33.0`, `wide=29.4`, `end=4.0`).
+  - **Root Causes of `+27.2` Gap (`191.80` vs `164.60`)**:
+    1. Ridge regularization toward `0` collapsed `stk_cells = +0.000`, leaving linear skip dysfunctional (`OR_p6_sp_lin = 247.20`).
+    2. Off-policy Oracle-only rollouts (`--roll-horizon 22`, no `--wg-ds`, `--cal-v-weight 0.0`) + overfitting after epoch 5 (`ep=5: 2.973 -> ep=30: 3.136`).
+    3. `beam.rs` exact endgame only covered `rem_g0 <= 7` (`8..=9` already 100% deterministic!), `endgame_rollout_crn` used narrow `48/32` width, and `root_pimc_eval_world` checked only 4 spatial leaves.
+
 ---
 
 ## 4. Roadmap
 
-1. **Break the Oracle Ceiling (`176 -> <= 158–160`)**:
-   - Inspect concrete `OR_p20_b500` non-`O` `0ds` moves (`cov=23.5, wide=22.0, nar=12.0`) to identify exact structural & search causes.
-   - Replace myopic 1-step linear pruning and weak-teacher imitation with: (a) genuine search-architecture improvements (e.g., rollout-evaluated beam leaves / structural diversity Pareto beam retention / multi-move skim-and-dig tactical lookahead) and (b) true-outcome (`rem_pcs`, TD(λ), wide deep-rollout counterfactual) nonlinear evaluation.
-2. **Close Legal (`p=5`) vs Oracle (`p=20`) Gap**:
-   - Exploit zero-spawn deterministic transitions (`g >= 5` on clears, `g == 9` on `0ds`), 1-bit `bag_mask` deterministic extension, stratified CRN belief-space worlds, and an exact/deep deterministic endgame solver (`rem_g <= 9`).
-3. **Large-Scale Independent Verification on GitHub Actions**:
-   - Train & benchmark on `dev20`/`dev40` (`seeds 101..=120, 201..=220`) via `.github/workflows/research.yml`, keeping all code, models, and logs pushed to `rescue/independent-validation-20261116`.
+1. **Search & Endgame Architecture (`beam.rs`)**:
+   - Expanded `is_endgame_exact` to `rem_g0 <= 9 && rem_g0 == garbage_rows`, raised `endgame_rollout_crn` width to `128/96` on up to `18` roots with residual-cell tie-breaking, and widened `root_pimc_eval_world` spatial leaf reranking to `10` leaves.
+2. **Round WG-2 (`models/spatial_wg2.txt`)**:
+   - Train from `ew:cons22` (`WG_ds = 164.60`) using `--wg-ds --games 120 --legal-dagger 40 --roll-ds 6 --roll-bw 24 --crn-worlds 6 --cal-v-weight 0.75 --epochs 12 --lr 0.0005 --wd 0.025`, plus conservation-law Ridge prior (`stk_cells = -0.20`) and tightened structural floors.
+3. **Iterative Legal DAgger + Held-Out Validation (`seeds 1..=20, 101..=120, 201..=220`)**:
+   - Push legal `p=5` mean below `<= 161` reproducibly across all held-out sets on GitHub Actions.
 

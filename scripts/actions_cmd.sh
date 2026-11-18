@@ -1,33 +1,33 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "=== Round WG-1: Whole-Game Oracle (B=2000, 120 games) + Unbiased CRN SpatialValueModel RL ==="
+echo "=== Round WG-2: WG-DS cons22 (96g, B=1600) + Legal-DAgger (48g) + Conservation-Prior SpatialValueModel ==="
 cargo run --release -p blockfish --features race --example train_spatial -- \
-  --teacher cons:models/crn_r3_h2stk03.txt \
-  --out models/spatial_wg1.txt \
-  --wg-beam 2000 \
-  --games 120 \
-  --cf-per-game 20 \
-  --roll-horizon 22 \
+  --teacher ew:cons22 \
+  --out models/spatial_wg2.txt \
+  --wg-beam 1600 \
+  --wg-ds \
+  --games 96 \
+  --legal-dagger 48 \
+  --cf-per-game 16 \
+  --roll-ds 6 \
   --roll-bw 24 \
-  --crn-worlds 4 \
-  --epochs 30 \
+  --crn-worlds 5 \
+  --epochs 12 \
   --batch 128 \
-  --lr 0.0008 \
-  --wd 0.015 \
+  --lr 0.0005 \
+  --wd 0.025 \
   --lin-lr-mult 0.35 \
-  --val-w 0.08 \
+  --val-w 0.12 \
   --diff-w 0.65 \
   --rank-w 2.0 \
-  --cal-v-weight 0.0 \
+  --cal-v-weight 0.75 \
   --no-roll-vcal \
   --seed-base 1000 \
-  --eval-teacher \
   --eval-oracle 5 \
-  --eval-legal 10
+  --eval-legal 5
 
 echo ""
-echo "=== Post-WG1 Oracle & Legal Diagnostics ==="
-cargo run --release -p blockfish --features race --example diag_cheese -- spatial_probe models/spatial_wg1.txt
-cargo run --release -p blockfish --features race --example bench_legal -- spatial5_q models/spatial_wg1_ep0.txt
-cargo run --release -p blockfish --features race --example bench_legal -- spatial5_q models/spatial_wg1.txt
+echo "=== Post-WG2 Oracle & Legal Diagnostics ==="
+cargo run --release -p blockfish --features race --example diag_cheese -- spatial_probe models/spatial_wg2.txt
+cargo run --release -p blockfish --features race --example bench_legal -- spatial5_1 models/spatial_wg2.txt sp_rpimc_linfast_w8_h9

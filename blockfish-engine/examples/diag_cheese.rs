@@ -1479,6 +1479,25 @@ fn main() {
             ew_seed.h2_contig_cover = 45;
             run_wg_ds_lns(&ed, &ew_seed, 2500, 1200);
         }
+        if which == "lns2" {
+            let mut ew_seed = ew_cons.clone();
+            ew_seed.stack_cell = -22;
+            ew_seed.upper_cell = 3;
+            ew_seed.stack_over2_sq = 3;
+            ew_seed.blocks_over_hole = 14;
+            ew_seed.zero_o_spot_pen = 0;
+            ew_seed.bumpiness = 11;
+            ew_seed.near_full_9_bonus = 0;
+            ew_seed.near_full_8_bonus = 0;
+            ew_seed.row_g_aligned_bonus = 0;
+            ew_seed.h1_contig_cover = 140;
+            ew_seed.h2_contig_cover = 95;
+            ew_seed.h3_block = 22;
+            ew_seed.h4_block = 8;
+            ew_seed.endgame_cell_taper = 47;
+            ew_seed.endgame_cell_taper_rem = 5;
+            run_wg_ds_lns(&ed, &ew_seed, 3000, 1500);
+        }
         if which == "opt" {
             let mut ew_seed = ew_cons.clone();
             ew_seed.stack_cell = -22;
@@ -1746,7 +1765,422 @@ fn main() {
                 run_wg_lns(&ed, &m_cons_glob, &m_cons2, 3000, 1200, "/tmp/wg_lns_states.tsv");
             }
         }
+    } else if mode == "or_p6_ds" {
+        let which = args.get(2).map(|s| s.as_str()).unwrap_or("all");
+        let n_seeds: usize = args.get(3).and_then(|s| s.parse().ok()).unwrap_or(5);
+        let seeds: Vec<u64> = (101..101 + n_seeds as u64).collect();
+        let ed = collect_exact_seeds(&seeds);
+        println!("=== Oracle p=6 ds-Bucketed Probe (seeds 101..={}, which={}) ===", 100 + n_seeds, which);
+
+        let mut ew4 = EvalWeights::default();
+        ew4.garbage_row = 225;
+        ew4.piece_estimate = 0;
+        ew4.stack_cell = 4;
+        ew4.upper_cell = 5;
+        ew4.stack_h_sq = 0;
+        ew4.stack_over2_sq = 3;
+        ew4.max_stack_h_excess = 14;
+        ew4.covered_hole = 55;
+        ew4.hole_row = 20;
+        ew4.blocks_over_hole = 14;
+        ew4.h1_block = 32;
+        ew4.h1_contig_cover = 130;
+        ew4.h1_empty_blocking = 8;
+        ew4.h1_height = 10;
+        ew4.h2_block = 26;
+        ew4.h2_contig_cover = 80;
+        ew4.h2_extra_empty = 6;
+        ew4.h3_block = 22;
+        ew4.h3_extra_empty = 3;
+        ew4.h4_block = 8;
+        ew4.h1_narrow_1 = 16;
+        ew4.h1_narrow_2plus = 26;
+        ew4.h1_fit_scarcity = 8;
+        ew4.h1_unfit_hand = 28;
+        ew4.zero_o_spot_pen = 0;
+        ew4.bag_no_i_chute_pen = 18;
+        ew4.open_h1_bonus = 24;
+        ew4.combo2_bonus = 22;
+        ew4.h1_h2_adj = 4;
+        ew4.bumpiness = 11;
+        ew4.sharp_diff = 5;
+        ew4.i_dep = 35;
+        ew4.two_well = 10;
+        ew4.i_dep_multi = 50;
+        ew4.i_dep_chute = 12;
+        ew4.row_transition = 3;
+        ew4.near_full_9_bonus = 0;
+        ew4.near_full_8_bonus = 0;
+        ew4.row_g_aligned_bonus = 0;
+        ew4.endgame_cell_taper = 23;
+        ew4.hold_bonus = [-10, 4, -8, 4, 4, -2, -2];
+
+        let mut ew_c22 = ew4.clone();
+        ew_c22.stack_cell = -22;
+        ew_c22.upper_cell = 3;
+        ew_c22.h1_contig_cover = 140;
+        ew_c22.h2_contig_cover = 95;
+        ew_c22.endgame_cell_taper = 47;
+
+        let sm = SpatialValueModel::load_from_file(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../models/spatial_wg1.txt"
+        ))
+        .expect("load spatial_wg1");
+
+        if which == "all" || which == "ew4" {
+            run_oracle_agg("OR_p6_b120_ew4", &ed, 6, 120, 1, false, 0, &ew4);
+            run_oracle_p6_ds("OR_p6_ds3_b80_ew4", &ed, 6, 3, 80, &ew4, None::<&EvalWeights>);
+        }
+        if which == "all" || which == "c22" {
+            run_oracle_p6_ds("OR_p6_ds3_b80_c22", &ed, 6, 3, 80, &ew_c22, None::<&EvalWeights>);
+        }
+        if which == "all" || which == "sp" {
+            run_oracle_agg("OR_p6_b120_sp_wg1", &ed, 6, 120, 1, false, 0, &sm);
+            run_oracle_p6_ds("OR_p6_ds3_b80_sp_wg1", &ed, 6, 3, 80, &sm, None::<&SpatialValueModel>);
+            run_oracle_p6_ds("OR_p6_ds3_b80_ew4_spleaf", &ed, 6, 3, 80, &ew4, Some(&sm));
+        }
+    } else if mode == "wg_taper" {
+        let which = args.get(2).map(|s| s.as_str()).unwrap_or("all");
+        let n_seeds: usize = args.get(3).and_then(|s| s.parse().ok()).unwrap_or(5);
+        let seeds: Vec<u64> = (101..101 + n_seeds as u64).collect();
+        let ed = collect_exact_seeds(&seeds);
+        println!("=== WG Taper & Horizon Probe (seeds 101..={}, which={}) ===", 100 + n_seeds, which);
+
+        let mut ew_c22 = EvalWeights::default();
+        ew_c22.garbage_row = 225;
+        ew_c22.piece_estimate = 0;
+        ew_c22.stack_cell = -22;
+        ew_c22.upper_cell = 3;
+        ew_c22.stack_over2_sq = 3;
+        ew_c22.blocks_over_hole = 14;
+        ew_c22.zero_o_spot_pen = 0;
+        ew_c22.bumpiness = 11;
+        ew_c22.h1_contig_cover = 140;
+        ew_c22.h2_contig_cover = 95;
+        ew_c22.h3_block = 22;
+        ew_c22.h4_block = 8;
+        ew_c22.near_full_9_bonus = 0;
+        ew_c22.near_full_8_bonus = 0;
+        ew_c22.row_g_aligned_bonus = 0;
+        ew_c22.endgame_cell_taper = 47;
+        ew_c22.endgame_cell_taper_rem = 5;
+        ew_c22.hold_bonus = [-10, 4, -8, 4, 4, -2, -2];
+
+        let mut ew_c22_t12 = ew_c22.clone();
+        ew_c22_t12.endgame_cell_taper_rem = 12;
+        let mut ew_c22_t16 = ew_c22.clone();
+        ew_c22_t16.endgame_cell_taper_rem = 16;
+
+        let mut ew4_t12 = ew_c22_t12.clone();
+        ew4_t12.stack_cell = 4;
+        ew4_t12.upper_cell = 5;
+        ew4_t12.endgame_cell_taper = 23;
+
+        if which == "all" || which == "wg" {
+            run_wg_ds_beam_full("WG_ds_b1000_c22_t5", &ed, 1000, &ew_c22, None, false, true);
+            run_wg_ds_beam_full("WG_ds_b1000_c22_t12", &ed, 1000, &ew_c22_t12, None, false, true);
+            run_wg_ds_beam_full("WG_ds_b1000_c22_t16", &ed, 1000, &ew_c22_t16, None, false, true);
+            run_wg_ds_beam_full("WG_ds_b2000_c22_t12_s", &ed, 2000, &ew_c22_t12, None, true, true);
+        }
+        if which == "all" || which == "sp" {
+            let sm = SpatialValueModel::load_from_file(concat!(
+                env!("CARGO_MANIFEST_DIR"),
+                "/../models/spatial_wg1.txt"
+            ))
+            .expect("load spatial_wg1");
+            run_wg_ds_beam_full("WG_ds_b600_sp_wg1", &ed, 600, &sm, None, false, true);
+            run_oracle_agg("OR_p12_b140_ew4_t12", &ed, 12, 140, 1, false, 0, &ew4_t12);
+            run_oracle_agg("OR_p12_b140_c22_t12", &ed, 12, 140, 1, false, 0, &ew_c22_t12);
+        }
     }
+}
+
+fn run_oracle_p6_ds<M: DiagEvaluator, L: DiagEvaluator>(
+    label: &str,
+    exact_data: &[ExactSeedData],
+    horizon: usize,
+    ds_target: usize,
+    beam_w: usize,
+    mdl: &M,
+    leaf_mdl: Option<&L>,
+) {
+    type FxBuild = std::hash::BuildHasherDefault<blockfish::ai::beam::FxHasher>;
+    #[derive(Clone, Copy)]
+    struct DsNode {
+        board: FastBoard,
+        held: Option<u8>,
+        q_cursor: u16,
+        pieces_used: u16,
+        rem_g: u16,
+        first_idx: u16,
+        score: i64,
+    }
+    #[derive(Clone, Copy, Eq, PartialEq, Hash)]
+    struct DsKey {
+        board: FastBoard,
+        held: Option<u8>,
+        q_cursor: u16,
+    }
+
+    let t0 = Instant::now();
+    let fst = FastShapeTable::srs();
+    let spawn_exact_cheese = |b: &mut FastBoard, rem_g: u16, lines_cleared: u8, holes: &[u16]| -> bool {
+        let target_g: usize = if lines_cleared > 0 { 4 } else { 9 };
+        let g = b.garbage_rows as usize;
+        let unspawned = (rem_g as usize).saturating_sub(g);
+        let num = target_g.saturating_sub(g).min(unspawned);
+        if num == 0 { return true; }
+        let old_rows = b.rows as usize;
+        if old_rows + num >= 32 { return false; }
+        let spawned_so_far = 100usize - unspawned;
+        if spawned_so_far + num > holes.len() { return false; }
+        for r in (0..old_rows).rev() { b.data[r + num] = b.data[r]; }
+        for k in 0..num {
+            let hole = holes[spawned_so_far + k];
+            b.data[num - 1 - k] = 0xFC00 | (0x3FF & !(1u16 << hole));
+        }
+        b.rows = (old_rows + num) as u8;
+        b.garbage_rows = (g + num) as u8;
+        true
+    };
+
+    let run_one = |ed: &ExactSeedData| -> GameStat {
+        let mut game_cfg = BSConfig::default();
+        game_cfg.garbage.total_lines = Some(100);
+        game_cfg.prng_seed = Some(ed.seed);
+        let mut stacker = Stacker::new(Ruleset::guideline().into(), game_cfg);
+        let mut pgen = FastPlaceGen::new();
+        let mut ai_in = FastAI::new(BeamConfig::default());
+        let mut root_places = Vec::with_capacity(64);
+        let mut tmp_places = Vec::with_capacity(64);
+        let mut cur_sub: Vec<DsNode> = Vec::with_capacity(beam_w);
+        let mut next_sub: Vec<DsNode> = Vec::with_capacity(beam_w * 16);
+        let mut seen: HashSet<DsKey, FxBuild> = HashSet::with_capacity_and_hasher(beam_w * 8, FxBuild::default());
+
+        let mut st = GameStat::default();
+        let mut ds_total = 0usize;
+        let mut q_pos = 0usize;
+
+        while ds_total < 100 && stacker.current_piece_type().is_some() {
+            let snap = stacker.snapshot().unwrap();
+            let g_rows = garbage_rows(&stacker);
+            let root_board = FastBoard::from_basic_matrix(&snap.matrix, g_rows);
+            let rem_g0 = 100usize.saturating_sub(ds_total) as u16;
+            let hold0 = snap.hold.map(|cc| color_to_idx(cc) as u8);
+            let q_start = q_pos.min(ed.pieces.len());
+            let q_end = (q_start + horizon).min(ed.pieces.len());
+            let q = &ed.pieces[q_start..q_end];
+            let q_len = q.len();
+            if q_len == 0 { st.topout = true; st.pcs = 400; break; }
+            let cur0 = Some(q[0]);
+            let alt0 = if hold0.is_some() { hold0 } else if q_len > 1 { Some(q[1]) } else { None };
+            let (_, blocks_over, chute_min, cells_above) = h1_info(&stacker);
+            st.cells_sum += cells_above;
+            let cur_ch = snap.queue[0].as_char();
+            let hold_ch = snap.hold.or_else(|| snap.queue.get(1).copied()).map(|cc| cc.as_char());
+
+            pgen.generate_for_state(&fst, &root_board, cur0, alt0, &mut root_places);
+            if root_places.is_empty() { st.topout = true; st.pcs = 400; break; }
+
+            let is_end = rem_g0 <= 7 && rem_g0 == g_rows;
+            let target_ds = if is_end { rem_g0 as usize } else { ds_target.min(rem_g0 as usize).max(1) };
+            let eff_w = if is_end { beam_w.max(300) } else { beam_w };
+            let z_limit: usize = if is_end { 6 } else { 3 };
+            let mut buckets: Vec<Vec<DsNode>> = vec![Vec::new(); target_ds + 1];
+            let mut best_goal: Option<(u16, u8, u16)> = None;
+
+            for (idx, &fp) in root_places.iter().enumerate() {
+                let mut b = root_board;
+                let o = &fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
+                let (lines, ds, _) = b.place_and_sift(o, fp.norm_i, fp.norm_j);
+                let rem_g = rem_g0.saturating_sub(ds as u16);
+                if rem_g == 0 && b.rows < 20 {
+                    if best_goal.map_or(true, |x| (1, b.rows) < (x.0, x.1)) {
+                        best_goal = Some((1, b.rows, idx as u16));
+                    }
+                    continue;
+                }
+                if rem_g > 0 && !spawn_exact_cheese(&mut b, rem_g, lines, &ed.holes) { continue; }
+                let (held, qc) = if hold0.is_some() {
+                    if fp.did_hold { (cur0, 1.min(q_len)) } else { (hold0, 1.min(q_len)) }
+                } else if fp.did_hold { (cur0, 2.min(q_len)) } else { (None, 1.min(q_len)) };
+                let in_h = held.or_else(|| q.get(qc).copied());
+                let sc = 100 + mdl.eval_b(&b, rem_g, in_h, 0x7F);
+                let b_idx = (ds as usize).min(target_ds);
+                buckets[b_idx].push(DsNode {
+                    board: b,
+                    held,
+                    q_cursor: qc as u16,
+                    pieces_used: 1,
+                    rem_g,
+                    first_idx: idx as u16,
+                    score: sc,
+                });
+            }
+
+            let mut best_fallback_ri: Option<(i64, usize)> = None;
+            for ds_cur in 0..target_ds {
+                let mut bucket = std::mem::take(&mut buckets[ds_cur]);
+                if bucket.is_empty() { continue; }
+                bucket.sort_unstable_by_key(|n| (n.score, n.first_idx));
+                let fb_sc = bucket[0].score + ((target_ds - ds_cur) as i64) * 350;
+                if best_fallback_ri.map_or(true, |x| fb_sc < x.0) {
+                    best_fallback_ri = Some((fb_sc, bucket[0].first_idx as usize));
+                }
+                seen.clear();
+                cur_sub.clear();
+                for n in bucket {
+                    if cur_sub.len() >= eff_w { break; }
+                    if seen.insert(DsKey { board: n.board, held: n.held, q_cursor: n.q_cursor }) {
+                        cur_sub.push(n);
+                    }
+                }
+                let mut best_next_ds_sc = i64::MAX;
+                for z_sub in 0..=z_limit {
+                    if cur_sub.is_empty() { break; }
+                    if z_sub > 0 && best_next_ds_sc != i64::MAX && cur_sub[0].score > best_next_ds_sc + 550 {
+                        break;
+                    }
+                    next_sub.clear();
+                    for &node in &cur_sub {
+                        if node.rem_g == 0 { continue; }
+                        let qc = node.q_cursor as usize;
+                        let (c_nh, c_h) = if node.held.is_some() {
+                            (q.get(qc).copied(), node.held)
+                        } else {
+                            (q.get(qc).copied(), q.get(qc + 1).copied())
+                        };
+                        if c_nh.is_none() && c_h.is_none() { continue; }
+                        pgen.generate_for_state(&fst, &node.board, c_nh, c_h, &mut tmp_places);
+                        for &fp in &tmp_places {
+                            let mut b = node.board;
+                            let o = &fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
+                            let (lines, ds_d, _) = b.place_and_sift(o, fp.norm_i, fp.norm_j);
+                            let rem_g = node.rem_g.saturating_sub(ds_d as u16);
+                            let np = node.pieces_used + 1;
+                            if rem_g == 0 && b.rows < 20 {
+                                if best_goal.map_or(true, |x| (np, b.rows) < (x.0, x.1)) {
+                                    best_goal = Some((np, b.rows, node.first_idx));
+                                }
+                                continue;
+                            }
+                            if rem_g > 0 && !spawn_exact_cheese(&mut b, rem_g, lines, &ed.holes) { continue; }
+                            let (held, nqc) = if node.held.is_some() {
+                                if fp.did_hold { (c_nh, (qc + 1).min(q_len)) } else { (node.held, (qc + 1).min(q_len)) }
+                            } else if fp.did_hold {
+                                (c_nh, (qc + 2).min(q_len))
+                            } else {
+                                (None, (qc + 1).min(q_len))
+                            };
+                            let in_h = held.or_else(|| q.get(nqc).copied());
+                            let sc = (np as i64) * 100 + mdl.eval_b(&b, rem_g, in_h, 0x7F);
+                            if ds_d > 0 {
+                                let nds = (ds_cur + ds_d as usize).min(target_ds);
+                                if sc < best_next_ds_sc { best_next_ds_sc = sc; }
+                                buckets[nds].push(DsNode {
+                                    board: b, held, q_cursor: nqc as u16, pieces_used: np, rem_g, first_idx: node.first_idx, score: sc,
+                                });
+                            } else if z_sub < z_limit {
+                                next_sub.push(DsNode {
+                                    board: b, held, q_cursor: nqc as u16, pieces_used: np, rem_g, first_idx: node.first_idx, score: sc,
+                                });
+                            }
+                        }
+                    }
+                    if next_sub.is_empty() { break; }
+                    next_sub.sort_unstable_by_key(|n| (n.score, n.first_idx));
+                    cur_sub.clear();
+                    let sub_w = (eff_w * 2 / 3).max(8);
+                    for &ch in &next_sub {
+                        if cur_sub.len() >= sub_w { break; }
+                        if seen.insert(DsKey { board: ch.board, held: ch.held, q_cursor: ch.q_cursor }) {
+                            cur_sub.push(ch);
+                        }
+                    }
+                }
+            }
+
+            let chosen_idx = if let Some((_, _, ri)) = best_goal {
+                ri as usize
+            } else if !buckets[target_ds].is_empty() {
+                buckets[target_ds].sort_unstable_by_key(|n| (n.score, n.first_idx));
+                if let Some(lm) = leaf_mdl {
+                    let mut best_sc = i64::MAX;
+                    let mut best_ri = buckets[target_ds][0].first_idx as usize;
+                    for &lf in buckets[target_ds].iter().take(24) {
+                        let inh = lf.held.or_else(|| q.get(lf.q_cursor as usize).copied());
+                        let sc = (lf.pieces_used as i64) * 100 + lm.eval_b(&lf.board, lf.rem_g, inh, 0x7F);
+                        if sc < best_sc {
+                            best_sc = sc;
+                            best_ri = lf.first_idx as usize;
+                        }
+                    }
+                    best_ri
+                } else {
+                    buckets[target_ds][0].first_idx as usize
+                }
+            } else if let Some((_, ri)) = best_fallback_ri {
+                ri
+            } else {
+                0
+            };
+
+            let fp = root_places[chosen_idx];
+            let mut inputs = ai_in.inputs_for_place(&snap.matrix, fp).unwrap();
+            inputs.pop();
+            if fp.did_hold { if hold0.is_none() { q_pos += 2; } else { q_pos += 1; } } else { q_pos += 1; }
+            stacker.run(inputs);
+            let (lines, ds) = stacker.hard_drop();
+            st.pcs += 1;
+            ds_total += ds;
+            st.nds += lines.saturating_sub(ds);
+            if ds > 0 {
+                st.ds_cnt += 1;
+                if ds == 1 { st.ds1 += 1; } else if ds == 2 { st.ds2 += 1; } else { st.ds3 += 1; }
+                let (_, new_bo, _, _) = h1_info(&stacker);
+                if new_bo > 0 { st.ds_cov_next += 1; }
+            } else {
+                st.zds += 1;
+                if rem_g0 <= 7 && rem_g0 == g_rows { st.zds_end += 1; }
+                else if g_rows == 0 { st.zds_g0 += 1; }
+                else if blocks_over > 0 { st.zds_h1_cov += 1; }
+                else {
+                    let is_o = fp.color_idx == 1;
+                    let has_i = cur_ch == 'I' || hold_ch == Some('I');
+                    if is_o { st.zds_o += 1; }
+                    else if chute_min >= 1 && !has_i { st.zds_nar += 1; }
+                    else { st.zds_wide += 1; }
+                }
+            }
+        }
+        if ds_total < 100 { st.topout = true; st.pcs = 400; }
+        st.r_end = stacker.matrix().count();
+        st
+    };
+
+    let workers = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(2).min(exact_data.len().max(1));
+    let next_idx = std::sync::atomic::AtomicUsize::new(0);
+    let mut results: Vec<Option<GameStat>> = vec![None; exact_data.len()];
+    std::thread::scope(|sc| {
+        let mut handles = Vec::new();
+        for _ in 0..workers {
+            handles.push(sc.spawn(|| {
+                let mut local = Vec::new();
+                loop {
+                    let i = next_idx.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                    if i >= exact_data.len() { break; }
+                    local.push((i, run_one(&exact_data[i])));
+                }
+                local
+            }));
+        }
+        for h in handles {
+            for (i, st) in h.join().unwrap() { results[i] = Some(st); }
+        }
+    });
+    let res: Vec<GameStat> = results.into_iter().map(|x| x.unwrap()).collect();
+    print_summary(label, &res, t0.elapsed().as_secs_f64());
 }
 
 fn run_whole_game_beam<M: DiagEvaluator>(
@@ -2454,16 +2888,6 @@ fn run_wg_ds_lns<M: DiagEvaluator>(
     use std::collections::HashMap;
     use std::io::Write;
     type FxBuild = std::hash::BuildHasherDefault<blockfish::ai::beam::FxHasher>;
-    #[derive(Clone, Copy)]
-    struct LNode {
-        board: FastBoard,
-        held: Option<u8>,
-        q_cursor: u16,
-        rem_g: u16,
-        score: i64,
-        parent: u32,
-        fp: FastPlace,
-    }
     #[derive(Clone, Copy, Eq, PartialEq, Hash)]
     struct LKey {
         board: FastBoard,
@@ -2563,56 +2987,122 @@ fn run_wg_ds_lns<M: DiagEvaluator>(
             tf: (0, 0, blockfish::Orientation::R0),
         };
 
-        for _pass in 0..3usize {
-            let mut improved = false;
-            let mut t0 = 0usize;
-            while t0 + 6 < best_moves.len() {
-                let states = rebuild_states(ed, &best_moves);
-                let p_cur = best_moves.len();
-                if t0 + 6 >= p_cur { break; }
-                let win_end = (t0 + 28).min(p_cur);
-                let mut targets: HashMap<LKey, usize, FxBuild> = HashMap::with_capacity_and_hasher(64, FxBuild::default());
-                for t2 in (t0 + 3)..=win_end {
-                    let s2 = states[t2];
-                    targets.insert(LKey { board: s2.board, held: s2.held, rem_g: s2.rem_g, q_cursor: s2.q_cursor }, t2);
+        #[derive(Clone, Copy)]
+        struct BridgeNode {
+            board: FastBoard,
+            held: Option<u8>,
+            q_cursor: u16,
+            pieces_used: u16,
+            rem_g: u16,
+            score: i64,
+            parent_aidx: u32,
+            fp: FastPlace,
+            has_fp: bool,
+        }
+        #[derive(Clone, Copy, Eq, PartialEq, Hash)]
+        struct BridgeKey {
+            board: FastBoard,
+            held: Option<u8>,
+            q_cursor: u16,
+        }
+        #[derive(Clone, Copy)]
+        struct BridgeArena {
+            parent: u32,
+            fp: FastPlace,
+        }
+        let solve_tail_ds = |ed: &ExactSeedData, start: LState, tail_bw: usize| -> Option<Vec<FastPlace>> {
+            let max_ds = start.rem_g as usize;
+            if max_ds == 0 || max_ds > 28 {
+                return None;
+            }
+            let mut pgen_tail = FastPlaceGen::new();
+            let mut arena: Vec<BridgeArena> = Vec::with_capacity(tail_bw * 8);
+            let mut buckets: Vec<Vec<BridgeNode>> = vec![Vec::new(); max_ds + 1];
+            buckets[0].push(BridgeNode {
+                board: start.board,
+                held: start.held,
+                q_cursor: start.q_cursor,
+                pieces_used: 0,
+                rem_g: start.rem_g,
+                score: 0,
+                parent_aidx: u32::MAX,
+                fp: dummy_fp,
+                has_fp: false,
+            });
+            let mut best_win: Option<(u16, u16, u32)> = None; // (pieces_used, residual_cells, aidx)
+            let mut seen: HashSet<BridgeKey, FxBuild> =
+                HashSet::with_capacity_and_hasher(tail_bw * 4, FxBuild::default());
+            let mut cur_sub: Vec<BridgeNode> = Vec::with_capacity(tail_bw);
+            let mut next_sub: Vec<BridgeNode> = Vec::with_capacity(tail_bw * 16);
+            let mut tmp_p = Vec::with_capacity(64);
+
+            for ds_cur in 0..max_ds {
+                let mut bucket = std::mem::take(&mut buckets[ds_cur]);
+                if bucket.is_empty() {
+                    continue;
                 }
-
-                let mut cur_beam = Vec::with_capacity(lns_beam_w);
-                let mut next_cands = Vec::with_capacity(lns_beam_w * 24);
-                let mut seen: HashSet<LKey, FxBuild> = HashSet::with_capacity_and_hasher(lns_beam_w * 4, FxBuild::default());
-                let mut hist_parents: Vec<Vec<(u32, FastPlace)>> = Vec::with_capacity(26);
-                cur_beam.push(LNode {
-                    board: states[t0].board,
-                    held: states[t0].held,
-                    q_cursor: states[t0].q_cursor,
-                    rem_g: states[t0].rem_g,
-                    score: 0,
-                    parent: u32::MAX,
-                    fp: dummy_fp,
-                });
-
-                let mut found_splice: Option<(usize, u32, FastPlace, usize)> = None;
-                for k in 1..=24usize {
-                    next_cands.clear();
-                    for (ni, &node) in cur_beam.iter().enumerate() {
-                        if node.rem_g == 0 { continue; }
+                bucket.sort_unstable_by_key(|n| (n.score, n.pieces_used));
+                seen.clear();
+                cur_sub.clear();
+                for mut n in bucket {
+                    if cur_sub.len() >= tail_bw {
+                        break;
+                    }
+                    if seen.insert(BridgeKey { board: n.board, held: n.held, q_cursor: n.q_cursor }) {
+                        if n.has_fp {
+                            let aidx = arena.len() as u32;
+                            arena.push(BridgeArena { parent: n.parent_aidx, fp: n.fp });
+                            n.parent_aidx = aidx;
+                            n.has_fp = false;
+                        }
+                        cur_sub.push(n);
+                    }
+                }
+                let mut best_next_ds_sc = i64::MAX;
+                for z_sub in 0..=10usize {
+                    if cur_sub.is_empty() {
+                        break;
+                    }
+                    if z_sub > 0 && best_next_ds_sc != i64::MAX && cur_sub[0].score > best_next_ds_sc + 1200 {
+                        break;
+                    }
+                    next_sub.clear();
+                    for &node in &cur_sub {
+                        if let Some((wp, _, _)) = best_win {
+                            if node.pieces_used + (node.rem_g + 3) / 4 >= wp {
+                                continue;
+                            }
+                        }
                         let qc = node.q_cursor as usize;
                         let (c_nh, c_h) = if node.held.is_some() {
                             (ed.pieces.get(qc).copied(), node.held)
                         } else {
                             (ed.pieces.get(qc).copied(), ed.pieces.get(qc + 1).copied())
                         };
-                        if c_nh.is_none() && c_h.is_none() { continue; }
-                        pgen.generate_for_state(&fst, &node.board, c_nh, c_h, &mut tmp_places);
-                        for &fp in &tmp_places {
+                        if c_nh.is_none() && c_h.is_none() {
+                            continue;
+                        }
+                        pgen_tail.generate_for_state(&fst, &node.board, c_nh, c_h, &mut tmp_p);
+                        for &fp in &tmp_p {
                             let mut b = node.board;
                             let o = &fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
-                            let (lines, ds, _) = b.place_and_sift(o, fp.norm_i, fp.norm_j);
-                            let rem_g = node.rem_g.saturating_sub(ds as u16);
-                            if rem_g == 0 && b.rows < 20 && t0 + k < p_cur {
-                                found_splice = Some((k, ni as u32, fp, p_cur));
+                            let (lines, ds_d, _) = b.place_and_sift(o, fp.norm_i, fp.norm_j);
+                            let rem_g = node.rem_g.saturating_sub(ds_d as u16);
+                            let np = node.pieces_used + 1;
+                            if rem_g == 0 && b.rows < 20 {
+                                let res_cells: u16 = (0..b.rows as usize)
+                                    .map(|r| (b.data[r] & 0x3FF).count_ones() as u16)
+                                    .sum();
+                                if best_win.map_or(true, |w| (np, res_cells) < (w.0, w.1)) {
+                                    let aidx = arena.len() as u32;
+                                    arena.push(BridgeArena { parent: node.parent_aidx, fp });
+                                    best_win = Some((np, res_cells, aidx));
+                                }
+                                continue;
                             }
-                            if rem_g > 0 && !spawn_exact_cheese(&mut b, rem_g, lines, &ed.holes) { continue; }
+                            if rem_g > 0 && !spawn_exact_cheese(&mut b, rem_g, lines, &ed.holes) {
+                                continue;
+                            }
                             let (held, nqc) = if node.held.is_some() {
                                 if fp.did_hold { (c_nh, (qc + 1).min(q_len)) } else { (node.held, (qc + 1).min(q_len)) }
                             } else if fp.did_hold {
@@ -2620,65 +3110,230 @@ fn run_wg_ds_lns<M: DiagEvaluator>(
                             } else {
                                 (None, (qc + 1).min(q_len))
                             };
-                            let key = LKey { board: b, held, rem_g, q_cursor: nqc as u16 };
-                            if let Some(&t2) = targets.get(&key) {
-                                if t0 + k < t2 {
-                                    let gain = t2 - (t0 + k);
-                                    if found_splice.map_or(true, |x| gain > (x.3 - (t0 + x.0))) {
-                                        found_splice = Some((k, ni as u32, fp, t2));
-                                    }
-                                }
-                            }
                             let in_h = held.or_else(|| ed.pieces.get(nqc).copied());
-                            let sc = mdl.eval_b(&b, rem_g, in_h, 0x7F);
-                            next_cands.push(LNode {
-                                board: b,
-                                held,
-                                q_cursor: nqc as u16,
-                                rem_g,
-                                score: sc,
-                                parent: ni as u32,
-                                fp,
-                            });
+                            let sc = (np as i64) * 100 + mdl.eval_b(&b, rem_g, in_h, 0x7F);
+                            if ds_d > 0 {
+                                let nds = (ds_cur + ds_d as usize).min(max_ds);
+                                if sc < best_next_ds_sc {
+                                    best_next_ds_sc = sc;
+                                }
+                                buckets[nds].push(BridgeNode {
+                                    board: b, held, q_cursor: nqc as u16, pieces_used: np, rem_g,
+                                    score: sc, parent_aidx: node.parent_aidx, fp, has_fp: true,
+                                });
+                            } else {
+                                next_sub.push(BridgeNode {
+                                    board: b, held, q_cursor: nqc as u16, pieces_used: np, rem_g,
+                                    score: sc, parent_aidx: node.parent_aidx, fp, has_fp: true,
+                                });
+                            }
                         }
                     }
-                    if let Some((sk, mut p_idx, last_fp, t2)) = found_splice {
-                        let mut prefix = vec![last_fp];
-                        let mut s = sk - 1;
-                        while s > 0 && p_idx != u32::MAX {
-                            let (prev_p, fp) = hist_parents[s - 1][p_idx as usize];
-                            prefix.push(fp);
-                            p_idx = prev_p;
-                            s -= 1;
-                        }
-                        prefix.reverse();
-                        let mut new_moves = best_moves[..t0].to_vec();
-                        new_moves.extend_from_slice(&prefix);
-                        if t2 < best_moves.len() {
-                            new_moves.extend_from_slice(&best_moves[t2..]);
-                        }
-                        best_moves = new_moves;
-                        improved = true;
+                    if next_sub.is_empty() {
                         break;
                     }
-                    if next_cands.is_empty() { break; }
-                    next_cands.sort_unstable_by_key(|n| n.score);
-                    cur_beam.clear();
-                    seen.clear();
-                    for &ch in &next_cands {
-                        if cur_beam.len() >= lns_beam_w { break; }
-                        if seen.insert(LKey { board: ch.board, held: ch.held, rem_g: ch.rem_g, q_cursor: ch.q_cursor }) {
-                            cur_beam.push(ch);
+                    next_sub.sort_unstable_by_key(|n| (n.score, n.pieces_used));
+                    cur_sub.clear();
+                    for mut ch in next_sub.iter().copied() {
+                        if cur_sub.len() >= tail_bw {
+                            break;
+                        }
+                        if seen.insert(BridgeKey { board: ch.board, held: ch.held, q_cursor: ch.q_cursor }) {
+                            if ch.has_fp {
+                                let aidx = arena.len() as u32;
+                                arena.push(BridgeArena { parent: ch.parent_aidx, fp: ch.fp });
+                                ch.parent_aidx = aidx;
+                                ch.has_fp = false;
+                            }
+                            cur_sub.push(ch);
                         }
                     }
-                    let mut step_hist = Vec::with_capacity(cur_beam.len());
-                    for n in &cur_beam {
-                        step_hist.push((n.parent, n.fp));
-                    }
-                    hist_parents.push(step_hist);
                 }
-                if found_splice.is_none() {
-                    t0 += 5;
+            }
+            best_win.map(|(_, _, mut aidx)| {
+                let mut rev = Vec::new();
+                while aidx != u32::MAX {
+                    let an = arena[aidx as usize];
+                    rev.push(an.fp);
+                    aidx = an.parent;
+                }
+                rev.reverse();
+                rev
+            })
+        };
+
+        for _pass in 0..3usize {
+            let mut improved = false;
+            let mut t0 = 0usize;
+            while t0 + 6 < best_moves.len() {
+                let states = rebuild_states(ed, &best_moves);
+                let p_cur = best_moves.len();
+                if t0 + 6 >= p_cur { break; }
+
+                // Exact tail ds-bucketed re-solve when <= 24 garbage rows remain
+                if states[t0].rem_g <= 24 {
+                    if let Some(tail) = solve_tail_ds(ed, states[t0], lns_beam_w.max(2000)) {
+                        if t0 + tail.len() < best_moves.len() {
+                            let mut new_moves = best_moves[..t0].to_vec();
+                            new_moves.extend_from_slice(&tail);
+                            best_moves = new_moves;
+                            improved = true;
+                            t0 += 8;
+                            continue;
+                        }
+                    }
+                }
+
+                let win_end = (t0 + 36).min(p_cur);
+                let mut targets: HashMap<LKey, usize, FxBuild> = HashMap::with_capacity_and_hasher(64, FxBuild::default());
+                let mut max_ds_span = 0usize;
+                for t2 in (t0 + 3)..=win_end {
+                    let s2 = states[t2];
+                    targets.insert(LKey { board: s2.board, held: s2.held, rem_g: s2.rem_g, q_cursor: s2.q_cursor }, t2);
+                    max_ds_span = max_ds_span.max(states[t0].rem_g.saturating_sub(s2.rem_g) as usize);
+                }
+                if max_ds_span == 0 {
+                    t0 += 6;
+                    continue;
+                }
+
+                let mut arena: Vec<BridgeArena> = Vec::with_capacity(lns_beam_w * 8);
+                let mut buckets: Vec<Vec<BridgeNode>> = vec![Vec::new(); max_ds_span + 1];
+                buckets[0].push(BridgeNode {
+                    board: states[t0].board,
+                    held: states[t0].held,
+                    q_cursor: states[t0].q_cursor,
+                    pieces_used: 0,
+                    rem_g: states[t0].rem_g,
+                    score: 0,
+                    parent_aidx: u32::MAX,
+                    fp: dummy_fp,
+                    has_fp: false,
+                });
+
+                let mut best_splice: Option<(usize, usize, u32, FastPlace)> = None; // (gain, t2, parent_aidx, last_fp)
+                let mut cur_sub: Vec<BridgeNode> = Vec::with_capacity(lns_beam_w);
+                let mut next_sub: Vec<BridgeNode> = Vec::with_capacity(lns_beam_w * 16);
+                let mut seen: HashSet<BridgeKey, FxBuild> =
+                    HashSet::with_capacity_and_hasher(lns_beam_w * 4, FxBuild::default());
+
+                for ds_cur in 0..max_ds_span {
+                    let mut bucket = std::mem::take(&mut buckets[ds_cur]);
+                    if bucket.is_empty() { continue; }
+                    bucket.sort_unstable_by_key(|n| (n.score, n.pieces_used));
+                    seen.clear();
+                    cur_sub.clear();
+                    for mut n in bucket {
+                        if cur_sub.len() >= lns_beam_w { break; }
+                        if seen.insert(BridgeKey { board: n.board, held: n.held, q_cursor: n.q_cursor }) {
+                            if n.has_fp {
+                                let aidx = arena.len() as u32;
+                                arena.push(BridgeArena { parent: n.parent_aidx, fp: n.fp });
+                                n.parent_aidx = aidx;
+                                n.has_fp = false;
+                            }
+                            cur_sub.push(n);
+                        }
+                    }
+                    let mut best_next_ds_sc = i64::MAX;
+                    for z_sub in 0..=8usize {
+                        if cur_sub.is_empty() { break; }
+                        if z_sub > 0 && best_next_ds_sc != i64::MAX && cur_sub[0].score > best_next_ds_sc + 900 {
+                            break;
+                        }
+                        next_sub.clear();
+                        for &node in &cur_sub {
+                            let np = node.pieces_used + 1;
+                            if (np as usize) > 32 { continue; }
+                            let qc = node.q_cursor as usize;
+                            let (c_nh, c_h) = if node.held.is_some() {
+                                (ed.pieces.get(qc).copied(), node.held)
+                            } else {
+                                (ed.pieces.get(qc).copied(), ed.pieces.get(qc + 1).copied())
+                            };
+                            if c_nh.is_none() && c_h.is_none() { continue; }
+                            pgen.generate_for_state(&fst, &node.board, c_nh, c_h, &mut tmp_places);
+                            for &fp in &tmp_places {
+                                let mut b = node.board;
+                                let o = &fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
+                                let (lines, ds_d, _) = b.place_and_sift(o, fp.norm_i, fp.norm_j);
+                                let rem_g = node.rem_g.saturating_sub(ds_d as u16);
+                                if rem_g == 0 && b.rows < 20 && t0 + (np as usize) < p_cur {
+                                    let gain = p_cur - (t0 + np as usize);
+                                    if best_splice.map_or(true, |x| gain > x.0) {
+                                        best_splice = Some((gain, p_cur, node.parent_aidx, fp));
+                                    }
+                                    continue;
+                                }
+                                if rem_g > 0 && !spawn_exact_cheese(&mut b, rem_g, lines, &ed.holes) { continue; }
+                                let (held, nqc) = if node.held.is_some() {
+                                    if fp.did_hold { (c_nh, (qc + 1).min(q_len)) } else { (node.held, (qc + 1).min(q_len)) }
+                                } else if fp.did_hold {
+                                    (c_nh, (qc + 2).min(q_len))
+                                } else {
+                                    (None, (qc + 1).min(q_len))
+                                };
+                                let key = LKey { board: b, held, rem_g, q_cursor: nqc as u16 };
+                                if let Some(&t2) = targets.get(&key) {
+                                    if t0 + (np as usize) < t2 {
+                                        let gain = t2 - (t0 + np as usize);
+                                        if best_splice.map_or(true, |x| gain > x.0) {
+                                            best_splice = Some((gain, t2, node.parent_aidx, fp));
+                                        }
+                                    }
+                                }
+                                let in_h = held.or_else(|| ed.pieces.get(nqc).copied());
+                                let sc = (np as i64) * 100 + mdl.eval_b(&b, rem_g, in_h, 0x7F);
+                                if ds_d > 0 {
+                                    let nds = (ds_cur + ds_d as usize).min(max_ds_span);
+                                    if sc < best_next_ds_sc { best_next_ds_sc = sc; }
+                                    buckets[nds].push(BridgeNode {
+                                        board: b, held, q_cursor: nqc as u16, pieces_used: np, rem_g,
+                                        score: sc, parent_aidx: node.parent_aidx, fp, has_fp: true,
+                                    });
+                                } else {
+                                    next_sub.push(BridgeNode {
+                                        board: b, held, q_cursor: nqc as u16, pieces_used: np, rem_g,
+                                        score: sc, parent_aidx: node.parent_aidx, fp, has_fp: true,
+                                    });
+                                }
+                            }
+                        }
+                        if next_sub.is_empty() { break; }
+                        next_sub.sort_unstable_by_key(|n| (n.score, n.pieces_used));
+                        cur_sub.clear();
+                        for mut ch in next_sub.iter().copied() {
+                            if cur_sub.len() >= lns_beam_w { break; }
+                            if seen.insert(BridgeKey { board: ch.board, held: ch.held, q_cursor: ch.q_cursor }) {
+                                if ch.has_fp {
+                                    let aidx = arena.len() as u32;
+                                    arena.push(BridgeArena { parent: ch.parent_aidx, fp: ch.fp });
+                                    ch.parent_aidx = aidx;
+                                    ch.has_fp = false;
+                                }
+                                cur_sub.push(ch);
+                            }
+                        }
+                    }
+                }
+
+                if let Some((_, t2, mut aidx, last_fp)) = best_splice {
+                    let mut prefix = vec![last_fp];
+                    while aidx != u32::MAX {
+                        let an = arena[aidx as usize];
+                        prefix.push(an.fp);
+                        aidx = an.parent;
+                    }
+                    prefix.reverse();
+                    let mut new_moves = best_moves[..t0].to_vec();
+                    new_moves.extend_from_slice(&prefix);
+                    if t2 < best_moves.len() {
+                        new_moves.extend_from_slice(&best_moves[t2..]);
+                    }
+                    best_moves = new_moves;
+                    improved = true;
+                } else {
+                    t0 += 6;
                 }
             }
             if !improved { break; }

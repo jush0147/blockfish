@@ -69,6 +69,8 @@ fn preset_eval_weights(name: &str) -> EvalWeights {
             ew.h1_contig_cover = 140;
             ew.h2_contig_cover = 95;
             ew.h3_block = 22;
+            ew.endgame_cell_taper = 47;
+            ew.endgame_cell_taper_rem = 5;
             ew
         }
         "cons25" => {
@@ -2487,6 +2489,466 @@ fn generate_game_data_wg(
     }
 }
 
+fn generate_game_data_legal(
+    seed: u64,
+    cf_per_game: usize,
+    policy_cfg: &BeamConfig,
+    teacher: &Teacher,
+) -> GameGenerated {
+    let ed = match collect_exact_seed(seed) {
+        Some(e) => e,
+        None => {
+            return GameGenerated {
+                ed: None,
+                pieces: 400,
+                ds_cleared: 0,
+                topout: true,
+                states: Vec::new(),
+                traj_recs: Vec::new(),
+                cf_tasks: Vec::new(),
+            };
+        }
+    };
+    let fst = FastShapeTable::srs();
+
+    let mut game_cfg = BSConfig::default();
+    game_cfg.garbage.total_lines = Some(100);
+    game_cfg.prng_seed = Some(seed);
+    let mut stacker = Stacker::new(Ruleset::guideline().into(), game_cfg);
+    let mut bag_tracker = BagTracker::new();
+    let mut pgen = FastPlaceGen::new();
+    let mut ai = FastAI::new(policy_cfg.clone());
+    let mut ai_in = FastAI::new(BeamConfig::default());
+    let mut root_places = Vec::with_capacity(64);
+    let mut tmp_places = Vec::with_capacity(64);
+
+    #[derive(Clone, Copy)]
+    struct H5Node {
+        board: FastBoard,
+        held: Option<u8>,
+        q_cursor: usize,
+        rem_g: u16,
+        first_idx: u16,
+        score: i64,
+    }
+    #[derive(Clone, Copy, Eq, PartialEq, Hash)]
+    struct H5Key {
+        board: FastBoard,
+        held: Option<u8>,
+        rem_g: u16,
+    }
+    let mut h5_beam: Vec<H5Node> = Vec::with_capacity(36);
+    let mut h5_children: Vec<H5Node> = Vec::with_capacity(36 * 32);
+    let mut h5_seen: HashSet<H5Key, FxBuild> =
+        HashSet::with_capacity_and_hasher(36 * 4, FxBuild::default());
+
+    let mut states: Vec<StateFeat> = Vec::with_capacity(600);
+    let mut traj_recs: Vec<(usize, u16)> = Vec::with_capacity(240);
+    let mut cf_tasks: Vec<CfTask> = Vec::with_capacity(cf_per_game + 4);
+
+    let mut ds_total = 0usize;
+    let mut q_pos = 0usize;
+    let mut pcs = 0usize;
+    let max_cf_rem_g: u16 = 99;
+    let mut next_cf_rem_g: u16 = max_cf_rem_g;
+    let cf_step_g: u16 = (92u16 / (cf_per_game.max(1) as u16)).max(2);
+    let mut topout = false;
+
+    while ds_total < 100 && pcs < 260 && stacker.current_piece_type().is_some() {
+        let snap = match stacker.snapshot() {
+            Some(s) => s,
+            None => {
+                topout = true;
+                break;
+            }
+        };
+        let legal_bag = bag_tracker.observe(snap.hold, &snap.queue);
+        let legal_q_len = snap.queue.len().min(6);
+        let mut legal_q = [0u8; 6];
+        for (i, &c) in snap.queue.iter().take(legal_q_len).enumerate() {
+            legal_q[i] = color_to_idx(c) as u8;
+        }
+        let g_rows = garbage_rows(&stacker);
+        let root_board = FastBoard::from_basic_matrix(&snap.matrix, g_rows);
+        let rem_g0 = 100usize.saturating_sub(ds_total) as u16;
+        let hold0 = snap.hold.map(|cc| color_to_idx(cc) as u8);
+        let q_start = q_pos.min(ed.pieces.len());
+        let q_full = &ed.pieces[q_start..];
+        let q_full_len = q_full.len();
+        if q_full_len == 0 {
+            topout = true;
+            break;
+        }
+        let res = match ai.best_move(&snap, Some(g_rows), Some(rem_g0)) {
+            Some(r) => r,
+            None => {
+                topout = true;
+                break;
+            }
+        };
+        let win_fp = res.best_place;
+        let cur0 = Some(legal_q[0]);
+        let alt0 = hold0.or_else(|| legal_q[..legal_q_len].get(1).copied());
+
+        let mut b_w = root_board;
+        let o_w = &fst.shapes[win_fp.color_idx as usize].orients[win_fp.tf.2 as usize];
+        let (lines_w, ds_w, _) = b_w.place_and_sift(o_w, win_fp.norm_i, win_fp.norm_j);
+        let rem_w = rem_g0.saturating_sub(ds_w as u16);
+        if rem_w > 0 && !spawn_exact_cheese_ed(&mut b_w, rem_w, lines_w, &ed.holes) {
+            topout = true;
+            break;
+        }
+        let (held_w, qc_w) = if hold0.is_some() {
+            if win_fp.did_hold {
+                (cur0, 1.min(legal_q_len))
+            } else {
+                (hold0, 1.min(legal_q_len))
+            }
+        } else if win_fp.did_hold {
+            (cur0, 2.min(legal_q_len))
+        } else {
+            (None, 1.min(legal_q_len))
+        };
+
+        if rem_w > 0 {
+            let l_ih_w = held_w.or_else(|| legal_q[..legal_q_len].get(qc_w).copied());
+            let l_av_w = avail_mask_from_q(held_w, qc_w, &legal_q[..legal_q_len], legal_bag);
+            let win_s_idx = states.len();
+            states.push(StateFeat::from_board(&b_w, rem_w, l_ih_w, l_av_w, teacher));
+            traj_recs.push((win_s_idx, rem_w));
+
+            let do_cf = rem_g0 <= next_cf_rem_g
+                && rem_g0 > 6
+                && cf_tasks.len() < cf_per_game
+                && q_full_len > 24
+                && legal_q_len >= 5;
+
+            if do_cf {
+                next_cf_rem_g = rem_g0.saturating_sub(cf_step_g);
+                pgen.generate_for_state(&fst, &root_board, cur0, alt0, &mut root_places);
+                if let Some(chosen_idx) = root_places.iter().position(|&fp| {
+                    fp.color_idx == win_fp.color_idx
+                        && fp.tf == win_fp.tf
+                        && fp.did_hold == win_fp.did_hold
+                }) {
+                    let q5 = &legal_q[..legal_q_len];
+                    let bw5 = 36usize;
+                    let mpr5 = 8usize;
+                    h5_beam.clear();
+                    h5_seen.clear();
+                    let mut root_after1: Vec<
+                        Option<(FastBoard, Option<u8>, usize, Option<u8>, u16, u8, u8, i64)>,
+                    > = vec![None; root_places.len()];
+                    let mut root_best_goal: Vec<Option<usize>> = vec![None; root_places.len()];
+
+                    for (idx, &fp) in root_places.iter().enumerate() {
+                        let mut b = root_board;
+                        let o = &fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
+                        let (lines, ds, _) = b.place_and_sift(o, fp.norm_i, fp.norm_j);
+                        let rem_g = rem_g0.saturating_sub(ds as u16);
+                        if rem_g > 0 && !spawn_exact_cheese_ed(&mut b, rem_g, lines, &ed.holes) {
+                            continue;
+                        }
+                        let (held, qc) = if hold0.is_some() {
+                            if fp.did_hold {
+                                (cur0, 1.min(legal_q_len))
+                            } else {
+                                (hold0, 1.min(legal_q_len))
+                            }
+                        } else if fp.did_hold {
+                            (cur0, 2.min(legal_q_len))
+                        } else {
+                            (None, 1.min(legal_q_len))
+                        };
+                        if rem_g == 0 && b.rows < 20 {
+                            root_best_goal[idx] = Some(1);
+                        }
+                        let l_in_h = held.or_else(|| q5.get(qc).copied());
+                        let l_avail = avail_mask_from_q(held, qc, q5, legal_bag);
+                        let sc_legal_1ply = teacher.eval(&b, rem_g, l_in_h, l_avail);
+                        root_after1[idx] =
+                            Some((b, held, qc, l_in_h, rem_g, l_avail, ds, sc_legal_1ply));
+                        if h5_seen.insert(H5Key { board: b, held, rem_g }) {
+                            h5_beam.push(H5Node {
+                                board: b,
+                                held,
+                                q_cursor: qc,
+                                rem_g,
+                                first_idx: idx as u16,
+                                score: sc_legal_1ply,
+                            });
+                        }
+                    }
+
+                    let max_d = legal_q_len.saturating_sub(if hold0.is_some() { 0 } else { 1 }).max(1);
+                    for depth in 2..=max_d {
+                        h5_children.clear();
+                        for node in &h5_beam {
+                            if node.rem_g == 0 {
+                                continue;
+                            }
+                            let qc = node.q_cursor;
+                            let (c_nh, c_h) = if node.held.is_some() {
+                                (q5.get(qc).copied(), node.held)
+                            } else {
+                                (q5.get(qc).copied(), q5.get(qc + 1).copied())
+                            };
+                            if c_nh.is_none() && c_h.is_none() {
+                                continue;
+                            }
+                            pgen.generate_for_state(&fst, &node.board, c_nh, c_h, &mut tmp_places);
+                            for &fp in &tmp_places {
+                                let mut b = node.board;
+                                let o =
+                                    &fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
+                                let (lines, ds, _) = b.place_and_sift(o, fp.norm_i, fp.norm_j);
+                                let rem_g = node.rem_g.saturating_sub(ds as u16);
+                                if rem_g > 0
+                                    && !spawn_exact_cheese_ed(&mut b, rem_g, lines, &ed.holes)
+                                {
+                                    continue;
+                                }
+                                let (held, nqc) = if node.held.is_some() {
+                                    if fp.did_hold {
+                                        (c_nh, (qc + 1).min(legal_q_len))
+                                    } else {
+                                        (node.held, (qc + 1).min(legal_q_len))
+                                    }
+                                } else if fp.did_hold {
+                                    (c_nh, (qc + 2).min(legal_q_len))
+                                } else {
+                                    (None, (qc + 1).min(legal_q_len))
+                                };
+                                if rem_g == 0 && b.rows < 20 {
+                                    let ri = node.first_idx as usize;
+                                    if root_best_goal[ri].map_or(true, |gd| depth < gd) {
+                                        root_best_goal[ri] = Some(depth);
+                                    }
+                                }
+                                let in_h = held.or_else(|| q5.get(nqc).copied());
+                                let av = avail_mask_from_q(held, nqc, q5, legal_bag);
+                                let sc = teacher.eval(&b, rem_g, in_h, av);
+                                h5_children.push(H5Node {
+                                    board: b,
+                                    held,
+                                    q_cursor: nqc,
+                                    rem_g,
+                                    first_idx: node.first_idx,
+                                    score: sc,
+                                });
+                            }
+                        }
+                        if h5_children.is_empty() {
+                            break;
+                        }
+                        h5_children.sort_unstable_by_key(|n| (n.score, n.first_idx));
+                        h5_beam.clear();
+                        h5_seen.clear();
+                        let mut rc = vec![0usize; root_places.len()];
+                        for &ch in &h5_children {
+                            if h5_beam.len() >= bw5 {
+                                break;
+                            }
+                            if rc[ch.first_idx as usize] >= mpr5 {
+                                continue;
+                            }
+                            if h5_seen.insert(H5Key {
+                                board: ch.board,
+                                held: ch.held,
+                                rem_g: ch.rem_g,
+                            }) {
+                                rc[ch.first_idx as usize] += 1;
+                                h5_beam.push(ch);
+                            }
+                        }
+                    }
+
+                    let mut root_beam_rank: Vec<Option<i64>> = vec![None; root_places.len()];
+                    for (ri, &gd) in root_best_goal.iter().enumerate() {
+                        if let Some(d) = gd {
+                            root_beam_rank[ri] = Some(-30_000_000 + (d as i64) * 100);
+                        }
+                    }
+                    for node in &h5_beam {
+                        let ri = node.first_idx as usize;
+                        if root_beam_rank[ri].is_none() {
+                            root_beam_rank[ri] = Some(node.score);
+                        }
+                    }
+
+                    let sc_w_1ply = root_after1[chosen_idx].map(|x| x.7).unwrap_or(0);
+                    let mut best_runner: Option<(usize, i64)> = None;
+                    let mut best_opp_ds: Option<(usize, i64)> = None;
+                    let mut best_1ply_other: Option<(usize, i64)> = None;
+                    let mut best_clean_alt: Option<(usize, i64)> = None;
+                    let mut sorted_1ply: Vec<(usize, i64, i32)> =
+                        Vec::with_capacity(root_places.len());
+
+                    for ri in 0..root_places.len() {
+                        if let Some((b_l, _, _, _, rem_l, _, ds_l, sc_l_1ply)) = root_after1[ri] {
+                            if rem_l == 0 {
+                                continue;
+                            }
+                            let (stk_c, cov_h, h1_b) = fast_leaf_clean_metrics(&b_l);
+                            if b_l.rows < 20 {
+                                sorted_1ply.push((ri, sc_l_1ply, cov_h));
+                            }
+                            if ri == chosen_idx {
+                                continue;
+                            }
+                            if best_1ply_other.map_or(true, |x| sc_l_1ply < x.1) {
+                                best_1ply_other = Some((ri, sc_l_1ply));
+                            }
+                            if let Some(br) = root_beam_rank[ri] {
+                                if best_runner.map_or(true, |x| br < x.1) {
+                                    best_runner = Some((ri, br));
+                                }
+                            }
+                            if (ds_l > 0) != (ds_w > 0) {
+                                let metric = root_beam_rank[ri].unwrap_or(sc_l_1ply + 500_000);
+                                if best_opp_ds.map_or(true, |x| metric < x.1) {
+                                    best_opp_ds = Some((ri, metric));
+                                }
+                            }
+                            let clean_metric = (cov_h * 80 + h1_b * 40 + stk_c * 4) as i64;
+                            if best_clean_alt.map_or(true, |x| clean_metric < x.1) {
+                                best_clean_alt = Some((ri, clean_metric));
+                            }
+                        }
+                    }
+                    sorted_1ply.sort_unstable_by_key(|x| x.1);
+                    let mut best_hole_alt: Option<usize> = None;
+                    for &(ri, _, cov_h) in sorted_1ply.iter().take(15) {
+                        if ri != chosen_idx && cov_h > 0 {
+                            best_hole_alt = Some(ri);
+                            break;
+                        }
+                    }
+
+                    let mut cand_ris: Vec<usize> = Vec::with_capacity(5);
+                    let mut root_cands: Vec<CfCand> = Vec::with_capacity(5);
+                    cand_ris.push(chosen_idx);
+                    root_cands.push(CfCand {
+                        state_idx: win_s_idx,
+                        board: b_w,
+                        held: held_w,
+                        qc: qc_w,
+                        rem_g: rem_w,
+                        ref_score: sc_w_1ply,
+                    });
+                    for opt_ri in [
+                        best_opp_ds.map(|x| x.0),
+                        best_runner.map(|x| x.0),
+                        best_hole_alt,
+                        best_1ply_other.map(|x| x.0),
+                        best_clean_alt.map(|x| x.0),
+                    ] {
+                        if root_cands.len() >= 5 {
+                            break;
+                        }
+                        if let Some(ri) = opt_ri {
+                            if !cand_ris.contains(&ri) {
+                                if let Some((b_l, held_l, qc_l, l_ih_l, rem_l, l_av_l, _, sc_l_1ply)) =
+                                    root_after1[ri]
+                                {
+                                    let l_s_idx = states.len();
+                                    states.push(StateFeat::from_board(
+                                        &b_l, rem_l, l_ih_l, l_av_l, teacher,
+                                    ));
+                                    cand_ris.push(ri);
+                                    root_cands.push(CfCand {
+                                        state_idx: l_s_idx,
+                                        board: b_l,
+                                        held: held_l,
+                                        qc: qc_l,
+                                        rem_g: rem_l,
+                                        ref_score: sc_l_1ply,
+                                    });
+                                }
+                            }
+                        }
+                    }
+
+                    if root_cands.len() >= 2 {
+                        let base_rng = seed.wrapping_mul(0x9E3779B97F4A7C15)
+                            ^ ((pcs as u64) + 1).wrapping_mul(0xBF58476D1CE4E5B9);
+                        let unspawned0 = (rem_g0 as usize).saturating_sub(g_rows as usize);
+                        let spawned_so_far0 = 100usize.saturating_sub(unspawned0);
+                        let prev_hole0 =
+                            if spawned_so_far0 > 0 && spawned_so_far0 <= ed.holes.len() {
+                                ed.holes[spawned_so_far0 - 1]
+                            } else if g_rows > 0 {
+                                (!root_board.data[0] & 0x3FF).trailing_zeros() as u16
+                            } else {
+                                4
+                            };
+                        cf_tasks.push(CfTask {
+                            base_rng,
+                            q_start,
+                            q_win_len: legal_q_len,
+                            legal_q,
+                            legal_q_len,
+                            legal_bag,
+                            bag_at_q_end: legal_bag,
+                            spawned_so_far0,
+                            prev_hole0,
+                            sc_w_1ply,
+                            root_cands,
+                            leaf_cands: Vec::new(),
+                            max_spawned_leaf: spawned_so_far0,
+                            prev_hole_leaf: prev_hole0,
+                        });
+                    }
+                }
+            }
+        }
+
+        let mut inputs = match ai_in.inputs_for_place(&snap.matrix, win_fp) {
+            Some(inp) => inp,
+            None => {
+                topout = true;
+                break;
+            }
+        };
+        inputs.pop();
+        if win_fp.did_hold {
+            if hold0.is_none() {
+                q_pos += 2;
+            } else {
+                q_pos += 1;
+            }
+        } else {
+            q_pos += 1;
+        }
+        stacker.run(inputs);
+        let (_, ds) = stacker.hard_drop();
+        pcs += 1;
+        ds_total += ds;
+    }
+
+    if ds_total < 100 || topout {
+        return GameGenerated {
+            ed: None,
+            pieces: 400,
+            ds_cleared: ds_total,
+            topout: true,
+            states: Vec::new(),
+            traj_recs: Vec::new(),
+            cf_tasks: Vec::new(),
+        };
+    }
+
+    GameGenerated {
+        ed: Some(ed),
+        pieces: pcs,
+        ds_cleared: ds_total,
+        topout: false,
+        states,
+        traj_recs,
+        cf_tasks,
+    }
+}
+
 #[allow(clippy::too_many_arguments)]
 fn run_cf_task(
     task: &CfTask,
@@ -3156,6 +3618,81 @@ fn eval_legal_quick(label: &str, seeds: &[u64], mdl: &Arc<SpatialValueModel>, si
     );
 }
 
+fn eval_legal_rpimc(label: &str, seeds: &[u64], mdl: &Arc<SpatialValueModel>, rerank_only: bool) {
+    let t0 = Instant::now();
+    let mut cfg = BeamConfig::default();
+    cfg.beam_width = 120;
+    cfg.max_per_root = 24;
+    cfg.rollout_top_k = 12;
+    cfg.bag_det_extend = true;
+    cfg.endgame_wide = true;
+    cfg.endgame_solver = true;
+    cfg.spatial_model = Some(mdl.clone());
+    cfg.spatial_rerank_only = rerank_only;
+    cfg.weights = preset_eval_weights("cons22");
+    cfg.spatial_fast_ew_internal = rerank_only;
+    cfg.root_pimc_worlds = 8;
+    cfg.root_pimc_horizon = 10;
+    cfg.root_pimc_roots = 8;
+    cfg.root_pimc_width = 24;
+    cfg.root_pimc_margin = 350;
+    cfg.root_pimc_weight_pct = 100;
+    cfg.root_pimc_steady_g4 = false;
+
+    let n_threads = std::thread::available_parallelism()
+        .map(|n| n.get())
+        .unwrap_or(2)
+        .min(seeds.len().max(1));
+    let chunk_sz = (seeds.len() + n_threads - 1) / n_threads;
+    let pcs: Vec<usize> = std::thread::scope(|sc| {
+        let handles: Vec<_> = seeds
+            .chunks(chunk_sz)
+            .map(|sl| {
+                let cfg_ref = &cfg;
+                sc.spawn(move || {
+                    sl.iter()
+                        .map(|&s| {
+                            let mut gc = BSConfig::default();
+                            gc.garbage.total_lines = Some(100);
+                            gc.prng_seed = Some(s);
+                            let mut stacker = Stacker::new(Ruleset::guideline().into(), gc);
+                            let mut ai = FastAI::new(cfg_ref.clone());
+                            let mut ds_total = 0usize;
+                            let mut moves = 0usize;
+                            while ds_total < 100 && stacker.current_piece_type().is_some() {
+                                let snap = stacker.snapshot().unwrap();
+                                let g_rows = garbage_rows(&stacker);
+                                let rem_g = 100usize.saturating_sub(ds_total) as u16;
+                                let res = match ai.best_move(&snap, Some(g_rows), Some(rem_g)) {
+                                    Some(r) => r,
+                                    None => return 400,
+                                };
+                                let mut inputs = res.inputs;
+                                inputs.pop();
+                                stacker.run(inputs);
+                                let (_, ds) = stacker.hard_drop();
+                                moves += 1;
+                                ds_total += ds;
+                            }
+                            if ds_total < 100 { 400 } else { moves }
+                        })
+                        .collect::<Vec<_>>()
+                })
+            })
+            .collect();
+        let mut out = Vec::with_capacity(seeds.len());
+        for h in handles {
+            out.extend(h.join().unwrap());
+        }
+        out
+    });
+    let mean = pcs.iter().sum::<usize>() as f64 / pcs.len() as f64;
+    println!(
+        "{:<26} mean={:6.2} per_seed={:?} dt={:.1}s",
+        label, mean, pcs, t0.elapsed().as_secs_f64()
+    );
+}
+
 fn eval_oracle_quick(
     label: &str,
     seeds: &[u64],
@@ -3468,7 +4005,7 @@ fn compute_gentle_bounds(dense_inv_std: &[f32; DENSE_DIM]) -> (Vec<f64>, Vec<f64
         }
     }
 
-    set_raw_range(&mut lb, &mut ub, 3, -0.24, 0.06); // stack_cells (conservation-law safe)
+    set_raw_range(&mut lb, &mut ub, 3, -0.25, -0.06); // stack_cells (strict conservation law prior)
     set_raw_range(&mut lb, &mut ub, 4, -0.10, 0.10); // stack_cells_row_g
     set_raw_range(&mut lb, &mut ub, 19, 0.0, 0.20); // min_stack_h
     set_raw_range(&mut lb, &mut ub, 33, -0.06, 0.0); // h1_fit_cnt
@@ -3498,18 +4035,20 @@ fn compute_gentle_bounds(dense_inv_std: &[f32; DENSE_DIM]) -> (Vec<f64>, Vec<f64
         set_raw_range(&mut lb, &mut ub, 8 + c, 0.0, 0.06);
     }
 
-    // Gentle structural safety floors so Ridge/AdamW never collapse height/hole penalties to 0
-    let floors: [(usize, f64); 10] = [
-        (2, 0.04),   // pe_net
-        (5, 0.005),  // stack_cells_above1
-        (7, 0.015),  // upper_cells
-        (21, 0.010), // stack_over2_sq
-        (22, 0.03),  // ex13_sq
-        (23, 0.12),  // covered_holes
-        (25, 0.02),  // blocks_over_holes
-        (28, 0.04),  // h1_blocks
-        (36, 0.03),  // h2_blocks
-        (47, 0.010), // bumpiness
+    // Conservation-law & structural safety floors so Ridge/AdamW never collapse height/hole penalties
+    let floors: [(usize, f64); 12] = [
+        (2, 0.05),   // pe_net
+        (5, 0.008),  // stack_cells_above1
+        (7, 0.020),  // upper_cells
+        (21, 0.012), // stack_over2_sq
+        (22, 0.04),  // ex13_sq
+        (23, 0.25),  // covered_holes
+        (25, 0.10),  // blocks_over_holes
+        (28, 0.14),  // h1_blocks
+        (36, 0.10),  // h2_blocks
+        (47, 0.025), // bumpiness
+        (72, 0.15),  // h1_contig_cover
+        (73, 0.08),  // h2_contig_cover
     ];
     for &(j, min_raw) in &floors {
         let inv = dense_inv_std[j] as f64;
@@ -3672,14 +4211,40 @@ fn ridge_fit_values(
         a[i * P1 + i] += lam_sparse * mult;
     }
     a[SPARSE_DIM * P1 + SPARSE_DIM] += 0.5;
+    // Conservation-law Ridge prior target: prevents collinear shrinkage of stack_cells/holes/cover toward 0
+    let mut prior_raw = [0.0f64; DENSE_DIM];
+    prior_raw[3] = -0.20;  // stack_cells (4P = 10*ds + stk_cells)
+    prior_raw[7] = 0.03;   // upper_cells
+    prior_raw[21] = 0.02;  // stack_over2_sq
+    prior_raw[23] = 0.45;  // covered_holes
+    prior_raw[25] = 0.16;  // blocks_over_holes
+    prior_raw[28] = 0.28;  // h1_blocks
+    prior_raw[36] = 0.20;  // h2_blocks
+    prior_raw[47] = 0.07;  // bumpiness
+    prior_raw[72] = 1.00;  // h1_contig_cover
+    prior_raw[73] = 0.70;  // h2_contig_cover
     for j in 1..DENSE_DIM {
         a[(SPARSE_DIM + j) * P1 + (SPARSE_DIM + j)] += lam_dense;
+        if prior_raw[j] != 0.0 {
+            let inv = mdl.dense_inv_std[j] as f64;
+            if inv > 1e-6 {
+                b[SPARSE_DIM + j] += lam_dense * (prior_raw[j] / inv);
+            }
+        }
     }
 
     let (mut lb, mut ub) = compute_gentle_bounds(&mdl.dense_inv_std);
     lb.push(-1e6);
     ub.push(1e6);
     let mut w = vec![0.0f64; P1];
+    for j in 1..DENSE_DIM {
+        if prior_raw[j] != 0.0 {
+            let inv = mdl.dense_inv_std[j] as f64;
+            if inv > 1e-6 {
+                w[SPARSE_DIM + j] = (prior_raw[j] / inv).clamp(lb[SPARSE_DIM + j], ub[SPARSE_DIM + j]);
+            }
+        }
+    }
     for _ in 0..600 {
         for j in 0..P1 {
             let diag = a[j * P1 + j];
@@ -3822,6 +4387,7 @@ fn main() {
     let mut out_path = "models/spatial_v1.txt".to_string();
     let mut init_path: Option<String> = None;
     let mut games: usize = 120;
+    let mut legal_dagger: usize = 0;
     let mut wg_beam: usize = 0;
     let mut wg_ds: bool = false;
     let mut horizon: usize = 12;
@@ -3833,10 +4399,10 @@ fn main() {
     let mut crn_worlds: usize = 6;
     let mut cf_per_game: usize = 24;
     let mut roll_vcal_opt: Option<bool> = None;
-    let mut epochs: usize = 35;
+    let mut epochs: usize = 12;
     let mut batch_size: usize = 128;
-    let mut lr: f32 = 0.0006;
-    let mut wd: f32 = 0.015;
+    let mut lr: f32 = 0.0005;
+    let mut wd: f32 = 0.025;
     let mut lin_lr_mult: f32 = 0.45;
     let mut rank_w: f32 = 2.0;
     let mut diff_w: f32 = 0.65;
@@ -3855,6 +4421,7 @@ fn main() {
             "--out" => { out_path = args[i + 1].clone(); i += 2; }
             "--init" => { init_path = Some(args[i + 1].clone()); i += 2; }
             "--games" => { games = args[i + 1].parse().unwrap(); i += 2; }
+            "--legal-dagger" => { legal_dagger = args[i + 1].parse().unwrap(); i += 2; }
             "--wg-beam" => { wg_beam = args[i + 1].parse().unwrap(); i += 2; }
             "--wg-ds" => { wg_ds = true; i += 1; }
             "--horizon" => { horizon = args[i + 1].parse().unwrap(); i += 2; }
@@ -3904,30 +4471,78 @@ fn main() {
         panic!("--teacher must start with cons:, learned:, spatial:, or ew:");
     };
 
+    let mut dagger_cfg = BeamConfig::default();
+    dagger_cfg.beam_width = 120;
+    dagger_cfg.max_per_root = 24;
+    dagger_cfg.rollout_top_k = 12;
+    dagger_cfg.bag_det_extend = true;
+    dagger_cfg.endgame_wide = true;
+    dagger_cfg.endgame_solver = true;
+    dagger_cfg.weights = preset_eval_weights("cons22");
+    dagger_cfg.root_pimc_worlds = 6;
+    dagger_cfg.root_pimc_horizon = 10;
+    dagger_cfg.root_pimc_roots = 8;
+    dagger_cfg.root_pimc_width = 20;
+    dagger_cfg.root_pimc_margin = 350;
+    dagger_cfg.root_pimc_weight_pct = 100;
+    dagger_cfg.root_pimc_steady_g4 = false;
+    if let Some(ref ip) = init_path {
+        dagger_cfg.spatial_model = Some(Arc::new(SpatialValueModel::load_from_file(ip).expect("load dagger init")));
+    } else {
+        match &teacher {
+            Teacher::Spatial(sm) => dagger_cfg.spatial_model = Some(sm.clone()),
+            Teacher::Learned(lm) => dagger_cfg.value_model = Some(lm.clone()),
+            Teacher::EvalWeights(ew) => dagger_cfg.weights = (**ew).clone(),
+        }
+    }
+
+    let total_games = games + legal_dagger;
     let avail_threads = std::thread::available_parallelism()
         .map(|n| n.get())
         .unwrap_or(2);
-    let n_threads = avail_threads.min(games.max(1));
+    let n_threads = avail_threads.min(total_games.max(1));
     println!(
-        "=== OOD-Safe Calibrated SpatialValueModel RL ===\n  teacher={} wg_beam={} wg_ds={} roll_vcal={} no_o_bias={} games={} seeds=[{}..{}] H={} B={} MPR={} roll_h={} roll_ds={} roll_bw={} crn_w={} cf/g={} cal_v_w={} lin_lr_mult={} threads={}",
-        teacher_arg, wg_beam, wg_ds, use_roll_vcal, !keep_o_bias, games, seed_base, seed_base + games as u64, horizon, beam_w, max_per_root, roll_horizon, roll_ds, roll_bw, crn_worlds, cf_per_game, cal_v_weight, lin_lr_mult, avail_threads
+        "=== OOD-Safe Calibrated SpatialValueModel RL ===\n  teacher={} wg_beam={} wg_ds={} roll_vcal={} no_o_bias={} games={} legal_dagger={} seeds=[{}..{}] H={} B={} MPR={} roll_h={} roll_ds={} roll_bw={} crn_w={} cf/g={} cal_v_w={} lin_lr_mult={} threads={}",
+        teacher_arg, wg_beam, wg_ds, use_roll_vcal, !keep_o_bias, games, legal_dagger, seed_base, seed_base + games as u64, horizon, beam_w, max_per_root, roll_horizon, roll_ds, roll_bw, crn_worlds, cf_per_game, cal_v_weight, lin_lr_mult, avail_threads
     );
     let _ = std::io::Write::flush(&mut std::io::stdout());
 
     // Phase 1: Play games and collect trajectories + counterfactual tasks
     let t_gen = Instant::now();
-    let seeds: Vec<u64> = (seed_base..seed_base + games as u64).collect();
+    // Interleave teacher/oracle and legal-DAgger jobs so 85/15 train/val split matches both distributions
+    let mut job_specs: Vec<(bool, u64)> = Vec::with_capacity(total_games);
+    let mut wi = 0usize;
+    let mut di = 0usize;
+    while wi < games || di < legal_dagger {
+        let take_dagger = if di >= legal_dagger {
+            false
+        } else if wi >= games {
+            true
+        } else {
+            (di * total_games) < (wi * legal_dagger)
+        };
+        if take_dagger {
+            job_specs.push((true, seed_base + 5000 + di as u64));
+            di += 1;
+        } else {
+            job_specs.push((false, seed_base + wi as u64));
+            wi += 1;
+        }
+    }
     let game_results: Vec<GameGenerated> = std::thread::scope(|sc| {
-        let chunk_sz = (seeds.len() + n_threads - 1) / n_threads;
-        let handles: Vec<_> = seeds
+        let chunk_sz = (job_specs.len() + n_threads - 1) / n_threads;
+        let handles: Vec<_> = job_specs
             .chunks(chunk_sz)
             .map(|chunk| {
                 let t_ref = &teacher;
+                let d_ref = &dagger_cfg;
                 sc.spawn(move || {
                     chunk
                         .iter()
-                        .map(|&s| {
-                            if wg_beam > 0 {
+                        .map(|&(is_dagger, s)| {
+                            if is_dagger {
+                                generate_game_data_legal(s, cf_per_game, d_ref, t_ref)
+                            } else if wg_beam > 0 {
                                 generate_game_data_wg(s, wg_beam, wg_ds, cf_per_game, t_ref)
                             } else {
                                 generate_game_data(
@@ -3944,7 +4559,7 @@ fn main() {
                 })
             })
             .collect();
-        let mut all = Vec::with_capacity(games);
+        let mut all = Vec::with_capacity(total_games);
         for h in handles {
             all.extend(h.join().unwrap());
         }
@@ -4534,6 +5149,8 @@ fn main() {
             }
             eval_legal_quick("LEGAL_p5_b120_best_nosp", &test_seeds, &mdl_arc, false);
             eval_legal_quick("LEGAL_p5_b120_best_sim1w", &test_seeds, &mdl_arc, true);
+            let rp_seeds: Vec<u64> = test_seeds.iter().copied().take(5).collect();
+            eval_legal_rpimc("LEGAL_rpimc_w8_h10_best", &rp_seeds, &mdl_arc, false);
         }
     }
 }
