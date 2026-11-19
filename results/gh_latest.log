@@ -1,4 +1,4 @@
-=== Round WG-3: WG-DS ew:cons22+strat_np (96g, B=1600) + Legal-DAgger (20g) + Relaxed-Bounds SpatialValueModel ===
+=== Round WG-4: WG-DS ew:cons22 (88g, B=1800) + Local-Oracle Legal-DAgger (24g) + Unflipped Expert-Anchored SpatialValueModel ===
 [1m[33mwarning[0m[1m: unused build dependency `fontconfig`[0m
   [1m[94m--> [0mblockfish-client/Cargo.toml:29:1
    [1m[94m|[0m
@@ -97,39 +97,53 @@
    [1m[94m|[0m                                                         [92m++++[0m
 
 [1m[33mwarning[0m: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
-[1m[92m    Finished[0m `release` profile [optimized] target(s) in 11.02s
-[1m[92m     Running[0m `target/release/examples/train_spatial --teacher 'ew:cons22' --out models/spatial_wg3.txt --wg-beam 1600 --wg-ds --games 96 --legal-dagger 20 --cf-per-game 14 --roll-ds 6 --roll-bw 24 --crn-worlds 5 --epochs 20 --batch 128 --lr 0.0010 --wd 0.025 --lin-lr-mult 0.35 --val-w 0.12 --diff-w 0.65 --rank-w 2.0 --cal-v-weight 0.75 --no-roll-vcal --seed-base 1000 --eval-oracle 5 --eval-legal 5`
+[1m[33mwarning[0m[1m: field `sc_w_1ply` is never read[0m
+   [1m[94m--> [0mblockfish-engine/examples/train_spatial.rs:476:5
+    [1m[94m|[0m
+[1m[94m466[0m [1m[94m|[0m struct CfTask {
+    [1m[94m|[0m        [1m[94m------[0m [1m[94mfield in this struct[0m
+[1m[94m...[0m
+[1m[94m476[0m [1m[94m|[0m     sc_w_1ply: i64,
+    [1m[94m|[0m     [1m[33m^^^^^^^^^[0m
+    [1m[94m|[0m
+    [1m[94m= [0m[1mnote[0m: `CfTask` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis
+    [1m[94m= [0m[1mnote[0m: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m: `blockfish` (example "train_spatial") generated 1 warning
+[1m[92m    Finished[0m `release` profile [optimized] target(s) in 8.87s
+[1m[92m     Running[0m `target/release/examples/train_spatial --teacher 'ew:cons22' --out models/spatial_wg4.txt --wg-beam 1800 --wg-ds --games 88 --legal-dagger 24 --cf-per-game 14 --roll-ds 8 --roll-bw 36 --crn-worlds 5 --epochs 24 --batch 128 --lr 0.0010 --wd 0.025 --lin-lr-mult 0.35 --val-w 0.12 --diff-w 0.65 --rank-w 2.0 --cal-v-weight 0.40 --no-roll-vcal --seed-base 1000 --eval-oracle 5 --eval-legal 5`
 === OOD-Safe Calibrated SpatialValueModel RL ===
-  teacher=ew:cons22 wg_beam=1600 wg_ds=true roll_vcal=false nds_pen=0 no_o_bias=true games=96 legal_dagger=20 seeds=[1000..1096] H=12 B=140 MPR=20 roll_h=20 roll_ds=6 roll_bw=24 crn_w=5 cf/g=14 cal_v_w=0.75 lin_lr_mult=0.35 threads=4
-  Ridge [pre_V_cal_MC] (13465 samples, sum_w=13465.0): mae=1.885 rmse=2.421
-  [pre_V_cal_MC] bias=+89.20 g0_sp=+0.50 h_IOT=(-0.044,+0.060,-0.060) | lin_raw: rem_g:+1.682 g:+0.000 pe_net:+0.048 stk_cells:+0.000 max_sh:+0.020 over2_sq:+0.015 cov_holes:+0.200 blk_over_h:+0.080 h1_blk:+0.120 h2_blk:+0.080 bump:+0.020 near9:-0.220 clean_sk:-0.180 h2_only_rg:+0.050 h1_ds_rg_h2:+0.000 h1_cc:+0.572 h2_cc:+0.239
-Phase 1: 116 valid (0 topouts, 1624 cf_tasks) in 1893.6s | teacher(96) mean=167.35 [161..174] emp_rate=1.6735 | dagger(20/0 top) mean=202.85 [193..214]
-  Ridge [V_cal_MC] (13465 samples, sum_w=13465.0): mae=1.885 rmse=2.421
-  [V_cal_MC] bias=+89.20 g0_sp=+0.50 h_IOT=(-0.044,+0.060,-0.060) | lin_raw: rem_g:+1.682 g:+0.000 pe_net:+0.048 stk_cells:+0.000 max_sh:+0.020 over2_sq:+0.015 cov_holes:+0.200 blk_over_h:+0.080 h1_blk:+0.120 h2_blk:+0.080 bump:+0.020 near9:-0.220 clean_sk:-0.180 h2_only_rg:+0.050 h1_ds_rg_h2:+0.000 h1_cc:+0.572 h2_cc:+0.239
-  LeafEval calibration (clean_mc=13465): emp_rate=1.6735 t_scale=1.0208 t_shift=-2.39 v_cal_w=0.75
-Phase 3: 1624 CF jobs finished in 503.3s | states=31939 train_vals=11451 val_vals=2105 train_pairs=19059 val_pairs=3470 crn_flipped=1212
-  Ridge [ep0_init] (11451 vals, 19059 pairs, sum_w=93855.1): mae=2.468 rmse=3.165 | train_pair=71.2% diff_mae=2.572
-  Saved pure-Ridge ep0 model to models/spatial_wg3_ep0.txt
-  [ep0_init] bias=+90.55 g0_sp=+0.50 h_IOT=(-0.060,+0.060,-0.060) | lin_raw: rem_g:+1.610 g:+0.000 pe_net:+0.450 stk_cells:+0.000 max_sh:+0.020 over2_sq:+0.015 cov_holes:+0.200 blk_over_h:+0.080 h1_blk:+0.120 h2_blk:+0.080 bump:+0.020 near9:-0.172 clean_sk:-0.180 h2_only_rg:+0.000 h1_ds_rg_h2:+0.000 h1_cc:+0.577 h2_cc:+0.060
-  ep= 0/20 lr=0.00000 | cf_mae=2.548 diff_mae=2.701 pair=72.2% trap=51.3% flip=71.6% (232) rank_l=0.885 comb=3.908
-  ep= 1/20 lr=0.00050 | cf_mae=2.491 diff_mae=2.589 pair=75.4% trap=57.2% flip=66.4% (232) rank_l=0.793 comb=3.643
-  ep= 5/20 lr=0.00086 | cf_mae=2.322 diff_mae=2.415 pair=77.5% trap=64.6% flip=62.1% (232) rank_l=0.712 comb=3.342
-  ep=10/20 lr=0.00052 | cf_mae=2.264 diff_mae=2.425 pair=76.8% trap=64.0% flip=62.1% (232) rank_l=0.729 comb=3.373
-  ep=15/20 lr=0.00019 | cf_mae=2.244 diff_mae=2.426 pair=75.9% trap=63.6% flip=61.2% (232) rank_l=0.736 comb=3.386
-  ep=20/20 lr=0.00005 | cf_mae=2.238 diff_mae=2.426 pair=75.5% trap=62.9% flip=60.8% (232) rank_l=0.739 comb=3.391
-  [best] bias=+90.56 g0_sp=+0.50 h_IOT=(-0.060,+0.060,-0.060) | lin_raw: rem_g:+1.615 g:+0.000 pe_net:+0.413 stk_cells:+0.000 max_sh:+0.020 over2_sq:+0.015 cov_holes:+0.200 blk_over_h:+0.080 h1_blk:+0.120 h2_blk:+0.080 bump:+0.020 near9:-0.158 clean_sk:-0.172 h2_only_rg:+0.005 h1_ds_rg_h2:+0.000 h1_cc:+0.574 h2_cc:+0.064
-Saved best SpatialValueModel (best_comb=3.342) to models/spatial_wg3.txt in 8.3s
+  teacher=ew:cons22 wg_beam=1800 wg_ds=true roll_vcal=false nds_pen=0 no_o_bias=true games=88 legal_dagger=24 seeds=[1000..1088] H=12 B=140 MPR=20 roll_h=20 roll_ds=8 roll_bw=36 crn_w=5 cf/g=14 cal_v_w=0.4 lin_lr_mult=0.35 threads=4
+  Ridge [pre_V_cal_MC] (12247 samples, sum_w=12247.0): mae=1.741 rmse=2.227
+  [pre_V_cal_MC] bias=+88.75 g0_sp=+0.50 h_IOT=(-0.048,+0.060,-0.060) | lin_raw: rem_g:+1.674 g:+0.000 pe_net:+0.040 stk_cells:+0.000 max_sh:+0.020 over2_sq:+0.015 cov_holes:+0.360 blk_over_h:+0.120 h1_blk:+0.240 h2_blk:+0.140 bump:+0.040 near9:-0.220 clean_sk:-0.180 h2_only_rg:+0.058 h1_ds_rg_h2:+0.000 h1_cc:+0.500 h2_cc:+0.347
+Phase 1: 112 valid (0 topouts, 1568 cf_tasks) in 1101.9s | teacher(88) mean=166.62 [161..173] emp_rate=1.6663 | dagger(24/0 top) mean=203.00 [189..224]
+  Ridge [V_cal_MC] (12247 samples, sum_w=12247.0): mae=1.741 rmse=2.227
+  [V_cal_MC] bias=+88.75 g0_sp=+0.50 h_IOT=(-0.048,+0.060,-0.060) | lin_raw: rem_g:+1.674 g:+0.000 pe_net:+0.040 stk_cells:+0.000 max_sh:+0.020 over2_sq:+0.015 cov_holes:+0.360 blk_over_h:+0.120 h1_blk:+0.240 h2_blk:+0.140 bump:+0.040 near9:-0.220 clean_sk:-0.180 h2_only_rg:+0.058 h1_ds_rg_h2:+0.000 h1_cc:+0.500 h2_cc:+0.347
+  LeafEval calibration (clean_mc=12247): emp_rate=1.6663 t_scale=1.0174 t_shift=-2.59 v_cal_w=0.40
+Phase 3: 1568 CF jobs finished in 491.0s | states=30623 train_vals=10735 val_vals=2033 train_pairs=17915 val_pairs=3353 trap_pairs=5021 crn_flipped=0
+  Ridge [ep0_init] (10735 vals, 17915 pairs, sum_w=80766.6): mae=2.399 rmse=3.096 | train_pair=69.1% diff_mae=2.466
+  Saved pure-Ridge ep0 model to models/spatial_wg4_ep0.txt
+  [ep0_init] bias=+90.56 g0_sp=+0.50 h_IOT=(-0.060,+0.060,-0.060) | lin_raw: rem_g:+1.609 g:+0.000 pe_net:+0.240 stk_cells:+0.000 max_sh:+0.020 over2_sq:+0.015 cov_holes:+0.360 blk_over_h:+0.120 h1_blk:+0.240 h2_blk:+0.140 bump:+0.040 near9:-0.220 clean_sk:-0.180 h2_only_rg:+0.000 h1_ds_rg_h2:+0.000 h1_cc:+0.603 h2_cc:+0.250
+  ep= 0/24 lr=0.00000 | cf_mae=2.451 diff_mae=2.424 pair=70.8% trap=39.5% flip=0.0% (0) rank_l=0.922 comb=3.787
+  ep= 1/24 lr=0.00050 | cf_mae=2.388 diff_mae=2.290 pair=73.0% trap=47.1% flip=0.0% (0) rank_l=0.821 comb=3.489
+  ep= 5/24 lr=0.00090 | cf_mae=2.243 diff_mae=2.069 pair=76.0% trap=58.2% flip=0.0% (0) rank_l=0.725 comb=3.130
+  ep=10/24 lr=0.00065 | cf_mae=2.196 diff_mae=2.062 pair=76.0% trap=58.8% flip=0.0% (0) rank_l=0.722 comb=3.113
+  ep=15/24 lr=0.00034 | cf_mae=2.210 diff_mae=2.092 pair=75.6% trap=59.2% flip=0.0% (0) rank_l=0.747 comb=3.185
+  ep=20/24 lr=0.00011 | cf_mae=2.214 diff_mae=2.123 pair=76.2% trap=60.7% flip=0.0% (0) rank_l=0.761 comb=3.234
+  ep=24/24 lr=0.00005 | cf_mae=2.212 diff_mae=2.126 pair=75.8% trap=60.5% flip=0.0% (0) rank_l=0.763 comb=3.240
+  [best] bias=+90.57 g0_sp=+0.50 h_IOT=(-0.055,+0.056,-0.060) | lin_raw: rem_g:+1.615 g:+0.000 pe_net:+0.234 stk_cells:+0.000 max_sh:+0.020 over2_sq:+0.015 cov_holes:+0.360 blk_over_h:+0.130 h1_blk:+0.257 h2_blk:+0.149 bump:+0.042 near9:-0.208 clean_sk:-0.153 h2_only_rg:+0.019 h1_ds_rg_h2:+0.000 h1_cc:+0.617 h2_cc:+0.260
+Saved best SpatialValueModel (best_comb=3.082) to models/spatial_wg4.txt in 5.8s
 
 === Post-Training Held-Out Verification ===
-OR_p6_b120_ep0             mean=213.60 per_seed=[210, 223, 205, 211, 219] dt=25.5s
-OR_p12_b140_ep0            mean=192.00 per_seed=[190, 207, 184, 191, 188] dt=52.7s
-OR_p6_b120_best            mean=203.40 per_seed=[210, 200, 199, 211, 197] dt=39.3s
-OR_p12_b140_best           mean=188.20 per_seed=[188, 188, 195, 183, 187] dt=90.3s
-LEGAL_rpimc_flat_ep0       mean=196.00 per_seed=[203, 195, 196, 193, 193] dt=290.2s
-LEGAL_rpimc_flat_best      mean=194.60 per_seed=[187, 203, 196, 193, 194] dt=289.2s
-LEGAL_p5_b120_best_sim1w   mean=202.60 per_seed=[194, 203, 201, 213, 202] dt=42.3s
+OR_p6_b120_ep0             mean=206.80 per_seed=[212, 203, 201, 215, 203] dt=13.8s
+OR_p12_b140_ep0            mean=183.80 per_seed=[179, 185, 189, 176, 190] dt=27.1s
+OR_p6_b120_best            mean=400.00 per_seed=[400, 400, 400, 400, 400] dt=26.5s
+OR_p12_b140_best           mean=211.40 per_seed=[217, 208, 200, 229, 203] dt=60.8s
+LEGAL_rpimc_flat_ep0       mean=193.80 per_seed=[192, 196, 200, 184, 197] dt=173.0s
+LEGAL_rpimc_flat_best      mean=196.20 per_seed=[192, 198, 196, 197, 198] dt=177.9s
+LEGAL_p5_b120_best_sim1w   mean=243.40 per_seed=[253, 231, 221, 232, 280] dt=27.7s
 
-=== Post-WG3 Oracle & Legal Diagnostics ===
+=== Post-WG4 Oracle & Legal Diagnostics ===
 [1m[33mwarning[0m[1m: unused build dependency `fontconfig`[0m
   [1m[94m--> [0mblockfish-client/Cargo.toml:29:1
    [1m[94m|[0m
@@ -227,32 +241,32 @@ LEGAL_p5_b120_best_sim1w   mean=202.60 per_seed=[194, 203, 201, 213, 202] dt=42.
 
 [1m[33mwarning[0m: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
 [1m[92m   Compiling[0m blockfish v0.1.0 (/home/runner/work/blockfish/blockfish/blockfish-engine)
-[1m[92m    Finished[0m `release` profile [optimized] target(s) in 8.78s
-[1m[92m     Running[0m `target/release/examples/diag_cheese spatial_probe models/spatial_wg3.txt`
-=== Spatial Probe (models/spatial_wg3.txt) (seeds 101..=105) ===
-OR_p6_b120_h2nog0        mean=204.20 [189..217] top=0 nds=70.40 0ds=104.20 (cov=32.6 O=21.4 nar=10.8 wide=35.0 g0=0.0 end=4.4) ds(1/2/3+)=100.0/0.0/0.0 cov_nxt=17.8% avg_c=12.9 r_end=12.8 dt=16.1s
+[1m[92m    Finished[0m `release` profile [optimized] target(s) in 6.54s
+[1m[92m     Running[0m `target/release/examples/diag_cheese spatial_probe models/spatial_wg4.txt`
+=== Spatial Probe (models/spatial_wg4.txt) (seeds 101..=105) ===
+OR_p6_b120_h2nog0        mean=204.20 [189..217] top=0 nds=70.40 0ds=104.20 (cov=32.6 O=21.4 nar=10.8 wide=35.0 g0=0.0 end=4.4) ds(1/2/3+)=100.0/0.0/0.0 cov_nxt=17.8% avg_c=12.9 r_end=12.8 dt=8.7s
   per_seed=[203, 213, 199, 189, 217]
-OR_p6_b120_sp_lin        mean=210.00 [208..215] top=0 nds=72.60 0ds=110.00 (cov=41.4 O=18.6 nar=12.4 wide=31.4 g0=0.0 end=6.2) ds(1/2/3+)=100.0/0.0/0.0 cov_nxt=19.8% avg_c=12.5 r_end=14.0 dt=19.4s
-  per_seed=[215, 210, 208, 208, 209]
-OR_p6_b120_sp_full       mean=203.40 [197..211] top=0 nds=70.60 0ds=103.40 (cov=32.4 O=20.2 nar=10.2 wide=36.6 g0=0.0 end=4.0) ds(1/2/3+)=100.0/0.0/0.0 cov_nxt=15.0% avg_c=12.9 r_end=7.6 dt=33.0s
-  per_seed=[210, 200, 199, 211, 197]
+OR_p6_b120_sp_lin        mean=244.40 [197..400] top=1 nds=73.60 0ds=116.20 (cov=35.0 O=19.2 nar=12.8 wide=39.6 g0=0.0 end=9.6) ds(1/2/3+)=99.0/0.0/0.0 cov_nxt=17.8% avg_c=12.0 r_end=34.8 dt=10.3s
+  per_seed=[212, 400, 200, 213, 197]
+OR_p6_b120_sp_full       mean=400.00 [400..400] top=5 nds=82.40 0ds=160.20 (cov=74.6 O=20.0 nar=15.8 wide=43.4 g0=0.0 end=6.4) ds(1/2/3+)=86.0/0.0/0.0 cov_nxt=23.5% avg_c=12.3 r_end=146.8 dt=24.4s
+  per_seed=[400, 400, 400, 400, 400]
 
 === 1-ply breakdown on first 12 moves of seed 101 (sp_full vs h2nog0) ===
-step= 1 bo=0->0  cells= 3 ds=1 l=1 | sp(lin=162.44 mlp= -1.04) same_as_h2=true
-step= 2 bo=0->0  cells= 6 ds=1 l=1 | sp(lin=161.23 mlp= -1.18) same_as_h2=true
-step= 3 bo=0->0  cells=10 ds=0 l=0 | sp(lin=161.42 mlp= -0.70) same_as_h2=true
-step= 4 bo=0->0  cells=14 ds=0 l=0 | sp(lin=162.21 mlp= -1.41) same_as_h2=false
-step= 5 bo=0->0  cells=17 ds=1 l=1 | sp(lin=162.33 mlp= -1.12) same_as_h2=true
-step= 6 bo=0->0  cells=21 ds=0 l=0 | sp(lin=162.21 mlp= -1.65) same_as_h2=false
-step= 7 bo=0->0  cells=25 ds=0 l=0 | sp(lin=163.32 mlp= -1.97) same_as_h2=false
-step= 8 bo=0->0  cells=29 ds=0 l=0 | sp(lin=162.63 mlp= -1.91) same_as_h2=false
-step= 9 bo=0->1  cells=22 ds=1 l=2 | sp(lin=161.51 mlp= -0.16) same_as_h2=true
-step=10 bo=1->1  cells=26 ds=0 l=0 | sp(lin=160.94 mlp= -0.80) same_as_h2=false
-step=11 bo=1->2  cells=20 ds=0 l=1 | sp(lin=160.85 mlp= -1.03) same_as_h2=true
-step=12 bo=2->0  cells=14 ds=0 l=1 | sp(lin=158.18 mlp= +0.60) same_as_h2=true
-step=13 bo=0->0  cells= 7 ds=1 l=2 | sp(lin=156.96 mlp= -0.80) same_as_h2=true
-step=14 bo=0->0  cells=11 ds=0 l=0 | sp(lin=158.96 mlp= -1.81) same_as_h2=false
-step=15 bo=0->0  cells=15 ds=0 l=0 | sp(lin=159.35 mlp= -1.83) same_as_h2=false
+step= 1 bo=0->0  cells= 3 ds=1 l=1 | sp(lin=162.05 mlp= +0.52) same_as_h2=true
+step= 2 bo=0->0  cells= 7 ds=0 l=0 | sp(lin=165.51 mlp= -4.74) same_as_h2=false
+step= 3 bo=0->0  cells=11 ds=0 l=0 | sp(lin=165.66 mlp= -4.58) same_as_h2=true
+step= 4 bo=0->0  cells=15 ds=0 l=0 | sp(lin=166.49 mlp= -5.29) same_as_h2=false
+step= 5 bo=0->0  cells=19 ds=0 l=0 | sp(lin=167.26 mlp= -5.42) same_as_h2=false
+step= 6 bo=0->0  cells=22 ds=1 l=1 | sp(lin=165.67 mlp= -4.46) same_as_h2=true
+step= 7 bo=0->0  cells=26 ds=0 l=0 | sp(lin=166.88 mlp= -4.94) same_as_h2=false
+step= 8 bo=0->0  cells=30 ds=0 l=0 | sp(lin=166.45 mlp= -4.13) same_as_h2=true
+step= 9 bo=0->4  cells=33 ds=1 l=1 | sp(lin=168.11 mlp= -4.84) same_as_h2=false
+step=10 bo=4->6  cells=37 ds=0 l=0 | sp(lin=170.48 mlp= -5.60) same_as_h2=false
+step=11 bo=6->6  cells=41 ds=0 l=0 | sp(lin=170.19 mlp= -5.51) same_as_h2=true
+step=12 bo=6->5  cells=35 ds=0 l=1 | sp(lin=169.96 mlp= -5.73) same_as_h2=true
+step=13 bo=5->5  cells=39 ds=0 l=0 | sp(lin=169.87 mlp= -5.92) same_as_h2=false
+step=14 bo=5->5  cells=43 ds=0 l=0 | sp(lin=170.13 mlp= -5.56) same_as_h2=true
+step=15 bo=5->4  cells=37 ds=0 l=1 | sp(lin=165.45 mlp= -3.18) same_as_h2=true
 [1m[33mwarning[0m[1m: unused build dependency `fontconfig`[0m
   [1m[94m--> [0mblockfish-client/Cargo.toml:29:1
    [1m[94m|[0m
@@ -350,13 +364,13 @@ step=15 bo=0->0  cells=15 ds=0 l=0 | sp(lin=159.35 mlp= -1.83) same_as_h2=false
 
 [1m[33mwarning[0m: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
 [1m[92m   Compiling[0m blockfish v0.1.0 (/home/runner/work/blockfish/blockfish/blockfish-engine)
-[1m[92m    Finished[0m `release` profile [optimized] target(s) in 1.66s
-[1m[92m     Running[0m `target/release/examples/bench_legal spatial5_1 models/spatial_wg3.txt sp_rpimc_sim_w8_h9`
-=== Legal spatial5_1 (models/spatial_wg3.txt / sp_rpimc_sim_w8_h9) ===
-  [seed 101] pcs=193 nds=66 0ds=93 (cov=45 O=18 nar= 4 wide=20 end= 6) cov_nxt=19.0% | 264.3s
-  [seed 104] pcs=196 nds=67 0ds=96 (cov=38 O=17 nar= 8 wide=27 end= 6) cov_nxt=21.0% | 282.9s
-  [seed 103] pcs=192 nds=66 0ds=92 (cov=32 O=17 nar= 9 wide=32 end= 2) cov_nxt=20.0% | 287.3s
-  [seed 102] pcs=200 nds=69 0ds=100 (cov=51 O=15 nar=12 wide=19 end= 3) cov_nxt=19.0% | 289.5s
-  [seed 105] pcs=197 nds=68 0ds=97 (cov=32 O=19 nar=10 wide=29 end= 7) cov_nxt=14.0% | 438.5s
-sp_rpimc_sim_w8_h9         n= 5 mean=195.60 min=192 max=200 <=166: 0 top= 0 | nds=67.20 0ds=95.60 (cov=39.6 O=17.2 nar=8.6 wide=25.4 g0=0.0 end=4.8) cov_nxt=18.6% avg_c=12.6 | 438.5s
-  seeds: [101:193, 102:200, 103:192, 104:196, 105:197]
+[1m[92m    Finished[0m `release` profile [optimized] target(s) in 1.23s
+[1m[92m     Running[0m `target/release/examples/bench_legal spatial5_1 models/spatial_wg4.txt sp_rpimc_sim_w8_h9`
+=== Legal spatial5_1 (models/spatial_wg4.txt / sp_rpimc_sim_w8_h9) ===
+  [seed 103] pcs=202 nds=70 0ds=102 (cov=38 O=18 nar=12 wide=25 end= 9) cov_nxt=22.0% | 158.0s
+  [seed 101] pcs=197 nds=68 0ds=97 (cov=34 O=15 nar=10 wide=30 end= 8) cov_nxt=17.0% | 164.8s
+  [seed 104] pcs=204 nds=71 0ds=104 (cov=39 O=19 nar= 9 wide=34 end= 3) cov_nxt=18.0% | 172.1s
+  [seed 102] pcs=212 nds=73 0ds=112 (cov=41 O=18 nar=21 wide=26 end= 6) cov_nxt=22.0% | 172.3s
+  [seed 105] pcs=207 nds=72 0ds=107 (cov=56 O=11 nar=12 wide=23 end= 5) cov_nxt=20.0% | 270.7s
+sp_rpimc_sim_w8_h9         n= 5 mean=204.40 min=197 max=212 <=166: 0 top= 0 | nds=70.80 0ds=104.40 (cov=41.6 O=16.2 nar=12.8 wide=27.6 g0=0.0 end=6.2) cov_nxt=19.8% avg_c=14.1 | 270.7s
+  seeds: [101:197, 102:212, 103:202, 104:204, 105:207]
