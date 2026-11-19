@@ -19,6 +19,27 @@ pub fn extract_spatial_features(
     active_bits: &mut [u16; SPARSE_DIM],
     dense: &mut [f32; DENSE_DIM],
 ) -> usize {
+    extract_spatial_features_ex(
+        board,
+        rem_garbage,
+        in_hand,
+        avail_mask,
+        true,
+        active_bits,
+        dense,
+    )
+}
+
+#[inline]
+pub fn extract_spatial_features_ex(
+    board: &FastBoard,
+    rem_garbage: u16,
+    in_hand: Option<u8>,
+    avail_mask: u8,
+    compute_pe: bool,
+    active_bits: &mut [u16; SPARSE_DIM],
+    dense: &mut [f32; DENSE_DIM],
+) -> usize {
     dense.fill(0.0);
     let mut n_act = 0usize;
 
@@ -27,9 +48,13 @@ pub fn extract_spatial_features(
     let g = board.garbage_rows as usize;
     let n = board.rows as usize;
 
-    let pe = fast_piece_estimate_ex(board, false) as i32;
-    let g_off = (g as i32 - 1).max(0);
-    let pe_net = (pe - g_off).max(0);
+    let pe_net = if compute_pe {
+        let pe = fast_piece_estimate_ex(board, false) as i32;
+        let g_off = (g as i32 - 1).max(0);
+        (pe - g_off).max(0)
+    } else {
+        0
+    };
 
     // 1. Absolute 8x10 spatial window above garbage (`0..80`)
     for rel in 0..8usize {
@@ -706,7 +731,10 @@ pub struct SpatialValueModel {
     pub fast_w_dense: Box<[[f32; SPATIAL_H1]; DENSE_DIM]>,
     pub fast_min_d: [f32; DENSE_DIM],
     pub fast_max_d: [f32; DENSE_DIM],
+    pub fast_sparse_active: [bool; SPARSE_DIM],
     pub fast_dense_active: [bool; DENSE_DIM],
+    pub has_mlp: bool,
+    pub needs_pe: bool,
     pub fast_ready: bool,
 }
 
@@ -731,7 +759,10 @@ impl Default for SpatialValueModel {
             fast_w_dense: Box::new([[0.0; SPATIAL_H1]; DENSE_DIM]),
             fast_min_d: [0.0; DENSE_DIM],
             fast_max_d: [0.0; DENSE_DIM],
+            fast_sparse_active: [false; SPARSE_DIM],
             fast_dense_active: [false; DENSE_DIM],
+            has_mlp: true,
+            needs_pe: true,
             fast_ready: false,
         }
     }
@@ -749,6 +780,9 @@ impl SpatialValueModel {
 
         for h in 0..SPATIAL_H1 {
             self.fast_b1[h] = self.b1[h];
+        }
+        for i in 0..SPARSE_DIM {
+            self.fast_sparse_active[i] = self.w_sparse[i].iter().any(|&w| w != 0.0);
         }
         for j in 0..DENSE_DIM {
             let inv = self.dense_inv_std[j];
@@ -773,6 +807,8 @@ impl SpatialValueModel {
             }
             self.fast_dense_active[j] = active;
         }
+        self.has_mlp = self.b3 != 0.0 || self.w3.iter().any(|&w| w != 0.0);
+        self.needs_pe = self.lin_dense[2] != 0.0 || (self.has_mlp && self.fast_dense_active[2]);
         self.fast_ready = true;
     }
 
@@ -782,15 +818,31 @@ impl SpatialValueModel {
         active_bits: &[u16],
         dense: &[f32; DENSE_DIM],
     ) -> f32 {
+        if self.fast_ready && !self.has_mlp {
+            return self.predict_linear_extracted(active_bits, dense);
+        }
         let mut lin = if self.fast_ready { self.fast_lin_bias } else { self.lin_bias };
         let mut h1 = if self.fast_ready { self.fast_b1 } else { self.b1 };
 
-        for &bit in active_bits {
-            let idx = bit as usize;
-            lin += self.lin_sparse[idx];
-            let row = &self.w_sparse[idx];
-            for h in 0..SPATIAL_H1 {
-                h1[h] += row[h];
+        if self.fast_ready {
+            for &bit in active_bits {
+                let idx = bit as usize;
+                lin += self.lin_sparse[idx];
+                if self.fast_sparse_active[idx] {
+                    let row = &self.w_sparse[idx];
+                    for h in 0..SPATIAL_H1 {
+                        h1[h] += row[h];
+                    }
+                }
+            }
+        } else {
+            for &bit in active_bits {
+                let idx = bit as usize;
+                lin += self.lin_sparse[idx];
+                let row = &self.w_sparse[idx];
+                for h in 0..SPATIAL_H1 {
+                    h1[h] += row[h];
+                }
             }
         }
 
@@ -892,15 +944,22 @@ impl SpatialValueModel {
         }
         let mut active_bits = [0u16; SPARSE_DIM];
         let mut dense = [0.0f32; DENSE_DIM];
-        let n_act = extract_spatial_features(
+        let compute_pe = !self.fast_ready || self.needs_pe;
+        let n_act = extract_spatial_features_ex(
             board,
             rem_garbage,
             in_hand,
             avail_mask,
+            compute_pe,
             &mut active_bits,
             &mut dense,
         );
-        (self.predict_extracted(&active_bits[..n_act], &dense) * 100.0).round() as i64
+        let pred = if self.fast_ready && !self.has_mlp {
+            self.predict_linear_extracted(&active_bits[..n_act], &dense)
+        } else {
+            self.predict_extracted(&active_bits[..n_act], &dense)
+        };
+        (pred * 100.0).round() as i64
     }
 
     #[inline]
@@ -922,11 +981,13 @@ impl SpatialValueModel {
         }
         let mut active_bits = [0u16; SPARSE_DIM];
         let mut dense = [0.0f32; DENSE_DIM];
-        let n_act = extract_spatial_features(
+        let compute_pe = !self.fast_ready || self.lin_dense[2] != 0.0;
+        let n_act = extract_spatial_features_ex(
             board,
             rem_garbage,
             in_hand,
             avail_mask,
+            compute_pe,
             &mut active_bits,
             &mut dense,
         );
@@ -1220,5 +1281,19 @@ mod tests {
         assert!((ood_raw - ood_fast).abs() < 1e-3, "ood {} vs {}", ood_raw, ood_fast);
         assert!((ood_raw_lin - ood_fast_lin).abs() < 1e-3, "ood_lin {} vs {}", ood_raw_lin, ood_fast_lin);
         assert!((ood_fast - ood_fast_lin).abs() <= 2.5, "mlp_sat exceeded +-2.5: {}", ood_fast - ood_fast_lin);
+
+        // Verify has_mlp == false and needs_pe == false fast-paths match exact calculation
+        let mut m_lin = m.clone();
+        m_lin.b3 = 0.0;
+        m_lin.w3 = [0.0; SPATIAL_H2];
+        m_lin.lin_dense[2] = 0.0;
+        m_lin.w_dense[2] = [0.0; SPATIAL_H1];
+        m_lin.fast_ready = false;
+        let expected = m_lin.evaluate_board_with_bag(&fb, 50, Some(1), 0x7E);
+        m_lin.prepare_fast();
+        assert!(!m_lin.has_mlp);
+        assert!(!m_lin.needs_pe);
+        assert_eq!(m_lin.evaluate_board_with_bag(&fb, 50, Some(1), 0x7E), expected);
+        assert_eq!(m_lin.evaluate_linear_board_with_bag(&fb, 50, Some(1), 0x7E), expected);
     }
 }

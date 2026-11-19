@@ -1,7 +1,7 @@
 # Blockfish 100L Cheese Race Research Log
 
 **Branch**: `rescue/independent-validation-20261116`  
-**Objective**: Achieve **≤ 166 pieces** on official Jstris 100L Cheese Race (`block-stacker` `Ruleset::guideline()`, `previews = 5`, `total_lines = 100`, `min_height = 4`, `max_height = 9`, `BagTracker` only, zero peeking).
+**Objective**: Achieve **≤ 161 pieces** on official Jstris 100L Cheese Race (`block-stacker` `Ruleset::guideline()`, `previews = 5`, `total_lines = 100`, `min_height = 4`, `max_height = 9`, `BagTracker` only, zero peeking) — beating the 162-piece world record.
 
 ---
 
@@ -16,10 +16,10 @@
    - **Cell conservation**:
      $$4P = 100 + 10K + R \implies P = 25 + 2.5K + \frac{R}{4}, \qquad Z = 2.5K + \frac{R}{4} - 75$$
      where $K$ is non-garbage lines cleared (`nds`) and $R$ is remaining stack cells at finish.
-   - **Target Budget for $P \le 166$**:
-     - Requires **$Z \le 66$** `0ds` moves and **$K \le 55$** `nds` lines.
-     - **`O`-piece lower bound**: `O` (`2x2`) can never clear a 1-wide garbage row (`ds = 0` always). Across ~166 pieces, ~23–24 `O` pieces appear, forcing ~22–24 `0ds` moves alone.
-     - Therefore, **non-`O` `0ds` moves must be reduced to ≤ 42–44** (from ~74 in current legal baseline and ~55 in current 20-preview Oracle).
+   - **Target Budget for $P \le 161$**:
+     - Requires **$Z \le 61$** `0ds` moves and **$K \le 53.4$** `nds` lines (assuming $R \approx 10$).
+     - **`O`-piece lower bound**: `O` (`2x2`) can never clear a 1-wide garbage row (`ds = 0` always). Across ~161 pieces, ~22–23 `O` pieces appear, forcing ~22–23 `0ds` moves alone.
+     - Therefore, **non-`O` `0ds` moves must be reduced to ≤ 38–39** (from ~74 in current legal baseline and ~42.5 in `WG_ds_init` `164.60`).
 
 2. **Exact Deterministic Windows Under Legal Observability**:
    - Under `min_height = 4, max_height = 9`:

@@ -574,6 +574,7 @@ fn main() {
         eval_seeds("sp_sim1w_bdet_end", &seeds5, &c_sim);
 
         let mut c_rpimc = c_nosp.clone();
+        c_rpimc.rollout_top_k = 0;
         c_rpimc.root_pimc_worlds = 8;
         c_rpimc.root_pimc_horizon = 8;
         c_rpimc.root_pimc_roots = 8;
@@ -617,6 +618,7 @@ fn main() {
         }
 
         let mut c_rr_rp = c_rr.clone();
+        c_rr_rp.rollout_top_k = 0;
         c_rr_rp.root_pimc_worlds = 8;
         c_rr_rp.root_pimc_horizon = 8;
         c_rr_rp.root_pimc_roots = 8;
@@ -646,6 +648,7 @@ fn main() {
         println!("=== Legal spatial5_1 ({} / {}) ===", model_path, cfg_name);
 
         let mut c = make_spatial_cfg(sm);
+        c.rollout_top_k = 0;
         c.bag_det_extend = true;
         c.endgame_solver = true;
         c.root_pimc_worlds = 8;
@@ -660,6 +663,7 @@ fn main() {
         }
         if cfg_name.contains("_linfast") {
             c.spatial_rerank_only = true;
+            c.rollout_top_k = 0;
         }
         if cfg_name.contains("_w9") {
             c.root_pimc_worlds = 9;
@@ -674,6 +678,285 @@ fn main() {
             c.root_pimc_margin = 500;
         }
         eval_seeds(&cfg_name, &seeds5, &c);
+        return;
+    }
+
+    if mode == "spatial_ablate" {
+        let model_path = std::env::args()
+            .nth(2)
+            .unwrap_or_else(|| "models/spatial_wg2.txt".to_string());
+        let which = std::env::args().nth(3).unwrap_or_else(|| "all".to_string());
+        let sm = Arc::new(SpatialValueModel::load_from_file(&model_path).expect("load spatial model"));
+        println!("=== Legal spatial_ablate ({}, which={}) ===", model_path, which);
+
+        let mut c_base = make_spatial_cfg(sm);
+        c_base.bag_det_extend = true;
+        c_base.endgame_solver = true;
+        c_base.simulate_cheese_spawn = true;
+        c_base.spatial_rerank_only = true;
+        c_base.root_pimc_worlds = 8;
+        c_base.root_pimc_horizon = 9;
+        c_base.root_pimc_roots = 8;
+        c_base.root_pimc_width = 24;
+        c_base.root_pimc_margin = 350;
+        c_base.root_pimc_weight_pct = 100;
+        c_base.root_pimc_steady_g4 = false;
+
+        // Match cons22 fast eval weights when testing spatial_fast_ew_internal
+        c_base.weights.garbage_row = 165;
+        c_base.weights.piece_estimate = 0;
+        c_base.weights.stack_cell = -22;
+        c_base.weights.upper_cell = 3;
+        c_base.weights.stack_h_sq = 0;
+        c_base.weights.stack_over2_sq = 3;
+        c_base.weights.max_stack_h_excess = 14;
+        c_base.weights.covered_hole = 55;
+        c_base.weights.hole_row = 20;
+        c_base.weights.blocks_over_hole = 14;
+        c_base.weights.h1_block = 32;
+        c_base.weights.h1_contig_cover = 140;
+        c_base.weights.h1_empty_blocking = 8;
+        c_base.weights.h1_height = 10;
+        c_base.weights.h2_block = 26;
+        c_base.weights.h2_contig_cover = 95;
+        c_base.weights.h2_extra_empty = 6;
+        c_base.weights.h3_block = 22;
+        c_base.weights.h3_extra_empty = 3;
+        c_base.weights.h4_block = 8;
+        c_base.weights.h1_narrow_1 = 16;
+        c_base.weights.h1_narrow_2plus = 26;
+        c_base.weights.h1_fit_scarcity = 8;
+        c_base.weights.h1_unfit_hand = 28;
+        c_base.weights.zero_o_spot_pen = 0;
+        c_base.weights.bag_no_i_chute_pen = 18;
+        c_base.weights.open_h1_bonus = 24;
+        c_base.weights.combo2_bonus = 22;
+        c_base.weights.h1_h2_adj = 4;
+        c_base.weights.bumpiness = 11;
+        c_base.weights.sharp_diff = 5;
+        c_base.weights.i_dep = 35;
+        c_base.weights.two_well = 10;
+        c_base.weights.i_dep_multi = 50;
+        c_base.weights.i_dep_chute = 12;
+        c_base.weights.row_transition = 3;
+        c_base.weights.near_full_9_bonus = 0;
+        c_base.weights.near_full_8_bonus = 0;
+        c_base.weights.row_g_aligned_bonus = 0;
+        c_base.weights.endgame_cell_taper = 47;
+        c_base.weights.endgame_cell_taper_rem = 5;
+        c_base.weights.hold_bonus = [-10, 4, -8, 4, 4, -2, -2];
+
+        let mut c_cons_ds4 = c_base.clone();
+        c_cons_ds4.spatial_model = None;
+        c_cons_ds4.spatial_rerank_only = false;
+        c_cons_ds4.rollout_top_k = 0;
+        c_cons_ds4.beam_width = 80;
+        c_cons_ds4.max_per_root = 16;
+        c_cons_ds4.root_pimc_prescreen_worlds = 3;
+        c_cons_ds4.root_pimc_roots = 40;
+        c_cons_ds4.root_pimc_fine_roots = 10;
+        c_cons_ds4.root_pimc_worlds = 12;
+        c_cons_ds4.root_pimc_horizon = 12;
+        c_cons_ds4.root_pimc_ds_target = 4;
+        c_cons_ds4.root_pimc_width = 24;
+        if which == "0_cons22_ds4" {
+            eval_seeds("0_cons22_ds4_w12", &seeds5, &c_cons_ds4);
+        }
+
+        if which == "all" || which == "1_linfast" {
+            eval_seeds("1_linfast_w8_h9_r12", &seeds5, &c_base);
+        }
+        let mut c_r0 = c_base.clone();
+        c_r0.rollout_top_k = 0;
+        if which == "all" || which == "2_r0" {
+            eval_seeds("2_linfast_w8_h9_r0", &seeds5, &c_r0);
+        }
+        let mut c_pre = c_r0.clone();
+        c_pre.beam_width = 80;
+        c_pre.max_per_root = 16;
+        c_pre.root_pimc_prescreen_worlds = 3;
+        c_pre.root_pimc_roots = 40;
+        c_pre.root_pimc_fine_roots = 10;
+        c_pre.root_pimc_worlds = 12;
+        c_pre.root_pimc_horizon = 10;
+        c_pre.root_pimc_width = 24;
+        if which == "all" || which == "3_pre" {
+            eval_seeds("3_pre3_k40_f10_w12_h10", &seeds5, &c_pre);
+        }
+        let mut c_ds4 = c_pre.clone();
+        c_ds4.root_pimc_ds_target = 4;
+        c_ds4.root_pimc_horizon = 12;
+        if which == "all" || which == "4_ds4" {
+            eval_seeds("4_pre3_ds4_w12", &seeds5, &c_ds4);
+        }
+        let mut c_ew_pre = c_pre.clone();
+        c_ew_pre.spatial_fast_ew_internal = true;
+        if which == "all" || which == "5_ewint" {
+            eval_seeds("5_ewint_pre3_k40_w12", &seeds5, &c_ew_pre);
+        }
+        let mut c_ew_ds4 = c_ds4.clone();
+        c_ew_ds4.spatial_fast_ew_internal = true;
+        if which == "all" || which == "6_ew_ds4" {
+            eval_seeds("6_ewint_ds4_w12", &seeds5, &c_ew_ds4);
+        }
+        let mut c_cvar = c_ds4.clone();
+        c_cvar.root_pimc_cvar_pct = 25;
+        if which == "all" || which == "7_cvar" {
+            eval_seeds("7_ds4_w12_cvar25", &seeds5, &c_cvar);
+        }
+        let mut c_r12_pre = c_pre.clone();
+        c_r12_pre.rollout_top_k = 12;
+        if which == "all" || which == "8_pre_r12" {
+            eval_seeds("8_pre3_k40_w12_r12", &seeds5, &c_r12_pre);
+        }
+        let mut c_full_mlp = c_r0.clone();
+        c_full_mlp.spatial_rerank_only = false;
+        if which == "all" || which == "9_fullmlp" {
+            eval_seeds("9_fullmlp_w8_h9_r0", &seeds5, &c_full_mlp);
+        }
+        let mut c_full_ds3 = c_r0.clone();
+        c_full_ds3.spatial_rerank_only = false;
+        c_full_ds3.beam_width = 64;
+        c_full_ds3.max_per_root = 16;
+        c_full_ds3.root_pimc_prescreen_worlds = 3;
+        c_full_ds3.root_pimc_roots = 24;
+        c_full_ds3.root_pimc_fine_roots = 8;
+        c_full_ds3.root_pimc_worlds = 8;
+        c_full_ds3.root_pimc_horizon = 10;
+        c_full_ds3.root_pimc_ds_target = 3;
+        c_full_ds3.root_pimc_width = 14;
+        if which == "all" || which == "full_ds3" {
+            eval_seeds("10_fullmlp_ds3_w8_pw14", &seeds5, &c_full_ds3);
+        }
+        let mut c_full_ds4_n80 = c_full_ds3.clone();
+        c_full_ds4_n80.nds_pen = 60;
+        if which == "full_ds3" {
+            eval_seeds("11_fullmlp_ds3_nds60", &seeds5, &c_full_ds4_n80);
+        }
+        return;
+    }
+
+    if mode == "fast2" {
+        let model_path = std::env::args()
+            .nth(2)
+            .unwrap_or_else(|| "models/spatial_wg2.txt".to_string());
+        let which = std::env::args().nth(3).unwrap_or_else(|| "all".to_string());
+        let seeds2: Vec<u64> = vec![101, 102];
+        let sm = Arc::new(SpatialValueModel::load_from_file(&model_path).expect("load spatial model"));
+        println!("=== Legal fast2 ({}, which={}, seeds=101..102) ===", model_path, which);
+
+        let mut c_cons = make_ew_cons_cfg();
+        c_cons.rollout_top_k = 0;
+        c_cons.beam_width = 64;
+        c_cons.max_per_root = 16;
+        c_cons.weights.garbage_row = 225;
+        c_cons.weights.stack_cell = -22;
+        c_cons.weights.upper_cell = 3;
+        c_cons.weights.stack_over2_sq = 3;
+        c_cons.weights.blocks_over_hole = 14;
+        c_cons.weights.zero_o_spot_pen = 0;
+        c_cons.weights.bumpiness = 11;
+        c_cons.weights.near_full_9_bonus = 0;
+        c_cons.weights.near_full_8_bonus = 0;
+        c_cons.weights.row_g_aligned_bonus = 0;
+        c_cons.weights.h1_contig_cover = 140;
+        c_cons.weights.h2_contig_cover = 95;
+        c_cons.weights.h3_block = 22;
+        c_cons.weights.h4_block = 8;
+        c_cons.weights.endgame_cell_taper = 47;
+        c_cons.weights.endgame_cell_taper_rem = 5;
+
+        let mut c_ew4 = c_cons.clone();
+        c_ew4.weights.garbage_row = 225;
+        c_ew4.weights.stack_cell = 4;
+        c_ew4.weights.upper_cell = 5;
+        c_ew4.weights.endgame_cell_taper = 23;
+
+        if which == "all" || which == "base" {
+            eval_seeds("0_ew4_b64_nosp", &seeds2, &c_ew4);
+            eval_seeds("1_cons22_b64_nosp", &seeds2, &c_cons);
+        }
+
+        let mut c_ew4_ds3 = c_ew4.clone();
+        c_ew4_ds3.simulate_cheese_spawn = true;
+        c_ew4_ds3.root_pimc_prescreen_worlds = 3;
+        c_ew4_ds3.root_pimc_roots = 32;
+        c_ew4_ds3.root_pimc_fine_roots = 8;
+        c_ew4_ds3.root_pimc_worlds = 6;
+        c_ew4_ds3.root_pimc_horizon = 9;
+        c_ew4_ds3.root_pimc_ds_target = 3;
+        c_ew4_ds3.root_pimc_width = 16;
+        c_ew4_ds3.root_pimc_weight_pct = 100;
+        c_ew4_ds3.root_pimc_steady_g4 = false;
+
+        let mut c_cons_ds3 = c_ew4_ds3.clone();
+        c_cons_ds3.weights = c_cons.weights.clone();
+
+        if which == "all" || which == "ds3" {
+            eval_seeds("2_ew4_ds3_w6_b16", &seeds2, &c_ew4_ds3);
+            eval_seeds("3_cons22_ds3_w6_b16", &seeds2, &c_cons_ds3);
+        }
+
+        let mut c_sp_ewint = c_ew4_ds3.clone();
+        c_sp_ewint.spatial_model = Some(sm.clone());
+        c_sp_ewint.spatial_rerank_only = true;
+        c_sp_ewint.spatial_fast_ew_internal = true;
+
+        let mut c_sp_c22 = c_cons_ds3.clone();
+        c_sp_c22.spatial_model = Some(sm.clone());
+        c_sp_c22.spatial_rerank_only = true;
+        c_sp_c22.spatial_fast_ew_internal = true;
+
+        let mut c_sp_flat = c_ew4_ds3.clone();
+        c_sp_flat.root_pimc_ds_target = 0;
+        c_sp_flat.root_pimc_horizon = 9;
+        c_sp_flat.spatial_model = Some(sm.clone());
+        c_sp_flat.spatial_rerank_only = true;
+        c_sp_flat.spatial_fast_ew_internal = true;
+
+        if which == "all" || which == "sp" {
+            eval_seeds("4_sp_ew4_ds3_ewint", &seeds2, &c_sp_ewint);
+            eval_seeds("4b_sp_c22_ds3_ewint", &seeds2, &c_sp_c22);
+            eval_seeds("5_sp_ew4_flat9_ewint", &seeds2, &c_sp_flat);
+        }
+
+        let mut c_sp_direct = c_ew4.clone();
+        c_sp_direct.spatial_model = Some(sm.clone());
+        c_sp_direct.spatial_rerank_only = false;
+        c_sp_direct.simulate_cheese_spawn = true;
+        c_sp_direct.root_pimc_worlds = 0;
+        if which == "all" || which == "sp" {
+            eval_seeds("6_sp_direct_b64_sim", &seeds2, &c_sp_direct);
+        }
+        if which == "sp2" {
+            let sm_ep0 = Arc::new(
+                SpatialValueModel::load_from_file("models/spatial_wg2_ep0.txt")
+                    .expect("load spatial_wg2_ep0"),
+            );
+            let mut c_ep0_b64 = c_sp_direct.clone();
+            c_ep0_b64.spatial_model = Some(sm_ep0.clone());
+            eval_seeds("1_ep0_direct_b64_sim", &seeds2, &c_ep0_b64);
+
+            let mut c_ep0_b120 = c_ep0_b64.clone();
+            c_ep0_b120.beam_width = 120;
+            c_ep0_b120.max_per_root = 24;
+            eval_seeds("2_ep0_direct_b120_sim", &seeds2, &c_ep0_b120);
+
+            let mut c_wg2_b120 = c_sp_direct.clone();
+            c_wg2_b120.beam_width = 120;
+            c_wg2_b120.max_per_root = 24;
+            eval_seeds("3_wg2_direct_b120_sim", &seeds2, &c_wg2_b120);
+
+            let mut c_ep0_splin_ds3 = c_sp_ewint.clone();
+            c_ep0_splin_ds3.spatial_model = Some(sm_ep0);
+            c_ep0_splin_ds3.spatial_fast_ew_internal = false;
+            eval_seeds("4_ep0_splin_ds3", &seeds2, &c_ep0_splin_ds3);
+
+            let mut c_wg2_splin_ds3 = c_sp_ewint.clone();
+            c_wg2_splin_ds3.spatial_model = Some(sm);
+            c_wg2_splin_ds3.spatial_fast_ew_internal = false;
+            eval_seeds("5_wg2_splin_ds3", &seeds2, &c_wg2_splin_ds3);
+        }
         return;
     }
 
@@ -739,6 +1022,7 @@ fn main() {
         }
 
         let mut c_fast = c_base.clone();
+        c_fast.rollout_top_k = 0;
         c_fast.beam_width = 60;
         c_fast.max_per_root = 12;
         c_fast.root_pimc_prescreen_worlds = 3;
@@ -753,6 +1037,7 @@ fn main() {
         }
 
         let mut c_med = c_base.clone();
+        c_med.rollout_top_k = 0;
         c_med.beam_width = 60;
         c_med.max_per_root = 12;
         c_med.root_pimc_prescreen_worlds = 4;
@@ -949,6 +1234,7 @@ fn main() {
             eval_seeds("ew18_sp_ds3_nds70", &seeds5, &c_ew4_sp);
 
             let mut c_sp_ds3 = make_spatial_cfg(sm.clone());
+            c_sp_ds3.rollout_top_k = 0;
             c_sp_ds3.bag_det_extend = true;
             c_sp_ds3.endgame_solver = true;
             c_sp_ds3.beam_width = 64;

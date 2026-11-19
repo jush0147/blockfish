@@ -1513,6 +1513,8 @@ fn main() {
             ew_seed.h2_contig_cover = 95;
             ew_seed.h3_block = 22;
             ew_seed.h4_block = 8;
+            ew_seed.endgame_cell_taper = 47;
+            ew_seed.endgame_cell_taper_rem = 5;
             run_wg_ew_opt(&ed, &ew_seed);
         }
         if which == "contig_test" {
@@ -1893,6 +1895,55 @@ fn main() {
             run_oracle_agg("OR_p12_b140_ew4_t12", &ed, 12, 140, 1, false, 0, &ew4_t12);
             run_oracle_agg("OR_p12_b140_c22_t12", &ed, 12, 140, 1, false, 0, &ew_c22_t12);
         }
+    } else if mode == "wg2_check" {
+        let n_seeds: usize = args.get(2).and_then(|s| s.parse().ok()).unwrap_or(2);
+        let seeds: Vec<u64> = (101..101 + n_seeds as u64).collect();
+        let ed = collect_exact_seeds(&seeds);
+        println!("=== WG-2 Model Evaluation in WG_ds & OR_p12 (seeds 101..={}) ===", 100 + n_seeds);
+
+        let mut ew_c22 = EvalWeights::default();
+        ew_c22.garbage_row = 225;
+        ew_c22.piece_estimate = 0;
+        ew_c22.stack_cell = -22;
+        ew_c22.upper_cell = 3;
+        ew_c22.stack_over2_sq = 3;
+        ew_c22.blocks_over_hole = 14;
+        ew_c22.zero_o_spot_pen = 0;
+        ew_c22.bumpiness = 11;
+        ew_c22.h1_contig_cover = 140;
+        ew_c22.h2_contig_cover = 95;
+        ew_c22.h3_block = 22;
+        ew_c22.h4_block = 8;
+        ew_c22.near_full_9_bonus = 0;
+        ew_c22.near_full_8_bonus = 0;
+        ew_c22.row_g_aligned_bonus = 0;
+        ew_c22.endgame_cell_taper = 47;
+        ew_c22.endgame_cell_taper_rem = 5;
+        ew_c22.hold_bonus = [-10, 4, -8, 4, 4, -2, -2];
+
+        let mut ew4 = ew_c22.clone();
+        ew4.stack_cell = 4;
+        ew4.upper_cell = 5;
+        ew4.endgame_cell_taper = 23;
+
+        let sm_ep0 = SpatialValueModel::load_from_file(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../models/spatial_wg2_ep0.txt"
+        ))
+        .expect("load spatial_wg2_ep0");
+        let sm_wg2 = SpatialValueModel::load_from_file(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../models/spatial_wg2.txt"
+        ))
+        .expect("load spatial_wg2");
+
+        run_wg_ds_beam_full("WG_ds_b600_c22", &ed, 600, &ew_c22, None, false, true);
+        run_wg_ds_beam_full("WG_ds_b600_ep0", &ed, 600, &sm_ep0, None, false, true);
+        run_wg_ds_beam_full("WG_ds_b600_wg2", &ed, 600, &sm_wg2, None, false, true);
+        run_oracle_agg("OR_p12_b140_ew4", &ed, 12, 140, 1, false, 0, &ew4);
+        run_oracle_agg("OR_p12_b140_c22", &ed, 12, 140, 1, false, 0, &ew_c22);
+        run_oracle_agg("OR_p12_b140_ep0", &ed, 12, 140, 1, false, 0, &sm_ep0);
+        run_oracle_agg("OR_p12_b140_wg2", &ed, 12, 140, 1, false, 0, &sm_wg2);
     }
 }
 
@@ -2675,14 +2726,17 @@ fn run_wg_ds_beam_nds<M: DiagEvaluator>(
                         let np = node.pieces_used + 1;
                         let nds_new = node.nds_used + lines.saturating_sub(ds_d) as u16;
                         if rem_g == 0 && b.rows < 20 {
+                            let res_cells: u16 = (0..b.rows as usize)
+                                .map(|r| (b.data[r] & 0x3FF).count_ones() as u16)
+                                .sum();
                             let better = match best_win {
                                 None => true,
-                                Some((wp, wr, _)) => (np, b.rows) < (wp, wr),
+                                Some((wp, wr, _)) => (np, res_cells.min(255) as u8) < (wp, wr),
                             };
                             if better {
                                 let aidx = arena.len() as u32;
                                 arena.push(ArenaNode { parent: node.parent_aidx, fp });
-                                best_win = Some((np, b.rows, aidx));
+                                best_win = Some((np, res_cells.min(255) as u8, aidx));
                             }
                             continue;
                         }
@@ -2697,9 +2751,17 @@ fn run_wg_ds_beam_nds<M: DiagEvaluator>(
                             (None, (qc + 1).min(q_len))
                         };
                         let in_h = held.or_else(|| ed.pieces.get(nqc).copied());
+                        let av_start = if held.is_some() { nqc } else { nqc + 1 };
+                        let mut av_mask = 0u8;
+                        for &p in ed.pieces.iter().skip(av_start).take(3) {
+                            av_mask |= 1u8 << p;
+                        }
+                        if av_mask == 0 {
+                            av_mask = 0x7F;
+                        }
                         let sc = (np as i64) * 100
                             + (nds_new as i64) * nds_pen
-                            + mdl.eval_b(&b, rem_g, in_h, 0x7F);
+                            + mdl.eval_b(&b, rem_g, in_h, av_mask);
                         if ds_d > 0 {
                             let nds = (ds_cur + ds_d as usize).min(100);
                             if sc < best_next_ds_sc {
@@ -3111,7 +3173,15 @@ fn run_wg_ds_lns<M: DiagEvaluator>(
                                 (None, (qc + 1).min(q_len))
                             };
                             let in_h = held.or_else(|| ed.pieces.get(nqc).copied());
-                            let sc = (np as i64) * 100 + mdl.eval_b(&b, rem_g, in_h, 0x7F);
+                            let av_start = if held.is_some() { nqc } else { nqc + 1 };
+                            let mut av_mask = 0u8;
+                            for &p in ed.pieces.iter().skip(av_start).take(3) {
+                                av_mask |= 1u8 << p;
+                            }
+                            if av_mask == 0 {
+                                av_mask = 0x7F;
+                            }
+                            let sc = (np as i64) * 100 + mdl.eval_b(&b, rem_g, in_h, av_mask);
                             if ds_d > 0 {
                                 let nds = (ds_cur + ds_d as usize).min(max_ds);
                                 if sc < best_next_ds_sc {
@@ -3283,7 +3353,15 @@ fn run_wg_ds_lns<M: DiagEvaluator>(
                                     }
                                 }
                                 let in_h = held.or_else(|| ed.pieces.get(nqc).copied());
-                                let sc = (np as i64) * 100 + mdl.eval_b(&b, rem_g, in_h, 0x7F);
+                                let av_start = if held.is_some() { nqc } else { nqc + 1 };
+                                let mut av_mask = 0u8;
+                                for &p in ed.pieces.iter().skip(av_start).take(3) {
+                                    av_mask |= 1u8 << p;
+                                }
+                                if av_mask == 0 {
+                                    av_mask = 0x7F;
+                                }
+                                let sc = (np as i64) * 100 + mdl.eval_b(&b, rem_g, in_h, av_mask);
                                 if ds_d > 0 {
                                     let nds = (ds_cur + ds_d as usize).min(max_ds_span);
                                     if sc < best_next_ds_sc { best_next_ds_sc = sc; }
@@ -3394,9 +3472,9 @@ fn run_wg_ds_lns<M: DiagEvaluator>(
 fn run_wg_ew_opt(exact_data: &[ExactSeedData], base_ew: &EvalWeights) {
     use std::io::Write;
     let t0 = Instant::now();
-    let bw = 220usize;
-    let eval_w = |w: &EvalWeights| -> (i64, f64, usize) {
-        let (stats, _) = run_wg_ds_beam_full("opt", exact_data, bw, w, None, false, false);
+    let bw = 160usize;
+    let eval_w = |w: &EvalWeights, nds_pen: i64| -> (i64, f64, usize) {
+        let (stats, _) = run_wg_ds_beam_nds("opt", exact_data, bw, w, None, true, false, nds_pen);
         let sum_pcs: usize = stats.iter().map(|s| s.pcs).sum();
         let sum_cov: usize = stats.iter().map(|s| s.zds_h1_cov).sum();
         let sum_c: usize = stats.iter().map(|s| s.cells_sum).sum();
@@ -3407,7 +3485,8 @@ fn run_wg_ew_opt(exact_data: &[ExactSeedData], base_ew: &EvalWeights) {
     };
 
     let mut cur = base_ew.clone();
-    let (mut best_obj, mut best_mean, _) = eval_w(&cur);
+    let mut cur_nds: i64 = 0;
+    let (mut best_obj, mut best_mean, _) = eval_w(&cur, cur_nds);
     println!("=== WG EvalWeights Optimizer (n={} seeds, b={}) init mean={:.2} obj={} ===",
         exact_data.len(), bw, best_mean, best_obj);
     let _ = std::io::stdout().flush();
@@ -3418,13 +3497,14 @@ fn run_wg_ew_opt(exact_data: &[ExactSeedData], base_ew: &EvalWeights) {
         rng
     };
 
-    for iter in 1..=48usize {
+    for iter in 1..=32usize {
         let mut cand = cur.clone();
+        let mut cand_nds = cur_nds;
         let k_mut = 1 + ((next_u64() >> 32) % 3) as usize;
         for _ in 0..k_mut {
-            let idx = ((next_u64() >> 32) % 36) as usize;
+            let idx = ((next_u64() >> 32) % 39) as usize;
             let sign: i64 = if (next_u64() & 1) == 0 { 1 } else { -1 };
-            let scale = if iter <= 24 { 2 } else { 1 };
+            let scale = if iter <= 16 { 2 } else { 1 };
             let delta = sign * scale * (1 + ((next_u64() >> 40) % 4) as i64);
             match idx {
                 0 => cand.stack_cell = (cand.stack_cell + delta * 3).clamp(-26, 20),
@@ -3462,24 +3542,31 @@ fn run_wg_ew_opt(exact_data: &[ExactSeedData], base_ew: &EvalWeights) {
                 32 => cand.h1_contig_cover = (cand.h1_contig_cover + delta * 8).clamp(0, 280),
                 33 => cand.h2_contig_cover = (cand.h2_contig_cover + delta * 6).clamp(0, 160),
                 34 => cand.garbage_row = (cand.garbage_row + delta * 6).clamp(80, 260),
+                35 => cand.endgame_cell_taper = (cand.endgame_cell_taper + delta * 3).clamp(25, 65),
+                36 => cand.endgame_cell_taper_rem = ((cand.endgame_cell_taper_rem as i64) + sign).clamp(5, 9) as u16,
+                37 => cand_nds = (cand_nds + delta * 8).clamp(-100, 180),
                 _ => {
                     let hi = ((next_u64() >> 48) % 7) as usize;
                     cand.hold_bonus[hi] = (cand.hold_bonus[hi] + delta * 3).clamp(-35, 35);
                 }
             }
         }
-        let (obj, mean, _) = eval_w(&cand);
+        let (obj, mean, _) = eval_w(&cand, cand_nds);
         if obj < best_obj {
             best_obj = obj;
             best_mean = mean;
             cur = cand;
-            println!("  [iter {:2} {:.1}s] NEW BEST mean={:.2} obj={}", iter, t0.elapsed().as_secs_f64(), best_mean, best_obj);
+            cur_nds = cand_nds;
+            println!("  [iter {:2} {:.1}s] NEW BEST mean={:.2} obj={} nds_pen={} sc={} gr={} c1={} c2={} taper={}/{}",
+                iter, t0.elapsed().as_secs_f64(), best_mean, best_obj, cur_nds,
+                cur.stack_cell, cur.garbage_row, cur.h1_contig_cover, cur.h2_contig_cover,
+                cur.endgame_cell_taper, cur.endgame_cell_taper_rem);
             let _ = std::io::stdout().flush();
         }
     }
-    println!("=== Best EvalWeights ({:.1}s) mean={:.2} ===", t0.elapsed().as_secs_f64(), best_mean);
+    println!("=== Best EvalWeights ({:.1}s) mean={:.2} nds_pen={} ===", t0.elapsed().as_secs_f64(), best_mean, cur_nds);
     println!("{:#?}", cur);
-    run_wg_ds_beam_full("WG_ds_b2000_OPT", exact_data, 2000, &cur, None, false, true);
+    run_wg_ds_beam_nds("WG_ds_b2000_OPT", exact_data, 2000, &cur, None, true, true, cur_nds);
 }
 
 fn run_wg_lns<M1: DiagEvaluator, M2: DiagEvaluator>(

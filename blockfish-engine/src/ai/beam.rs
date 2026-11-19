@@ -377,16 +377,16 @@ impl BeamSearcher {
         let is_pure_endgame =
             is_endgame_exact || (cfg.endgame_wide && rem_g0 <= 9 && rem_g0 == garbage_rows);
         let eff_beam_width = if is_endgame_exact {
-            cfg.beam_width.max(480)
-        } else if is_pure_endgame {
             cfg.beam_width.max(360)
+        } else if is_pure_endgame {
+            cfg.beam_width.max(300)
         } else {
             cfg.beam_width
         };
         let eff_max_per_root = if is_endgame_exact {
-            cfg.max_per_root.max(120)
-        } else if is_pure_endgame {
             cfg.max_per_root.max(80)
+        } else if is_pure_endgame {
+            cfg.max_per_root.max(60)
         } else {
             cfg.max_per_root
         };
@@ -440,6 +440,28 @@ impl BeamSearcher {
             return None;
         }
 
+        let mut crn_seed: u64 = 0x9E3779B97F4A7C15u64
+            ^ (rem_g0 as u64).wrapping_mul(0xBF58476D1CE4E5B9)
+            ^ ((bag_mask as u64) << 16);
+        for r in 0..(root_board.rows as usize) {
+            crn_seed = crn_seed.rotate_left(7) ^ (root_board.data[r] as u64);
+        }
+
+        if is_endgame_exact {
+            if let Some(res) = self.solve_endgame_ds(
+                shtb,
+                snapshot,
+                &root_board,
+                rem_g0,
+                hold0,
+                &q[..q_len],
+                bag_mask,
+                crn_seed,
+            ) {
+                return Some(res);
+            }
+        }
+
         let mut nodes_evaluated = 0usize;
         let mut best_goal: Option<(usize, u16, i64)> = None; // (depth, root_idx, rating)
 
@@ -447,12 +469,6 @@ impl BeamSearcher {
         self.unique_root_idxs.clear();
         self.seen.clear();
 
-        let mut crn_seed: u64 = 0x9E3779B97F4A7C15u64
-            ^ (rem_g0 as u64).wrapping_mul(0xBF58476D1CE4E5B9)
-            ^ ((bag_mask as u64) << 16);
-        for r in 0..(root_board.rows as usize) {
-            crn_seed = crn_seed.rotate_left(7) ^ (root_board.data[r] as u64);
-        }
         let beam_spawn_rng = crn_seed ^ 0x94D049BB133111EB;
 
         for (idx, &fp) in self.root_places.iter().enumerate() {
@@ -761,12 +777,12 @@ impl BeamSearcher {
             // (If rerank_roots > 0, defer deep rollout_horizon to Stage 2 top roots)
             let s1_horizon = if cfg.rerank_roots > 0 { 0 } else { cfg.rollout_horizon };
             let max_per_root = if is_endgame_exact {
-                cfg.rollout_per_root.max(2)
+                1
             } else {
                 cfg.rollout_per_root.max(1)
             };
             let eff_roll_top_k = if is_endgame_exact {
-                cfg.rollout_top_k.max(18)
+                cfg.rollout_top_k.max(12)
             } else {
                 cfg.rollout_top_k
             };
@@ -775,8 +791,8 @@ impl BeamSearcher {
             for i in 0..self.cur_beam.len() {
                 let node = self.cur_beam[i];
                 let rolled_cnt = self.per_root_rolled.get(&node.first_idx).copied().unwrap_or(0);
-                if is_endgame_exact && rolled_cnt == 0 && self.per_root_rolled.len() >= 18 {
-                    self.best_per_root.entry(node.first_idx).or_insert(-20_000_000 + 5_000 + node.score);
+                if is_endgame_exact && rolled_cnt == 0 && self.per_root_rolled.len() >= 12 {
+                    self.best_per_root.entry(node.first_idx).or_insert(-20_000_000 + 100_000 + node.score.clamp(-20_000, 20_000));
                     self.best_leaf_idx.entry(node.first_idx).or_insert(i);
                     continue;
                 }
@@ -787,13 +803,14 @@ impl BeamSearcher {
 
                 let hand_c = Self::hand_piece(node.held, node.q_cursor as usize, &q[..q_len]);
                 let sc = if is_endgame_exact {
+                    let end_h = (node.rem_garbage as usize + 5).clamp(10, 14);
                     let (r_sc, evals) = self.endgame_rollout_crn(
                         node.board,
                         hand_c,
                         node.rem_garbage,
                         bag_mask,
                         crn_seed,
-                        16,
+                        end_h,
                         cfg,
                     );
                     nodes_evaluated += evals;
@@ -1530,6 +1547,754 @@ impl BeamSearcher {
     }
 
 
+    fn endgame_eval_weights() -> EvalWeights {
+        let mut w = EvalWeights::default();
+        w.garbage_row = 240;
+        w.piece_estimate = 20;
+        w.pe_net_mode = true;
+        w.stack_cell = 10;
+        w.upper_cell = 6;
+        w.stack_h_sq = 0;
+        w.stack_over2_sq = 4;
+        w.max_stack_h_excess = 14;
+        w.covered_hole = 90;
+        w.hole_row = 24;
+        w.blocks_over_hole = 24;
+        w.h1_block = 42;
+        w.h1_contig_cover = 120;
+        w.h1_empty_blocking = 10;
+        w.h1_height = 12;
+        w.h2_block = 26;
+        w.h2_contig_cover = 70;
+        w.h2_extra_empty = 6;
+        w.h3_block = 14;
+        w.h3_extra_empty = 3;
+        w.h4_block = 6;
+        w.h1_narrow_1 = 16;
+        w.h1_narrow_2plus = 24;
+        w.h1_fit_scarcity = 6;
+        w.h1_unfit_hand = 20;
+        w.zero_o_spot_pen = 6;
+        w.bag_no_i_chute_pen = 14;
+        w.open_h1_bonus = 24;
+        w.combo2_bonus = 22;
+        w.bumpiness = 4;
+        w.sharp_diff = 5;
+        w.i_dep = 35;
+        w.two_well = 10;
+        w.i_dep_multi = 50;
+        w.i_dep_chute = 12;
+        w.near_full_9_bonus = 18;
+        w.near_full_8_bonus = 5;
+        w.endgame_cell_taper = 18;
+        w.endgame_cell_taper_rem = 5;
+        w
+    }
+
+    fn endgame_world_ds(
+        &mut self,
+        root_board: &FastBoard,
+        hold0: Option<u8>,
+        cur0: Option<u8>,
+        q_len: usize,
+        rem_g0: u16,
+        root_fp: FastPlace,
+        world_q: &[u8],
+        end_bag: u8,
+        end_w: &EvalWeights,
+    ) -> (i64, usize) {
+        let target_ds = (rem_g0 as usize).min(9);
+        let mut b0 = *root_board;
+        let orient0 = &self.fst.shapes[root_fp.color_idx as usize].orients[root_fp.tf.2 as usize];
+        let (_, ds0, _) = b0.place_and_sift(orient0, root_fp.norm_i, root_fp.norm_j);
+        let rem0 = rem_g0.saturating_sub(ds0 as u16);
+        if rem0 == 0 && b0.rows < 20 {
+            let res_cells: i64 = (0..b0.rows as usize)
+                .map(|r| (b0.data[r] & 0x3FF).count_ones() as i64)
+                .sum();
+            return (1000 + res_cells * 2, 1);
+        }
+        if b0.rows >= 20 {
+            return (1_000_000, 1);
+        }
+
+        let (held0, qc0) = if hold0.is_some() {
+            if root_fp.did_hold {
+                (cur0, if cur0.is_some() { 1.min(q_len) } else { 0 })
+            } else {
+                (hold0, 1.min(q_len))
+            }
+        } else if root_fp.did_hold {
+            (cur0, 2.min(q_len))
+        } else {
+            (None, 1.min(q_len))
+        };
+
+        let in_hand0 = Self::hand_piece(held0, qc0, world_q);
+        let avail0 = Self::avail_mask_from_q(held0, qc0, world_q, end_bag);
+        let sc0 = 100 + eval_fast_with_bag(&b0, rem0, in_hand0, avail0, end_w);
+
+        let ds0_u = (ds0 as usize).min(target_ds);
+        let mut buckets: [Vec<BeamNode>; 10] = Default::default();
+        buckets[ds0_u].push(BeamNode {
+            board: b0,
+            held: held0,
+            q_cursor: qc0 as u8,
+            rem_garbage: rem0,
+            nds_used: 0,
+            no_g_moves: 1, // stores pieces_used
+            first_idx: 0,
+            score: sc0,
+        });
+
+        let mut evals = 1usize;
+        let mut best_win: Option<(u16, i64)> = None; // (pieces_used, res_cells)
+        let mut best_rem_g = rem0;
+        let mut best_fb_score = sc0;
+        let wq_len = world_q.len();
+        let beam_w = 18usize;
+        let sub_w = 10usize;
+        let z_limit = 3usize;
+
+        for ds_cur in ds0_u..target_ds {
+            let mut bucket = std::mem::take(&mut buckets[ds_cur]);
+            if bucket.is_empty() {
+                continue;
+            }
+            bucket.sort_unstable_by_key(|n| (n.score, n.no_g_moves));
+            if bucket[0].rem_garbage < best_rem_g
+                || (bucket[0].rem_garbage == best_rem_g && bucket[0].score < best_fb_score)
+            {
+                best_rem_g = bucket[0].rem_garbage;
+                best_fb_score = bucket[0].score;
+            }
+
+            self.pimc_beam.clear();
+            self.pimc_seen.clear();
+            for ch in bucket {
+                if self.pimc_beam.len() >= beam_w {
+                    break;
+                }
+                if let Some((wp, _)) = best_win {
+                    if ch.no_g_moves as u16 >= wp {
+                        continue;
+                    }
+                }
+                let key = DedupKey {
+                    board: ch.board,
+                    held: ch.held,
+                    rem_garbage: ch.q_cursor as u16,
+                };
+                if self.pimc_seen.insert(key) {
+                    self.pimc_beam.push(ch);
+                }
+            }
+
+            let mut best_next_ds_sc = i64::MAX;
+            for z_sub in 0..=z_limit {
+                if self.pimc_beam.is_empty() {
+                    break;
+                }
+                if z_sub > 0
+                    && best_next_ds_sc != i64::MAX
+                    && self.pimc_beam[0].score > best_next_ds_sc + 600
+                {
+                    break;
+                }
+                self.pimc_next.clear();
+
+                for i in 0..self.pimc_beam.len() {
+                    let node = self.pimc_beam[i];
+                    if node.rem_garbage == 0 {
+                        continue;
+                    }
+                    let np = (node.no_g_moves as u16) + 1;
+                    if let Some((wp, _)) = best_win {
+                        if np > wp {
+                            continue;
+                        }
+                    }
+                    let qc = node.q_cursor as usize;
+                    let (c_nh, c_h) = if node.held.is_some() {
+                        let c1 = if qc < wq_len { Some(world_q[qc]) } else { None };
+                        (c1, node.held)
+                    } else {
+                        let c1 = if qc < wq_len { Some(world_q[qc]) } else { None };
+                        let c2 = if qc + 1 < wq_len {
+                            Some(world_q[qc + 1])
+                        } else {
+                            None
+                        };
+                        (c1, c2)
+                    };
+                    if c_nh.is_none() && c_h.is_none() {
+                        continue;
+                    }
+
+                    self.pgen
+                        .generate_for_state(&self.fst, &node.board, c_nh, c_h, &mut self.roll_places);
+
+                    for &fp in &self.roll_places {
+                        let mut b2 = node.board;
+                        let orient =
+                            &self.fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
+                        let (_, ds, _) = b2.place_and_sift(orient, fp.norm_i, fp.norm_j);
+                        let rem2 = node.rem_garbage.saturating_sub(ds as u16);
+
+                        if rem2 == 0 && b2.rows < 20 {
+                            let res_cells: i64 = (0..b2.rows as usize)
+                                .map(|r| (b2.data[r] & 0x3FF).count_ones() as i64)
+                                .sum();
+                            let better = match best_win {
+                                None => true,
+                                Some((wp, wc)) => (np, res_cells) < (wp, wc),
+                            };
+                            if better {
+                                best_win = Some((np, res_cells));
+                            }
+                            continue;
+                        }
+                        if b2.rows >= 20 {
+                            continue;
+                        }
+                        if let Some((wp, _)) = best_win {
+                            if np >= wp {
+                                continue;
+                            }
+                        }
+
+                        let (new_held, next_qc) = if node.held.is_some() {
+                            if fp.did_hold {
+                                (c_nh, if c_nh.is_some() { (qc + 1).min(wq_len) } else { qc })
+                            } else {
+                                (node.held, (qc + 1).min(wq_len))
+                            }
+                        } else if fp.did_hold {
+                            (c_nh, (qc + 2).min(wq_len))
+                        } else {
+                            (None, (qc + 1).min(wq_len))
+                        };
+
+                        let in_hand2 = Self::hand_piece(new_held, next_qc, world_q);
+                        let avail2 = Self::avail_mask_from_q(new_held, next_qc, world_q, end_bag);
+                        let sc = (np as i64) * 100
+                            + eval_fast_with_bag(&b2, rem2, in_hand2, avail2, end_w);
+                        evals += 1;
+
+                        let out_node = BeamNode {
+                            board: b2,
+                            held: new_held,
+                            q_cursor: next_qc as u8,
+                            rem_garbage: rem2,
+                            nds_used: 0,
+                            no_g_moves: np as u8,
+                            first_idx: 0,
+                            score: sc,
+                        };
+                        if ds > 0 {
+                            let nds = (ds_cur + ds as usize).min(target_ds);
+                            if sc < best_next_ds_sc {
+                                best_next_ds_sc = sc;
+                            }
+                            buckets[nds].push(out_node);
+                        } else if z_sub < z_limit && (np as usize) < wq_len + 1 {
+                            self.pimc_next.push(out_node);
+                        }
+                    }
+                }
+
+                if self.pimc_next.is_empty() {
+                    self.pimc_beam.clear();
+                    break;
+                }
+                self.pimc_next
+                    .sort_unstable_by_key(|n| (n.score, n.no_g_moves));
+                self.pimc_beam.clear();
+                self.pimc_seen.clear();
+                for i in 0..self.pimc_next.len() {
+                    if self.pimc_beam.len() >= sub_w {
+                        break;
+                    }
+                    let ch = self.pimc_next[i];
+                    let key = DedupKey {
+                        board: ch.board,
+                        held: ch.held,
+                        rem_garbage: ch.q_cursor as u16,
+                    };
+                    if self.pimc_seen.insert(key) {
+                        self.pimc_beam.push(ch);
+                    }
+                }
+            }
+        }
+
+        if let Some((wp, res_cells)) = best_win {
+            ((wp as i64) * 1000 + res_cells * 2, evals)
+        } else {
+            (
+                (wq_len as i64 + 2) * 1000
+                    + (best_rem_g as i64) * 250
+                    + best_fb_score.clamp(-5000, 100_000),
+                evals,
+            )
+        }
+    }
+
+    fn solve_endgame_ds(
+        &mut self,
+        shtb: &ShapeTable,
+        snapshot: &Snapshot,
+        root_board: &FastBoard,
+        rem_g0: u16,
+        hold0: Option<u8>,
+        q: &[u8],
+        bag_mask: u8,
+        crn_seed: u64,
+    ) -> Option<BeamResult> {
+        let q_len = q.len();
+        let target_ds = (rem_g0 as usize).min(9);
+        if target_ds == 0 || self.root_places.is_empty() {
+            return None;
+        }
+        let end_w = Self::endgame_eval_weights();
+        let n_roots = self.root_places.len();
+        let cur0 = if q_len > 0 { Some(q[0]) } else { None };
+        let total_known = q_len + usize::from(hold0.is_some());
+
+        let mut buckets: [Vec<BeamNode>; 10] = Default::default();
+        let mut root_best_prog = vec![i64::MAX; n_roots];
+        let mut root_ds0 = vec![0u8; n_roots];
+        let mut best_win: Option<(u16, i64, u16, u16)> = None; // (pieces_used, res_cells, nds, root_idx)
+        let mut nodes_evaluated = 0usize;
+
+        for (idx, &fp) in self.root_places.iter().enumerate() {
+            let mut b = *root_board;
+            let orient = &self.fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
+            let (lines, ds, _) = b.place_and_sift(orient, fp.norm_i, fp.norm_j);
+            root_ds0[idx] = ds;
+            let rem_g = rem_g0.saturating_sub(ds as u16);
+            if rem_g == 0 && b.rows < 20 {
+                let res_cells: i64 = (0..b.rows as usize)
+                    .map(|r| (b.data[r] & 0x3FF).count_ones() as i64)
+                    .sum();
+                let nds0 = lines.saturating_sub(ds) as u16;
+                let better = match best_win {
+                    None => true,
+                    Some((wp, wc, wn, _)) => (1u16, res_cells, nds0) < (wp, wc, wn),
+                };
+                if better {
+                    best_win = Some((1, res_cells, nds0, idx as u16));
+                }
+                continue;
+            }
+            if b.rows >= 20 {
+                continue;
+            }
+            let (held, qc) = if hold0.is_some() {
+                if fp.did_hold {
+                    (cur0, if cur0.is_some() { 1 } else { 0 })
+                } else {
+                    (hold0, 1.min(q_len))
+                }
+            } else if fp.did_hold {
+                (cur0, 2.min(q_len))
+            } else {
+                (None, 1.min(q_len))
+            };
+            let in_hand = Self::hand_piece(held, qc, q);
+            let avail = Self::avail_mask_from_q(held, qc, q, bag_mask);
+            let sc = 100 + eval_fast_with_bag(&b, rem_g, in_hand, avail, &end_w);
+            nodes_evaluated += 1;
+            if sc < root_best_prog[idx] {
+                root_best_prog[idx] = sc;
+            }
+            let ds_u = (ds as usize).min(target_ds);
+            buckets[ds_u].push(BeamNode {
+                board: b,
+                held,
+                q_cursor: qc as u8,
+                rem_garbage: rem_g,
+                nds_used: lines.saturating_sub(ds) as u16,
+                no_g_moves: 1,
+                first_idx: idx as u16,
+                score: sc,
+            });
+        }
+
+        // Step 1: Exact DS-bucketed BFS over known pieces (hold + previews)
+        if best_win.map_or(true, |(wp, _, _, _)| wp > 1) {
+            let end_bw = 180usize;
+            let end_sub_w = 140usize;
+            let per_root_cap = 16usize;
+            let z_limit = 4usize;
+
+            for ds_cur in 0..target_ds {
+                let mut bucket = std::mem::take(&mut buckets[ds_cur]);
+                if bucket.is_empty() {
+                    continue;
+                }
+                bucket.sort_unstable_by_key(|n| (n.score, n.no_g_moves, n.first_idx));
+
+                self.cur_beam.clear();
+                self.seen.clear();
+                self.root_counts.clear();
+                self.root_counts.resize(n_roots, 0);
+
+                for &ch in &bucket {
+                    if self.cur_beam.len() >= end_bw {
+                        break;
+                    }
+                    if let Some((wp, _, _, _)) = best_win {
+                        if ch.no_g_moves as u16 >= wp {
+                            continue;
+                        }
+                    }
+                    if self.root_counts[ch.first_idx as usize] >= per_root_cap {
+                        continue;
+                    }
+                    let key = DedupKey {
+                        board: ch.board,
+                        held: ch.held,
+                        rem_garbage: ch.q_cursor as u16,
+                    };
+                    if self.seen.insert(key) {
+                        self.root_counts[ch.first_idx as usize] += 1;
+                        self.cur_beam.push(ch);
+                    }
+                }
+                if self.cur_beam.len() < end_bw {
+                    for &ch in &bucket {
+                        if self.cur_beam.len() >= end_bw {
+                            break;
+                        }
+                        if let Some((wp, _, _, _)) = best_win {
+                            if ch.no_g_moves as u16 >= wp {
+                                continue;
+                            }
+                        }
+                        let key = DedupKey {
+                            board: ch.board,
+                            held: ch.held,
+                            rem_garbage: ch.q_cursor as u16,
+                        };
+                        if self.seen.insert(key) {
+                            self.cur_beam.push(ch);
+                        }
+                    }
+                }
+
+                let mut best_next_ds_sc = i64::MAX;
+                for z_sub in 0..=z_limit {
+                    if self.cur_beam.is_empty() {
+                        break;
+                    }
+                    if z_sub > 0
+                        && best_next_ds_sc != i64::MAX
+                        && self.cur_beam[0].score > best_next_ds_sc + 700
+                    {
+                        break;
+                    }
+                    self.children.clear();
+
+                    for ni in 0..self.cur_beam.len() {
+                        let node = self.cur_beam[ni];
+                        if node.rem_garbage == 0 {
+                            continue;
+                        }
+                        let np = (node.no_g_moves as u16) + 1;
+                        if let Some((wp, _, _, _)) = best_win {
+                            if np > wp {
+                                continue;
+                            }
+                        }
+                        let qc = node.q_cursor as usize;
+                        let (c_nh, c_h) = if node.held.is_some() {
+                            let c1 = if qc < q_len { Some(q[qc]) } else { None };
+                            (c1, node.held)
+                        } else {
+                            let c1 = if qc < q_len { Some(q[qc]) } else { None };
+                            let c2 = if qc + 1 < q_len { Some(q[qc + 1]) } else { None };
+                            (c1, c2)
+                        };
+                        if c_nh.is_none() && c_h.is_none() {
+                            continue;
+                        }
+
+                        self.pgen.generate_for_state(
+                            &self.fst,
+                            &node.board,
+                            c_nh,
+                            c_h,
+                            &mut self.tmp_places,
+                        );
+
+                        for &fp in &self.tmp_places {
+                            let mut b = node.board;
+                            let orient =
+                                &self.fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
+                            let (lines, ds, _) = b.place_and_sift(orient, fp.norm_i, fp.norm_j);
+                            let rem_g = node.rem_garbage.saturating_sub(ds as u16);
+                            let nds_new = node.nds_used.saturating_add(lines.saturating_sub(ds) as u16);
+
+                            if rem_g == 0 && b.rows < 20 {
+                                let res_cells: i64 = (0..b.rows as usize)
+                                    .map(|r| (b.data[r] & 0x3FF).count_ones() as i64)
+                                    .sum();
+                                let better = match best_win {
+                                    None => true,
+                                    Some((wp, wc, wn, _)) => {
+                                        (np, res_cells, nds_new) < (wp, wc, wn)
+                                    }
+                                };
+                                if better {
+                                    best_win = Some((np, res_cells, nds_new, node.first_idx));
+                                }
+                                continue;
+                            }
+                            if b.rows >= 20 {
+                                continue;
+                            }
+                            if let Some((wp, _, _, _)) = best_win {
+                                if np >= wp {
+                                    continue;
+                                }
+                            }
+
+                            let (held, next_qc) = if node.held.is_some() {
+                                if fp.did_hold {
+                                    (c_nh, if c_nh.is_some() { (qc + 1).min(q_len) } else { qc })
+                                } else {
+                                    (node.held, (qc + 1).min(q_len))
+                                }
+                            } else if fp.did_hold {
+                                (c_nh, (qc + 2).min(q_len))
+                            } else {
+                                (None, (qc + 1).min(q_len))
+                            };
+
+                            let in_hand = Self::hand_piece(held, next_qc, q);
+                            let avail = Self::avail_mask_from_q(held, next_qc, q, bag_mask);
+                            let sc = (np as i64) * 100
+                                + eval_fast_with_bag(&b, rem_g, in_hand, avail, &end_w);
+                            nodes_evaluated += 1;
+
+                            let ri = node.first_idx as usize;
+                            if sc < root_best_prog[ri] {
+                                root_best_prog[ri] = sc;
+                            }
+
+                            let out_node = BeamNode {
+                                board: b,
+                                held,
+                                q_cursor: next_qc as u8,
+                                rem_garbage: rem_g,
+                                nds_used: nds_new,
+                                no_g_moves: np as u8,
+                                first_idx: node.first_idx,
+                                score: sc,
+                            };
+                            if ds > 0 {
+                                let nds = (ds_cur + ds as usize).min(target_ds);
+                                if sc < best_next_ds_sc {
+                                    best_next_ds_sc = sc;
+                                }
+                                buckets[nds].push(out_node);
+                            } else if z_sub < z_limit {
+                                self.children.push(out_node);
+                            }
+                        }
+                    }
+
+                    if self.children.is_empty() {
+                        self.cur_beam.clear();
+                        break;
+                    }
+                    self.children
+                        .sort_unstable_by_key(|n| (n.score, n.no_g_moves, n.first_idx));
+                    self.cur_beam.clear();
+                    self.seen.clear();
+                    for i in 0..self.children.len() {
+                        if self.cur_beam.len() >= end_sub_w {
+                            break;
+                        }
+                        let ch = self.children[i];
+                        let key = DedupKey {
+                            board: ch.board,
+                            held: ch.held,
+                            rem_garbage: ch.q_cursor as u16,
+                        };
+                        if self.seen.insert(key) {
+                            self.cur_beam.push(ch);
+                        }
+                    }
+                }
+            }
+        }
+
+        if let Some((wp, res_cells, _, win_ri)) = best_win {
+            let fp = self.root_places[win_ri as usize];
+            if let Some(inputs) = self.build_inputs(shtb, &snapshot.matrix, fp) {
+                let rating = -30_000_000 + (wp as i64) * 200 + res_cells;
+                self.last_top.clear();
+                self.last_top_leaves.clear();
+                let c = idx_to_color(fp.color_idx as usize).as_char();
+                self.last_top
+                    .push((c, fp.norm_i, fp.norm_j, fp.tf.2 as u8, fp.did_hold, rating));
+                return Some(BeamResult {
+                    best_place: fp,
+                    inputs,
+                    rating,
+                    nodes_evaluated,
+                });
+            }
+        }
+
+        // Step 2: Not finishable within known queue -> CRN bag-stratified DS endgame solver
+        let mut root_order: Vec<(u16, i64)> = (0..n_roots)
+            .filter(|&ri| root_best_prog[ri] != i64::MAX)
+            .map(|ri| (ri as u16, root_best_prog[ri]))
+            .collect();
+        if root_order.is_empty() {
+            return None;
+        }
+        root_order.sort_unstable_by_key(|&(ri, sc)| (sc, ri));
+
+        let mut cand_roots: Vec<u16> = Vec::with_capacity(12);
+        let mut has_0ds = false;
+        let mut has_ds1 = false;
+        for &(ri, _) in root_order.iter().take(10) {
+            cand_roots.push(ri);
+            if root_ds0[ri as usize] == 0 {
+                has_0ds = true;
+            } else {
+                has_ds1 = true;
+            }
+        }
+        if !has_0ds || !has_ds1 {
+            for &(ri, _) in root_order.iter().skip(10) {
+                let ds0 = root_ds0[ri as usize];
+                if !has_0ds && ds0 == 0 {
+                    cand_roots.push(ri);
+                    has_0ds = true;
+                } else if !has_ds1 && ds0 > 0 {
+                    cand_roots.push(ri);
+                    has_ds1 = true;
+                }
+                if has_0ds && has_ds1 {
+                    break;
+                }
+            }
+        }
+
+        let eff_mask = if bag_mask == 0 { 0x7F } else { bag_mask };
+        let mut bag_bits = [0u8; 7];
+        let mut bag_n = 0usize;
+        let mut bm = eff_mask;
+        while bm != 0 {
+            bag_bits[bag_n] = bm.trailing_zeros() as u8;
+            bag_n += 1;
+            bm &= bm - 1;
+        }
+        let mut shuffle_rng = crn_seed ^ 0xA0761D6478BD642F;
+        for i in (1..bag_n).rev() {
+            shuffle_rng = shuffle_rng
+                .wrapping_mul(6364136223846793005)
+                .wrapping_add(1442695040888963407);
+            let j = ((shuffle_rng >> 32) as usize) % (i + 1);
+            bag_bits.swap(i, j);
+        }
+
+        let w_cnt = if bag_n <= 2 { 4 } else { 5 };
+        let need_q_len = (rem_g0 as usize + 8).clamp(total_known + 3, 15).min(16);
+        let mut world_qs = [[0u8; 16]; 8];
+        let mut world_end_bags = [0x7Fu8; 8];
+        for w in 0..w_cnt {
+            for i in 0..q_len {
+                world_qs[w][i] = q[i];
+            }
+            let mut bag = eff_mask;
+            let mut w_rng = crn_seed
+                ^ ((w as u64) + 1).wrapping_mul(0x9E3779B97F4A7C15)
+                ^ 0xBF58476D1CE4E5B9;
+            if q_len < need_q_len {
+                if bag_n == 2 {
+                    let first_i = w % 2;
+                    world_qs[w][q_len] = bag_bits[first_i];
+                    if q_len + 1 < need_q_len {
+                        world_qs[w][q_len + 1] = bag_bits[1 - first_i];
+                    }
+                    bag = 0x7F;
+                    for step in (q_len + 2)..need_q_len {
+                        world_qs[w][step] = Self::draw_from_bag(&mut bag, &mut w_rng);
+                    }
+                } else {
+                    let p0 = bag_bits[w % bag_n.max(1)];
+                    world_qs[w][q_len] = p0;
+                    bag &= !(1u8 << p0);
+                    if bag == 0 {
+                        bag = 0x7F;
+                    }
+                    for step in (q_len + 1)..need_q_len {
+                        world_qs[w][step] = Self::draw_from_bag(&mut bag, &mut w_rng);
+                    }
+                }
+            }
+            world_end_bags[w] = bag;
+        }
+
+        let mut scored_roots: Vec<(u16, i64)> = Vec::with_capacity(cand_roots.len());
+        for &ri in &cand_roots {
+            let fp = self.root_places[ri as usize];
+            let mut sum_w: i64 = 0;
+            let mut worst_w: i64 = i64::MIN;
+            for w in 0..w_cnt {
+                let (w_sc, evals) = self.endgame_world_ds(
+                    root_board,
+                    hold0,
+                    cur0,
+                    q_len,
+                    rem_g0,
+                    fp,
+                    &world_qs[w][..need_q_len],
+                    world_end_bags[w],
+                    &end_w,
+                );
+                nodes_evaluated += evals;
+                sum_w += w_sc;
+                if w_sc > worst_w {
+                    worst_w = w_sc;
+                }
+            }
+            let mean_sc = sum_w / (w_cnt as i64);
+            let comb_sc = (mean_sc * 85 + worst_w * 15) / 100;
+            scored_roots.push((ri, comb_sc));
+        }
+        scored_roots.sort_unstable_by_key(|&(ri, sc)| (sc, ri));
+
+        self.last_top.clear();
+        self.last_top_leaves.clear();
+        for &(ri, sc) in scored_roots.iter().take(10) {
+            let fp = self.root_places[ri as usize];
+            let c = idx_to_color(fp.color_idx as usize).as_char();
+            self.last_top
+                .push((c, fp.norm_i, fp.norm_j, fp.tf.2 as u8, fp.did_hold, -20_000_000 + sc));
+        }
+
+        for &(ri, sc) in &scored_roots {
+            let fp = self.root_places[ri as usize];
+            if let Some(inputs) = self.build_inputs(shtb, &snapshot.matrix, fp) {
+                return Some(BeamResult {
+                    best_place: fp,
+                    inputs,
+                    rating: -20_000_000 + sc,
+                    nodes_evaluated,
+                });
+            }
+        }
+
+        None
+    }
+
     fn endgame_rollout_crn(
         &mut self,
         board: FastBoard,
@@ -1563,9 +2328,9 @@ impl BeamSearcher {
             bm &= bm - 1;
         }
         let h = horizon.clamp(1, 16);
-        let mult = if bag_n <= 2 { 3 } else if bag_n <= 4 { 2 } else { 1 };
-        let w_cnt = (bag_n.max(1) * mult).min(12);
-        let end_beam_w = if rem_g <= 6 { 128usize } else { 96usize };
+        let mult = if bag_n <= 2 { 2 } else { 1 };
+        let w_cnt = (bag_n.max(1) * mult).min(8);
+        let end_beam_w = if rem_g <= 5 { 56usize } else { 40usize };
         let mut evals = 0usize;
         let mut sum_w: i64 = 0;
 
@@ -1651,7 +2416,7 @@ impl BeamSearcher {
                             continue;
                         }
                         let new_hand = if fp.color_idx == next_p { cur_h } else { next_p };
-                        let sc = Self::eval_state(&b2, rem2, Some(new_hand), step_bag, cfg)
+                        let sc = Self::eval_state_ex(&b2, rem2, Some(new_hand), step_bag, cfg, false)
                             + (nds_new as i64) * cfg.nds_pen;
                         evals += 1;
                         self.pimc_next.push(BeamNode {
@@ -1892,7 +2657,27 @@ impl BeamSearcher {
                     next_p
                 };
                 let sc = if horizon == 0 {
-                    Self::eval_leaf_state(&b2, rem2, Some(new_hand), rem_after_p, cfg) - ng_bonus
+                    if rem2 == 0 && b2.rows < 20 {
+                        -15_000_000 + (b2.rows as i64) * 5
+                    } else {
+                        let ok_spawn = if rem2 > 0 && (cfg.simulate_cheese_spawn || cfg.fog_spawn) {
+                            let mut spawn_rng = crn_seed
+                                ^ (next_p as u64 + 1).wrapping_mul(0x9E3779B97F4A7C15)
+                                ^ 0x123456789ABCDEF;
+                            if cfg.fog_spawn {
+                                b2.materialize_fog_holes(&mut spawn_rng);
+                            }
+                            b2.spawn_cheese_rows(rem2, lines, &mut spawn_rng)
+                        } else {
+                            true
+                        };
+                        if !ok_spawn {
+                            5_000_000
+                        } else {
+                            Self::eval_leaf_state(&b2, rem2, Some(new_hand), rem_after_p, cfg)
+                                - ng_bonus
+                        }
+                    }
                 } else {
                     Self::eval_state(&b2, rem2, Some(new_hand), rem_after_p, cfg) - ng_bonus
                 };
@@ -2245,6 +3030,7 @@ impl BeamSearcher {
         let mut evals = 1usize;
         let mut best_done = i64::MAX;
         let mut best_fallback = i64::MAX;
+        let mut best_fallback_node: Option<(BeamNode, usize)> = None;
         let width = width.max(4);
         let sub_width = (width * 2 / 3).max(5);
         let wq_len = world_q.len();
@@ -2264,6 +3050,7 @@ impl BeamSearcher {
             let fb = bucket[0].score + ((target_ds - ds_cur) as i64) * 350;
             if fb < best_fallback {
                 best_fallback = fb;
+                best_fallback_node = Some((bucket[0], ds_cur));
             }
             self.pimc_beam.clear();
             self.pimc_seen.clear();
@@ -2463,7 +3250,7 @@ impl BeamSearcher {
                     }
                 }
                 return (best_roll, evals);
-            } else if cfg.spatial_rerank_only && cfg.spatial_model.is_some() {
+            } else if allow_rollout && cfg.spatial_rerank_only && cfg.spatial_model.is_some() {
                 self.pimc_seen.clear();
                 let mut best_leaf = i64::MAX;
                 let mut checked = 0usize;
@@ -2502,7 +3289,25 @@ impl BeamSearcher {
             return (buckets[target_ds][0].score, evals);
         }
 
-        if best_fallback != i64::MAX {
+        if let Some((fb_node, fb_ds)) = best_fallback_node {
+            if allow_rollout && cfg.spatial_rerank_only && cfg.spatial_model.is_some() {
+                let hc = Self::hand_piece(fb_node.held, fb_node.q_cursor as usize, world_q);
+                let av = Self::avail_mask_from_q(
+                    fb_node.held,
+                    fb_node.q_cursor as usize,
+                    world_q,
+                    end_bag,
+                );
+                evals += 1;
+                let leaf_v =
+                    Self::eval_leaf_state(&fb_node.board, fb_node.rem_garbage, hc, av, cfg);
+                let sc = (fb_node.first_idx as i64) * 100
+                    + (fb_node.nds_used as i64) * cfg.nds_pen
+                    + leaf_v
+                    - cfg.no_g_credit * (fb_node.no_g_moves as i64)
+                    + ((target_ds - fb_ds) as i64) * 450;
+                return (sc, evals);
+            }
             (best_fallback, evals)
         } else {
             (5_000_000, evals)
@@ -2764,7 +3569,7 @@ impl BeamSearcher {
                 }
             }
             (best_roll, evals)
-        } else if cfg.spatial_rerank_only && cfg.spatial_model.is_some() {
+        } else if allow_rollout && cfg.spatial_rerank_only && cfg.spatial_model.is_some() {
             let check_k = self.pimc_beam.len().min(10);
             let mut best_leaf = i64::MAX;
             for li in 0..check_k {
