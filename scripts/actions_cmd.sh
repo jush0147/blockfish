@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "=== Round WG-3: WG-DS ew:cons22+strat_np (96g, B=1600) + Legal-DAgger (20g) + Relaxed-Bounds SpatialValueModel ==="
+echo "=== Round WG-4: WG-DS ew:cons22 (88g, B=1800) + Local-Oracle Legal-DAgger (24g) + Unflipped Expert-Anchored SpatialValueModel ==="
 cargo run --release -p blockfish --features race --example train_spatial -- \
   --teacher ew:cons22 \
-  --out models/spatial_wg3.txt \
-  --wg-beam 1600 \
+  --out models/spatial_wg4.txt \
+  --wg-beam 1800 \
   --wg-ds \
-  --games 96 \
-  --legal-dagger 20 \
+  --games 88 \
+  --legal-dagger 24 \
   --cf-per-game 14 \
-  --roll-ds 6 \
-  --roll-bw 24 \
+  --roll-ds 8 \
+  --roll-bw 36 \
   --crn-worlds 5 \
-  --epochs 20 \
+  --epochs 24 \
   --batch 128 \
   --lr 0.0010 \
   --wd 0.025 \
@@ -21,13 +21,13 @@ cargo run --release -p blockfish --features race --example train_spatial -- \
   --val-w 0.12 \
   --diff-w 0.65 \
   --rank-w 2.0 \
-  --cal-v-weight 0.75 \
+  --cal-v-weight 0.40 \
   --no-roll-vcal \
   --seed-base 1000 \
   --eval-oracle 5 \
   --eval-legal 5
 
 echo ""
-echo "=== Post-WG3 Oracle & Legal Diagnostics ==="
-cargo run --release -p blockfish --features race --example diag_cheese -- spatial_probe models/spatial_wg3.txt
-cargo run --release -p blockfish --features race --example bench_legal -- spatial5_1 models/spatial_wg3.txt sp_rpimc_sim_w8_h9
+echo "=== Post-WG4 Oracle & Legal Diagnostics ==="
+cargo run --release -p blockfish --features race --example diag_cheese -- spatial_probe models/spatial_wg4.txt
+cargo run --release -p blockfish --features race --example bench_legal -- spatial5_1 models/spatial_wg4.txt sp_rpimc_sim_w8_h9

@@ -895,7 +895,7 @@ impl SpatialValueModel {
                 mlp += a2.min(6.0) * self.w3[k];
             }
         }
-        let mlp_sat = mlp / (1.0 + mlp.abs() / 2.5);
+        let mlp_sat = mlp / (1.0 + mlp.abs() / 12.0);
         lin + mlp_sat
     }
 
@@ -1280,7 +1280,7 @@ mod tests {
         let ood_fast_lin = m.predict_linear_extracted(&active[..n_act], &ood_dense);
         assert!((ood_raw - ood_fast).abs() < 1e-3, "ood {} vs {}", ood_raw, ood_fast);
         assert!((ood_raw_lin - ood_fast_lin).abs() < 1e-3, "ood_lin {} vs {}", ood_raw_lin, ood_fast_lin);
-        assert!((ood_fast - ood_fast_lin).abs() <= 2.5, "mlp_sat exceeded +-2.5: {}", ood_fast - ood_fast_lin);
+        assert!((ood_fast - ood_fast_lin).abs() <= 12.0, "mlp_sat exceeded +-12.0: {}", ood_fast - ood_fast_lin);
 
         // Verify has_mlp == false and needs_pe == false fast-paths match exact calculation
         let mut m_lin = m.clone();

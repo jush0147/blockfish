@@ -708,8 +708,12 @@ pub fn eval_fast_with_bag(
 
     let taper_rem = w.endgame_cell_taper_rem.max(5) as i64;
     let endgame_cell_pen = if w.endgame_cell_taper != 0 && (rem_garbage as i64) <= taper_rem {
-        (stack_cells * w.endgame_cell_taper * (taper_rem + 1 - rem_garbage as i64))
-            / (taper_rem + 1)
+        let rg = rem_garbage as i64;
+        let t_num = taper_rem + 1 - rg;
+        let t_den = taper_rem + 1;
+        let base = (stack_cells * w.endgame_cell_taper * t_num) / t_den;
+        let excess = (stack_cells - rg).max(0);
+        base + (excess * 28 * t_num) / t_den
     } else {
         0
     };

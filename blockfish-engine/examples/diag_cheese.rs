@@ -3214,7 +3214,7 @@ fn run_wg_ds_beam_nds<M: DiagEvaluator>(
                     break;
                 }
                 next_sub.clear();
-                let expand_cap = if z_sub == 0 { beam_w } else { beam_w.min(1500) };
+                let expand_cap = beam_w;
                 for &node in cur_sub.iter().take(expand_cap) {
                     if let Some((wp, _, _)) = best_win {
                         if node.pieces_used + node.rem_g >= wp {
@@ -3313,7 +3313,7 @@ fn run_wg_ds_beam_nds<M: DiagEvaluator>(
                 }
                 next_sub.sort_unstable_by_key(|n| (n.score, n.pieces_used));
                 cur_sub.clear();
-                let sub_cap = beam_w.min(1500);
+                let sub_cap = beam_w;
                 for mut ch in next_sub.iter().copied() {
                     if cur_sub.len() >= sub_cap {
                         break;
