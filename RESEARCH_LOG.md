@@ -79,14 +79,22 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
     2. Off-policy Oracle-only rollouts (`--roll-horizon 22`, no `--wg-ds`, `--cal-v-weight 0.0`) + overfitting after epoch 5 (`ep=5: 2.973 -> ep=30: 3.136`).
     3. `beam.rs` exact endgame only covered `rem_g0 <= 7` (`8..=9` already 100% deterministic!), `endgame_rollout_crn` used narrow `48/32` width, and `root_pimc_eval_world` checked only 4 spatial leaves.
 
+- **Round WG-3 (`models/spatial_wg3.txt`, GitHub Actions Run #8) & Diagnostic Decomposition**:
+  - `OR_p6_sp_lin = 210.00`, `OR_p6_sp_full = 203.40`, `OR_p12_best = 188.20`, `LEGAL_rpimc_flat_best = 194.60 [187..203]`, `sp_rpimc_sim_w8_h9 = 195.60 [192..200]`.
+  - `diag_cheese` decomposition (`101..=102`): `WG_ds_b32_c22 = 196.00`, `WG_ds_b200_c22 = 177.50`, `OR_p30_ds16_b160_c22 = 178.00`.
+  - `bench_legal fast2 models/spatial_wg3.txt ds3` (`101..=102`): `2_ew4_ds3_w6_b16 = 215.50 [210, 221]`, while `3_cons22_ds3_w6_b16 = 320.00` (1 topout, `cov=175`).
+  - **Key Root Causes**:
+    1. **Finite-horizon conservation pathology**: At finite horizon (`rem_g > 5`), `stack_cell = -22` with `nds_pen = 0` rewards hoarding cells upward (`cov=175` -> topout in flat/short beam), and `endgame_cell_taper` in [`fast_eval.rs`](file:///home/antigravity/jush0147/blockfish/blockfish-engine/src/ai/fast_eval.rs#L709-L715) ignores excess cells `stack_cells > rem_garbage` (which strictly cost `+0.25` pieces/cell).
+    2. **MLP `±2.5` clamp & Phase 3 teacher destruction**: `mlp / (1.0 + mlp.abs() / 2.5)` in [`spatial_val.rs`](file:///home/antigravity/jush0147/blockfish/blockfish-engine/src/ai/spatial_val.rs#L898) caps nonlinear corrections at `[-2.5, +2.5]` pieces, while [`train_spatial.rs`](file:///home/antigravity/jush0147/blockfish/blockfish-engine/examples/train_spatial.rs#L3084-L3265) Phase 3 rollouts (`bw=24`) flipped **1,212** `WG_ds` winning pairs (`flip=62.1%`) and Ridge collapsed structural weights to bounds (`stk_cells` & `h1_blk`/`cov_holes` pinned to `lb`, `OR_p6_sp_lin = 210.00`).
+    3. **Oracle `WG_ds` (`164.60`) still leaves ~8–10 `0ds` moves on the table**: `wide=22.0, cov=19.2, r_end=10.4` (`expand_cap` capped at `1500` in [`diag_cheese.rs`](file:///home/antigravity/jush0147/blockfish/blockfish-engine/examples/diag_cheese.rs#L3217)).
+
 ---
 
 ## 4. Roadmap
 
-1. **Search & Endgame Architecture (`beam.rs`)**:
-   - Expanded `is_endgame_exact` to `rem_g0 <= 9 && rem_g0 == garbage_rows`, raised `endgame_rollout_crn` width to `128/96` on up to `18` roots with residual-cell tie-breaking, and widened `root_pimc_eval_world` spatial leaf reranking to `10` leaves.
-2. **Round WG-2 (`models/spatial_wg2.txt`)**:
-   - Train from `ew:cons22` (`WG_ds = 164.60`) using `--wg-ds --games 120 --legal-dagger 40 --roll-ds 6 --roll-bw 24 --crn-worlds 6 --cal-v-weight 0.75 --epochs 12 --lr 0.0005 --wd 0.025`, plus conservation-law Ridge prior (`stk_cells = -0.20`) and tightened structural floors.
-3. **Iterative Legal DAgger + Held-Out Validation (`seeds 1..=20, 101..=120, 201..=220`)**:
-   - Push legal `p=5` mean below `<= 161` reproducibly across all held-out sets on GitHub Actions.
-
+1. **Break Oracle `WG_ds` Ceiling Down to `<= 156–158`**:
+   - Add exact excess-cell conservation penalty `(stack_cells - rem_garbage).max(0)` in [`fast_eval.rs`](file:///home/antigravity/jush0147/blockfish/blockfish-engine/src/ai/fast_eval.rs), uncap `expand_cap` / widen LNS + `solve_tail_ds`, and optimize `EvalWeights` + `nds_pen` via `wg_break` / `lns2`.
+2. **Fix Spatial Model Capacity & Training Signal (`spatial_val.rs`, `train_spatial.rs`)**:
+   - Relax MLP saturation cap (`2.5 -> 12.0`), stop Phase 3 rollouts from flipping `WG_ds` teacher choices, query strong teacher lookahead on Legal-DAgger states, and train accurate Stage-1/leaf evaluators.
+3. **Fix Legal `p=5` Search (`beam.rs`) & Iterate on GitHub Actions**:
+   - Eliminate finite-horizon `stack_cell=-22` topout distortion in Stage 1 / `ds`-bucketed PIMC, widen spatial leaf evaluation + exact endgame, and validate across `5 -> 20 -> 40` held-out seeds until legal `p=5` mean reaches **`<= 161` pieces**.
