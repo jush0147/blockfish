@@ -665,6 +665,9 @@ fn main() {
             c.spatial_rerank_only = true;
             c.rollout_top_k = 0;
         }
+        if cfg_name.contains("_nope") {
+            c.spatial_no_pe_internal = true;
+        }
         if cfg_name.contains("_w9") {
             c.root_pimc_worlds = 9;
         }
@@ -953,9 +956,35 @@ fn main() {
             eval_seeds("4_ep0_splin_ds3", &seeds2, &c_ep0_splin_ds3);
 
             let mut c_wg2_splin_ds3 = c_sp_ewint.clone();
-            c_wg2_splin_ds3.spatial_model = Some(sm);
+            c_wg2_splin_ds3.spatial_model = Some(sm.clone());
             c_wg2_splin_ds3.spatial_fast_ew_internal = false;
             eval_seeds("5_wg2_splin_ds3", &seeds2, &c_wg2_splin_ds3);
+        }
+        if which == "splin" {
+            let mut c_splin_ds3 = c_sp_ewint.clone();
+            c_splin_ds3.spatial_model = Some(sm.clone());
+            c_splin_ds3.spatial_fast_ew_internal = false;
+            c_splin_ds3.spatial_no_pe_internal = false;
+            eval_seeds("splin_ds3_pe", &seeds2, &c_splin_ds3);
+
+            let mut c_splin_flat = c_sp_flat.clone();
+            c_splin_flat.spatial_model = Some(sm.clone());
+            c_splin_flat.spatial_fast_ew_internal = false;
+            c_splin_flat.spatial_no_pe_internal = false;
+            eval_seeds("splin_flat9_pe", &seeds2, &c_splin_flat);
+        }
+        if which == "splin_nope" {
+            let mut c_splin_ds3 = c_sp_ewint.clone();
+            c_splin_ds3.spatial_model = Some(sm.clone());
+            c_splin_ds3.spatial_fast_ew_internal = false;
+            c_splin_ds3.spatial_no_pe_internal = true;
+            eval_seeds("splin_ds3_nope", &seeds2, &c_splin_ds3);
+
+            let mut c_splin_flat = c_sp_flat.clone();
+            c_splin_flat.spatial_model = Some(sm);
+            c_splin_flat.spatial_fast_ew_internal = false;
+            c_splin_flat.spatial_no_pe_internal = true;
+            eval_seeds("splin_flat9_nope", &seeds2, &c_splin_flat);
         }
         return;
     }

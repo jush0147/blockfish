@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "=== Round WG-4: WG-DS ew:cons22 (88g, B=1800) + Local-Oracle Legal-DAgger (24g) + Unflipped Expert-Anchored SpatialValueModel ==="
+echo "=== Round WG-5: WG-DS ew:cons22 (88g, B=1800) + Local-Oracle Legal-DAgger (24g, ew4+nope) + Gated-MLP (+-5) + CRN-Flip (-0.55) ==="
 cargo run --release -p blockfish --features race --example train_spatial -- \
   --teacher ew:cons22 \
-  --out models/spatial_wg4.txt \
+  --out models/spatial_wg5.txt \
   --wg-beam 1800 \
   --wg-ds \
   --games 88 \
@@ -28,6 +28,7 @@ cargo run --release -p blockfish --features race --example train_spatial -- \
   --eval-legal 5
 
 echo ""
-echo "=== Post-WG4 Oracle & Legal Diagnostics ==="
-cargo run --release -p blockfish --features race --example diag_cheese -- spatial_probe models/spatial_wg4.txt
-cargo run --release -p blockfish --features race --example bench_legal -- spatial5_1 models/spatial_wg4.txt sp_rpimc_sim_w8_h9
+echo "=== Post-WG5 Oracle & Legal Diagnostics ==="
+cargo run --release -p blockfish --features race --example diag_cheese -- spatial_probe models/spatial_wg5.txt
+cargo run --release -p blockfish --features race --example bench_legal -- spatial5_1 models/spatial_wg5.txt sp_rpimc_linfast_nope_w8_h9
+cargo run --release -p blockfish --features race --example bench_legal -- spatial5_1 models/spatial_wg5.txt sp_rpimc_sim_w8_h9

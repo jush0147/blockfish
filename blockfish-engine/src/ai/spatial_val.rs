@@ -895,7 +895,7 @@ impl SpatialValueModel {
                 mlp += a2.min(6.0) * self.w3[k];
             }
         }
-        let mlp_sat = mlp / (1.0 + mlp.abs() / 12.0);
+        let mlp_sat = mlp / (1.0 + mlp.abs() / 5.0);
         lin + mlp_sat
     }
 
@@ -988,6 +988,37 @@ impl SpatialValueModel {
             in_hand,
             avail_mask,
             compute_pe,
+            &mut active_bits,
+            &mut dense,
+        );
+        (self.predict_linear_extracted(&active_bits[..n_act], &dense) * 100.0).round() as i64
+    }
+
+    #[inline]
+    pub fn evaluate_linear_board_with_bag_no_pe(
+        &self,
+        board: &FastBoard,
+        rem_garbage: u16,
+        in_hand: Option<u8>,
+        avail_mask: u8,
+    ) -> i64 {
+        let col_h = board.col_heights();
+        let max_h = *col_h.iter().max().unwrap() as i64;
+        let center_max_h = col_h[3..=6].iter().copied().max().unwrap() as i64;
+        if max_h >= 20 || center_max_h >= 19 {
+            return 5_000_000 + max_h * 10_000 + center_max_h * 10_000;
+        }
+        if rem_garbage == 0 {
+            return -10_000_000 + (board.rows as i64) * 5;
+        }
+        let mut active_bits = [0u16; SPARSE_DIM];
+        let mut dense = [0.0f32; DENSE_DIM];
+        let n_act = extract_spatial_features_ex(
+            board,
+            rem_garbage,
+            in_hand,
+            avail_mask,
+            false,
             &mut active_bits,
             &mut dense,
         );
@@ -1280,7 +1311,7 @@ mod tests {
         let ood_fast_lin = m.predict_linear_extracted(&active[..n_act], &ood_dense);
         assert!((ood_raw - ood_fast).abs() < 1e-3, "ood {} vs {}", ood_raw, ood_fast);
         assert!((ood_raw_lin - ood_fast_lin).abs() < 1e-3, "ood_lin {} vs {}", ood_raw_lin, ood_fast_lin);
-        assert!((ood_fast - ood_fast_lin).abs() <= 12.0, "mlp_sat exceeded +-12.0: {}", ood_fast - ood_fast_lin);
+        assert!((ood_fast - ood_fast_lin).abs() <= 5.0, "mlp_sat exceeded +-5.0: {}", ood_fast - ood_fast_lin);
 
         // Verify has_mlp == false and needs_pe == false fast-paths match exact calculation
         let mut m_lin = m.clone();
@@ -1295,5 +1326,6 @@ mod tests {
         assert!(!m_lin.needs_pe);
         assert_eq!(m_lin.evaluate_board_with_bag(&fb, 50, Some(1), 0x7E), expected);
         assert_eq!(m_lin.evaluate_linear_board_with_bag(&fb, 50, Some(1), 0x7E), expected);
+        assert_eq!(m_lin.evaluate_linear_board_with_bag_no_pe(&fb, 50, Some(1), 0x7E), expected);
     }
 }

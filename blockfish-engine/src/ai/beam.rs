@@ -182,6 +182,7 @@ pub struct BeamConfig {
     pub root_pimc_fine_roots: usize,
     pub root_pimc_cvar_pct: i64,
     pub spatial_fast_ew_internal: bool,
+    pub spatial_no_pe_internal: bool,
     pub root_pimc_ds_target: usize,
     pub nds_pen: i64,
     pub stage1_weights: Option<EvalWeights>,
@@ -233,6 +234,7 @@ impl Default for BeamConfig {
             root_pimc_fine_roots: 8,
             root_pimc_cvar_pct: 0,
             spatial_fast_ew_internal: false,
+            spatial_no_pe_internal: false,
             root_pimc_ds_target: 0,
             nds_pen: 0,
             stage1_weights: None,
@@ -1468,6 +1470,8 @@ impl BeamSearcher {
                 sm.evaluate_board_with_bag(board, rem_g, in_hand, avail_mask)
             } else if cfg.spatial_fast_ew_internal {
                 eval_fast_with_bag(board, rem_g, in_hand, avail_mask, &cfg.weights)
+            } else if cfg.spatial_no_pe_internal {
+                sm.evaluate_linear_board_with_bag_no_pe(board, rem_g, in_hand, avail_mask)
             } else {
                 sm.evaluate_linear_board_with_bag(board, rem_g, in_hand, avail_mask)
             }

@@ -3346,7 +3346,11 @@ fn run_cf_task(
             }
             let mean_c = sum_c / (crn_worlds as f32);
             cand_means.push(mean_c);
-            let (targ, wt) = if task.root_cand0_expert && ci > 0 && mean_c < cand_means[0] + 0.35 {
+            let (targ, wt) = if task.root_cand0_expert
+                && ci > 0
+                && mean_c < cand_means[0] + 0.35
+                && mean_c >= cand_means[0] - 0.55
+            {
                 ((cand_means[0] + 0.35).clamp(0.5, 280.0), 0.4f32)
             } else {
                 (mean_c.clamp(0.5, 280.0), 1.0f32)
@@ -3363,20 +3367,31 @@ fn run_cf_task(
             for b in (a + 1)..task.root_cands.len() {
                 if task.root_cand0_expert && a == 0 {
                     let raw_margin = cand_means[b] - cand_means[0];
-                    let is_trap = raw_margin < -0.15;
-                    let dq = if raw_margin >= 0.25 {
-                        raw_margin.min(8.0)
+                    if raw_margin < -0.55 {
+                        pairs.push(RankPair {
+                            win_idx: state_base + task.root_cands[b].state_idx,
+                            lose_idx: state_base + task.root_cands[0].state_idx,
+                            dq: (-raw_margin).min(8.0),
+                            is_trap: true,
+                            is_flipped: true,
+                            is_val,
+                        });
                     } else {
-                        (0.45 + (-raw_margin).max(0.0) * 0.5).min(3.5)
-                    };
-                    pairs.push(RankPair {
-                        win_idx: state_base + task.root_cands[0].state_idx,
-                        lose_idx: state_base + task.root_cands[b].state_idx,
-                        dq,
-                        is_trap,
-                        is_flipped: false,
-                        is_val,
-                    });
+                        let is_trap = raw_margin < -0.15;
+                        let dq = if raw_margin >= 0.25 {
+                            raw_margin.min(8.0)
+                        } else {
+                            (0.45 + (-raw_margin).max(0.0) * 0.5).min(3.5)
+                        };
+                        pairs.push(RankPair {
+                            win_idx: state_base + task.root_cands[0].state_idx,
+                            lose_idx: state_base + task.root_cands[b].state_idx,
+                            dq,
+                            is_trap,
+                            is_flipped: false,
+                            is_val,
+                        });
+                    }
                 } else {
                     let (win_c, lose_c) = if cand_means[a] <= cand_means[b] {
                         (a, b)
@@ -3476,7 +3491,11 @@ fn run_cf_task(
             }
             let mean_c = sum_c / (crn_worlds as f32);
             leaf_means.push(mean_c);
-            let (targ, wt) = if task.leaf_cand0_expert && ci > 0 && mean_c < leaf_means[0] + 0.35 {
+            let (targ, wt) = if task.leaf_cand0_expert
+                && ci > 0
+                && mean_c < leaf_means[0] + 0.35
+                && mean_c >= leaf_means[0] - 0.55
+            {
                 ((leaf_means[0] + 0.35).clamp(0.5, 280.0), 0.4f32)
             } else {
                 (mean_c.clamp(0.5, 280.0), 1.0f32)
@@ -3493,20 +3512,31 @@ fn run_cf_task(
             for b in (a + 1)..task.leaf_cands.len() {
                 if task.leaf_cand0_expert && a == 0 {
                     let raw_margin = leaf_means[b] - leaf_means[0];
-                    let is_trap = raw_margin < -0.15;
-                    let dq = if raw_margin >= 0.25 {
-                        raw_margin.min(8.0)
+                    if raw_margin < -0.55 {
+                        pairs.push(RankPair {
+                            win_idx: state_base + task.leaf_cands[b].state_idx,
+                            lose_idx: state_base + task.leaf_cands[0].state_idx,
+                            dq: (-raw_margin).min(8.0),
+                            is_trap: true,
+                            is_flipped: true,
+                            is_val,
+                        });
                     } else {
-                        (0.45 + (-raw_margin).max(0.0) * 0.5).min(3.5)
-                    };
-                    pairs.push(RankPair {
-                        win_idx: state_base + task.leaf_cands[0].state_idx,
-                        lose_idx: state_base + task.leaf_cands[b].state_idx,
-                        dq,
-                        is_trap,
-                        is_flipped: false,
-                        is_val,
-                    });
+                        let is_trap = raw_margin < -0.15;
+                        let dq = if raw_margin >= 0.25 {
+                            raw_margin.min(8.0)
+                        } else {
+                            (0.45 + (-raw_margin).max(0.0) * 0.5).min(3.5)
+                        };
+                        pairs.push(RankPair {
+                            win_idx: state_base + task.leaf_cands[0].state_idx,
+                            lose_idx: state_base + task.leaf_cands[b].state_idx,
+                            dq,
+                            is_trap,
+                            is_flipped: false,
+                            is_val,
+                        });
+                    }
                 } else {
                     let (win_c, lose_c) = if leaf_means[a] <= leaf_means[b] {
                         (a, b)
@@ -3681,12 +3711,12 @@ impl AdamW {
 
 #[inline]
 const fn sparse_mlp_allowed(i: usize) -> bool {
-    !(i >= 30 && i < 80)
+    !(i >= 20 && i < 80)
 }
 
 #[inline]
 const fn dense_mlp_allowed(j: usize) -> bool {
-    j != 0
+    j != 0 && !(j >= 3 && j <= 22)
 }
 
 struct GradBuf {
@@ -3792,7 +3822,7 @@ fn forward_cache(
             mlp += a2 * mdl.w3[k];
         }
     }
-    lin + (mlp / (1.0 + mlp.abs() / 12.0))
+    lin + (mlp / (1.0 + mlp.abs() / 5.0))
 }
 
 #[inline]
@@ -3819,7 +3849,7 @@ fn backward_add(
     for k in 0..SPATIAL_H2 {
         raw_mlp += a2[k] * mdl.w3[k];
     }
-    let denom = 1.0 + raw_mlp.abs() / 12.0;
+    let denom = 1.0 + raw_mlp.abs() / 5.0;
     let d_mlp = d_out / (denom * denom);
     g.b3 += d_mlp;
 
@@ -3978,8 +4008,9 @@ fn eval_legal_rpimc(
     cfg.simulate_cheese_spawn = true;
     cfg.spatial_model = Some(mdl.clone());
     cfg.spatial_rerank_only = rerank_only;
-    cfg.weights = preset_eval_weights("cons22");
+    cfg.weights = preset_eval_weights("ew4");
     cfg.spatial_fast_ew_internal = false;
+    cfg.spatial_no_pe_internal = true;
     cfg.root_pimc_prescreen_worlds = if ds_target > 0 { 3 } else { 2 };
     cfg.root_pimc_roots = if ds_target > 0 { 32 } else { 24 };
     cfg.root_pimc_fine_roots = 6;
@@ -4358,49 +4389,49 @@ fn compute_gentle_bounds(dense_inv_std: &[f32; DENSE_DIM]) -> (Vec<f64>, Vec<f64
         }
     }
 
-    set_raw_range(&mut lb, &mut ub, 2, 0.04, 0.24);    // pe_net
+    set_raw_range(&mut lb, &mut ub, 2, 0.0, 0.24);     // pe_net
     set_raw_range(&mut lb, &mut ub, 3, 0.0, 0.06);     // stack_cells (non-negative keeps narrow beam safe without forcing penalty)
     set_raw_range(&mut lb, &mut ub, 4, -0.02, 0.04);   // stack_cells_row_g
-    set_raw_range(&mut lb, &mut ub, 5, 0.005, 0.07);   // stack_cells_above1
+    set_raw_range(&mut lb, &mut ub, 5, 0.0, 0.07);     // stack_cells_above1
     set_raw_range(&mut lb, &mut ub, 6, 0.0, 0.07);     // stack_cells_above2
-    set_raw_range(&mut lb, &mut ub, 7, 0.02, 0.14);    // upper_cells
-    set_raw_range(&mut lb, &mut ub, 18, 0.02, 0.25);   // max_stack_h
+    set_raw_range(&mut lb, &mut ub, 7, 0.01, 0.14);    // upper_cells
+    set_raw_range(&mut lb, &mut ub, 18, 0.01, 0.25);   // max_stack_h
     set_raw_range(&mut lb, &mut ub, 19, 0.0, 0.20);    // min_stack_h
     set_raw_range(&mut lb, &mut ub, 20, 0.0, 0.02);    // stack_h_sq
-    set_raw_range(&mut lb, &mut ub, 21, 0.015, 0.08);  // stack_over2_sq
-    set_raw_range(&mut lb, &mut ub, 22, 0.03, 0.30);   // ex13_sq
-    set_raw_range(&mut lb, &mut ub, 23, 0.36, 1.20);   // covered_holes
+    set_raw_range(&mut lb, &mut ub, 21, 0.008, 0.08);  // stack_over2_sq
+    set_raw_range(&mut lb, &mut ub, 22, 0.02, 0.30);   // ex13_sq
+    set_raw_range(&mut lb, &mut ub, 23, 0.18, 1.20);   // covered_holes
     set_raw_range(&mut lb, &mut ub, 24, 0.0, 0.50);    // hole_rows
-    set_raw_range(&mut lb, &mut ub, 25, 0.12, 0.45);   // blocks_over_holes
+    set_raw_range(&mut lb, &mut ub, 25, 0.06, 0.45);   // blocks_over_holes
     set_raw_range(&mut lb, &mut ub, 26, 0.0, 0.45);    // shallow_holes
     set_raw_range(&mut lb, &mut ub, 27, 0.0, 0.45);    // bottom_covered_holes
-    set_raw_range(&mut lb, &mut ub, 28, 0.24, 0.80);   // h1_blocks
+    set_raw_range(&mut lb, &mut ub, 28, 0.12, 0.80);   // h1_blocks
     set_raw_range(&mut lb, &mut ub, 29, 0.0, 0.22);    // h1_height
     set_raw_range(&mut lb, &mut ub, 30, 0.0, 0.16);    // h1_empty_blocking
     set_raw_range(&mut lb, &mut ub, 33, -0.06, 0.0);   // h1_fit_cnt
     set_raw_range(&mut lb, &mut ub, 34, -0.18, 0.0);   // hand_fits_h1
     set_raw_range(&mut lb, &mut ub, 35, -0.18, 0.0);   // bag_fit_frac
-    set_raw_range(&mut lb, &mut ub, 36, 0.14, 0.45);   // h2_blocks
+    set_raw_range(&mut lb, &mut ub, 36, 0.06, 0.45);   // h2_blocks
     set_raw_range(&mut lb, &mut ub, 37, 0.0, 0.14);    // h2_empty_blocking
     set_raw_range(&mut lb, &mut ub, 38, 0.0, 0.10);    // h2_extra_empty
     set_raw_range(&mut lb, &mut ub, 39, 0.0, 0.35);    // h2_narrow_1
     set_raw_range(&mut lb, &mut ub, 40, 0.0, 0.35);    // h2_narrow_2plus
     set_raw_range(&mut lb, &mut ub, 41, -0.05, 0.0);   // h2_fit_cnt
-    set_raw_range(&mut lb, &mut ub, 42, 0.04, 0.20);   // h3_blocks
+    set_raw_range(&mut lb, &mut ub, 42, 0.02, 0.20);   // h3_blocks
     set_raw_range(&mut lb, &mut ub, 43, 0.0, 0.08);    // h3_extra_empty
     set_raw_range(&mut lb, &mut ub, 44, 0.0, 0.09);    // h4_blocks
     set_raw_range(&mut lb, &mut ub, 45, 0.0, 0.15);    // cells_to_uncover_h1
     set_raw_range(&mut lb, &mut ub, 46, 0.0, 0.15);    // cells_to_uncover_h12
-    set_raw_range(&mut lb, &mut ub, 47, 0.04, 0.15);   // bumpiness
+    set_raw_range(&mut lb, &mut ub, 47, 0.02, 0.15);   // bumpiness
     set_raw_range(&mut lb, &mut ub, 53, 0.0, 0.35);    // two_well_cnt
     set_raw_range(&mut lb, &mut ub, 54, -0.06, 0.0);   // clean_o_spots
     set_raw_range(&mut lb, &mut ub, 55, -0.03, 0.0);   // total_o_spots
-    set_raw_range(&mut lb, &mut ub, 56, -0.22, 0.0);   // near_full_9
-    set_raw_range(&mut lb, &mut ub, 57, -0.08, 0.0);   // near_full_8
-    set_raw_range(&mut lb, &mut ub, 58, -0.30, 0.0);   // row_g_9_aligned
-    set_raw_range(&mut lb, &mut ub, 59, -0.12, 0.0);   // row_g_8_aligned
-    set_raw_range(&mut lb, &mut ub, 60, -0.18, 0.0);   // row_g_clearable_with_h1
-    set_raw_range(&mut lb, &mut ub, 61, -0.18, 0.0);   // clean_skim_rows
+    set_raw_range(&mut lb, &mut ub, 56, -0.28, 0.0);   // near_full_9
+    set_raw_range(&mut lb, &mut ub, 57, -0.10, 0.0);   // near_full_8
+    set_raw_range(&mut lb, &mut ub, 58, -0.32, 0.0);   // row_g_9_aligned
+    set_raw_range(&mut lb, &mut ub, 59, -0.14, 0.0);   // row_g_8_aligned
+    set_raw_range(&mut lb, &mut ub, 60, -0.22, 0.0);   // row_g_clearable_with_h1
+    set_raw_range(&mut lb, &mut ub, 61, -0.25, 0.0);   // clean_skim_rows
     set_raw_range(&mut lb, &mut ub, 65, 0.0, 0.18);    // max_cliff_around_h1
     set_raw_range(&mut lb, &mut ub, 66, 0.0, 0.60);    // o_trapped
     set_raw_range(&mut lb, &mut ub, 67, -0.05, 0.0);   // avail_mask_cnt
@@ -4408,8 +4439,8 @@ fn compute_gentle_bounds(dense_inv_std: &[f32; DENSE_DIM]) -> (Vec<f64>, Vec<f64
     set_raw_range(&mut lb, &mut ub, 69, 0.0, 0.60);    // i_dep_cols_no_i
     set_raw_range(&mut lb, &mut ub, 70, 0.0, 0.40);    // h2_only_row_g_blocked
     set_raw_range(&mut lb, &mut ub, 71, -0.30, 0.0);   // h1_ds_clears_rg_open_h2
-    set_raw_range(&mut lb, &mut ub, 72, 0.50, 2.20);   // h1_contig_cover
-    set_raw_range(&mut lb, &mut ub, 73, 0.25, 1.40);   // h2_contig_cover
+    set_raw_range(&mut lb, &mut ub, 72, 0.15, 2.20);   // h1_contig_cover
+    set_raw_range(&mut lb, &mut ub, 73, 0.10, 1.40);   // h2_contig_cover
 
     for c in 0..10 {
         set_raw_range(&mut lb, &mut ub, 8 + c, 0.0, 0.06);
@@ -4852,7 +4883,8 @@ fn main() {
     dagger_cfg.simulate_cheese_spawn = true;
     dagger_cfg.spatial_rerank_only = true;
     dagger_cfg.spatial_fast_ew_internal = false;
-    dagger_cfg.weights = preset_eval_weights("cons22");
+    dagger_cfg.spatial_no_pe_internal = true;
+    dagger_cfg.weights = preset_eval_weights("ew4");
     dagger_cfg.root_pimc_prescreen_worlds = 2;
     dagger_cfg.root_pimc_roots = 18;
     dagger_cfg.root_pimc_fine_roots = 6;
