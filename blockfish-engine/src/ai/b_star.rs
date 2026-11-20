@@ -656,9 +656,13 @@ pub(super) struct Node {
 
 impl Node {
     fn priority(&self) -> i64 {
-        #[cfg(feature = "classic-guide")]
+        #[cfg(feature = "terminal-priority")]
+        {
+            if self.is_terminal() { self.rating() } else { self.f.saturating_mul(2) }
+        }
+        #[cfg(all(feature = "classic-guide", not(feature = "terminal-priority")))]
         { self.guide }
-        #[cfg(not(feature = "classic-guide"))]
+        #[cfg(not(any(feature = "classic-guide", feature = "terminal-priority")))]
         { self.f }
     }
 

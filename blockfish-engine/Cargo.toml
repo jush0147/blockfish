@@ -24,7 +24,14 @@ name = "blockfish"
 path = "src/bin/service.rs"
 required-features = ["service"]
 
+[[bin]]
+name = "blockfish-path-probe"
+path = "src/bin/path_probe.rs"
+required-features = ["path-probe"]
+
 [features]
+terminal-priority = ["cheese-robust"]
+path-probe = ["cheese-robust", "block-stacker/public-world"]
 classic-guide = ["cheese-robust"]
 mirror-fusion=["cheese-robust"]
 reveal-boundary = ["cheese-robust","plan-observer"]

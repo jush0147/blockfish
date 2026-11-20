@@ -1,0 +1,52 @@
+   Compiling libc v0.2.119
+   Compiling blockfish v0.1.0 (/workspace/blockfish/blockfish-engine)
+   Compiling getrandom v0.1.15
+   Compiling rand_core v0.5.1
+   Compiling rand_chacha v0.2.2
+   Compiling rand_pcg v0.2.1
+   Compiling rand v0.7.3
+   Compiling block-stacker v0.1.0 (/workspace/blockfish/block-stacker)
+warning: variant `RemoveMove` is never constructed
+   --> blockfish-engine/src/ai/b_star.rs:178:5
+    |
+156 | pub enum Step {
+    |          ---- variant in this enum
+...
+178 |     RemoveMove(MoveId),
+    |     ^^^^^^^^^^
+    |
+    = note: `Step` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+    = note: `#[warn(dead_code)]` on by default
+
+warning: `blockfish` (lib) generated 1 warning
+    Finished release [optimized] target(s) in 4.79s
+   Compiling blockfish v0.1.0 (/workspace/blockfish/blockfish-engine)
+warning: variant `RemoveMove` is never constructed
+   --> blockfish-engine/src/ai/b_star.rs:178:5
+    |
+156 | pub enum Step {
+    |          ---- variant in this enum
+...
+178 |     RemoveMove(MoveId),
+    |     ^^^^^^^^^^
+    |
+    = note: `Step` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+    = note: `#[warn(dead_code)]` on by default
+
+warning: `blockfish` (lib) generated 1 warning
+    Finished release [optimized] target(s) in 2.50s
+   Compiling blockfish v0.1.0 (/workspace/blockfish/blockfish-engine)
+warning: variant `RemoveMove` is never constructed
+   --> blockfish-engine/src/ai/b_star.rs:178:5
+    |
+156 | pub enum Step {
+    |          ---- variant in this enum
+...
+178 |     RemoveMove(MoveId),
+    |     ^^^^^^^^^^
+    |
+    = note: `Step` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+    = note: `#[warn(dead_code)]` on by default
+
+warning: `blockfish` (lib) generated 1 warning
+    Finished release [optimized] target(s) in 2.73s
