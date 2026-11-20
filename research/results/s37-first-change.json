@@ -1,0 +1,74 @@
+[
+  {
+    "seed": 78100,
+    "first_changed_lock": 46,
+    "already_cleared": 23,
+    "delta": 0
+  },
+  {
+    "seed": 78101,
+    "first_changed_lock": 75,
+    "already_cleared": 37,
+    "delta": 0
+  },
+  {
+    "seed": 78102,
+    "first_changed_lock": 132,
+    "already_cleared": 68,
+    "delta": 0
+  },
+  {
+    "seed": 78103,
+    "first_changed_lock": 117,
+    "already_cleared": 56,
+    "delta": 0
+  },
+  {
+    "seed": 78104,
+    "first_changed_lock": 9,
+    "already_cleared": 4,
+    "delta": 0
+  },
+  {
+    "seed": 78105,
+    "first_changed_lock": 74,
+    "already_cleared": 40,
+    "delta": -11
+  },
+  {
+    "seed": 78106,
+    "first_changed_lock": 30,
+    "already_cleared": 15,
+    "delta": -8
+  },
+  {
+    "seed": 78107,
+    "first_changed_lock": 79,
+    "already_cleared": 41,
+    "delta": 3
+  },
+  {
+    "seed": 78108,
+    "first_changed_lock": null,
+    "already_cleared": null,
+    "delta": 0
+  },
+  {
+    "seed": 78109,
+    "first_changed_lock": 98,
+    "already_cleared": 48,
+    "delta": 0
+  },
+  {
+    "seed": 78110,
+    "first_changed_lock": 10,
+    "already_cleared": 5,
+    "delta": 0
+  },
+  {
+    "seed": 78111,
+    "first_changed_lock": 25,
+    "already_cleared": 10,
+    "delta": -7
+  }
+]

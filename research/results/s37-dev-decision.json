@@ -1,0 +1,37 @@
+{
+  "stats": {
+    "learned-robust": {
+      "mean_pieces": 198.58333333333334,
+      "best": 188,
+      "mean_cpu": 20.710631333333332
+    },
+    "robust-terminal-priority": {
+      "mean_pieces": 196.66666666666666,
+      "best": 184,
+      "mean_cpu": 21.116711333333335
+    }
+  },
+  "paired_differences": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    -11,
+    -8,
+    3,
+    0,
+    0,
+    0,
+    -7
+  ],
+  "mean_delta": -1.9166666666666667,
+  "wins": 3,
+  "ties": 8,
+  "percentile_95": [
+    -4.333333333333333,
+    0.25
+  ],
+  "replayed": 24,
+  "passed": false
+}
