@@ -901,6 +901,12 @@ mod completion_tests {
                 assert_eq!(mid_node.state.matrix(), final_node.state.matrix());
                 assert_eq!(final_node.rating(), 1);
                 assert!(mid_node.rating() > final_node.rating());
+                #[cfg(feature = "terminal-priority")]
+                {
+                    assert_eq!(final_root.priority(), 2 * final_root.f);
+                    assert_eq!(final_node.priority(), 1);
+                    assert_eq!(mid_node.priority(), mid_node.rating());
+                }
                 checked = true;
                 break;
             }

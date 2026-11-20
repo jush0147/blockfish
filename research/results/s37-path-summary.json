@@ -1,0 +1,19 @@
+{
+  "control": {
+    "positions": 64,
+    "solved_roots": 93,
+    "covered": 29,
+    "invalid": 0,
+    "cpu": 5.270662000000003,
+    "binary_sha256": "5ef18ef92482ff3dbb7dc043c40b182b29380c1d6e11230c181b9572a1137bdb"
+  },
+  "candidate": {
+    "positions": 64,
+    "solved_roots": 100,
+    "covered": 29,
+    "invalid": 0,
+    "cpu": 5.4068600000000036,
+    "binary_sha256": "af24df04dd4dc3aab131e13f3d71684a955f44b3e6661858ab6fa663f77c9cd0"
+  },
+  "passed": true
+}
