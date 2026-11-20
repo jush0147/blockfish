@@ -1,4 +1,4 @@
-=== Round WG-5: WG-DS ew:cons22 (88g, B=1800) + Local-Oracle Legal-DAgger (24g, ew4+nope) + Gated-MLP (+-5) + CRN-Flip (-0.55) ===
+=== Round BC-1: Full-Action-Space Afterstate Cross-Entropy BC (120g WG_ds B=1400 -> models/spatial_bc1.txt) ===
 [1m[33mwarning[0m[1m: unused build dependency `fontconfig`[0m
   [1m[94m--> [0mblockfish-client/Cargo.toml:29:1
    [1m[94m|[0m
@@ -97,53 +97,46 @@
    [1m[94m|[0m                                                         [92m++++[0m
 
 [1m[33mwarning[0m: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
-[1m[33mwarning[0m[1m: field `sc_w_1ply` is never read[0m
-   [1m[94m--> [0mblockfish-engine/examples/train_spatial.rs:476:5
-    [1m[94m|[0m
-[1m[94m466[0m [1m[94m|[0m struct CfTask {
-    [1m[94m|[0m        [1m[94m------[0m [1m[94mfield in this struct[0m
-[1m[94m...[0m
-[1m[94m476[0m [1m[94m|[0m     sc_w_1ply: i64,
-    [1m[94m|[0m     [1m[33m^^^^^^^^^[0m
-    [1m[94m|[0m
-    [1m[94m= [0m[1mnote[0m: `CfTask` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis
-    [1m[94m= [0m[1mnote[0m: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+[1m[33mwarning[0m[1m: field `seed` is never read[0m
+  [1m[94m--> [0mblockfish-engine/examples/train_bc.rs:23:5
+   [1m[94m|[0m
+[1m[94m22[0m [1m[94m|[0m struct ExactSeedData {
+   [1m[94m|[0m        [1m[94m-------------[0m [1m[94mfield in this struct[0m
+[1m[94m23[0m [1m[94m|[0m     seed: u64,
+   [1m[94m|[0m     [1m[33m^^^^[0m
+   [1m[94m|[0m
+   [1m[94m= [0m[1mnote[0m: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
 
-[1m[33mwarning[0m: `blockfish` (example "train_spatial") generated 1 warning
-[1m[92m    Finished[0m `release` profile [optimized] target(s) in 11.58s
-[1m[92m     Running[0m `target/release/examples/train_spatial --teacher 'ew:cons22' --out models/spatial_wg5.txt --wg-beam 1800 --wg-ds --games 88 --legal-dagger 24 --cf-per-game 14 --roll-ds 8 --roll-bw 36 --crn-worlds 5 --epochs 24 --batch 128 --lr 0.0010 --wd 0.025 --lin-lr-mult 0.35 --val-w 0.12 --diff-w 0.65 --rank-w 2.0 --cal-v-weight 0.40 --no-roll-vcal --seed-base 1000 --eval-oracle 5 --eval-legal 5`
-=== OOD-Safe Calibrated SpatialValueModel RL ===
-  teacher=ew:cons22 wg_beam=1800 wg_ds=true roll_vcal=false nds_pen=0 no_o_bias=true games=88 legal_dagger=24 seeds=[1000..1088] H=12 B=140 MPR=20 roll_h=20 roll_ds=8 roll_bw=36 crn_w=5 cf/g=14 cal_v_w=0.4 lin_lr_mult=0.35 threads=4
-  Ridge [pre_V_cal_MC] (12247 samples, sum_w=12247.0): mae=1.721 rmse=2.203
-  [pre_V_cal_MC] bias=+88.63 g0_sp=+0.50 h_IOT=(-0.042,+0.060,-0.060) | lin_raw: rem_g:+1.675 g:+0.000 pe_net:+0.093 stk_cells:+0.000 max_sh:+0.010 over2_sq:+0.008 cov_holes:+0.180 blk_over_h:+0.060 h1_blk:+0.120 h2_blk:+0.060 bump:+0.020 near9:-0.268 clean_sk:-0.210 h2_only_rg:+0.000 h1_ds_rg_h2:+0.000 h1_cc:+0.550 h2_cc:+0.391
-Phase 1: 112 valid (0 topouts, 1568 cf_tasks) in 1633.3s | teacher(88) mean=166.62 [161..173] emp_rate=1.6663 | dagger(24/0 top) mean=211.58 [199..228]
-  Ridge [V_cal_MC] (12247 samples, sum_w=12247.0): mae=1.721 rmse=2.203
-  [V_cal_MC] bias=+88.63 g0_sp=+0.50 h_IOT=(-0.042,+0.060,-0.060) | lin_raw: rem_g:+1.675 g:+0.000 pe_net:+0.093 stk_cells:+0.000 max_sh:+0.010 over2_sq:+0.008 cov_holes:+0.180 blk_over_h:+0.060 h1_blk:+0.120 h2_blk:+0.060 bump:+0.020 near9:-0.268 clean_sk:-0.210 h2_only_rg:+0.000 h1_ds_rg_h2:+0.000 h1_cc:+0.550 h2_cc:+0.391
-  LeafEval calibration (clean_mc=12247): emp_rate=1.6663 t_scale=1.0174 t_shift=-2.59 v_cal_w=0.40
-Phase 3: 1568 CF jobs finished in 795.0s | states=30788 train_vals=10701 val_vals=2026 train_pairs=17839 val_pairs=3332 trap_pairs=4985 crn_flipped=781
-  Ridge [ep0_init] (10701 vals, 17839 pairs, sum_w=81753.8): mae=2.262 rmse=2.954 | train_pair=70.9% diff_mae=2.398
-  Saved pure-Ridge ep0 model to models/spatial_wg5_ep0.txt
-  [ep0_init] bias=+90.34 g0_sp=+0.50 h_IOT=(-0.060,+0.060,-0.060) | lin_raw: rem_g:+1.618 g:+0.000 pe_net:+0.240 stk_cells:+0.000 max_sh:+0.010 over2_sq:+0.008 cov_holes:+0.180 blk_over_h:+0.077 h1_blk:+0.120 h2_blk:+0.060 bump:+0.020 near9:-0.251 clean_sk:-0.250 h2_only_rg:+0.000 h1_ds_rg_h2:+0.000 h1_cc:+0.514 h2_cc:+0.100
-  ep= 0/24 lr=0.00000 | cf_mae=2.252 diff_mae=2.354 pair=72.5% trap=48.1% flip=72.6% (124) rank_l=0.866 comb=3.600
-  ep= 1/24 lr=0.00050 | cf_mae=2.197 diff_mae=2.238 pair=74.3% trap=52.8% flip=70.2% (124) rank_l=0.787 comb=3.358
-  ep= 5/24 lr=0.00090 | cf_mae=2.082 diff_mae=2.063 pair=76.1% trap=59.5% flip=67.7% (124) rank_l=0.723 comb=3.099
-  ep=10/24 lr=0.00065 | cf_mae=2.053 diff_mae=2.036 pair=76.4% trap=61.3% flip=69.4% (124) rank_l=0.723 comb=3.076
-  ep=15/24 lr=0.00034 | cf_mae=2.039 diff_mae=2.037 pair=76.2% trap=61.8% flip=66.9% (124) rank_l=0.725 comb=3.079
-  ep=20/24 lr=0.00011 | cf_mae=2.034 diff_mae=2.038 pair=76.6% trap=61.7% flip=66.9% (124) rank_l=0.727 comb=3.083
-  ep=24/24 lr=0.00005 | cf_mae=2.035 diff_mae=2.044 pair=76.2% trap=61.0% flip=66.9% (124) rank_l=0.729 comb=3.093
-  [best] bias=+90.32 g0_sp=+0.50 h_IOT=(-0.060,+0.059,-0.059) | lin_raw: rem_g:+1.628 g:+0.000 pe_net:+0.226 stk_cells:+0.000 max_sh:+0.010 over2_sq:+0.008 cov_holes:+0.180 blk_over_h:+0.063 h1_blk:+0.120 h2_blk:+0.062 bump:+0.024 near9:-0.246 clean_sk:-0.210 h2_only_rg:+0.017 h1_ds_rg_h2:+0.000 h1_cc:+0.535 h2_cc:+0.113
-Saved best SpatialValueModel (best_comb=3.063) to models/spatial_wg5.txt in 9.7s
+[1m[33mwarning[0m: `blockfish` (example "train_bc") generated 1 warning
+[1m[92m    Finished[0m `release` profile [optimized] target(s) in 7.63s
+[1m[92m     Running[0m `target/release/examples/train_bc --out models/spatial_bc1.txt --games 120 --wg-beam 1400 --lin-epochs 16 --mlp-epochs 18 --batch 32 --tau 0.50 --cal-w 0.025 --lr-lin 0.008 --lr-mlp 0.0015 --wd 0.002 --seed-base 3000 --eval-legal 5`
+=== Full-Action-Space Afterstate BC (WG_ds -> SpatialValueModel) ===
+  out=models/spatial_bc1.txt games=120 wg_beam=1400 lin_ep=16 mlp_ep=18 batch=32 tau=0.5 cal_w=0.025 lr_lin=0.008 lr_mlp=0.0015 wd=0.002 threads=4
+Phase 1: solved 120 games (mean=167.21 pcs) -> 19945 decisions (16920 train, 3025 val), 918229 legal moves in 1257.3s
+  [LIN ep  1/16] lr=0.00800 | val_ce=0.9699 top1=70.0% top3=91.8% v_mae=2.32
+  [LIN ep  3/16] lr=0.00773 | val_ce=0.9667 top1=69.0% top3=91.8% v_mae=2.15
+  [LIN ep  6/16] lr=0.00640 | val_ce=0.9381 top1=70.3% top3=92.0% v_mae=2.20
+  [LIN ep  9/16] lr=0.00440 | val_ce=0.9258 top1=70.3% top3=92.2% v_mae=2.24
+  [LIN ep 12/16] lr=0.00240 | val_ce=0.9237 top1=71.0% top3=92.2% v_mae=2.19
+  [LIN ep 15/16] lr=0.00107 | val_ce=0.9162 top1=70.6% top3=92.4% v_mae=2.21
+  [LIN ep 16/16] lr=0.00087 | val_ce=0.9163 top1=71.1% top3=92.5% v_mae=2.19
+Saved pure-linear BC model (val_ce=0.9158, rem_g=1.683) to models/spatial_bc1_lin.txt
+  [MLP ep  1/18] lr=0.00150 | val_ce=0.9149 top1=71.1% top3=92.5% v_mae=2.19
+  [MLP ep  3/18] lr=0.00146 | val_ce=0.9128 top1=71.1% top3=92.6% v_mae=2.20
+  [MLP ep  6/18] lr=0.00126 | val_ce=0.8946 top1=71.3% top3=92.7% v_mae=2.16
+  [MLP ep  9/18] lr=0.00094 | val_ce=0.9014 top1=71.1% top3=93.0% v_mae=2.23
+  [MLP ep 12/18] lr=0.00059 | val_ce=0.9120 top1=70.9% top3=93.0% v_mae=2.19
+  [MLP ep 15/18] lr=0.00031 | val_ce=0.9349 top1=70.1% top3=92.5% v_mae=2.20
+  [MLP ep 18/18] lr=0.00016 | val_ce=0.9461 top1=69.7% top3=92.7% v_mae=2.21
+Saved full-MLP BC model (val_ce=0.8946, needs_pe=false) to models/spatial_bc1.txt
 
-=== Post-Training Held-Out Verification ===
-OR_p6_b120_ep0             mean=208.40 per_seed=[225, 207, 197, 204, 209] dt=22.3s
-OR_p12_b140_ep0            mean=190.20 per_seed=[192, 193, 195, 177, 194] dt=43.8s
-OR_p6_b120_best            mean=258.80 per_seed=[228, 247, 400, 210, 209] dt=39.2s
-OR_p12_b140_best           mean=202.20 per_seed=[192, 204, 196, 206, 213] dt=83.0s
-LEGAL_rpimc_flat_ep0       mean=194.80 per_seed=[204, 193, 185, 192, 200] dt=190.2s
-LEGAL_rpimc_flat_best      mean=201.00 per_seed=[200, 200, 205, 205, 195] dt=198.8s
-LEGAL_p5_b120_best_sim1w   mean=220.20 per_seed=[210, 237, 219, 210, 225] dt=38.6s
+=== Post-BC Held-Out Legal Verification (seeds 101..=105) ===
+  LEGAL_b120_bc_lin            mean=201.40 top=0 pcs=[200, 204, 196, 200, 207] dt=17.3s
+  LEGAL_b120_bc_mlp            mean=205.20 top=0 pcs=[187, 202, 200, 215, 222] dt=29.1s
+  LEGAL_pimc_w8_bc_lin         mean=188.80 top=0 pcs=[183, 185, 185, 196, 195] dt=126.5s
+  LEGAL_pimc_w8_bc_mlp         mean=191.60 top=0 pcs=[188, 195, 190, 192, 193] dt=133.7s
 
-=== Post-WG5 Oracle & Legal Diagnostics ===
+=== Post-BC1 5-Seed Held-Out Legal Benchmarks ===
 [1m[33mwarning[0m[1m: unused build dependency `fontconfig`[0m
   [1m[94m--> [0mblockfish-client/Cargo.toml:29:1
    [1m[94m|[0m
@@ -241,139 +234,16 @@ LEGAL_p5_b120_best_sim1w   mean=220.20 per_seed=[210, 237, 219, 210, 225] dt=38.
 
 [1m[33mwarning[0m: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
 [1m[92m   Compiling[0m blockfish v0.1.0 (/home/runner/work/blockfish/blockfish/blockfish-engine)
-[1m[92m    Finished[0m `release` profile [optimized] target(s) in 9.52s
-[1m[92m     Running[0m `target/release/examples/diag_cheese spatial_probe models/spatial_wg5.txt`
-=== Spatial Probe (models/spatial_wg5.txt) (seeds 101..=105) ===
-OR_p6_b120_h2nog0        mean=204.20 [189..217] top=0 nds=70.40 0ds=104.20 (cov=32.6 O=21.4 nar=10.8 wide=35.0 g0=0.0 end=4.4) ds(1/2/3+)=100.0/0.0/0.0 cov_nxt=17.8% avg_c=12.9 r_end=12.8 dt=14.3s
-  per_seed=[203, 213, 199, 189, 217]
-OR_p6_b120_sp_lin        mean=204.40 [196..212] top=0 nds=70.80 0ds=104.40 (cov=30.4 O=19.6 nar=12.2 wide=37.2 g0=0.0 end=5.0) ds(1/2/3+)=100.0/0.0/0.0 cov_nxt=15.8% avg_c=13.1 r_end=9.6 dt=17.1s
-  per_seed=[212, 203, 196, 203, 208]
-OR_p6_b120_sp_full       mean=323.80 [209..400] top=3 nds=78.20 0ds=137.80 (cov=60.6 O=20.2 nar=10.8 wide=36.0 g0=0.0 end=10.2) ds(1/2/3+)=94.8/0.0/0.0 cov_nxt=24.1% avg_c=12.2 r_end=96.8 dt=32.7s
-  per_seed=[400, 400, 400, 210, 209]
-
-=== 1-ply breakdown on first 12 moves of seed 101 (sp_full vs h2nog0) ===
-step= 1 bo=0->0  cells= 3 ds=1 l=1 | sp(lin=162.47 mlp= -0.53) same_as_h2=true
-step= 2 bo=0->0  cells= 7 ds=0 l=0 | sp(lin=163.54 mlp= -2.04) same_as_h2=false
-step= 3 bo=0->0  cells=11 ds=0 l=0 | sp(lin=165.05 mlp= -3.00) same_as_h2=false
-step= 4 bo=0->0  cells=15 ds=0 l=0 | sp(lin=165.62 mlp= -3.51) same_as_h2=false
-step= 5 bo=0->0  cells=19 ds=0 l=0 | sp(lin=166.50 mlp= -3.61) same_as_h2=false
-step= 6 bo=0->0  cells=22 ds=1 l=1 | sp(lin=165.21 mlp= -3.18) same_as_h2=true
-step= 7 bo=0->0  cells=26 ds=0 l=0 | sp(lin=166.08 mlp= -3.54) same_as_h2=false
-step= 8 bo=0->0  cells=30 ds=0 l=0 | sp(lin=167.02 mlp= -3.68) same_as_h2=false
-step= 9 bo=0->0  cells=34 ds=0 l=0 | sp(lin=167.13 mlp= -3.75) same_as_h2=true
-step=10 bo=0->0  cells=38 ds=0 l=0 | sp(lin=168.41 mlp= -3.73) same_as_h2=false
-step=11 bo=0->0  cells=42 ds=0 l=0 | sp(lin=168.80 mlp= -3.60) same_as_h2=false
-step=12 bo=0->4  cells=45 ds=1 l=1 | sp(lin=168.81 mlp= -3.27) same_as_h2=true
-step=13 bo=4->4  cells=49 ds=0 l=0 | sp(lin=169.29 mlp= -3.46) same_as_h2=false
-step=14 bo=4->4  cells=53 ds=0 l=0 | sp(lin=169.96 mlp= -3.41) same_as_h2=false
-step=15 bo=4->8  cells=57 ds=0 l=0 | sp(lin=170.42 mlp= -3.88) same_as_h2=false
-[1m[33mwarning[0m[1m: unused build dependency `fontconfig`[0m
-  [1m[94m--> [0mblockfish-client/Cargo.toml:29:1
-   [1m[94m|[0m
-[1m[94m29[0m [1m[94m|[0m fontconfig = "0.2"
-   [1m[94m|[0m [1m[33m^^^^^^^^^^^^^^^^^^[0m
-   [1m[94m|[0m
-   [1m[94m= [0m[1mnote[0m: `cargo::unused_dependencies` is set to `warn` by default
-[1m[96mhelp[0m: consider removing the dependency on `fontconfig`
-[1m[33mwarning[0m: `blockfish-client` (manifest) generated 1 warning
-[1m[33mwarning[0m[1m: unused imports: `Input` and `place::PlaceFinder`[0m
- [1m[94m--> [0mblockfish-engine/src/ai/fast.rs:2:5
-  [1m[94m|[0m
-[1m[94m2[0m [1m[94m|[0m     place::PlaceFinder,
-  [1m[94m|[0m     [1m[33m^^^^^^^^^^^^^^^^^^[0m
-[1m[94m3[0m [1m[94m|[0m     shape::{ShapeRef, ShapeTable},
-[1m[94m4[0m [1m[94m|[0m     BasicMatrix, Color, Input, Orientation,
-  [1m[94m|[0m                         [1m[33m^^^^^[0m
-  [1m[94m|[0m
-  [1m[94m= [0m[1mnote[0m: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
-
-[1m[33mwarning[0m[1m: use of deprecated constant `std::u16::MAX`: replaced by the `MAX` associated constant on this type[0m
-  [1m[94m--> [0mblockfish-engine/src/matrix.rs:41:15
-   [1m[94m|[0m
-[1m[94m41[0m [1m[94m|[0m     std::u16::MAX.overflowing_shl(cols.into()).0
-   [1m[94m|[0m               [1m[33m^^^[0m
-   [1m[94m|[0m
-   [1m[94m= [0m[1mnote[0m: `#[warn(deprecated)]` on by default
-
-[1m[33mwarning[0m[1m: use of deprecated constant `std::u16::MAX`: replaced by the `MAX` associated constant on this type[0m
-  [1m[94m--> [0mblockfish-engine/src/matrix.rs:46:15
-   [1m[94m|[0m
-[1m[94m46[0m [1m[94m|[0m     std::u16::MAX
-   [1m[94m|[0m               [1m[33m^^^[0m
-
-[1m[33mwarning[0m[1m: use of deprecated constant `std::usize::MAX`: replaced by the `MAX` associated constant on this type[0m
-  [1m[94m--> [0mblockfish-engine/src/place.rs:27:30
-   [1m[94m|[0m
-[1m[94m27[0m [1m[94m|[0m             idx: std::usize::MAX,
-   [1m[94m|[0m                              [1m[33m^^^[0m
-
-[1m[33mwarning[0m[1m: use of deprecated constant `std::i64::MAX`: replaced by the `MAX` associated constant on this type[0m
-   [1m[94m--> [0mblockfish-engine/src/ai/analysis.rs:169:36
-    [1m[94m|[0m
-[1m[94m169[0m [1m[94m|[0m     let mut global_min = std::i64::MAX;
-    [1m[94m|[0m                                    [1m[33m^^^[0m
-
-[1m[33mwarning[0m[1m: use of deprecated constant `std::i64::MAX`: replaced by the `MAX` associated constant on this type[0m
-   [1m[94m--> [0mblockfish-engine/src/ai/b_star.rs:195:67
-    [1m[94m|[0m
-[1m[94m195[0m [1m[94m|[0m             .min_by_key(|&i| self.lvls[i].peek().map_or(std::i64::MAX, |n| n.f))
-    [1m[94m|[0m                                                                   [1m[33m^^^[0m
-
-[1m[33mwarning[0m[1m: use of deprecated constant `std::i64::MAX`: replaced by the `MAX` associated constant on this type[0m
-   [1m[94m--> [0mblockfish-engine/src/ai/b_star.rs:206:75
-    [1m[94m|[0m
-[1m[94m206[0m [1m[94m|[0m                 let best = self.move_best.entry(m_id).or_insert(std::i64::MAX);
-    [1m[94m|[0m                                                                           [1m[33m^^^[0m
-
-[1m[33mwarning[0m[1m: use of deprecated constant `std::usize::MAX`: replaced by the `MAX` associated constant on this type[0m
-   [1m[94m--> [0mblockfish-engine/src/ai/eval.rs:118:32
-    [1m[94m|[0m
-[1m[94m118[0m [1m[94m|[0m     let mut idx0 = std::usize::MAX;
-    [1m[94m|[0m                                [1m[33m^^^[0m
-
-[1m[33mwarning[0m[1m: use of deprecated constant `std::usize::MAX`: replaced by the `MAX` associated constant on this type[0m
-   [1m[94m--> [0mblockfish-engine/src/ai/eval.rs:121:31
-    [1m[94m|[0m
-[1m[94m121[0m [1m[94m|[0m         if idx0 < std::usize::MAX {
-    [1m[94m|[0m                               [1m[33m^^^[0m
-
-[1m[33mwarning[0m[1m: variable does not need to be mutable[0m
-   [1m[94m--> [0mblockfish-engine/src/ai/fast.rs:338:13
-    [1m[94m|[0m
-[1m[94m338[0m [1m[94m|[0m         let mut shapes_opt: [Option<FastShape>; 7] = [None, None, None, None, None, None, None];
-    [1m[94m|[0m             [1m[94m----[0m[1m[33m^^^^^^^^^^[0m
-    [1m[94m|[0m             [1m[94m|[0m
-    [1m[94m|[0m             [1m[94mhelp: remove this `mut`[0m
-    [1m[94m|[0m
-    [1m[94m= [0m[1mnote[0m: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
-
-[1m[33mwarning[0m[1m: hiding a lifetime that's elided elsewhere is confusing[0m
-  [1m[94m--> [0mblockfish-engine/src/shape.rs:16:18
-   [1m[94m|[0m
-[1m[94m16[0m [1m[94m|[0m     pub fn shape(&self, color: Color) -> Option<ShapeRef> {
-   [1m[94m|[0m                  [1m[33m^^^^^[0m                          [1m[33m^^^^^^^^[0m [1m[33mthe same lifetime is hidden here[0m
-   [1m[94m|[0m                  [1m[33m|[0m
-   [1m[94m|[0m                  [1m[33mthe lifetime is elided here[0m
-   [1m[94m|[0m
-   [1m[94m= [0m[1mhelp[0m: the same lifetime is referred to in inconsistent ways, making the signature confusing
-   [1m[94m= [0m[1mnote[0m: `#[warn(mismatched_lifetime_syntaxes)]` on by default
-[1m[96mhelp[0m: use `'_` for type paths
-   [1m[94m|[0m
-[1m[94m16[0m [1m[94m| [0m    pub fn shape(&self, color: Color) -> Option<ShapeRef[92m<'_>[0m> {
-   [1m[94m|[0m                                                         [92m++++[0m
-
-[1m[33mwarning[0m: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
-[1m[92m   Compiling[0m blockfish v0.1.0 (/home/runner/work/blockfish/blockfish/blockfish-engine)
-[1m[92m    Finished[0m `release` profile [optimized] target(s) in 1.66s
-[1m[92m     Running[0m `target/release/examples/bench_legal spatial5_1 models/spatial_wg5.txt sp_rpimc_linfast_nope_w8_h9`
-=== Legal spatial5_1 (models/spatial_wg5.txt / sp_rpimc_linfast_nope_w8_h9) ===
-  [seed 103] pcs=191 nds=65 0ds=91 (cov=37 O=16 nar=10 wide=26 end= 2) cov_nxt=15.0% | 91.8s
-  [seed 102] pcs=196 nds=67 0ds=96 (cov=33 O=19 nar=13 wide=28 end= 3) cov_nxt=17.0% | 92.9s
-  [seed 104] pcs=206 nds=71 0ds=106 (cov=28 O=20 nar=17 wide=34 end= 7) cov_nxt=16.0% | 97.8s
-  [seed 101] pcs=205 nds=71 0ds=105 (cov=37 O=20 nar=10 wide=34 end= 4) cov_nxt=17.0% | 101.1s
-  [seed 105] pcs=193 nds=66 0ds=93 (cov=44 O=12 nar= 5 wide=28 end= 4) cov_nxt=25.0% | 149.8s
-sp_rpimc_linfast_nope_w8_h9 n= 5 mean=198.20 min=191 max=206 <=166: 0 top= 0 | nds=68.00 0ds=98.20 (cov=35.8 O=17.4 nar=11.0 wide=30.0 g0=0.0 end=4.0) cov_nxt=18.0% avg_c=12.9 | 149.8s
-  seeds: [101:205, 102:196, 103:191, 104:206, 105:193]
+[1m[92m    Finished[0m `release` profile [optimized] target(s) in 1.92s
+[1m[92m     Running[0m `target/release/examples/bench_legal spatial5_1 models/spatial_bc1_lin.txt sp_rpimc_linfast_nope_w8_h9`
+=== Legal spatial5_1 (models/spatial_bc1_lin.txt / sp_rpimc_linfast_nope_w8_h9) ===
+  [seed 103] pcs=182 nds=62 0ds=82 (cov=19 O=22 nar=11 wide=25 end= 5) cov_nxt=13.0% | 84.9s
+  [seed 102] pcs=187 nds=64 0ds=87 (cov=32 O=19 nar= 9 wide=25 end= 2) cov_nxt=20.0% | 89.1s
+  [seed 104] pcs=193 nds=66 0ds=93 (cov=28 O=16 nar=12 wide=31 end= 6) cov_nxt=13.0% | 89.1s
+  [seed 101] pcs=189 nds=65 0ds=89 (cov=27 O=18 nar= 9 wide=30 end= 5) cov_nxt=19.0% | 91.6s
+  [seed 105] pcs=195 nds=67 0ds=95 (cov=26 O=21 nar=13 wide=30 end= 5) cov_nxt=19.0% | 147.3s
+sp_rpimc_linfast_nope_w8_h9 n= 5 mean=189.20 min=182 max=195 <=166: 0 top= 0 | nds=64.80 0ds=89.20 (cov=26.4 O=19.2 nar=10.8 wide=28.2 g0=0.0 end=4.6) cov_nxt=16.8% avg_c=12.4 | 147.3s
+  seeds: [101:189, 102:187, 103:182, 104:193, 105:195]
 [1m[33mwarning[0m[1m: unused build dependency `fontconfig`[0m
   [1m[94m--> [0mblockfish-client/Cargo.toml:29:1
    [1m[94m|[0m
@@ -471,12 +341,224 @@ sp_rpimc_linfast_nope_w8_h9 n= 5 mean=198.20 min=191 max=206 <=166: 0 top= 0 | n
 
 [1m[33mwarning[0m: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
 [1m[92m    Finished[0m `release` profile [optimized] target(s) in 0.03s
-[1m[92m     Running[0m `target/release/examples/bench_legal spatial5_1 models/spatial_wg5.txt sp_rpimc_sim_w8_h9`
-=== Legal spatial5_1 (models/spatial_wg5.txt / sp_rpimc_sim_w8_h9) ===
-  [seed 104] pcs=200 nds=69 0ds=100 (cov=33 O=18 nar= 8 wide=32 end= 9) cov_nxt=19.0% | 235.6s
-  [seed 102] pcs=190 nds=65 0ds=90 (cov=25 O=20 nar=11 wide=29 end= 5) cov_nxt=16.0% | 238.6s
-  [seed 101] pcs=201 nds=69 0ds=101 (cov=42 O=13 nar=11 wide=27 end= 8) cov_nxt=18.0% | 239.8s
-  [seed 103] pcs=195 nds=67 0ds=95 (cov=29 O=22 nar= 5 wide=32 end= 7) cov_nxt=15.0% | 243.0s
-  [seed 105] pcs=205 nds=71 0ds=105 (cov=28 O=23 nar=12 wide=38 end= 4) cov_nxt=11.0% | 400.1s
-sp_rpimc_sim_w8_h9         n= 5 mean=198.20 min=190 max=205 <=166: 0 top= 0 | nds=68.20 0ds=98.20 (cov=31.4 O=19.2 nar=9.4 wide=31.6 g0=0.0 end=6.6) cov_nxt=15.8% avg_c=13.5 | 400.1s
-  seeds: [101:201, 102:190, 103:195, 104:200, 105:205]
+[1m[92m     Running[0m `target/release/examples/bench_legal spatial5_1 models/spatial_bc1.txt sp_rpimc_sim_w8_h9`
+=== Legal spatial5_1 (models/spatial_bc1.txt / sp_rpimc_sim_w8_h9) ===
+  [seed 101] pcs=188 nds=64 0ds=88 (cov=31 O=16 nar= 8 wide=28 end= 5) cov_nxt=14.0% | 195.4s
+  [seed 102] pcs=190 nds=66 0ds=90 (cov=28 O=17 nar=16 wide=25 end= 4) cov_nxt=12.0% | 196.5s
+  [seed 104] pcs=190 nds=65 0ds=90 (cov=25 O=17 nar=10 wide=34 end= 4) cov_nxt=17.0% | 203.5s
+  [seed 103] pcs=195 nds=67 0ds=95 (cov=38 O=19 nar=12 wide=20 end= 6) cov_nxt=22.0% | 209.0s
+  [seed 105] pcs=198 nds=68 0ds=98 (cov=38 O=19 nar=10 wide=25 end= 6) cov_nxt=21.0% | 337.8s
+sp_rpimc_sim_w8_h9         n= 5 mean=192.20 min=188 max=198 <=166: 0 top= 0 | nds=66.00 0ds=92.20 (cov=32.0 O=17.6 nar=11.2 wide=26.4 g0=0.0 end=5.0) cov_nxt=17.2% avg_c=12.4 | 337.8s
+  seeds: [101:188, 102:190, 103:195, 104:190, 105:198]
+[1m[33mwarning[0m[1m: unused build dependency `fontconfig`[0m
+  [1m[94m--> [0mblockfish-client/Cargo.toml:29:1
+   [1m[94m|[0m
+[1m[94m29[0m [1m[94m|[0m fontconfig = "0.2"
+   [1m[94m|[0m [1m[33m^^^^^^^^^^^^^^^^^^[0m
+   [1m[94m|[0m
+   [1m[94m= [0m[1mnote[0m: `cargo::unused_dependencies` is set to `warn` by default
+[1m[96mhelp[0m: consider removing the dependency on `fontconfig`
+[1m[33mwarning[0m: `blockfish-client` (manifest) generated 1 warning
+[1m[33mwarning[0m[1m: unused imports: `Input` and `place::PlaceFinder`[0m
+ [1m[94m--> [0mblockfish-engine/src/ai/fast.rs:2:5
+  [1m[94m|[0m
+[1m[94m2[0m [1m[94m|[0m     place::PlaceFinder,
+  [1m[94m|[0m     [1m[33m^^^^^^^^^^^^^^^^^^[0m
+[1m[94m3[0m [1m[94m|[0m     shape::{ShapeRef, ShapeTable},
+[1m[94m4[0m [1m[94m|[0m     BasicMatrix, Color, Input, Orientation,
+  [1m[94m|[0m                         [1m[33m^^^^^[0m
+  [1m[94m|[0m
+  [1m[94m= [0m[1mnote[0m: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m[1m: use of deprecated constant `std::u16::MAX`: replaced by the `MAX` associated constant on this type[0m
+  [1m[94m--> [0mblockfish-engine/src/matrix.rs:41:15
+   [1m[94m|[0m
+[1m[94m41[0m [1m[94m|[0m     std::u16::MAX.overflowing_shl(cols.into()).0
+   [1m[94m|[0m               [1m[33m^^^[0m
+   [1m[94m|[0m
+   [1m[94m= [0m[1mnote[0m: `#[warn(deprecated)]` on by default
+
+[1m[33mwarning[0m[1m: use of deprecated constant `std::u16::MAX`: replaced by the `MAX` associated constant on this type[0m
+  [1m[94m--> [0mblockfish-engine/src/matrix.rs:46:15
+   [1m[94m|[0m
+[1m[94m46[0m [1m[94m|[0m     std::u16::MAX
+   [1m[94m|[0m               [1m[33m^^^[0m
+
+[1m[33mwarning[0m[1m: use of deprecated constant `std::usize::MAX`: replaced by the `MAX` associated constant on this type[0m
+  [1m[94m--> [0mblockfish-engine/src/place.rs:27:30
+   [1m[94m|[0m
+[1m[94m27[0m [1m[94m|[0m             idx: std::usize::MAX,
+   [1m[94m|[0m                              [1m[33m^^^[0m
+
+[1m[33mwarning[0m[1m: use of deprecated constant `std::i64::MAX`: replaced by the `MAX` associated constant on this type[0m
+   [1m[94m--> [0mblockfish-engine/src/ai/analysis.rs:169:36
+    [1m[94m|[0m
+[1m[94m169[0m [1m[94m|[0m     let mut global_min = std::i64::MAX;
+    [1m[94m|[0m                                    [1m[33m^^^[0m
+
+[1m[33mwarning[0m[1m: use of deprecated constant `std::i64::MAX`: replaced by the `MAX` associated constant on this type[0m
+   [1m[94m--> [0mblockfish-engine/src/ai/b_star.rs:195:67
+    [1m[94m|[0m
+[1m[94m195[0m [1m[94m|[0m             .min_by_key(|&i| self.lvls[i].peek().map_or(std::i64::MAX, |n| n.f))
+    [1m[94m|[0m                                                                   [1m[33m^^^[0m
+
+[1m[33mwarning[0m[1m: use of deprecated constant `std::i64::MAX`: replaced by the `MAX` associated constant on this type[0m
+   [1m[94m--> [0mblockfish-engine/src/ai/b_star.rs:206:75
+    [1m[94m|[0m
+[1m[94m206[0m [1m[94m|[0m                 let best = self.move_best.entry(m_id).or_insert(std::i64::MAX);
+    [1m[94m|[0m                                                                           [1m[33m^^^[0m
+
+[1m[33mwarning[0m[1m: use of deprecated constant `std::usize::MAX`: replaced by the `MAX` associated constant on this type[0m
+   [1m[94m--> [0mblockfish-engine/src/ai/eval.rs:118:32
+    [1m[94m|[0m
+[1m[94m118[0m [1m[94m|[0m     let mut idx0 = std::usize::MAX;
+    [1m[94m|[0m                                [1m[33m^^^[0m
+
+[1m[33mwarning[0m[1m: use of deprecated constant `std::usize::MAX`: replaced by the `MAX` associated constant on this type[0m
+   [1m[94m--> [0mblockfish-engine/src/ai/eval.rs:121:31
+    [1m[94m|[0m
+[1m[94m121[0m [1m[94m|[0m         if idx0 < std::usize::MAX {
+    [1m[94m|[0m                               [1m[33m^^^[0m
+
+[1m[33mwarning[0m[1m: variable does not need to be mutable[0m
+   [1m[94m--> [0mblockfish-engine/src/ai/fast.rs:338:13
+    [1m[94m|[0m
+[1m[94m338[0m [1m[94m|[0m         let mut shapes_opt: [Option<FastShape>; 7] = [None, None, None, None, None, None, None];
+    [1m[94m|[0m             [1m[94m----[0m[1m[33m^^^^^^^^^^[0m
+    [1m[94m|[0m             [1m[94m|[0m
+    [1m[94m|[0m             [1m[94mhelp: remove this `mut`[0m
+    [1m[94m|[0m
+    [1m[94m= [0m[1mnote[0m: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m[1m: hiding a lifetime that's elided elsewhere is confusing[0m
+  [1m[94m--> [0mblockfish-engine/src/shape.rs:16:18
+   [1m[94m|[0m
+[1m[94m16[0m [1m[94m|[0m     pub fn shape(&self, color: Color) -> Option<ShapeRef> {
+   [1m[94m|[0m                  [1m[33m^^^^^[0m                          [1m[33m^^^^^^^^[0m [1m[33mthe same lifetime is hidden here[0m
+   [1m[94m|[0m                  [1m[33m|[0m
+   [1m[94m|[0m                  [1m[33mthe lifetime is elided here[0m
+   [1m[94m|[0m
+   [1m[94m= [0m[1mhelp[0m: the same lifetime is referred to in inconsistent ways, making the signature confusing
+   [1m[94m= [0m[1mnote[0m: `#[warn(mismatched_lifetime_syntaxes)]` on by default
+[1m[96mhelp[0m: use `'_` for type paths
+   [1m[94m|[0m
+[1m[94m16[0m [1m[94m| [0m    pub fn shape(&self, color: Color) -> Option<ShapeRef[92m<'_>[0m> {
+   [1m[94m|[0m                                                         [92m++++[0m
+
+[1m[33mwarning[0m: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
+[1m[92m    Finished[0m `release` profile [optimized] target(s) in 0.04s
+[1m[92m     Running[0m `target/release/examples/bench_legal wg5_lin_sweep models/spatial_bc1_lin.txt deep 5`
+=== Legal wg5_lin_sweep (models/spatial_bc1_lin.txt, which=deep, n_seeds=5) ===
+  [seed 101] pcs=184 nds=63 0ds=84 (cov=29 O=18 nar= 9 wide=21 end= 7) cov_nxt=16.0% | 397.7s
+  [seed 104] pcs=185 nds=63 0ds=85 (cov=34 O=14 nar=10 wide=22 end= 5) cov_nxt=20.0% | 406.9s
+  [seed 103] pcs=183 nds=62 0ds=83 (cov=33 O=12 nar= 9 wide=25 end= 4) cov_nxt=15.0% | 413.8s
+  [seed 102] pcs=203 nds=70 0ds=103 (cov=31 O=23 nar=18 wide=28 end= 3) cov_nxt=16.0% | 432.2s
+  [seed 105] pcs=190 nds=65 0ds=90 (cov=40 O=18 nar= 9 wide=23 end= 0) cov_nxt=22.0% | 674.6s
+lin_nope_pre3_w12_h11_b28  n= 5 mean=189.00 min=183 max=203 <=166: 0 top= 0 | nds=64.60 0ds=89.00 (cov=33.4 O=17.0 nar=11.0 wide=23.8 g0=0.0 end=3.8) cov_nxt=17.8% avg_c=12.3 | 674.6s
+  seeds: [101:184, 102:203, 103:183, 104:185, 105:190]
+[1m[33mwarning[0m[1m: unused build dependency `fontconfig`[0m
+  [1m[94m--> [0mblockfish-client/Cargo.toml:29:1
+   [1m[94m|[0m
+[1m[94m29[0m [1m[94m|[0m fontconfig = "0.2"
+   [1m[94m|[0m [1m[33m^^^^^^^^^^^^^^^^^^[0m
+   [1m[94m|[0m
+   [1m[94m= [0m[1mnote[0m: `cargo::unused_dependencies` is set to `warn` by default
+[1m[96mhelp[0m: consider removing the dependency on `fontconfig`
+[1m[33mwarning[0m: `blockfish-client` (manifest) generated 1 warning
+[1m[33mwarning[0m[1m: unused imports: `Input` and `place::PlaceFinder`[0m
+ [1m[94m--> [0mblockfish-engine/src/ai/fast.rs:2:5
+  [1m[94m|[0m
+[1m[94m2[0m [1m[94m|[0m     place::PlaceFinder,
+  [1m[94m|[0m     [1m[33m^^^^^^^^^^^^^^^^^^[0m
+[1m[94m3[0m [1m[94m|[0m     shape::{ShapeRef, ShapeTable},
+[1m[94m4[0m [1m[94m|[0m     BasicMatrix, Color, Input, Orientation,
+  [1m[94m|[0m                         [1m[33m^^^^^[0m
+  [1m[94m|[0m
+  [1m[94m= [0m[1mnote[0m: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m[1m: use of deprecated constant `std::u16::MAX`: replaced by the `MAX` associated constant on this type[0m
+  [1m[94m--> [0mblockfish-engine/src/matrix.rs:41:15
+   [1m[94m|[0m
+[1m[94m41[0m [1m[94m|[0m     std::u16::MAX.overflowing_shl(cols.into()).0
+   [1m[94m|[0m               [1m[33m^^^[0m
+   [1m[94m|[0m
+   [1m[94m= [0m[1mnote[0m: `#[warn(deprecated)]` on by default
+
+[1m[33mwarning[0m[1m: use of deprecated constant `std::u16::MAX`: replaced by the `MAX` associated constant on this type[0m
+  [1m[94m--> [0mblockfish-engine/src/matrix.rs:46:15
+   [1m[94m|[0m
+[1m[94m46[0m [1m[94m|[0m     std::u16::MAX
+   [1m[94m|[0m               [1m[33m^^^[0m
+
+[1m[33mwarning[0m[1m: use of deprecated constant `std::usize::MAX`: replaced by the `MAX` associated constant on this type[0m
+  [1m[94m--> [0mblockfish-engine/src/place.rs:27:30
+   [1m[94m|[0m
+[1m[94m27[0m [1m[94m|[0m             idx: std::usize::MAX,
+   [1m[94m|[0m                              [1m[33m^^^[0m
+
+[1m[33mwarning[0m[1m: use of deprecated constant `std::i64::MAX`: replaced by the `MAX` associated constant on this type[0m
+   [1m[94m--> [0mblockfish-engine/src/ai/analysis.rs:169:36
+    [1m[94m|[0m
+[1m[94m169[0m [1m[94m|[0m     let mut global_min = std::i64::MAX;
+    [1m[94m|[0m                                    [1m[33m^^^[0m
+
+[1m[33mwarning[0m[1m: use of deprecated constant `std::i64::MAX`: replaced by the `MAX` associated constant on this type[0m
+   [1m[94m--> [0mblockfish-engine/src/ai/b_star.rs:195:67
+    [1m[94m|[0m
+[1m[94m195[0m [1m[94m|[0m             .min_by_key(|&i| self.lvls[i].peek().map_or(std::i64::MAX, |n| n.f))
+    [1m[94m|[0m                                                                   [1m[33m^^^[0m
+
+[1m[33mwarning[0m[1m: use of deprecated constant `std::i64::MAX`: replaced by the `MAX` associated constant on this type[0m
+   [1m[94m--> [0mblockfish-engine/src/ai/b_star.rs:206:75
+    [1m[94m|[0m
+[1m[94m206[0m [1m[94m|[0m                 let best = self.move_best.entry(m_id).or_insert(std::i64::MAX);
+    [1m[94m|[0m                                                                           [1m[33m^^^[0m
+
+[1m[33mwarning[0m[1m: use of deprecated constant `std::usize::MAX`: replaced by the `MAX` associated constant on this type[0m
+   [1m[94m--> [0mblockfish-engine/src/ai/eval.rs:118:32
+    [1m[94m|[0m
+[1m[94m118[0m [1m[94m|[0m     let mut idx0 = std::usize::MAX;
+    [1m[94m|[0m                                [1m[33m^^^[0m
+
+[1m[33mwarning[0m[1m: use of deprecated constant `std::usize::MAX`: replaced by the `MAX` associated constant on this type[0m
+   [1m[94m--> [0mblockfish-engine/src/ai/eval.rs:121:31
+    [1m[94m|[0m
+[1m[94m121[0m [1m[94m|[0m         if idx0 < std::usize::MAX {
+    [1m[94m|[0m                               [1m[33m^^^[0m
+
+[1m[33mwarning[0m[1m: variable does not need to be mutable[0m
+   [1m[94m--> [0mblockfish-engine/src/ai/fast.rs:338:13
+    [1m[94m|[0m
+[1m[94m338[0m [1m[94m|[0m         let mut shapes_opt: [Option<FastShape>; 7] = [None, None, None, None, None, None, None];
+    [1m[94m|[0m             [1m[94m----[0m[1m[33m^^^^^^^^^^[0m
+    [1m[94m|[0m             [1m[94m|[0m
+    [1m[94m|[0m             [1m[94mhelp: remove this `mut`[0m
+    [1m[94m|[0m
+    [1m[94m= [0m[1mnote[0m: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m[1m: hiding a lifetime that's elided elsewhere is confusing[0m
+  [1m[94m--> [0mblockfish-engine/src/shape.rs:16:18
+   [1m[94m|[0m
+[1m[94m16[0m [1m[94m|[0m     pub fn shape(&self, color: Color) -> Option<ShapeRef> {
+   [1m[94m|[0m                  [1m[33m^^^^^[0m                          [1m[33m^^^^^^^^[0m [1m[33mthe same lifetime is hidden here[0m
+   [1m[94m|[0m                  [1m[33m|[0m
+   [1m[94m|[0m                  [1m[33mthe lifetime is elided here[0m
+   [1m[94m|[0m
+   [1m[94m= [0m[1mhelp[0m: the same lifetime is referred to in inconsistent ways, making the signature confusing
+   [1m[94m= [0m[1mnote[0m: `#[warn(mismatched_lifetime_syntaxes)]` on by default
+[1m[96mhelp[0m: use `'_` for type paths
+   [1m[94m|[0m
+[1m[94m16[0m [1m[94m| [0m    pub fn shape(&self, color: Color) -> Option<ShapeRef[92m<'_>[0m> {
+   [1m[94m|[0m                                                         [92m++++[0m
+
+[1m[33mwarning[0m: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
+[1m[92m    Finished[0m `release` profile [optimized] target(s) in 0.03s
+[1m[92m     Running[0m `target/release/examples/bench_legal wg5_lin_sweep models/spatial_bc1_lin.txt ds4 5`
+=== Legal wg5_lin_sweep (models/spatial_bc1_lin.txt, which=ds4, n_seeds=5) ===
+  [seed 101] pcs=185 nds=63 0ds=85 (cov=32 O=20 nar= 2 wide=27 end= 4) cov_nxt=17.0% | 413.8s
+  [seed 103] pcs=187 nds=64 0ds=87 (cov=27 O=17 nar= 8 wide=27 end= 8) cov_nxt=20.0% | 418.5s
+  [seed 102] pcs=197 nds=67 0ds=97 (cov=22 O=24 nar=13 wide=33 end= 5) cov_nxt=16.0% | 430.0s
+  [seed 104] pcs=203 nds=70 0ds=103 (cov=21 O=18 nar=11 wide=45 end= 8) cov_nxt=14.0% | 439.0s
+  [seed 105] pcs=191 nds=66 0ds=91 (cov=26 O=19 nar= 3 wide=35 end= 8) cov_nxt=16.0% | 690.2s
+lin_nope_ds4_w12_b24       n= 5 mean=192.60 min=185 max=203 <=166: 0 top= 0 | nds=66.00 0ds=92.60 (cov=25.6 O=19.6 nar=7.4 wide=33.4 g0=0.0 end=6.6) cov_nxt=16.6% avg_c=12.9 | 690.2s
+  seeds: [101:185, 102:197, 103:187, 104:203, 105:191]
