@@ -1,0 +1,104 @@
+{
+  "world_comparisons": [
+    {
+      "seed": 76900,
+      "crossfit_cost_delta": 0.0,
+      "best_fixed_delta": -1.5,
+      "best_per_world_delta": -2.0
+    },
+    {
+      "seed": 76901,
+      "crossfit_cost_delta": 0.0,
+      "best_fixed_delta": -0.75,
+      "best_per_world_delta": -2.0
+    },
+    {
+      "seed": 76902,
+      "crossfit_cost_delta": 1.5,
+      "best_fixed_delta": 0,
+      "best_per_world_delta": -1.5
+    },
+    {
+      "seed": 76903,
+      "crossfit_cost_delta": 0,
+      "best_fixed_delta": 0,
+      "best_per_world_delta": -1.0
+    },
+    {
+      "seed": 76904,
+      "crossfit_cost_delta": -3.25,
+      "best_fixed_delta": -3.25,
+      "best_per_world_delta": -4.0
+    },
+    {
+      "seed": 76905,
+      "crossfit_cost_delta": 2.25,
+      "best_fixed_delta": 0,
+      "best_per_world_delta": -2.75
+    },
+    {
+      "seed": 76906,
+      "crossfit_cost_delta": 0,
+      "best_fixed_delta": 0,
+      "best_per_world_delta": 0
+    },
+    {
+      "seed": 76907,
+      "crossfit_cost_delta": 0.0,
+      "best_fixed_delta": -0.75,
+      "best_per_world_delta": -0.75
+    }
+  ],
+  "changed_in_64_contrasts": {
+    "model": 20,
+    "backup": 16,
+    "preview": 19,
+    "nodes": 17
+  },
+  "variants": {
+    "learned-robust": {
+      "pieces": [
+        200,
+        194,
+        198,
+        194,
+        209,
+        199,
+        196,
+        198
+      ],
+      "mean": 198.5,
+      "mean_cpu": 19.949855624999998
+    },
+    "robust-classic-guide": {
+      "pieces": [
+        200,
+        206,
+        191,
+        190,
+        201,
+        189,
+        192,
+        200
+      ],
+      "mean": 196.125,
+      "mean_cpu": 31.466806625
+    }
+  },
+  "deltas": [
+    0,
+    12,
+    -7,
+    -4,
+    -8,
+    -10,
+    -4,
+    2
+  ],
+  "mean_delta": -2.375,
+  "paired_percentile_ci": [
+    -6.5,
+    2.5
+  ],
+  "passed": false
+}

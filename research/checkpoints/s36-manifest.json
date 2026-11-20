@@ -1,0 +1,62 @@
+{
+  "promoted": false,
+  "unopened": [
+    [
+      77900,
+      77931
+    ],
+    [
+      78000,
+      78063
+    ]
+  ],
+  "files": {
+    "research/results/s36-build.log": "4c5dbc390e9c415a874dd7d617088658b533cf37060b7daa40de4ea63f572094",
+    "research/results/s36-candidate-build.log": "3f658e31904b5d158c725f81c50e87ba481457caaf1372da306337dc051883e4",
+    "research/results/s36-dev-learned-robust-c9516ea2-3c6e49c1-None-False-77800.json": "df0798a83519d9873bd1f6c964bb74838e8d36a799f8eda742eb625ea563357e",
+    "research/results/s36-dev-learned-robust-c9516ea2-3c6e49c1-None-False-77800.usage.json": "ba8c816fc670536e8a77f7ff787ebfb3ee5a00835003f71219cb9868da92a573",
+    "research/results/s36-dev-learned-robust-c9516ea2-3c6e49c1-None-False-77801.json": "89e0566c3a6c488623ecf109519e7f054ac194170c11ca570c9be63a87007060",
+    "research/results/s36-dev-learned-robust-c9516ea2-3c6e49c1-None-False-77801.usage.json": "07953185d48304fecc8d10239ea1cd7f5cef5e1bae8f7af94cce915f7c660875",
+    "research/results/s36-dev-learned-robust-c9516ea2-3c6e49c1-None-False-77802.json": "8f2b93d0b8dc525935e99fed2617989142495cc60a49f6144324ad791e541071",
+    "research/results/s36-dev-learned-robust-c9516ea2-3c6e49c1-None-False-77802.usage.json": "a5576902f967a0f81abb2f1edab1f8347dddfaa8df999401ec281d82ab853552",
+    "research/results/s36-dev-learned-robust-c9516ea2-3c6e49c1-None-False-77803.json": "ea25d28464097a44b29751f493a504a3e19fc4f17427616b6de2e12229ef77c0",
+    "research/results/s36-dev-learned-robust-c9516ea2-3c6e49c1-None-False-77803.usage.json": "8ce9963a938eeb6791c6ffc2ccdfa90ed534d98b2e7343b9a9f04b58fa9f3b6a",
+    "research/results/s36-dev-learned-robust-c9516ea2-3c6e49c1-None-False-77804.json": "3c2777a5f8c9219a3593786e38e8e4218a32f5d6f657ff2a81aecc569b24674f",
+    "research/results/s36-dev-learned-robust-c9516ea2-3c6e49c1-None-False-77804.usage.json": "8058411587c9982ffae01496628fe97c56c216ff0955baa75b8a0fc043b93b60",
+    "research/results/s36-dev-learned-robust-c9516ea2-3c6e49c1-None-False-77805.json": "5ff6db5d5df15035c18a87bde88d4194efb86b23f8b249ddb475b38f3d7756a5",
+    "research/results/s36-dev-learned-robust-c9516ea2-3c6e49c1-None-False-77805.usage.json": "92fdec500be66834b83e0686238958772d3f37c23cf25f56c54a03a3ca9fc54f",
+    "research/results/s36-dev-learned-robust-c9516ea2-3c6e49c1-None-False-77806.json": "3068e4199004221e610d74b8d76d1d010dc1cf0160abe4bdfa22ab5bf798d3b0",
+    "research/results/s36-dev-learned-robust-c9516ea2-3c6e49c1-None-False-77806.usage.json": "8629ac0cafb4cc5f5375ec4805042ab1cd91f5b86ef7f8d0344f08a0eab1aded",
+    "research/results/s36-dev-learned-robust-c9516ea2-3c6e49c1-None-False-77807.json": "197e770d1c47aa0d1e0341832937ae5b5ae97d913e7f9fd4650ab16f4dfb05c5",
+    "research/results/s36-dev-learned-robust-c9516ea2-3c6e49c1-None-False-77807.usage.json": "f35bfbf4ebd47adc6e12e34553909f3a69ed60af8265bf35c9d7ab461feed0d7",
+    "research/results/s36-dev-robust-classic-guide-f1652c7f-3c6e49c1-None-False-77800.json": "9f652a51f48e19be2f4ea97f899a7afc74b6a53ec83d98190b5ede45ea2d7f18",
+    "research/results/s36-dev-robust-classic-guide-f1652c7f-3c6e49c1-None-False-77800.usage.json": "66d4637d303dd3b0b9d5501fc391c8f68203c6c9d841d18ae2b60402740ff056",
+    "research/results/s36-dev-robust-classic-guide-f1652c7f-3c6e49c1-None-False-77801.json": "a01face34bf644d19e9b541f368cef36e88195a9368b409b1ee0e041efe11bf6",
+    "research/results/s36-dev-robust-classic-guide-f1652c7f-3c6e49c1-None-False-77801.usage.json": "fe9440175e8d208bd9ba27e6c839b7303d9de43ce30d975187f47048c08f3126",
+    "research/results/s36-dev-robust-classic-guide-f1652c7f-3c6e49c1-None-False-77802.json": "03b7851cf587de2cd5fae57dbbf4aa7b86fd73a95ad2f4c414e41097cca5a192",
+    "research/results/s36-dev-robust-classic-guide-f1652c7f-3c6e49c1-None-False-77802.usage.json": "c337f70b8ab263c8525c6cb339491f3a218e2c7a792ce24eb7f6de9d519066c7",
+    "research/results/s36-dev-robust-classic-guide-f1652c7f-3c6e49c1-None-False-77803.json": "4dde774777ab77079d9d5916a31808823453592c2dec9f2ba465b60961df56cd",
+    "research/results/s36-dev-robust-classic-guide-f1652c7f-3c6e49c1-None-False-77803.usage.json": "315b900fa10f2b1bd85539e0163fbab8770fa1991f2d6b4b4ea4da0e20072711",
+    "research/results/s36-dev-robust-classic-guide-f1652c7f-3c6e49c1-None-False-77804.json": "78bf1916d897959e4455322c57eebaae1708b111d202f10d946f2a5372ea1857",
+    "research/results/s36-dev-robust-classic-guide-f1652c7f-3c6e49c1-None-False-77804.usage.json": "97807e5da56b598b806439ed4e11ffe50becda76a2c13ea8beb148610a5b7e7c",
+    "research/results/s36-dev-robust-classic-guide-f1652c7f-3c6e49c1-None-False-77805.json": "b30e8ee52f3c2754b2b31ba70917ff4708972158c5f1a95a4ff1924e230dc634",
+    "research/results/s36-dev-robust-classic-guide-f1652c7f-3c6e49c1-None-False-77805.usage.json": "e6ddb520b6e819f1e68c69ef2a591bbf72f2a0da23378bc3d485643f147e5f7c",
+    "research/results/s36-dev-robust-classic-guide-f1652c7f-3c6e49c1-None-False-77806.json": "ef6852e71cad27054889a8014d0a293b88a4c29a00f92dfecd624ce56e7c2b56",
+    "research/results/s36-dev-robust-classic-guide-f1652c7f-3c6e49c1-None-False-77806.usage.json": "47644a8d0a710ea20808db9af8fc20345e6c82fa0f696eedff3d6fb79d996e43",
+    "research/results/s36-dev-robust-classic-guide-f1652c7f-3c6e49c1-None-False-77807.json": "6c831c18d935b5ce56062f542fa83c17a2de8e13b635f9cfd6ea81216797e58a",
+    "research/results/s36-dev-robust-classic-guide-f1652c7f-3c6e49c1-None-False-77807.usage.json": "47b9ca9ae8c70f7deed197eb7eaafbeba0d0db0e2991f6159555fc08c076d4a7",
+    "research/results/s36-dev.jsonl": "9e69d0739791c5a1ffc7ead8bed3a2603e37de0892f53209c50f67f506f26f98",
+    "research/results/s36-factorial.json": "9a818d109dccf13b280fefd04d6c10c827c7cfe7fdb532d047e28eeab254e96e",
+    "research/results/s36-replay.json": "2619316f32b68025220f81b45bcc3b1237fc01fa8390ce1033a4898c30be2ad8",
+    "research/results/s36-summary.json": "9530a3001ad4a764ba5797e6200cdaaee1316472ac60711d34c82f79ade998a4",
+    "research/results/s36-tests.log": "4b5d93fe9f0518c92ea484b78c5cf444cb869c2ba819ed6f945db62f00ca2a28",
+    "research/S36_PROTOCOL.md": "f25d03f1383cb5c847f1ce366a83b4ff4a45e41cee6a9259c57e4fb9e6e257c4",
+    "research/S36_REPORT.md": "df75169f8a1df9002db3eb4d6d20bd20349d73b76246b5ed07995c60225d99d4",
+    "research/bin/learned-robust": "c9516ea2d6c77029a2de192627c541002fb3f2046ab681bf1410a70f3205aa50",
+    "research/bin/robust-classic-guide": "f1652c7fee4b93bfbbde93dd6af6a223be081b0f9a2024e4517386816dc86801",
+    "research/s36_probe.py": "bf45119177a4221a56ca8f63fa5a126ab1e005ef25d2e49c02e853c065839d41",
+    "research/s36_summary.py": "36348ce04a91a540a7bf212f9945817e7af23144ba438306f266e0fe31a6dcba",
+    "blockfish-engine/src/ai/b_star.rs": "3fbe4a879cbefe96ad3ee138c053071ef19ef4d2b10e567f38916a7f9eeeb097",
+    "blockfish-engine/src/bin/search_probe.rs": "3c60d6b11a472d6a3f2d80fd583a07eb5453cd51375c776fbe7644d01f154c91"
+  }
+}
