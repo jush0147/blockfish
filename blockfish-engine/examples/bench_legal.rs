@@ -796,6 +796,216 @@ fn main() {
         return;
     }
 
+    if mode == "cons_cap" {
+        let which = std::env::args().nth(2).unwrap_or_else(|| "all".to_string());
+        let n_seeds: usize = std::env::args()
+            .nth(3)
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(2);
+        let seeds: Vec<u64> = (101..(101 + n_seeds as u64)).collect();
+        println!("=== Legal cons_cap (which={}, n_seeds={}) ===", which, n_seeds);
+
+        let mut c_ew4 = make_ew_cons_cfg();
+        c_ew4.rollout_top_k = 0;
+        c_ew4.beam_width = 80;
+        c_ew4.max_per_root = 16;
+        c_ew4.bag_det_extend = true;
+        c_ew4.endgame_solver = true;
+        c_ew4.simulate_cheese_spawn = true;
+        c_ew4.weights.garbage_row = 225;
+        c_ew4.weights.piece_estimate = 0;
+        c_ew4.weights.stack_cell = 4;
+        c_ew4.weights.upper_cell = 5;
+        c_ew4.weights.stack_h_sq = 0;
+        c_ew4.weights.stack_over2_sq = 3;
+        c_ew4.weights.max_stack_h_excess = 14;
+        c_ew4.weights.covered_hole = 55;
+        c_ew4.weights.hole_row = 20;
+        c_ew4.weights.blocks_over_hole = 14;
+        c_ew4.weights.h1_block = 32;
+        c_ew4.weights.h1_contig_cover = 130;
+        c_ew4.weights.h1_empty_blocking = 8;
+        c_ew4.weights.h1_height = 10;
+        c_ew4.weights.h2_block = 26;
+        c_ew4.weights.h2_contig_cover = 80;
+        c_ew4.weights.h2_extra_empty = 6;
+        c_ew4.weights.h3_block = 22;
+        c_ew4.weights.h3_extra_empty = 3;
+        c_ew4.weights.h4_block = 8;
+        c_ew4.weights.h1_narrow_1 = 16;
+        c_ew4.weights.h1_narrow_2plus = 26;
+        c_ew4.weights.h1_fit_scarcity = 8;
+        c_ew4.weights.h1_unfit_hand = 28;
+        c_ew4.weights.zero_o_spot_pen = 0;
+        c_ew4.weights.bag_no_i_chute_pen = 18;
+        c_ew4.weights.open_h1_bonus = 24;
+        c_ew4.weights.combo2_bonus = 22;
+        c_ew4.weights.h1_h2_adj = 4;
+        c_ew4.weights.bumpiness = 11;
+        c_ew4.weights.sharp_diff = 5;
+        c_ew4.weights.i_dep = 35;
+        c_ew4.weights.two_well = 10;
+        c_ew4.weights.i_dep_multi = 50;
+        c_ew4.weights.i_dep_chute = 12;
+        c_ew4.weights.row_transition = 3;
+        c_ew4.weights.near_full_9_bonus = 0;
+        c_ew4.weights.near_full_8_bonus = 0;
+        c_ew4.weights.row_g_aligned_bonus = 0;
+        c_ew4.weights.endgame_cell_taper = 23;
+        c_ew4.weights.endgame_cell_taper_rem = 5;
+        c_ew4.weights.hold_bonus = [-10, 4, -8, 4, 4, -2, -2];
+        c_ew4.root_pimc_prescreen_worlds = 3;
+        c_ew4.root_pimc_roots = 24;
+        c_ew4.root_pimc_fine_roots = 8;
+        c_ew4.root_pimc_worlds = 8;
+        c_ew4.root_pimc_horizon = 10;
+        c_ew4.root_pimc_ds_target = 3;
+        c_ew4.root_pimc_width = 24;
+        c_ew4.root_pimc_margin = 400;
+        c_ew4.root_pimc_weight_pct = 100;
+        c_ew4.root_pimc_steady_g4 = false;
+
+        if which == "all" || which == "ew4" {
+            eval_seeds("ew4_ds3_w8_b24", &seeds, &c_ew4);
+        }
+
+        let make_cap = |cap: i64, excess: i64, rg: i64, sc: i64, ds_t: usize, nds_p: i64| {
+            let mut c = c_ew4.clone();
+            c.weights.garbage_row = rg;
+            c.weights.stack_cell = sc;
+            c.weights.stack_cell_credit_cap = cap;
+            c.weights.stack_cell_excess = excess;
+            c.weights.upper_cell = 4;
+            c.weights.h1_contig_cover = 140;
+            c.weights.h2_contig_cover = 95;
+            c.weights.endgame_cell_taper = 0;
+            c.root_pimc_ds_target = ds_t;
+            c.nds_pen = nds_p;
+            c
+        };
+
+        if which == "all" || which == "cap" {
+            eval_seeds("cap14_ex8_rg168_ds3", &seeds, &make_cap(14, 8, 168, -22, 3, 0));
+            eval_seeds("cap18_ex8_rg168_ds3", &seeds, &make_cap(18, 8, 168, -22, 3, 0));
+            eval_seeds("cap16_ex12_rg168_ds3", &seeds, &make_cap(16, 12, 168, -22, 3, 0));
+            eval_seeds("cap16_ex12_rg168_flat", &seeds, &make_cap(16, 12, 168, -22, 0, 0));
+            eval_seeds("cap16_ex12_rg168_nds40", &seeds, &make_cap(16, 12, 168, -22, 3, 40));
+        }
+        return;
+    }
+
+    if mode == "deep_ds_pimc" {
+        let model_path = std::env::args()
+            .nth(2)
+            .unwrap_or_else(|| "models/spatial_wg5_ep0.txt".to_string());
+        let which = std::env::args().nth(3).unwrap_or_else(|| "all".to_string());
+        let n_seeds: usize = std::env::args()
+            .nth(4)
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(2);
+        let seeds: Vec<u64> = (101..(101 + n_seeds as u64)).collect();
+        let mut sm_val = SpatialValueModel::load_from_file(&model_path).expect("load spatial model");
+        sm_val.b3 = 0.0;
+        sm_val.w3 = [0.0; blockfish::ai::spatial_val::SPATIAL_H2];
+        sm_val.prepare_fast();
+        let sm = Arc::new(sm_val);
+        println!(
+            "=== Legal deep_ds_pimc ({}, which={}, n_seeds={}) ===",
+            model_path, which, n_seeds
+        );
+
+        let mut ew_c22 = blockfish::ai::fast_eval::EvalWeights::default();
+        ew_c22.garbage_row = 165;
+        ew_c22.piece_estimate = 0;
+        ew_c22.stack_cell = -22;
+        ew_c22.upper_cell = 3;
+        ew_c22.stack_h_sq = 0;
+        ew_c22.stack_over2_sq = 3;
+        ew_c22.max_stack_h_excess = 14;
+        ew_c22.covered_hole = 55;
+        ew_c22.hole_row = 20;
+        ew_c22.blocks_over_hole = 14;
+        ew_c22.h1_block = 32;
+        ew_c22.h1_contig_cover = 140;
+        ew_c22.h1_empty_blocking = 8;
+        ew_c22.h1_height = 10;
+        ew_c22.h2_block = 26;
+        ew_c22.h2_contig_cover = 95;
+        ew_c22.h2_extra_empty = 6;
+        ew_c22.h3_block = 22;
+        ew_c22.h3_extra_empty = 3;
+        ew_c22.h4_block = 8;
+        ew_c22.h1_narrow_1 = 16;
+        ew_c22.h1_narrow_2plus = 26;
+        ew_c22.h1_fit_scarcity = 8;
+        ew_c22.h1_unfit_hand = 28;
+        ew_c22.zero_o_spot_pen = 0;
+        ew_c22.bag_no_i_chute_pen = 18;
+        ew_c22.open_h1_bonus = 24;
+        ew_c22.combo2_bonus = 22;
+        ew_c22.h1_h2_adj = 4;
+        ew_c22.bumpiness = 11;
+        ew_c22.sharp_diff = 5;
+        ew_c22.i_dep = 35;
+        ew_c22.two_well = 10;
+        ew_c22.i_dep_multi = 50;
+        ew_c22.i_dep_chute = 12;
+        ew_c22.row_transition = 3;
+        ew_c22.near_full_9_bonus = 0;
+        ew_c22.near_full_8_bonus = 0;
+        ew_c22.row_g_aligned_bonus = 0;
+        ew_c22.endgame_cell_taper = 47;
+        ew_c22.endgame_cell_taper_rem = 5;
+        ew_c22.hold_bonus = [-10, 4, -8, 4, 4, -2, -2];
+
+        let mut ew4 = ew_c22.clone();
+        ew4.garbage_row = 225;
+        ew4.stack_cell = 4;
+        ew4.upper_cell = 5;
+        ew4.h1_contig_cover = 130;
+        ew4.h2_contig_cover = 80;
+        ew4.endgame_cell_taper = 23;
+
+        let make_deep = |ds_t: usize, worlds: usize, width: usize, fine_r: usize| {
+            let mut c = make_spatial_cfg(sm.clone());
+            c.rollout_top_k = 0;
+            c.beam_width = 80;
+            c.max_per_root = 16;
+            c.bag_det_extend = true;
+            c.endgame_solver = true;
+            c.simulate_cheese_spawn = true;
+            c.spatial_rerank_only = true;
+            c.spatial_fast_ew_internal = true;
+            c.weights = ew_c22.clone();
+            c.stage1_weights = Some(ew4.clone());
+            c.root_pimc_prescreen_worlds = 3;
+            c.root_pimc_roots = 28;
+            c.root_pimc_fine_roots = fine_r;
+            c.root_pimc_worlds = worlds;
+            c.root_pimc_horizon = 15;
+            c.root_pimc_ds_target = ds_t;
+            c.root_pimc_width = width;
+            c.root_pimc_margin = 450;
+            c.root_pimc_weight_pct = 100;
+            c.root_pimc_steady_g4 = false;
+            c
+        };
+
+        if which == "all" || which == "ds8" {
+            eval_seeds("deep_c22_ds8_w8_b24", &seeds, &make_deep(8, 8, 24, 6));
+        }
+        if which == "all" || which == "ds12" {
+            eval_seeds("deep_c22_ds12_w8_b24", &seeds, &make_deep(12, 8, 24, 6));
+        }
+        if which == "all" || which == "ds12_b48" {
+            eval_seeds("deep_c22_ds12_w8_b48", &seeds, &make_deep(12, 8, 48, 6));
+        }
+        if which == "all" || which == "ds16" {
+            eval_seeds("deep_c22_ds16_w8_b32", &seeds, &make_deep(16, 8, 32, 6));
+        }
+        return;
+    }
+
     if mode == "spatial_ablate" {
         let model_path = std::env::args()
             .nth(2)

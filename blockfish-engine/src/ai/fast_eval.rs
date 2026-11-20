@@ -51,6 +51,8 @@ pub struct EvalWeights {
     pub center_height_excess: i64,
     pub endgame_cell_taper: i64,
     pub endgame_cell_taper_rem: u16,
+    pub stack_cell_credit_cap: i64,
+    pub stack_cell_excess: i64,
     pub hold_bonus: [i64; 7], // I, O, T, S, Z, J, L
 }
 
@@ -104,6 +106,8 @@ impl Default for EvalWeights {
             center_height_excess: 140,
             endgame_cell_taper: 0,
             endgame_cell_taper_rem: 5,
+            stack_cell_credit_cap: 0,
+            stack_cell_excess: 0,
             // Prefer keeping versatile pieces (I, T, J, L) over O/S/Z in hold/hand
             hold_bonus: [-16, 10, -10, 2, 2, -4, -4],
         }
@@ -718,9 +722,18 @@ pub fn eval_fast_with_bag(
         0
     };
 
+    let cell_term = if w.stack_cell_credit_cap > 0 {
+        let cap = w.stack_cell_credit_cap.min(rem_garbage as i64);
+        let credited = stack_cells.min(cap);
+        let excess = (stack_cells - cap).max(0);
+        w.stack_cell * credited + w.stack_cell_excess * excess
+    } else {
+        w.stack_cell * stack_cells
+    };
+
     w.garbage_row * (rem_garbage as i64)
         + w.piece_estimate * pe
-        + w.stack_cell * stack_cells
+        + cell_term
         + endgame_cell_pen
         + w.upper_cell * upper_cells
         + w.stack_h_sq * stack_h_sq

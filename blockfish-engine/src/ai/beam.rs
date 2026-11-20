@@ -1161,14 +1161,14 @@ impl BeamSearcher {
                     cfg.root_pimc_horizon.clamp(1, 16)
                 };
                 let ds_q_need = if cfg.root_pimc_ds_target > 0 {
-                    cfg.root_pimc_ds_target * 2 + 6
+                    cfg.root_pimc_ds_target * 2 + 10
                 } else {
                     0
                 };
-                let need_q_len = (q_len + h.max(ds_q_need) + 3).min(24);
-                let mut world_qs = [[0u8; 24]; 24];
-                let mut world_bags = [[0x7Fu8; 24]; 24];
-                let mut world_holes = [[0u16; 32]; 24];
+                let need_q_len = (q_len + h.max(ds_q_need) + 3).min(64);
+                let mut world_qs = [[0u8; 64]; 24];
+                let mut world_bags = [[0x7Fu8; 64]; 24];
+                let mut world_holes = [[0u16; 48]; 24];
                 let mut world_end_bags = [0x7Fu8; 24];
 
                 // Stratify first unknown piece across active bits of bag_mask
@@ -1257,7 +1257,7 @@ impl BeamSearcher {
                             ((h_rng >> 32) as u16) % 10
                         }
                     };
-                    for k in 0..32 {
+                    for k in 0..48 {
                         let off = if k == 0 && init_prev_hole.is_some() {
                             first_offs[w]
                         } else {
@@ -2974,7 +2974,7 @@ impl BeamSearcher {
         } else {
             cfg.root_pimc_ds_target.min(2)
         })
-        .clamp(1, 8)
+        .clamp(1, 24)
         .min(rem_g0 as usize);
 
         let mut b0 = *root_board;
@@ -3019,7 +3019,7 @@ impl BeamSearcher {
             - cfg.no_g_credit * (ng0 as i64);
 
         let ds0_u = (ds0 as usize).min(target_ds);
-        let mut buckets: [Vec<BeamNode>; 9] = Default::default();
+        let mut buckets: Vec<Vec<BeamNode>> = vec![Vec::new(); target_ds + 1];
         buckets[ds0_u].push(BeamNode {
             board: b0,
             held: held0,
@@ -3039,11 +3039,11 @@ impl BeamSearcher {
         let sub_width = (width * 2 / 3).max(5);
         let wq_len = world_q.len();
         let z_limit = if allow_rollout {
-            (horizon / 3).clamp(3, 4)
+            (horizon / 3).clamp(3, 5)
         } else {
             2
         };
-        let max_pieces = wq_len.saturating_sub(1).min(target_ds * 2 + 6).max(3);
+        let max_pieces = wq_len.saturating_sub(1).min(target_ds * 2 + 10).max(3);
 
         for ds_cur in ds0_u..target_ds {
             let mut bucket = std::mem::take(&mut buckets[ds_cur]);
@@ -3058,17 +3058,55 @@ impl BeamSearcher {
             }
             self.pimc_beam.clear();
             self.pimc_seen.clear();
-            for ch in bucket {
-                if self.pimc_beam.len() >= width {
-                    break;
+            if width >= 16 && bucket.len() > width {
+                let min_np = bucket.iter().map(|n| n.first_idx).min().unwrap_or(0);
+                let mut np_cnt = [0usize; 12];
+                let per_np_cap = (width / 3).max(4);
+                let strat_cap = (width * 3) / 4;
+                for &ch in &bucket {
+                    if self.pimc_beam.len() >= strat_cap {
+                        break;
+                    }
+                    let tier = (ch.first_idx.saturating_sub(min_np) as usize).min(11);
+                    if np_cnt[tier] >= per_np_cap {
+                        continue;
+                    }
+                    let key = DedupKey {
+                        board: ch.board,
+                        held: ch.held,
+                        rem_garbage: ch.q_cursor as u16,
+                    };
+                    if self.pimc_seen.insert(key) {
+                        np_cnt[tier] += 1;
+                        self.pimc_beam.push(ch);
+                    }
                 }
-                let key = DedupKey {
-                    board: ch.board,
-                    held: ch.held,
-                    rem_garbage: ch.q_cursor as u16,
-                };
-                if self.pimc_seen.insert(key) {
-                    self.pimc_beam.push(ch);
+                for ch in bucket {
+                    if self.pimc_beam.len() >= width {
+                        break;
+                    }
+                    let key = DedupKey {
+                        board: ch.board,
+                        held: ch.held,
+                        rem_garbage: ch.q_cursor as u16,
+                    };
+                    if self.pimc_seen.insert(key) {
+                        self.pimc_beam.push(ch);
+                    }
+                }
+            } else {
+                for ch in bucket {
+                    if self.pimc_beam.len() >= width {
+                        break;
+                    }
+                    let key = DedupKey {
+                        board: ch.board,
+                        held: ch.held,
+                        rem_garbage: ch.q_cursor as u16,
+                    };
+                    if self.pimc_seen.insert(key) {
+                        self.pimc_beam.push(ch);
+                    }
                 }
             }
 
@@ -3258,8 +3296,7 @@ impl BeamSearcher {
                 self.pimc_seen.clear();
                 let mut best_leaf = i64::MAX;
                 let mut checked = 0usize;
-                let sm = cfg.spatial_model.as_ref().unwrap();
-                for &leaf in buckets[target_ds].iter().take(24) {
+                for &leaf in buckets[target_ds].iter().take(32) {
                     let key = DedupKey {
                         board: leaf.board,
                         held: leaf.held,
@@ -3271,11 +3308,7 @@ impl BeamSearcher {
                     let hc = Self::hand_piece(leaf.held, leaf.q_cursor as usize, world_q);
                     let av = Self::avail_mask_from_q(leaf.held, leaf.q_cursor as usize, world_q, end_bag);
                     evals += 1;
-                    let leaf_v = if allow_rollout {
-                        Self::eval_leaf_state(&leaf.board, leaf.rem_garbage, hc, av, cfg)
-                    } else {
-                        sm.evaluate_linear_board_with_bag(&leaf.board, leaf.rem_garbage, hc, av)
-                    };
+                    let leaf_v = Self::eval_leaf_state(&leaf.board, leaf.rem_garbage, hc, av, cfg);
                     let sc = (leaf.first_idx as i64) * 100
                         + (leaf.nds_used as i64) * cfg.nds_pen
                         + leaf_v
@@ -3284,7 +3317,38 @@ impl BeamSearcher {
                         best_leaf = sc;
                     }
                     checked += 1;
-                    if checked >= 6 {
+                    if checked >= 8 {
+                        break;
+                    }
+                }
+                // Also evaluate up to 4 fewest-piece unique leaves so low-piece clean lines aren't missed
+                let mut np_checked = 0usize;
+                let min_np = buckets[target_ds].iter().map(|n| n.first_idx).min().unwrap_or(0);
+                for &leaf in &buckets[target_ds] {
+                    if leaf.first_idx > min_np + 1 {
+                        continue;
+                    }
+                    let key = DedupKey {
+                        board: leaf.board,
+                        held: leaf.held,
+                        rem_garbage: leaf.q_cursor as u16,
+                    };
+                    if !self.pimc_seen.insert(key) {
+                        continue;
+                    }
+                    let hc = Self::hand_piece(leaf.held, leaf.q_cursor as usize, world_q);
+                    let av = Self::avail_mask_from_q(leaf.held, leaf.q_cursor as usize, world_q, end_bag);
+                    evals += 1;
+                    let leaf_v = Self::eval_leaf_state(&leaf.board, leaf.rem_garbage, hc, av, cfg);
+                    let sc = (leaf.first_idx as i64) * 100
+                        + (leaf.nds_used as i64) * cfg.nds_pen
+                        + leaf_v
+                        - cfg.no_g_credit * (leaf.no_g_moves as i64);
+                    if sc < best_leaf {
+                        best_leaf = sc;
+                    }
+                    np_checked += 1;
+                    if np_checked >= 4 {
                         break;
                     }
                 }

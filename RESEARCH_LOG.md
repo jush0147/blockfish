@@ -88,13 +88,28 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
     2. **MLP `±2.5` clamp & Phase 3 teacher destruction**: `mlp / (1.0 + mlp.abs() / 2.5)` in [`spatial_val.rs`](file:///home/antigravity/jush0147/blockfish/blockfish-engine/src/ai/spatial_val.rs#L898) caps nonlinear corrections at `[-2.5, +2.5]` pieces, while [`train_spatial.rs`](file:///home/antigravity/jush0147/blockfish/blockfish-engine/examples/train_spatial.rs#L3084-L3265) Phase 3 rollouts (`bw=24`) flipped **1,212** `WG_ds` winning pairs (`flip=62.1%`) and Ridge collapsed structural weights to bounds (`stk_cells` & `h1_blk`/`cov_holes` pinned to `lb`, `OR_p6_sp_lin = 210.00`).
     3. **Oracle `WG_ds` (`164.60`) still leaves ~8–10 `0ds` moves on the table**: `wide=22.0, cov=19.2, r_end=10.4` (`expand_cap` capped at `1500` in [`diag_cheese.rs`](file:///home/antigravity/jush0147/blockfish/blockfish-engine/examples/diag_cheese.rs#L3217)).
 
+### 3.5 Rounds WG-4, WG-5 & Bottleneck Pivot to Direct Legal Policy Optimization
+- **Round WG-4 (`models/spatial_wg4.txt`, Actions Run #11)**:
+  - Unflipped CRN + `mlp_sat=±12.0` caused severe MLP cell-hoarding (`OR_p6_sp_full = 400.00`, 5/5 top-out; `LEGAL sp_rpimc_sim_w8_h9 = 204.40`).
+- **Round WG-5 (`models/spatial_wg5.txt`, `models/spatial_wg5_ep0.txt`, Actions Run #12)**:
+  - Gated MLP raw height/cells (`sparse 20..80`, `dense j==0, 3..=22`), tightened `mlp_sat` to `±5.0`, added `evaluate_linear_board_with_bag_no_pe` (`spatial_no_pe_internal`), relaxed collinear bounds, allowed CRN flip `< -0.55` (`crn_flipped=781`).
+  - **Linear backbone & `no_pe` speedup succeeded**: `OR_p6_sp_lin` dropped `244.40 -> 204.40` (0 top-out); `sp_rpimc_linfast_nope_w8_h9` matched `sp_rpimc_sim_w8_h9` at `198.20` while running **2.67× faster** (`149.8s` vs `400.1s`).
+  - **Remaining structural bottlenecks**:
+    1. **MLP still hoards via 2D occupancy bits (`sparse 0..20`, `120..160`)**: `OR_p6_sp_full = 323.80` (3/5 top-out), `LEGAL_rpimc_flat_ep0 (194.80)` beat `best (201.00)`.
+    2. **Ridge attenuation bias**: `h1_cc + h1_blk + cov_holes + blk_over_h = +0.89 < rem_g (+1.62)`, causing greedy `h2`-covering downstacks (`cov_nxt = 18–20%`, `cov = 33–36`).
+    3. **Bounded cell-conservation (`cons_cap`) & Deep Determinized DS-PIMC (`deep_ds_pimc`) negative results**:
+       - `cap14/cap18` (`stack_cell=-22` up to cap) still degraded Legal `ds3` (`266.50 / 310.00`).
+       - `deep_c22_ds8_w8_b24` (DS-bucketed `ds_target=8` with `strat_np` + `ew_cons22` internal + `wg5_ep0` leaf) got `208.00` (0 top-out, `nar=7.5`, but `cov_nxt=20%`) — proving **Strategy Fusion** when determinizing 10+ unknown pieces in PIMC (`h=5: 195.4` → `h=8: 191.8` → `ds=8 (h≈15): 208.0`).
+- **Pivot — Direct Legal `p=5` Optimization (`examples/opt_legal.rs`)**:
+  - Instead of indirect supervised regression to noisy/confounded Oracle rollouts, directly optimize the pure-linear `SpatialValueModel` (99 params, `rem_g` anchored for piece-unit calibration) on **actual Legal `p=5` gameplay** via Antithetic Evolution Strategies + Adam + CRN (`spatial_no_pe_internal`, ~3s/eval on 4 cores), then stack flat `h=8` PIMC (`-15` to `-19` pcs lift) and non-clairvoyant rollouts on top.
+
 ---
 
 ## 4. Roadmap
 
-1. **Break Oracle `WG_ds` Ceiling Down to `<= 156–158`**:
-   - Add exact excess-cell conservation penalty `(stack_cells - rem_garbage).max(0)` in [`fast_eval.rs`](file:///home/antigravity/jush0147/blockfish/blockfish-engine/src/ai/fast_eval.rs), uncap `expand_cap` / widen LNS + `solve_tail_ds`, and optimize `EvalWeights` + `nds_pen` via `wg_break` / `lns2`.
-2. **Fix Spatial Model Capacity & Training Signal (`spatial_val.rs`, `train_spatial.rs`)**:
-   - Relax MLP saturation cap (`2.5 -> 12.0`), stop Phase 3 rollouts from flipping `WG_ds` teacher choices, query strong teacher lookahead on Legal-DAgger states, and train accurate Stage-1/leaf evaluators.
-3. **Fix Legal `p=5` Search (`beam.rs`) & Iterate on GitHub Actions**:
-   - Eliminate finite-horizon `stack_cell=-22` topout distortion in Stage 1 / `ds`-bucketed PIMC, widen spatial leaf evaluation + exact endgame, and validate across `5 -> 20 -> 40` held-out seeds until legal `p=5` mean reaches **`<= 161` pieces**.
+1. **Direct Legal `p=5` Policy Optimization (`opt_legal.rs` → `models/spatial_es1.txt`)**:
+   - Run 35+ Antithetic-ES generations directly minimizing Legal `p=5` piece count (eliminating Ridge shrinkage and teacher confounding), then verify held-out `101..=105` with both `b=120` beam and `linfast_nope` flat `h=8` PIMC.
+2. **Non-Clairvoyant Rollout PIMC (Zero Strategy Fusion)**:
+   - Replace clairvoyant deep determinized search with fast non-clairvoyant `p=5` rollouts inside CRN worlds so deeper lookahead improves rather than degrades Legal play.
+3. **Break Legal `p=5` Through `180 -> 170 -> <= 161` Pieces**:
+   - Validate all breakthroughs across `5 -> 20 -> 40` held-out seeds and continuously commit/push progress.

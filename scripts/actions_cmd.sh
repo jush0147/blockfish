@@ -1,34 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "=== Round WG-5: WG-DS ew:cons22 (88g, B=1800) + Local-Oracle Legal-DAgger (24g, ew4+nope) + Gated-MLP (+-5) + CRN-Flip (-0.55) ==="
-cargo run --release -p blockfish --features race --example train_spatial -- \
-  --teacher ew:cons22 \
-  --out models/spatial_wg5.txt \
-  --wg-beam 1800 \
-  --wg-ds \
-  --games 88 \
-  --legal-dagger 24 \
-  --cf-per-game 14 \
-  --roll-ds 8 \
-  --roll-bw 36 \
-  --crn-worlds 5 \
-  --epochs 24 \
-  --batch 128 \
-  --lr 0.0010 \
-  --wd 0.025 \
-  --lin-lr-mult 0.35 \
-  --val-w 0.12 \
-  --diff-w 0.65 \
-  --rank-w 2.0 \
-  --cal-v-weight 0.40 \
-  --no-roll-vcal \
-  --seed-base 1000 \
-  --eval-oracle 5 \
-  --eval-legal 5
+echo "=== Direct Legal p=5 Antithetic-ES Round 1 (models/spatial_es1.txt) ==="
+cargo run --release -p blockfish --features race --example opt_legal -- \
+  --init models/spatial_wg5_ep0.txt \
+  --out models/spatial_es1.txt \
+  --iters 35 \
+  --pop 10 \
+  --games 8 \
+  --val-games 5 \
+  --beam 64 \
+  --sigma 0.025 \
+  --lr 0.012 \
+  --seed 20261120
 
 echo ""
-echo "=== Post-WG5 Oracle & Legal Diagnostics ==="
-cargo run --release -p blockfish --features race --example diag_cheese -- spatial_probe models/spatial_wg5.txt
-cargo run --release -p blockfish --features race --example bench_legal -- spatial5_1 models/spatial_wg5.txt sp_rpimc_linfast_nope_w8_h9
-cargo run --release -p blockfish --features race --example bench_legal -- spatial5_1 models/spatial_wg5.txt sp_rpimc_sim_w8_h9
+echo "=== Post-ES1 Held-Out 5-Seed Legal Benchmarks ==="
+cargo run --release -p blockfish --features race --example bench_legal -- spatial5_1 models/spatial_es1.txt sp_rpimc_linfast_nope_w8_h9
+cargo run --release -p blockfish --features race --example bench_legal -- wg5_lin_sweep models/spatial_es1.txt deep 5
