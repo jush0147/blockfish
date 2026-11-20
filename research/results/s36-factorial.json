@@ -1,0 +1,7800 @@
+[
+ {
+  "seed": 76900,
+  "model": "classic",
+  "backup": "single",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    100.0,
+    97.0,
+    96.0,
+    97.0
+   ],
+   [
+    98.0,
+    99.0,
+    90.0,
+    97.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "CW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "CW",
+    "CW",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 4
+ },
+ {
+  "seed": 76900,
+  "model": "classic",
+  "backup": "single",
+  "ranks": [
+   1,
+   0
+  ],
+  "choice": 1,
+  "world_costs": [
+   [
+    100.0,
+    97.0,
+    96.0,
+    97.0
+   ],
+   [
+    98.0,
+    99.0,
+    90.0,
+    97.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Left",
+    "CW",
+    "CW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Right",
+    "CW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left"
+   ],
+   [
+    "Hold",
+    "CCW"
+   ],
+   [
+    "Hold",
+    "CW"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 4
+ },
+ {
+  "seed": 76900,
+  "model": "classic",
+  "backup": "single",
+  "ranks": [
+   0,
+   null
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    100.0,
+    97.0,
+    96.0,
+    97.0
+   ],
+   [
+    98.0,
+    99.0,
+    90.0,
+    97.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "CW",
+    "Right"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 5
+ },
+ {
+  "seed": 76900,
+  "model": "classic",
+  "backup": "single",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    100.0,
+    97.0,
+    96.0,
+    97.0
+   ],
+   [
+    98.0,
+    99.0,
+    90.0,
+    97.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "CW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "CW",
+    "CW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left"
+   ],
+   [
+    "Hold",
+    "CCW"
+   ],
+   [
+    "Hold",
+    "CW"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 5
+ },
+ {
+  "seed": 76901,
+  "model": "classic",
+  "backup": "single",
+  "ranks": [
+   null,
+   2
+  ],
+  "choice": null,
+  "world_costs": [
+   [
+    95.0,
+    98.0,
+    99.0,
+    99.0
+   ],
+   [
+    98.0,
+    95.0,
+    94.0,
+    101.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "CCW",
+    "CCW"
+   ],
+   [
+    "CCW",
+    "Left"
+   ],
+   [
+    "Hold"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 4
+ },
+ {
+  "seed": 76901,
+  "model": "classic",
+  "backup": "single",
+  "ranks": [
+   2,
+   3
+  ],
+  "choice": null,
+  "world_costs": [
+   [
+    95.0,
+    98.0,
+    99.0,
+    99.0
+   ],
+   [
+    98.0,
+    95.0,
+    94.0,
+    101.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "CCW",
+    "CCW"
+   ],
+   [
+    "Hold",
+    "CCW",
+    "Left"
+   ],
+   [
+    "CCW",
+    "Left"
+   ],
+   [
+    "Hold",
+    "CCW"
+   ],
+   [
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "CCW",
+    "Left",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold"
+   ],
+   [
+    "Right",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Left",
+    "CW",
+    "SD",
+    "CCW",
+    "Left",
+    "Left",
+    "CW"
+   ],
+   [
+    "Hold",
+    "CCW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "CW",
+    "Left",
+    "Left",
+    "CW"
+   ],
+   [
+    "Right",
+    "CW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Right",
+    "SD",
+    "CCW"
+   ],
+   [
+    "CW"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 4
+ },
+ {
+  "seed": 76901,
+  "model": "classic",
+  "backup": "single",
+  "ranks": [
+   null,
+   2
+  ],
+  "choice": null,
+  "world_costs": [
+   [
+    95.0,
+    98.0,
+    99.0,
+    99.0
+   ],
+   [
+    98.0,
+    95.0,
+    94.0,
+    101.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "CCW",
+    "CCW"
+   ],
+   [
+    "CCW",
+    "Left"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 5
+ },
+ {
+  "seed": 76901,
+  "model": "classic",
+  "backup": "single",
+  "ranks": [
+   3,
+   2
+  ],
+  "choice": null,
+  "world_costs": [
+   [
+    95.0,
+    98.0,
+    99.0,
+    99.0
+   ],
+   [
+    98.0,
+    95.0,
+    94.0,
+    101.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "CCW",
+    "CCW"
+   ],
+   [
+    "CCW",
+    "Left"
+   ],
+   [
+    "Hold",
+    "CCW",
+    "Left"
+   ],
+   [
+    "Hold",
+    "CCW"
+   ],
+   [
+    "Left",
+    "CW",
+    "Left",
+    "Left",
+    "CW"
+   ],
+   [
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "CW",
+    "SD",
+    "CCW",
+    "Left",
+    "Left",
+    "CW"
+   ],
+   [
+    "Hold",
+    "CCW",
+    "Left",
+    "Left",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 5
+ },
+ {
+  "seed": 76902,
+  "model": "classic",
+  "backup": "single",
+  "ranks": [
+   0,
+   2
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    102.0,
+    106.0,
+    96.0,
+    98.0
+   ],
+   [
+    97.0,
+    105.0,
+    98.0,
+    102.0
+   ]
+  ],
+  "actions": [
+   [
+    "SD",
+    "CCW",
+    "CCW",
+    "CCW"
+   ],
+   [
+    "CCW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "SD",
+    "Right",
+    "CCW",
+    "Right"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 4
+ },
+ {
+  "seed": 76902,
+  "model": "classic",
+  "backup": "single",
+  "ranks": [
+   0,
+   2
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    102.0,
+    106.0,
+    96.0,
+    98.0
+   ],
+   [
+    97.0,
+    105.0,
+    98.0,
+    102.0
+   ]
+  ],
+  "actions": [
+   [
+    "SD",
+    "CCW",
+    "CCW",
+    "CCW"
+   ],
+   [
+    "CCW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "SD",
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right",
+    "SD",
+    "CW",
+    "CW",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Right",
+    "CW"
+   ],
+   [
+    "CCW",
+    "Left",
+    "Left",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 4
+ },
+ {
+  "seed": 76902,
+  "model": "classic",
+  "backup": "single",
+  "ranks": [
+   1,
+   0
+  ],
+  "choice": 1,
+  "world_costs": [
+   [
+    102.0,
+    106.0,
+    96.0,
+    98.0
+   ],
+   [
+    97.0,
+    105.0,
+    98.0,
+    102.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "SD",
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "SD",
+    "CCW",
+    "CCW",
+    "CCW"
+   ],
+   [
+    "CCW",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 5
+ },
+ {
+  "seed": 76902,
+  "model": "classic",
+  "backup": "single",
+  "ranks": [
+   1,
+   0
+  ],
+  "choice": 1,
+  "world_costs": [
+   [
+    102.0,
+    106.0,
+    96.0,
+    98.0
+   ],
+   [
+    97.0,
+    105.0,
+    98.0,
+    102.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "SD",
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "SD",
+    "CCW",
+    "CCW",
+    "CCW"
+   ],
+   [
+    "CCW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 5
+ },
+ {
+  "seed": 76903,
+  "model": "classic",
+  "backup": "single",
+  "ranks": [
+   1,
+   2
+  ],
+  "choice": null,
+  "world_costs": [
+   [
+    110.0,
+    106.0,
+    108.0,
+    104.0
+   ],
+   [
+    111.0,
+    106.0,
+    113.0,
+    100.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "CW",
+    "Left",
+    "SD",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right"
+   ],
+   [
+    "Left",
+    "CW",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 4
+ },
+ {
+  "seed": 76903,
+  "model": "classic",
+  "backup": "single",
+  "ranks": [
+   2,
+   3
+  ],
+  "choice": null,
+  "world_costs": [
+   [
+    110.0,
+    106.0,
+    108.0,
+    104.0
+   ],
+   [
+    111.0,
+    106.0,
+    113.0,
+    100.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Right",
+    "CW"
+   ],
+   [
+    "Left",
+    "CW",
+    "Left",
+    "SD",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right"
+   ],
+   [
+    "Left",
+    "CW",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "Left"
+   ],
+   [
+    "Right",
+    "CCW",
+    "Right",
+    "SD",
+    "CW",
+    "Right",
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "CW",
+    "CW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "CW",
+    "Left",
+    "SD",
+    "Left"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 4
+ },
+ {
+  "seed": 76903,
+  "model": "classic",
+  "backup": "single",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    110.0,
+    106.0,
+    108.0,
+    104.0
+   ],
+   [
+    111.0,
+    106.0,
+    113.0,
+    100.0
+   ]
+  ],
+  "actions": [
+   [
+    "Left",
+    "CW",
+    "Left",
+    "SD",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 5
+ },
+ {
+  "seed": 76903,
+  "model": "classic",
+  "backup": "single",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    110.0,
+    106.0,
+    108.0,
+    104.0
+   ],
+   [
+    111.0,
+    106.0,
+    113.0,
+    100.0
+   ]
+  ],
+  "actions": [
+   [
+    "Left",
+    "CW",
+    "Left",
+    "SD",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Right",
+    "CW"
+   ],
+   [
+    "Left",
+    "CW",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 5
+ },
+ {
+  "seed": 76904,
+  "model": "classic",
+  "backup": "single",
+  "ranks": [
+   null,
+   null
+  ],
+  "choice": null,
+  "world_costs": [
+   [
+    98.0,
+    100.0,
+    98.0,
+    103.0
+   ],
+   [
+    98.0,
+    97.0,
+    101.0,
+    90.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "CW",
+    "Right",
+    "Right"
+   ],
+   [
+    "Right",
+    "Right",
+    "SD",
+    "Right",
+    "Right",
+    "CCW",
+    "Right"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 4
+ },
+ {
+  "seed": 76904,
+  "model": "classic",
+  "backup": "single",
+  "ranks": [
+   1,
+   4
+  ],
+  "choice": null,
+  "world_costs": [
+   [
+    98.0,
+    100.0,
+    98.0,
+    103.0
+   ],
+   [
+    98.0,
+    97.0,
+    101.0,
+    90.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "CW",
+    "Right"
+   ],
+   [
+    "Right"
+   ],
+   [
+    "Right",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "CW",
+    "Right",
+    "Right"
+   ],
+   [
+    "Right",
+    "CCW",
+    "CCW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "CW"
+   ],
+   [
+    "Right",
+    "CCW"
+   ],
+   [
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "Right",
+    "Right",
+    "SD",
+    "Right",
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left"
+   ],
+   [
+    "CCW",
+    "Left"
+   ],
+   [
+    "CCW",
+    "CCW"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 4
+ },
+ {
+  "seed": 76904,
+  "model": "classic",
+  "backup": "single",
+  "ranks": [
+   null,
+   null
+  ],
+  "choice": null,
+  "world_costs": [
+   [
+    98.0,
+    100.0,
+    98.0,
+    103.0
+   ],
+   [
+    98.0,
+    97.0,
+    101.0,
+    90.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "CW",
+    "Right",
+    "Right"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 5
+ },
+ {
+  "seed": 76904,
+  "model": "classic",
+  "backup": "single",
+  "ranks": [
+   null,
+   null
+  ],
+  "choice": null,
+  "world_costs": [
+   [
+    98.0,
+    100.0,
+    98.0,
+    103.0
+   ],
+   [
+    98.0,
+    97.0,
+    101.0,
+    90.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "CW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "CW",
+    "Right",
+    "Right"
+   ],
+   [
+    "Right",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Right",
+    "Right",
+    "SD",
+    "Right",
+    "Right",
+    "CCW",
+    "Right"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 5
+ },
+ {
+  "seed": 76905,
+  "model": "classic",
+  "backup": "single",
+  "ranks": [
+   0,
+   null
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    89.0,
+    98.0,
+    96.0,
+    106.0
+   ],
+   [
+    98.0,
+    98.0,
+    99.0,
+    95.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "SD",
+    "CW",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "SD",
+    "Left",
+    "CW",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 4
+ },
+ {
+  "seed": 76905,
+  "model": "classic",
+  "backup": "single",
+  "ranks": [
+   0,
+   2
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    89.0,
+    98.0,
+    96.0,
+    106.0
+   ],
+   [
+    98.0,
+    98.0,
+    99.0,
+    95.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "SD",
+    "CW",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "CCW",
+    "Left"
+   ],
+   [
+    "CCW",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "CW"
+   ],
+   [
+    "CW"
+   ],
+   [
+    "CCW",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "SD",
+    "Left",
+    "CW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "CW",
+    "CW"
+   ],
+   [
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right",
+    "CCW",
+    "Right"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 4
+ },
+ {
+  "seed": 76905,
+  "model": "classic",
+  "backup": "single",
+  "ranks": [
+   0,
+   null
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    89.0,
+    98.0,
+    96.0,
+    106.0
+   ],
+   [
+    98.0,
+    98.0,
+    99.0,
+    95.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "SD",
+    "CW",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "SD",
+    "Left",
+    "CW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right",
+    "CCW",
+    "Right"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 5
+ },
+ {
+  "seed": 76905,
+  "model": "classic",
+  "backup": "single",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    89.0,
+    98.0,
+    96.0,
+    106.0
+   ],
+   [
+    98.0,
+    98.0,
+    99.0,
+    95.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "SD",
+    "CW",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "CCW",
+    "Left"
+   ],
+   [
+    "Hold",
+    "SD",
+    "Left",
+    "CW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "CW"
+   ],
+   [
+    "CCW",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right",
+    "CCW",
+    "Right"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 5
+ },
+ {
+  "seed": 76906,
+  "model": "classic",
+  "backup": "single",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    99.0,
+    105.0,
+    98.0,
+    92.0
+   ],
+   [
+    99.0,
+    105.0,
+    98.0,
+    92.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Left",
+    "CW",
+    "Left",
+    "SD",
+    "Left"
+   ],
+   [
+    "Right",
+    "Right",
+    "Right",
+    "Right"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 4
+ },
+ {
+  "seed": 76906,
+  "model": "classic",
+  "backup": "single",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    99.0,
+    105.0,
+    98.0,
+    92.0
+   ],
+   [
+    99.0,
+    105.0,
+    98.0,
+    92.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Left",
+    "CW",
+    "Left",
+    "SD",
+    "Left"
+   ],
+   [
+    "Right",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "CW"
+   ],
+   [
+    "Right",
+    "Right"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 4
+ },
+ {
+  "seed": 76906,
+  "model": "classic",
+  "backup": "single",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    99.0,
+    105.0,
+    98.0,
+    92.0
+   ],
+   [
+    99.0,
+    105.0,
+    98.0,
+    92.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Left",
+    "CW",
+    "Left",
+    "SD",
+    "Left"
+   ],
+   [
+    "Right",
+    "Right",
+    "Right",
+    "Right"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 5
+ },
+ {
+  "seed": 76906,
+  "model": "classic",
+  "backup": "single",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    99.0,
+    105.0,
+    98.0,
+    92.0
+   ],
+   [
+    99.0,
+    105.0,
+    98.0,
+    92.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Left",
+    "CW",
+    "Left",
+    "SD",
+    "Left"
+   ],
+   [
+    "Right",
+    "Right",
+    "Right",
+    "Right"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 5
+ },
+ {
+  "seed": 76907,
+  "model": "classic",
+  "backup": "single",
+  "ranks": [
+   1,
+   2
+  ],
+  "choice": null,
+  "world_costs": [
+   [
+    103.0,
+    108.0,
+    93.0,
+    104.0
+   ],
+   [
+    100.0,
+    108.0,
+    93.0,
+    104.0
+   ]
+  ],
+  "actions": [
+   [
+    "CCW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Right",
+    "CW",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 4
+ },
+ {
+  "seed": 76907,
+  "model": "classic",
+  "backup": "single",
+  "ranks": [
+   1,
+   2
+  ],
+  "choice": null,
+  "world_costs": [
+   [
+    103.0,
+    108.0,
+    93.0,
+    104.0
+   ],
+   [
+    100.0,
+    108.0,
+    93.0,
+    104.0
+   ]
+  ],
+  "actions": [
+   [
+    "CCW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Right",
+    "CW",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right"
+   ],
+   [
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "Left",
+    "CW",
+    "CW",
+    "SD",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "CCW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "Left"
+   ],
+   [
+    "CCW",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Right",
+    "Right",
+    "SD",
+    "CCW"
+   ],
+   [
+    "Hold",
+    "CW"
+   ],
+   [
+    "Right",
+    "Right"
+   ],
+   [
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right",
+    "CW",
+    "Right"
+   ],
+   [
+    "Hold"
+   ],
+   [
+    "Right",
+    "Right",
+    "SD",
+    "CCW",
+    "Right",
+    "Right"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 4
+ },
+ {
+  "seed": 76907,
+  "model": "classic",
+  "backup": "single",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    103.0,
+    108.0,
+    93.0,
+    104.0
+   ],
+   [
+    100.0,
+    108.0,
+    93.0,
+    104.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "CW",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 5
+ },
+ {
+  "seed": 76907,
+  "model": "classic",
+  "backup": "single",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    103.0,
+    108.0,
+    93.0,
+    104.0
+   ],
+   [
+    100.0,
+    108.0,
+    93.0,
+    104.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "CW",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left"
+   ],
+   [
+    "CCW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right"
+   ],
+   [
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "CCW",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 5
+ },
+ {
+  "seed": 76900,
+  "model": "classic",
+  "backup": "robust",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    100.0,
+    97.0,
+    96.0,
+    97.0
+   ],
+   [
+    98.0,
+    99.0,
+    90.0,
+    97.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "CW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "CW",
+    "CW",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 4
+ },
+ {
+  "seed": 76900,
+  "model": "classic",
+  "backup": "robust",
+  "ranks": [
+   0,
+   2
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    100.0,
+    97.0,
+    96.0,
+    97.0
+   ],
+   [
+    98.0,
+    99.0,
+    90.0,
+    97.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "CW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left",
+    "CW",
+    "CW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left"
+   ],
+   [
+    "Hold",
+    "CCW"
+   ],
+   [
+    "Hold",
+    "CW"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 4
+ },
+ {
+  "seed": 76900,
+  "model": "classic",
+  "backup": "robust",
+  "ranks": [
+   0,
+   null
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    100.0,
+    97.0,
+    96.0,
+    97.0
+   ],
+   [
+    98.0,
+    99.0,
+    90.0,
+    97.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "CW",
+    "Right"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 5
+ },
+ {
+  "seed": 76900,
+  "model": "classic",
+  "backup": "robust",
+  "ranks": [
+   0,
+   2
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    100.0,
+    97.0,
+    96.0,
+    97.0
+   ],
+   [
+    98.0,
+    99.0,
+    90.0,
+    97.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "CW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left",
+    "CW",
+    "CW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left"
+   ],
+   [
+    "Hold",
+    "CCW"
+   ],
+   [
+    "Hold",
+    "CW"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 5
+ },
+ {
+  "seed": 76901,
+  "model": "classic",
+  "backup": "robust",
+  "ranks": [
+   null,
+   2
+  ],
+  "choice": null,
+  "world_costs": [
+   [
+    95.0,
+    98.0,
+    99.0,
+    99.0
+   ],
+   [
+    98.0,
+    95.0,
+    94.0,
+    101.0
+   ]
+  ],
+  "actions": [
+   [
+    "CCW",
+    "CCW"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "CCW",
+    "Left"
+   ],
+   [
+    "Hold"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 4
+ },
+ {
+  "seed": 76901,
+  "model": "classic",
+  "backup": "robust",
+  "ranks": [
+   2,
+   3
+  ],
+  "choice": null,
+  "world_costs": [
+   [
+    95.0,
+    98.0,
+    99.0,
+    99.0
+   ],
+   [
+    98.0,
+    95.0,
+    94.0,
+    101.0
+   ]
+  ],
+  "actions": [
+   [
+    "CCW",
+    "CCW"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "CCW",
+    "Left"
+   ],
+   [
+    "CCW",
+    "Left"
+   ],
+   [
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "CCW"
+   ],
+   [
+    "Hold",
+    "CCW",
+    "Left",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold"
+   ],
+   [
+    "Hold",
+    "Right",
+    "SD",
+    "CCW"
+   ],
+   [
+    "Right",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "CCW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Right",
+    "CW",
+    "Right"
+   ],
+   [
+    "Left",
+    "CW",
+    "SD",
+    "CCW",
+    "Left",
+    "Left",
+    "CW"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "CW",
+    "Left",
+    "Left",
+    "CW"
+   ],
+   [
+    "CW"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 4
+ },
+ {
+  "seed": 76901,
+  "model": "classic",
+  "backup": "robust",
+  "ranks": [
+   null,
+   2
+  ],
+  "choice": null,
+  "world_costs": [
+   [
+    95.0,
+    98.0,
+    99.0,
+    99.0
+   ],
+   [
+    98.0,
+    95.0,
+    94.0,
+    101.0
+   ]
+  ],
+  "actions": [
+   [
+    "CCW",
+    "CCW"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "CCW",
+    "Left"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 5
+ },
+ {
+  "seed": 76901,
+  "model": "classic",
+  "backup": "robust",
+  "ranks": [
+   1,
+   0
+  ],
+  "choice": 1,
+  "world_costs": [
+   [
+    95.0,
+    98.0,
+    99.0,
+    99.0
+   ],
+   [
+    98.0,
+    95.0,
+    94.0,
+    101.0
+   ]
+  ],
+  "actions": [
+   [
+    "CCW",
+    "Left"
+   ],
+   [
+    "Hold",
+    "CCW",
+    "Left"
+   ],
+   [
+    "CCW",
+    "CCW"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "CCW"
+   ],
+   [
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "CW",
+    "SD",
+    "CCW",
+    "Left",
+    "Left",
+    "CW"
+   ],
+   [
+    "Left",
+    "CW",
+    "Left",
+    "Left",
+    "CW"
+   ],
+   [
+    "Hold",
+    "CCW",
+    "Left",
+    "Left",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 5
+ },
+ {
+  "seed": 76902,
+  "model": "classic",
+  "backup": "robust",
+  "ranks": [
+   0,
+   2
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    102.0,
+    106.0,
+    96.0,
+    98.0
+   ],
+   [
+    97.0,
+    105.0,
+    98.0,
+    102.0
+   ]
+  ],
+  "actions": [
+   [
+    "SD",
+    "CCW",
+    "CCW",
+    "CCW"
+   ],
+   [
+    "CCW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "SD",
+    "Right",
+    "CCW",
+    "Right"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 4
+ },
+ {
+  "seed": 76902,
+  "model": "classic",
+  "backup": "robust",
+  "ranks": [
+   0,
+   2
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    102.0,
+    106.0,
+    96.0,
+    98.0
+   ],
+   [
+    97.0,
+    105.0,
+    98.0,
+    102.0
+   ]
+  ],
+  "actions": [
+   [
+    "SD",
+    "CCW",
+    "CCW",
+    "CCW"
+   ],
+   [
+    "CCW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "SD",
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Right",
+    "SD",
+    "CW",
+    "CW",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right",
+    "CW"
+   ],
+   [
+    "CCW",
+    "Left",
+    "Left",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 4
+ },
+ {
+  "seed": 76902,
+  "model": "classic",
+  "backup": "robust",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    102.0,
+    106.0,
+    96.0,
+    98.0
+   ],
+   [
+    97.0,
+    105.0,
+    98.0,
+    102.0
+   ]
+  ],
+  "actions": [
+   [
+    "SD",
+    "CCW",
+    "CCW",
+    "CCW"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "SD",
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "CCW",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 5
+ },
+ {
+  "seed": 76902,
+  "model": "classic",
+  "backup": "robust",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    102.0,
+    106.0,
+    96.0,
+    98.0
+   ],
+   [
+    97.0,
+    105.0,
+    98.0,
+    102.0
+   ]
+  ],
+  "actions": [
+   [
+    "SD",
+    "CCW",
+    "CCW",
+    "CCW"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "SD",
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "CCW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 5
+ },
+ {
+  "seed": 76903,
+  "model": "classic",
+  "backup": "robust",
+  "ranks": [
+   2,
+   3
+  ],
+  "choice": null,
+  "world_costs": [
+   [
+    110.0,
+    106.0,
+    108.0,
+    104.0
+   ],
+   [
+    111.0,
+    106.0,
+    113.0,
+    100.0
+   ]
+  ],
+  "actions": [
+   [
+    "Left",
+    "CW",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "CW",
+    "Left",
+    "SD",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 4
+ },
+ {
+  "seed": 76903,
+  "model": "classic",
+  "backup": "robust",
+  "ranks": [
+   2,
+   3
+  ],
+  "choice": null,
+  "world_costs": [
+   [
+    110.0,
+    106.0,
+    108.0,
+    104.0
+   ],
+   [
+    111.0,
+    106.0,
+    113.0,
+    100.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Right",
+    "CW"
+   ],
+   [
+    "Left",
+    "CW",
+    "Left",
+    "SD",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right"
+   ],
+   [
+    "Left",
+    "CW",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "Left"
+   ],
+   [
+    "Right",
+    "CCW",
+    "Right",
+    "SD",
+    "CW",
+    "Right",
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "CW",
+    "Left",
+    "SD",
+    "Left"
+   ],
+   [
+    "Left",
+    "CW",
+    "CW",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 4
+ },
+ {
+  "seed": 76903,
+  "model": "classic",
+  "backup": "robust",
+  "ranks": [
+   1,
+   0
+  ],
+  "choice": 1,
+  "world_costs": [
+   [
+    110.0,
+    106.0,
+    108.0,
+    104.0
+   ],
+   [
+    111.0,
+    106.0,
+    113.0,
+    100.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Right"
+   ],
+   [
+    "Left",
+    "CW",
+    "Left",
+    "SD",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 5
+ },
+ {
+  "seed": 76903,
+  "model": "classic",
+  "backup": "robust",
+  "ranks": [
+   0,
+   2
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    110.0,
+    106.0,
+    108.0,
+    104.0
+   ],
+   [
+    111.0,
+    106.0,
+    113.0,
+    100.0
+   ]
+  ],
+  "actions": [
+   [
+    "Left",
+    "CW",
+    "Left",
+    "SD",
+    "Left",
+    "Left"
+   ],
+   [
+    "Right",
+    "CW"
+   ],
+   [
+    "Hold",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "CW",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 5
+ },
+ {
+  "seed": 76904,
+  "model": "classic",
+  "backup": "robust",
+  "ranks": [
+   null,
+   null
+  ],
+  "choice": null,
+  "world_costs": [
+   [
+    98.0,
+    100.0,
+    98.0,
+    103.0
+   ],
+   [
+    98.0,
+    97.0,
+    101.0,
+    90.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "CW",
+    "Right",
+    "Right"
+   ],
+   [
+    "Right",
+    "Right",
+    "SD",
+    "Right",
+    "Right",
+    "CCW",
+    "Right"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 4
+ },
+ {
+  "seed": 76904,
+  "model": "classic",
+  "backup": "robust",
+  "ranks": [
+   1,
+   6
+  ],
+  "choice": null,
+  "world_costs": [
+   [
+    98.0,
+    100.0,
+    98.0,
+    103.0
+   ],
+   [
+    98.0,
+    97.0,
+    101.0,
+    90.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "CW",
+    "Right"
+   ],
+   [
+    "Right"
+   ],
+   [
+    "Right",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "CW"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "CW",
+    "Right",
+    "Right"
+   ],
+   [
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "Right",
+    "CCW",
+    "CCW",
+    "Right"
+   ],
+   [
+    "Right",
+    "CCW"
+   ],
+   [
+    "Right",
+    "Right",
+    "SD",
+    "Right",
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left"
+   ],
+   [
+    "CCW",
+    "CCW"
+   ],
+   [
+    "CCW",
+    "Left"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 4
+ },
+ {
+  "seed": 76904,
+  "model": "classic",
+  "backup": "robust",
+  "ranks": [
+   null,
+   null
+  ],
+  "choice": null,
+  "world_costs": [
+   [
+    98.0,
+    100.0,
+    98.0,
+    103.0
+   ],
+   [
+    98.0,
+    97.0,
+    101.0,
+    90.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "CW",
+    "Right",
+    "Right"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 5
+ },
+ {
+  "seed": 76904,
+  "model": "classic",
+  "backup": "robust",
+  "ranks": [
+   null,
+   null
+  ],
+  "choice": null,
+  "world_costs": [
+   [
+    98.0,
+    100.0,
+    98.0,
+    103.0
+   ],
+   [
+    98.0,
+    97.0,
+    101.0,
+    90.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "CW",
+    "Right"
+   ],
+   [
+    "Right",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "CW",
+    "Right",
+    "Right"
+   ],
+   [
+    "Right",
+    "Right",
+    "SD",
+    "Right",
+    "Right",
+    "CCW",
+    "Right"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 5
+ },
+ {
+  "seed": 76905,
+  "model": "classic",
+  "backup": "robust",
+  "ranks": [
+   0,
+   null
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    89.0,
+    98.0,
+    96.0,
+    106.0
+   ],
+   [
+    98.0,
+    98.0,
+    99.0,
+    95.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "SD",
+    "CW",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "SD",
+    "Left",
+    "CW",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 4
+ },
+ {
+  "seed": 76905,
+  "model": "classic",
+  "backup": "robust",
+  "ranks": [
+   0,
+   2
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    89.0,
+    98.0,
+    96.0,
+    106.0
+   ],
+   [
+    98.0,
+    98.0,
+    99.0,
+    95.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "SD",
+    "CW",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "CCW",
+    "Left"
+   ],
+   [
+    "CCW",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "CW"
+   ],
+   [
+    "Hold",
+    "SD",
+    "Left",
+    "CW",
+    "Left",
+    "Left"
+   ],
+   [
+    "CW"
+   ],
+   [
+    "CCW",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "CW",
+    "CW"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right",
+    "CCW",
+    "Right"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 4
+ },
+ {
+  "seed": 76905,
+  "model": "classic",
+  "backup": "robust",
+  "ranks": [
+   0,
+   null
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    89.0,
+    98.0,
+    96.0,
+    106.0
+   ],
+   [
+    98.0,
+    98.0,
+    99.0,
+    95.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "SD",
+    "CW",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "SD",
+    "Left",
+    "CW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right",
+    "CCW",
+    "Right"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 5
+ },
+ {
+  "seed": 76905,
+  "model": "classic",
+  "backup": "robust",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    89.0,
+    98.0,
+    96.0,
+    106.0
+   ],
+   [
+    98.0,
+    98.0,
+    99.0,
+    95.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "SD",
+    "CW",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "CCW",
+    "Left"
+   ],
+   [
+    "Hold",
+    "SD",
+    "Left",
+    "CW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left"
+   ],
+   [
+    "CW"
+   ],
+   [
+    "CCW",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right",
+    "CCW",
+    "Right"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 5
+ },
+ {
+  "seed": 76906,
+  "model": "classic",
+  "backup": "robust",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    99.0,
+    105.0,
+    98.0,
+    92.0
+   ],
+   [
+    99.0,
+    105.0,
+    98.0,
+    92.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Left",
+    "CW",
+    "Left",
+    "SD",
+    "Left"
+   ],
+   [
+    "Right",
+    "Right",
+    "Right",
+    "Right"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 4
+ },
+ {
+  "seed": 76906,
+  "model": "classic",
+  "backup": "robust",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    99.0,
+    105.0,
+    98.0,
+    92.0
+   ],
+   [
+    99.0,
+    105.0,
+    98.0,
+    92.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Left",
+    "CW",
+    "Left",
+    "SD",
+    "Left"
+   ],
+   [
+    "Right",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "CW"
+   ],
+   [
+    "Right",
+    "Right"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 4
+ },
+ {
+  "seed": 76906,
+  "model": "classic",
+  "backup": "robust",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    99.0,
+    105.0,
+    98.0,
+    92.0
+   ],
+   [
+    99.0,
+    105.0,
+    98.0,
+    92.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Left",
+    "CW",
+    "Left",
+    "SD",
+    "Left"
+   ],
+   [
+    "Right",
+    "Right",
+    "Right",
+    "Right"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 5
+ },
+ {
+  "seed": 76906,
+  "model": "classic",
+  "backup": "robust",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    99.0,
+    105.0,
+    98.0,
+    92.0
+   ],
+   [
+    99.0,
+    105.0,
+    98.0,
+    92.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Left",
+    "CW",
+    "Left",
+    "SD",
+    "Left"
+   ],
+   [
+    "Right",
+    "Right",
+    "Right",
+    "Right"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 5
+ },
+ {
+  "seed": 76907,
+  "model": "classic",
+  "backup": "robust",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    103.0,
+    108.0,
+    93.0,
+    104.0
+   ],
+   [
+    100.0,
+    108.0,
+    93.0,
+    104.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "CW",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left"
+   ],
+   [
+    "CCW",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 4
+ },
+ {
+  "seed": 76907,
+  "model": "classic",
+  "backup": "robust",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    103.0,
+    108.0,
+    93.0,
+    104.0
+   ],
+   [
+    100.0,
+    108.0,
+    93.0,
+    104.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "CW",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left"
+   ],
+   [
+    "CCW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left"
+   ],
+   [
+    "Hold",
+    "CCW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "CCW",
+    "Left"
+   ],
+   [
+    "Right",
+    "Right",
+    "SD",
+    "CCW"
+   ],
+   [
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "CW",
+    "CW",
+    "SD",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right"
+   ],
+   [
+    "Hold",
+    "CW"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Right",
+    "Right"
+   ],
+   [
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right",
+    "CW",
+    "Right"
+   ],
+   [
+    "Hold"
+   ],
+   [
+    "Right",
+    "Right",
+    "SD",
+    "CCW",
+    "Right",
+    "Right"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 4
+ },
+ {
+  "seed": 76907,
+  "model": "classic",
+  "backup": "robust",
+  "ranks": [
+   1,
+   0
+  ],
+  "choice": 1,
+  "world_costs": [
+   [
+    103.0,
+    108.0,
+    93.0,
+    104.0
+   ],
+   [
+    100.0,
+    108.0,
+    93.0,
+    104.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Left",
+    "Left"
+   ],
+   [
+    "Right",
+    "CW",
+    "Right",
+    "Right",
+    "Right"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 5
+ },
+ {
+  "seed": 76907,
+  "model": "classic",
+  "backup": "robust",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    103.0,
+    108.0,
+    93.0,
+    104.0
+   ],
+   [
+    100.0,
+    108.0,
+    93.0,
+    104.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "CW",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left"
+   ],
+   [
+    "CCW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "CCW",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 5
+ },
+ {
+  "seed": 76900,
+  "model": "learned",
+  "backup": "single",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    100.0,
+    97.0,
+    96.0,
+    97.0
+   ],
+   [
+    98.0,
+    99.0,
+    90.0,
+    97.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "CW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "CW",
+    "CW",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 4
+ },
+ {
+  "seed": 76900,
+  "model": "learned",
+  "backup": "single",
+  "ranks": [
+   0,
+   2
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    100.0,
+    97.0,
+    96.0,
+    97.0
+   ],
+   [
+    98.0,
+    99.0,
+    90.0,
+    97.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "CW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left",
+    "CW",
+    "CW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left"
+   ],
+   [
+    "Hold",
+    "CCW"
+   ],
+   [
+    "Hold",
+    "CW"
+   ],
+   [
+    "Hold",
+    "CCW",
+    "Left",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 4
+ },
+ {
+  "seed": 76900,
+  "model": "learned",
+  "backup": "single",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    100.0,
+    97.0,
+    96.0,
+    97.0
+   ],
+   [
+    98.0,
+    99.0,
+    90.0,
+    97.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "CW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "CW",
+    "CW",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 5
+ },
+ {
+  "seed": 76900,
+  "model": "learned",
+  "backup": "single",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    100.0,
+    97.0,
+    96.0,
+    97.0
+   ],
+   [
+    98.0,
+    99.0,
+    90.0,
+    97.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "CW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "CW",
+    "CW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left"
+   ],
+   [
+    "Hold",
+    "CCW"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 5
+ },
+ {
+  "seed": 76901,
+  "model": "learned",
+  "backup": "single",
+  "ranks": [
+   null,
+   1
+  ],
+  "choice": null,
+  "world_costs": [
+   [
+    95.0,
+    98.0,
+    99.0,
+    99.0
+   ],
+   [
+    98.0,
+    95.0,
+    94.0,
+    101.0
+   ]
+  ],
+  "actions": [
+   [
+    "CCW",
+    "CCW"
+   ],
+   [
+    "CCW",
+    "Left"
+   ],
+   [
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "CCW",
+    "Left",
+    "Left",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 4
+ },
+ {
+  "seed": 76901,
+  "model": "learned",
+  "backup": "single",
+  "ranks": [
+   0,
+   3
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    95.0,
+    98.0,
+    99.0,
+    99.0
+   ],
+   [
+    98.0,
+    95.0,
+    94.0,
+    101.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "CCW",
+    "Left"
+   ],
+   [
+    "CCW",
+    "CCW"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "CCW",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right",
+    "CW",
+    "Right",
+    "SD",
+    "CCW",
+    "Right",
+    "CW"
+   ],
+   [
+    "Hold",
+    "CCW"
+   ],
+   [
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "CCW",
+    "Left",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "CCW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "CW",
+    "SD",
+    "CCW",
+    "Left",
+    "Left",
+    "CW"
+   ],
+   [
+    "Left",
+    "CW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold"
+   ],
+   [
+    "Right",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Right",
+    "CW",
+    "Right"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 4
+ },
+ {
+  "seed": 76901,
+  "model": "learned",
+  "backup": "single",
+  "ranks": [
+   null,
+   1
+  ],
+  "choice": null,
+  "world_costs": [
+   [
+    95.0,
+    98.0,
+    99.0,
+    99.0
+   ],
+   [
+    98.0,
+    95.0,
+    94.0,
+    101.0
+   ]
+  ],
+  "actions": [
+   [
+    "CCW",
+    "CCW"
+   ],
+   [
+    "CCW",
+    "Left"
+   ],
+   [
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "CCW",
+    "Left",
+    "Left",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 5
+ },
+ {
+  "seed": 76901,
+  "model": "learned",
+  "backup": "single",
+  "ranks": [
+   0,
+   3
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    95.0,
+    98.0,
+    99.0,
+    99.0
+   ],
+   [
+    98.0,
+    95.0,
+    94.0,
+    101.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "CCW",
+    "Left"
+   ],
+   [
+    "CCW",
+    "CCW"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "CCW",
+    "Left"
+   ],
+   [
+    "Hold",
+    "CCW"
+   ],
+   [
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right",
+    "CW",
+    "Right",
+    "SD",
+    "CCW",
+    "Right",
+    "CW"
+   ],
+   [
+    "Hold",
+    "CCW",
+    "Left",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "CW",
+    "SD",
+    "CCW",
+    "Left",
+    "Left",
+    "CW"
+   ],
+   [
+    "Left",
+    "CW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "CCW",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 5
+ },
+ {
+  "seed": 76902,
+  "model": "learned",
+  "backup": "single",
+  "ranks": [
+   0,
+   2
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    102.0,
+    106.0,
+    96.0,
+    98.0
+   ],
+   [
+    97.0,
+    105.0,
+    98.0,
+    102.0
+   ]
+  ],
+  "actions": [
+   [
+    "SD",
+    "CCW",
+    "CCW",
+    "CCW"
+   ],
+   [
+    "CCW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "SD",
+    "Right",
+    "CCW",
+    "Right"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 4
+ },
+ {
+  "seed": 76902,
+  "model": "learned",
+  "backup": "single",
+  "ranks": [
+   0,
+   2
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    102.0,
+    106.0,
+    96.0,
+    98.0
+   ],
+   [
+    97.0,
+    105.0,
+    98.0,
+    102.0
+   ]
+  ],
+  "actions": [
+   [
+    "SD",
+    "CCW",
+    "CCW",
+    "CCW"
+   ],
+   [
+    "CCW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "SD",
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Right",
+    "CW"
+   ],
+   [
+    "CCW",
+    "Left",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Right",
+    "CW",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Right",
+    "CW",
+    "Right",
+    "Right"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 4
+ },
+ {
+  "seed": 76902,
+  "model": "learned",
+  "backup": "single",
+  "ranks": [
+   1,
+   0
+  ],
+  "choice": 1,
+  "world_costs": [
+   [
+    102.0,
+    106.0,
+    96.0,
+    98.0
+   ],
+   [
+    97.0,
+    105.0,
+    98.0,
+    102.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "SD",
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "SD",
+    "CCW",
+    "CCW",
+    "CCW"
+   ],
+   [
+    "CCW",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 5
+ },
+ {
+  "seed": 76902,
+  "model": "learned",
+  "backup": "single",
+  "ranks": [
+   1,
+   0
+  ],
+  "choice": 1,
+  "world_costs": [
+   [
+    102.0,
+    106.0,
+    96.0,
+    98.0
+   ],
+   [
+    97.0,
+    105.0,
+    98.0,
+    102.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "SD",
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "SD",
+    "CCW",
+    "CCW",
+    "CCW"
+   ],
+   [
+    "CCW",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 5
+ },
+ {
+  "seed": 76903,
+  "model": "learned",
+  "backup": "single",
+  "ranks": [
+   2,
+   3
+  ],
+  "choice": null,
+  "world_costs": [
+   [
+    110.0,
+    106.0,
+    108.0,
+    104.0
+   ],
+   [
+    111.0,
+    106.0,
+    113.0,
+    100.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "CW"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "CW",
+    "Left",
+    "SD",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right"
+   ],
+   [
+    "Left",
+    "CW",
+    "Left"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 4
+ },
+ {
+  "seed": 76903,
+  "model": "learned",
+  "backup": "single",
+  "ranks": [
+   2,
+   3
+  ],
+  "choice": null,
+  "world_costs": [
+   [
+    110.0,
+    106.0,
+    108.0,
+    104.0
+   ],
+   [
+    111.0,
+    106.0,
+    113.0,
+    100.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "CW"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "CW",
+    "Left",
+    "SD",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right"
+   ],
+   [
+    "Left",
+    "CW",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Right",
+    "CCW",
+    "Right",
+    "SD",
+    "CW",
+    "Right",
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "Right",
+    "CCW",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "CW",
+    "CW",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 4
+ },
+ {
+  "seed": 76903,
+  "model": "learned",
+  "backup": "single",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    110.0,
+    106.0,
+    108.0,
+    104.0
+   ],
+   [
+    111.0,
+    106.0,
+    113.0,
+    100.0
+   ]
+  ],
+  "actions": [
+   [
+    "Left",
+    "CW",
+    "Left",
+    "SD",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right"
+   ],
+   [
+    "Right",
+    "CW"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 5
+ },
+ {
+  "seed": 76903,
+  "model": "learned",
+  "backup": "single",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    110.0,
+    106.0,
+    108.0,
+    104.0
+   ],
+   [
+    111.0,
+    106.0,
+    113.0,
+    100.0
+   ]
+  ],
+  "actions": [
+   [
+    "Left",
+    "CW",
+    "Left",
+    "SD",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right"
+   ],
+   [
+    "Right",
+    "CW"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "CW",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 5
+ },
+ {
+  "seed": 76904,
+  "model": "learned",
+  "backup": "single",
+  "ranks": [
+   0,
+   null
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    98.0,
+    100.0,
+    98.0,
+    103.0
+   ],
+   [
+    98.0,
+    97.0,
+    101.0,
+    90.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "CW",
+    "Right",
+    "Right"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 4
+ },
+ {
+  "seed": 76904,
+  "model": "learned",
+  "backup": "single",
+  "ranks": [
+   1,
+   2
+  ],
+  "choice": null,
+  "world_costs": [
+   [
+    98.0,
+    100.0,
+    98.0,
+    103.0
+   ],
+   [
+    98.0,
+    97.0,
+    101.0,
+    90.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "CW",
+    "Right"
+   ],
+   [
+    "Right"
+   ],
+   [
+    "Right",
+    "CCW",
+    "CCW",
+    "Right"
+   ],
+   [
+    "Right",
+    "CCW"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "CW"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "CW",
+    "Right",
+    "Right"
+   ],
+   [
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "Right",
+    "Right",
+    "SD",
+    "Right",
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left"
+   ],
+   [
+    "CCW",
+    "Left"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 4
+ },
+ {
+  "seed": 76904,
+  "model": "learned",
+  "backup": "single",
+  "ranks": [
+   0,
+   null
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    98.0,
+    100.0,
+    98.0,
+    103.0
+   ],
+   [
+    98.0,
+    97.0,
+    101.0,
+    90.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "CW",
+    "Right",
+    "Right"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 5
+ },
+ {
+  "seed": 76904,
+  "model": "learned",
+  "backup": "single",
+  "ranks": [
+   3,
+   0
+  ],
+  "choice": 1,
+  "world_costs": [
+   [
+    98.0,
+    100.0,
+    98.0,
+    103.0
+   ],
+   [
+    98.0,
+    97.0,
+    101.0,
+    90.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "CCW",
+    "CCW",
+    "Right"
+   ],
+   [
+    "Right",
+    "CCW"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "CW"
+   ],
+   [
+    "Right"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "CW",
+    "Right",
+    "Right"
+   ],
+   [
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "Right",
+    "Right",
+    "SD",
+    "Right",
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 5
+ },
+ {
+  "seed": 76905,
+  "model": "learned",
+  "backup": "single",
+  "ranks": [
+   0,
+   null
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    89.0,
+    98.0,
+    96.0,
+    106.0
+   ],
+   [
+    98.0,
+    98.0,
+    99.0,
+    95.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "SD",
+    "CW",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "SD",
+    "Left",
+    "CW",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 4
+ },
+ {
+  "seed": 76905,
+  "model": "learned",
+  "backup": "single",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    89.0,
+    98.0,
+    96.0,
+    106.0
+   ],
+   [
+    98.0,
+    98.0,
+    99.0,
+    95.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "SD",
+    "CW",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "CCW",
+    "Left"
+   ],
+   [
+    "Hold",
+    "CCW",
+    "Left"
+   ],
+   [
+    "CW"
+   ],
+   [
+    "Hold",
+    "SD",
+    "Left",
+    "CW",
+    "Left",
+    "Left"
+   ],
+   [
+    "CCW",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "CCW"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "CW",
+    "CW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "CW",
+    "CW"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 4
+ },
+ {
+  "seed": 76905,
+  "model": "learned",
+  "backup": "single",
+  "ranks": [
+   0,
+   null
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    89.0,
+    98.0,
+    96.0,
+    106.0
+   ],
+   [
+    98.0,
+    98.0,
+    99.0,
+    95.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "SD",
+    "CW",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "SD",
+    "Left",
+    "CW",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 5
+ },
+ {
+  "seed": 76905,
+  "model": "learned",
+  "backup": "single",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    89.0,
+    98.0,
+    96.0,
+    106.0
+   ],
+   [
+    98.0,
+    98.0,
+    99.0,
+    95.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "SD",
+    "CW",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "CCW",
+    "Left"
+   ],
+   [
+    "CW"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "SD",
+    "Left",
+    "CW",
+    "Left",
+    "Left"
+   ],
+   [
+    "CCW",
+    "Left",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 5
+ },
+ {
+  "seed": 76906,
+  "model": "learned",
+  "backup": "single",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    99.0,
+    105.0,
+    98.0,
+    92.0
+   ],
+   [
+    99.0,
+    105.0,
+    98.0,
+    92.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Left",
+    "CW",
+    "Left",
+    "SD",
+    "Left"
+   ],
+   [
+    "Right",
+    "Right",
+    "Right",
+    "Right"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 4
+ },
+ {
+  "seed": 76906,
+  "model": "learned",
+  "backup": "single",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    99.0,
+    105.0,
+    98.0,
+    92.0
+   ],
+   [
+    99.0,
+    105.0,
+    98.0,
+    92.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Left",
+    "CW",
+    "Left",
+    "SD",
+    "Left"
+   ],
+   [
+    "Right",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "CW"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "Right"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 4
+ },
+ {
+  "seed": 76906,
+  "model": "learned",
+  "backup": "single",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    99.0,
+    105.0,
+    98.0,
+    92.0
+   ],
+   [
+    99.0,
+    105.0,
+    98.0,
+    92.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Left",
+    "CW",
+    "Left",
+    "SD",
+    "Left"
+   ],
+   [
+    "Right",
+    "Right",
+    "Right",
+    "Right"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 5
+ },
+ {
+  "seed": 76906,
+  "model": "learned",
+  "backup": "single",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    99.0,
+    105.0,
+    98.0,
+    92.0
+   ],
+   [
+    99.0,
+    105.0,
+    98.0,
+    92.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Left",
+    "CW",
+    "Left",
+    "SD",
+    "Left"
+   ],
+   [
+    "Right",
+    "Right",
+    "Right",
+    "Right"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 5
+ },
+ {
+  "seed": 76907,
+  "model": "learned",
+  "backup": "single",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    103.0,
+    108.0,
+    93.0,
+    104.0
+   ],
+   [
+    100.0,
+    108.0,
+    93.0,
+    104.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "CW",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 4
+ },
+ {
+  "seed": 76907,
+  "model": "learned",
+  "backup": "single",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    103.0,
+    108.0,
+    93.0,
+    104.0
+   ],
+   [
+    100.0,
+    108.0,
+    93.0,
+    104.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "CW",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left"
+   ],
+   [
+    "CCW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Right"
+   ],
+   [
+    "Hold",
+    "CCW",
+    "Left",
+    "Left"
+   ],
+   [
+    "CCW",
+    "Left"
+   ],
+   [
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right",
+    "CW",
+    "Right",
+    "Right"
+   ],
+   [
+    "Right",
+    "Right",
+    "SD",
+    "CCW"
+   ],
+   [
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "CW"
+   ],
+   [
+    "Left"
+   ],
+   [
+    "Hold"
+   ],
+   [
+    "Right",
+    "Right",
+    "SD",
+    "CCW",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Right",
+    "CW",
+    "Right"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 4
+ },
+ {
+  "seed": 76907,
+  "model": "learned",
+  "backup": "single",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    103.0,
+    108.0,
+    93.0,
+    104.0
+   ],
+   [
+    100.0,
+    108.0,
+    93.0,
+    104.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "CW",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 5
+ },
+ {
+  "seed": 76907,
+  "model": "learned",
+  "backup": "single",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    103.0,
+    108.0,
+    93.0,
+    104.0
+   ],
+   [
+    100.0,
+    108.0,
+    93.0,
+    104.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "CW",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left"
+   ],
+   [
+    "CCW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "CW"
+   ],
+   [
+    "Hold",
+    "Right",
+    "CW",
+    "Right"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 5
+ },
+ {
+  "seed": 76900,
+  "model": "learned",
+  "backup": "robust",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    100.0,
+    97.0,
+    96.0,
+    97.0
+   ],
+   [
+    98.0,
+    99.0,
+    90.0,
+    97.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "CW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "CW",
+    "CW",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 4
+ },
+ {
+  "seed": 76900,
+  "model": "learned",
+  "backup": "robust",
+  "ranks": [
+   0,
+   2
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    100.0,
+    97.0,
+    96.0,
+    97.0
+   ],
+   [
+    98.0,
+    99.0,
+    90.0,
+    97.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "CW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left",
+    "CW",
+    "CW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left"
+   ],
+   [
+    "Hold",
+    "CCW"
+   ],
+   [
+    "Hold",
+    "CW"
+   ],
+   [
+    "Hold",
+    "CCW",
+    "Left",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 4
+ },
+ {
+  "seed": 76900,
+  "model": "learned",
+  "backup": "robust",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    100.0,
+    97.0,
+    96.0,
+    97.0
+   ],
+   [
+    98.0,
+    99.0,
+    90.0,
+    97.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "CW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "CW",
+    "CW",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 5
+ },
+ {
+  "seed": 76900,
+  "model": "learned",
+  "backup": "robust",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    100.0,
+    97.0,
+    96.0,
+    97.0
+   ],
+   [
+    98.0,
+    99.0,
+    90.0,
+    97.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "CW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "CW",
+    "CW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left"
+   ],
+   [
+    "Hold",
+    "CCW"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 5
+ },
+ {
+  "seed": 76901,
+  "model": "learned",
+  "backup": "robust",
+  "ranks": [
+   null,
+   1
+  ],
+  "choice": null,
+  "world_costs": [
+   [
+    95.0,
+    98.0,
+    99.0,
+    99.0
+   ],
+   [
+    98.0,
+    95.0,
+    94.0,
+    101.0
+   ]
+  ],
+  "actions": [
+   [
+    "CCW",
+    "CCW"
+   ],
+   [
+    "CCW",
+    "Left"
+   ],
+   [
+    "Hold",
+    "CCW",
+    "Left",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 4
+ },
+ {
+  "seed": 76901,
+  "model": "learned",
+  "backup": "robust",
+  "ranks": [
+   0,
+   3
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    95.0,
+    98.0,
+    99.0,
+    99.0
+   ],
+   [
+    98.0,
+    95.0,
+    94.0,
+    101.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "CCW",
+    "Left"
+   ],
+   [
+    "CCW",
+    "CCW"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "CCW",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right",
+    "CW",
+    "Right",
+    "SD",
+    "CCW",
+    "Right",
+    "CW"
+   ],
+   [
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "CCW",
+    "Left",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "CCW"
+   ],
+   [
+    "Left",
+    "CW",
+    "SD",
+    "CCW",
+    "Left",
+    "Left",
+    "CW"
+   ],
+   [
+    "Left",
+    "CW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "CCW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold"
+   ],
+   [
+    "Right",
+    "CW",
+    "Right"
+   ],
+   [
+    "Right",
+    "Right",
+    "Right",
+    "Right"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 4
+ },
+ {
+  "seed": 76901,
+  "model": "learned",
+  "backup": "robust",
+  "ranks": [
+   null,
+   1
+  ],
+  "choice": null,
+  "world_costs": [
+   [
+    95.0,
+    98.0,
+    99.0,
+    99.0
+   ],
+   [
+    98.0,
+    95.0,
+    94.0,
+    101.0
+   ]
+  ],
+  "actions": [
+   [
+    "CCW",
+    "CCW"
+   ],
+   [
+    "CCW",
+    "Left"
+   ],
+   [
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "CCW",
+    "Left",
+    "Left",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 5
+ },
+ {
+  "seed": 76901,
+  "model": "learned",
+  "backup": "robust",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    95.0,
+    98.0,
+    99.0,
+    99.0
+   ],
+   [
+    98.0,
+    95.0,
+    94.0,
+    101.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "CCW",
+    "Left"
+   ],
+   [
+    "CCW",
+    "Left"
+   ],
+   [
+    "CCW",
+    "CCW"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "CCW"
+   ],
+   [
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "CW",
+    "SD",
+    "CCW",
+    "Left",
+    "Left",
+    "CW"
+   ],
+   [
+    "Hold",
+    "CCW",
+    "Left",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right",
+    "CW",
+    "Right",
+    "SD",
+    "CCW",
+    "Right",
+    "CW"
+   ],
+   [
+    "Left",
+    "CW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "CCW",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 5
+ },
+ {
+  "seed": 76902,
+  "model": "learned",
+  "backup": "robust",
+  "ranks": [
+   0,
+   2
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    102.0,
+    106.0,
+    96.0,
+    98.0
+   ],
+   [
+    97.0,
+    105.0,
+    98.0,
+    102.0
+   ]
+  ],
+  "actions": [
+   [
+    "SD",
+    "CCW",
+    "CCW",
+    "CCW"
+   ],
+   [
+    "CCW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "SD",
+    "Right",
+    "CCW",
+    "Right"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 4
+ },
+ {
+  "seed": 76902,
+  "model": "learned",
+  "backup": "robust",
+  "ranks": [
+   0,
+   2
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    102.0,
+    106.0,
+    96.0,
+    98.0
+   ],
+   [
+    97.0,
+    105.0,
+    98.0,
+    102.0
+   ]
+  ],
+  "actions": [
+   [
+    "SD",
+    "CCW",
+    "CCW",
+    "CCW"
+   ],
+   [
+    "CCW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "SD",
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Right",
+    "CW"
+   ],
+   [
+    "Right",
+    "CW",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Right",
+    "CW",
+    "Right",
+    "Right"
+   ],
+   [
+    "CCW",
+    "Left",
+    "Left",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 4
+ },
+ {
+  "seed": 76902,
+  "model": "learned",
+  "backup": "robust",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    102.0,
+    106.0,
+    96.0,
+    98.0
+   ],
+   [
+    97.0,
+    105.0,
+    98.0,
+    102.0
+   ]
+  ],
+  "actions": [
+   [
+    "SD",
+    "CCW",
+    "CCW",
+    "CCW"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "SD",
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "CCW",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 5
+ },
+ {
+  "seed": 76902,
+  "model": "learned",
+  "backup": "robust",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    102.0,
+    106.0,
+    96.0,
+    98.0
+   ],
+   [
+    97.0,
+    105.0,
+    98.0,
+    102.0
+   ]
+  ],
+  "actions": [
+   [
+    "SD",
+    "CCW",
+    "CCW",
+    "CCW"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "SD",
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "CCW",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 5
+ },
+ {
+  "seed": 76903,
+  "model": "learned",
+  "backup": "robust",
+  "ranks": [
+   3,
+   4
+  ],
+  "choice": null,
+  "world_costs": [
+   [
+    110.0,
+    106.0,
+    108.0,
+    104.0
+   ],
+   [
+    111.0,
+    106.0,
+    113.0,
+    100.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "CW"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "CW",
+    "Left"
+   ],
+   [
+    "Left",
+    "CW",
+    "Left",
+    "SD",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 4
+ },
+ {
+  "seed": 76903,
+  "model": "learned",
+  "backup": "robust",
+  "ranks": [
+   1,
+   2
+  ],
+  "choice": null,
+  "world_costs": [
+   [
+    110.0,
+    106.0,
+    108.0,
+    104.0
+   ],
+   [
+    111.0,
+    106.0,
+    113.0,
+    100.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "CW",
+    "Left",
+    "SD",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right"
+   ],
+   [
+    "Right",
+    "CW"
+   ],
+   [
+    "Left",
+    "CW",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "Left"
+   ],
+   [
+    "Right",
+    "CCW",
+    "Right",
+    "SD",
+    "CW",
+    "Right",
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Right",
+    "CCW",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Left",
+    "CW",
+    "CW",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 4
+ },
+ {
+  "seed": 76903,
+  "model": "learned",
+  "backup": "robust",
+  "ranks": [
+   0,
+   2
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    110.0,
+    106.0,
+    108.0,
+    104.0
+   ],
+   [
+    111.0,
+    106.0,
+    113.0,
+    100.0
+   ]
+  ],
+  "actions": [
+   [
+    "Left",
+    "CW",
+    "Left",
+    "SD",
+    "Left",
+    "Left"
+   ],
+   [
+    "Right",
+    "CW"
+   ],
+   [
+    "Hold",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 5
+ },
+ {
+  "seed": 76903,
+  "model": "learned",
+  "backup": "robust",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    110.0,
+    106.0,
+    108.0,
+    104.0
+   ],
+   [
+    111.0,
+    106.0,
+    113.0,
+    100.0
+   ]
+  ],
+  "actions": [
+   [
+    "Left",
+    "CW",
+    "Left",
+    "SD",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right"
+   ],
+   [
+    "Right",
+    "CW"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "CW",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 5
+ },
+ {
+  "seed": 76904,
+  "model": "learned",
+  "backup": "robust",
+  "ranks": [
+   0,
+   null
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    98.0,
+    100.0,
+    98.0,
+    103.0
+   ],
+   [
+    98.0,
+    97.0,
+    101.0,
+    90.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "CW",
+    "Right",
+    "Right"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 4
+ },
+ {
+  "seed": 76904,
+  "model": "learned",
+  "backup": "robust",
+  "ranks": [
+   1,
+   6
+  ],
+  "choice": null,
+  "world_costs": [
+   [
+    98.0,
+    100.0,
+    98.0,
+    103.0
+   ],
+   [
+    98.0,
+    97.0,
+    101.0,
+    90.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "CW",
+    "Right"
+   ],
+   [
+    "Right"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "CW"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "CW",
+    "Right",
+    "Right"
+   ],
+   [
+    "Right",
+    "Right",
+    "SD",
+    "Right",
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "Right",
+    "CCW"
+   ],
+   [
+    "Right",
+    "CCW",
+    "CCW",
+    "Right"
+   ],
+   [
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left"
+   ],
+   [
+    "CCW",
+    "Left"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 4
+ },
+ {
+  "seed": 76904,
+  "model": "learned",
+  "backup": "robust",
+  "ranks": [
+   0,
+   null
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    98.0,
+    100.0,
+    98.0,
+    103.0
+   ],
+   [
+    98.0,
+    97.0,
+    101.0,
+    90.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "CW",
+    "Right",
+    "Right"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 5
+ },
+ {
+  "seed": 76904,
+  "model": "learned",
+  "backup": "robust",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    98.0,
+    100.0,
+    98.0,
+    103.0
+   ],
+   [
+    98.0,
+    97.0,
+    101.0,
+    90.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right"
+   ],
+   [
+    "Right",
+    "CCW",
+    "CCW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "CW"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "CW",
+    "Right",
+    "Right"
+   ],
+   [
+    "Right",
+    "CCW"
+   ],
+   [
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "Right",
+    "Right",
+    "SD",
+    "Right",
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 5
+ },
+ {
+  "seed": 76905,
+  "model": "learned",
+  "backup": "robust",
+  "ranks": [
+   0,
+   null
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    89.0,
+    98.0,
+    96.0,
+    106.0
+   ],
+   [
+    98.0,
+    98.0,
+    99.0,
+    95.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "SD",
+    "CW",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "SD",
+    "Left",
+    "CW",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 4
+ },
+ {
+  "seed": 76905,
+  "model": "learned",
+  "backup": "robust",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    89.0,
+    98.0,
+    96.0,
+    106.0
+   ],
+   [
+    98.0,
+    98.0,
+    99.0,
+    95.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "SD",
+    "CW",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "CCW",
+    "Left"
+   ],
+   [
+    "CW"
+   ],
+   [
+    "Hold",
+    "CCW",
+    "Left"
+   ],
+   [
+    "Hold",
+    "SD",
+    "Left",
+    "CW",
+    "Left",
+    "Left"
+   ],
+   [
+    "CCW",
+    "Left",
+    "Left",
+    "Left"
+   ],
+   [
+    "CCW"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "CW",
+    "CW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "CW",
+    "CW"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 4
+ },
+ {
+  "seed": 76905,
+  "model": "learned",
+  "backup": "robust",
+  "ranks": [
+   0,
+   null
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    89.0,
+    98.0,
+    96.0,
+    106.0
+   ],
+   [
+    98.0,
+    98.0,
+    99.0,
+    95.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "SD",
+    "CW",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "SD",
+    "Left",
+    "CW",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 5
+ },
+ {
+  "seed": 76905,
+  "model": "learned",
+  "backup": "robust",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    89.0,
+    98.0,
+    96.0,
+    106.0
+   ],
+   [
+    98.0,
+    98.0,
+    99.0,
+    95.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "SD",
+    "CW",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "CCW",
+    "Left"
+   ],
+   [
+    "CW"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "SD",
+    "Left",
+    "CW",
+    "Left",
+    "Left"
+   ],
+   [
+    "CCW",
+    "Left",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 5
+ },
+ {
+  "seed": 76906,
+  "model": "learned",
+  "backup": "robust",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    99.0,
+    105.0,
+    98.0,
+    92.0
+   ],
+   [
+    99.0,
+    105.0,
+    98.0,
+    92.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Left",
+    "CW",
+    "Left",
+    "SD",
+    "Left"
+   ],
+   [
+    "Right",
+    "Right",
+    "Right",
+    "Right"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 4
+ },
+ {
+  "seed": 76906,
+  "model": "learned",
+  "backup": "robust",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    99.0,
+    105.0,
+    98.0,
+    92.0
+   ],
+   [
+    99.0,
+    105.0,
+    98.0,
+    92.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Left",
+    "CW",
+    "Left",
+    "SD",
+    "Left"
+   ],
+   [
+    "Right",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "CW"
+   ],
+   [
+    "Hold",
+    "Right",
+    "Right",
+    "Right"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 4
+ },
+ {
+  "seed": 76906,
+  "model": "learned",
+  "backup": "robust",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    99.0,
+    105.0,
+    98.0,
+    92.0
+   ],
+   [
+    99.0,
+    105.0,
+    98.0,
+    92.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Left",
+    "CW",
+    "Left",
+    "SD",
+    "Left"
+   ],
+   [
+    "Right",
+    "Right",
+    "Right",
+    "Right"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 5
+ },
+ {
+  "seed": 76906,
+  "model": "learned",
+  "backup": "robust",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    99.0,
+    105.0,
+    98.0,
+    92.0
+   ],
+   [
+    99.0,
+    105.0,
+    98.0,
+    92.0
+   ]
+  ],
+  "actions": [
+   [
+    "Hold",
+    "Left",
+    "CW",
+    "Left",
+    "SD",
+    "Left"
+   ],
+   [
+    "Right",
+    "Right",
+    "Right",
+    "Right"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 5
+ },
+ {
+  "seed": 76907,
+  "model": "learned",
+  "backup": "robust",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    103.0,
+    108.0,
+    93.0,
+    104.0
+   ],
+   [
+    100.0,
+    108.0,
+    93.0,
+    104.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "CW",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 4
+ },
+ {
+  "seed": 76907,
+  "model": "learned",
+  "backup": "robust",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    103.0,
+    108.0,
+    93.0,
+    104.0
+   ],
+   [
+    100.0,
+    108.0,
+    93.0,
+    104.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "CW",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left"
+   ],
+   [
+    "CCW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Right"
+   ],
+   [
+    "Hold",
+    "CCW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Left",
+    "Left"
+   ],
+   [
+    "CCW",
+    "Left"
+   ],
+   [
+    "Right",
+    "Right",
+    "SD",
+    "CCW"
+   ],
+   [
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Right",
+    "CW",
+    "Right",
+    "Right"
+   ],
+   [
+    "Left"
+   ],
+   [
+    "Hold"
+   ],
+   [
+    "Hold",
+    "CW"
+   ],
+   [
+    "Right",
+    "Right",
+    "SD",
+    "CCW",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Right",
+    "CW",
+    "Right"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 4
+ },
+ {
+  "seed": 76907,
+  "model": "learned",
+  "backup": "robust",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    103.0,
+    108.0,
+    93.0,
+    104.0
+   ],
+   [
+    100.0,
+    108.0,
+    93.0,
+    104.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "CW",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left"
+   ]
+  ],
+  "generated": 5000,
+  "nodes": 5000,
+  "preview": 5
+ },
+ {
+  "seed": 76907,
+  "model": "learned",
+  "backup": "robust",
+  "ranks": [
+   0,
+   1
+  ],
+  "choice": 0,
+  "world_costs": [
+   [
+    103.0,
+    108.0,
+    93.0,
+    104.0
+   ],
+   [
+    100.0,
+    108.0,
+    93.0,
+    104.0
+   ]
+  ],
+  "actions": [
+   [
+    "Right",
+    "CW",
+    "Right",
+    "Right",
+    "Right"
+   ],
+   [
+    "Hold",
+    "Left",
+    "Left"
+   ],
+   [
+    "CCW",
+    "Left",
+    "Left"
+   ],
+   [
+    "Right",
+    "CCW",
+    "Right"
+   ],
+   [
+    "Left",
+    "Left"
+   ],
+   [
+    "Hold",
+    "CW"
+   ],
+   [
+    "Hold",
+    "Right",
+    "CW",
+    "Right"
+   ]
+  ],
+  "generated": 50000,
+  "nodes": 50000,
+  "preview": 5
+ }
+]

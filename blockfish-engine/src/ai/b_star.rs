@@ -579,7 +579,7 @@ impl<'s> Search<'s> {
             return;
         }
         self.lvl_idx = (0..self.lvls.len())
-            .min_by_key(|&i| self.lvls[i].peek().map_or(std::i64::MAX, |n| n.f))
+            .min_by_key(|&i| self.lvls[i].peek().map_or(std::i64::MAX, Node::priority))
             .unwrap_or(0);
     }
 
@@ -649,10 +649,19 @@ pub(super) struct Node {
     pub(super) state: NodeState,
     pub(super) trace: Vec<u8>,
     pub(super) f: i64,
+    #[cfg(feature = "classic-guide")]
+    guide: i64,
     parent_f: i64,
 }
 
 impl Node {
+    fn priority(&self) -> i64 {
+        #[cfg(feature = "classic-guide")]
+        { self.guide }
+        #[cfg(not(feature = "classic-guide"))]
+        { self.f }
+    }
+
     #[cfg(feature = "tail-expectation")]
     pub(super) fn extend_value(&mut self, params: &Parameters, future_value: i64) {
         #[cfg(feature = "tail-hold")]
@@ -666,6 +675,8 @@ impl Node {
         Self {
             #[cfg(feature = "root-dag")]
             expansion_started: false,
+            #[cfg(feature = "classic-guide")]
+            guide: super::eval::eval(state.matrix()).score(params),
             state: state.into(),
             trace: vec![],
             f: h,
@@ -688,6 +699,8 @@ impl Node {
         Self {
             #[cfg(feature = "root-dag")]
             expansion_started: false,
+            #[cfg(feature = "classic-guide")]
+            guide: g + super::eval::eval(state.matrix()).score(params),
             state: state.into(),
             trace,
             f: g + h,
@@ -722,7 +735,7 @@ impl Node {
 
 impl PartialEq for Node {
     fn eq(&self, rhs: &Self) -> bool {
-        self.f == rhs.f
+        self.priority() == rhs.priority()
     }
 }
 
@@ -736,7 +749,7 @@ impl Eq for Node {}
 
 impl Ord for Node {
     fn cmp(&self, rhs: &Self) -> std::cmp::Ordering {
-        self.f.cmp(&rhs.f).reverse()
+        self.priority().cmp(&rhs.priority()).reverse()
     }
 }
 

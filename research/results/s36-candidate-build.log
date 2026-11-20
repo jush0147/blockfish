@@ -1,0 +1,15 @@
+   Compiling blockfish v0.1.0 (/workspace/blockfish/blockfish-engine)
+warning: variant `RemoveMove` is never constructed
+   --> blockfish-engine/src/ai/b_star.rs:178:5
+    |
+156 | pub enum Step {
+    |          ---- variant in this enum
+...
+178 |     RemoveMove(MoveId),
+    |     ^^^^^^^^^^
+    |
+    = note: `Step` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+    = note: `#[warn(dead_code)]` on by default
+
+warning: `blockfish` (lib) generated 1 warning
+    Finished release [optimized] target(s) in 3.14s

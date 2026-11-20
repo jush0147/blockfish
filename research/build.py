@@ -11,6 +11,7 @@ import tempfile
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 UPSTREAM = '739953f9331b7648f269fc52cff5aae330108ccd'
 FEATURES = {
+    "robust-classic-guide": ["classic-guide"],
     "robust-mirror": ["mirror-fusion"],
     "robust-reveal-boundary": ["reveal-boundary"],
     "robust-dig-geometry": ["dig-geometry"],

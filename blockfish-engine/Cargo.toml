@@ -25,6 +25,7 @@ path = "src/bin/service.rs"
 required-features = ["service"]
 
 [features]
+classic-guide = ["cheese-robust"]
 mirror-fusion=["cheese-robust"]
 reveal-boundary = ["cheese-robust","plan-observer"]
 dig-geometry = ["cheese-robust"]
@@ -136,3 +137,8 @@ required-features = ["race", "public-rollout"]
 name="blockfish-mirror-probe"
 path="src/bin/mirror_probe.rs"
 required-features=["mirror-fusion"]
+
+[[bin]]
+name = "blockfish-search-probe"
+path = "src/bin/search_probe.rs"
+required-features = ["generated-budget"]
