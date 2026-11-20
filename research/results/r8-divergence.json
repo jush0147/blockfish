@@ -1,0 +1,98 @@
+[
+  {
+    "seed": 2,
+    "baseline": 198,
+    "candidate": 200,
+    "identical": false,
+    "first_different_placement": 102,
+    "garbage_cleared_before_divergence": 55
+  },
+  {
+    "seed": 1,
+    "baseline": 198,
+    "candidate": 198,
+    "identical": true,
+    "first_different_placement": null,
+    "garbage_cleared_before_divergence": 0
+  },
+  {
+    "seed": 11,
+    "baseline": 199,
+    "candidate": 199,
+    "identical": false,
+    "first_different_placement": 125,
+    "garbage_cleared_before_divergence": 61
+  },
+  {
+    "seed": 9,
+    "baseline": 199,
+    "candidate": 204,
+    "identical": false,
+    "first_different_placement": 45,
+    "garbage_cleared_before_divergence": 22
+  },
+  {
+    "seed": 0,
+    "baseline": 193,
+    "candidate": 193,
+    "identical": true,
+    "first_different_placement": null,
+    "garbage_cleared_before_divergence": 0
+  },
+  {
+    "seed": 10,
+    "baseline": 210,
+    "candidate": 210,
+    "identical": true,
+    "first_different_placement": null,
+    "garbage_cleared_before_divergence": 0
+  },
+  {
+    "seed": 8,
+    "baseline": 201,
+    "candidate": 201,
+    "identical": true,
+    "first_different_placement": null,
+    "garbage_cleared_before_divergence": 0
+  },
+  {
+    "seed": 6,
+    "baseline": 196,
+    "candidate": 199,
+    "identical": false,
+    "first_different_placement": 70,
+    "garbage_cleared_before_divergence": 34
+  },
+  {
+    "seed": 4,
+    "baseline": 200,
+    "candidate": 192,
+    "identical": false,
+    "first_different_placement": 33,
+    "garbage_cleared_before_divergence": 18
+  },
+  {
+    "seed": 3,
+    "baseline": 204,
+    "candidate": 201,
+    "identical": false,
+    "first_different_placement": 148,
+    "garbage_cleared_before_divergence": 73
+  },
+  {
+    "seed": 5,
+    "baseline": 183,
+    "candidate": 183,
+    "identical": false,
+    "first_different_placement": 36,
+    "garbage_cleared_before_divergence": 20
+  },
+  {
+    "seed": 7,
+    "baseline": 196,
+    "candidate": 196,
+    "identical": true,
+    "first_different_placement": null,
+    "garbage_cleared_before_divergence": 0
+  }
+]

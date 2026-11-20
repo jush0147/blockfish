@@ -1,0 +1,24 @@
+{
+  "profile": "cheese-robust",
+  "validated_generated_budget": 50000,
+  "baseline": "cheese-quality",
+  "races": 371,
+  "independent_seeds": 124,
+  "complete": 371,
+  "replays_passed": 371,
+  "total_cpu_seconds": 4760.62742,
+  "final_summary": "research/results/s11-final-summary.json",
+  "checkpoint": "research/checkpoints/s11-20261113-manifest.json",
+  "rejected_followups": [
+    "root-complete combination: no development gain",
+    "endgame-wide combination:12/12 piece-count ties"
+  ],
+  "unopened_validation_seeds": [
+    75100,
+    75147
+  ],
+  "unopened_final_seeds": [
+    75200,
+    75263
+  ]
+}

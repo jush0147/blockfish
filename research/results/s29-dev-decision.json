@@ -1,0 +1,55 @@
+{
+  "gate": "mean",
+  "passed": false,
+  "lock": "research/results/s29-dev-lock.json",
+  "scores": {
+    "robust-global-regret": {
+      "complete": 32,
+      "mean_pieces": 201.65625
+    },
+    "robust-global-f": {
+      "complete": 28,
+      "mean_pieces": 196.07142857142858
+    },
+    "learned-robust": {
+      "complete": 32,
+      "mean_pieces": 196.15625
+    }
+  },
+  "candidate_minus_controls": {
+    "robust-global-f": {
+      "paired_seeds": 32,
+      "completed_pairs": 28,
+      "delta_b_minus_a": 6.357142857142857,
+      "bootstrap95": [
+        3.4285714285714284,
+        9.285714285714286
+      ],
+      "b_wins": 6,
+      "ties": 3,
+      "b_losses": 19
+    },
+    "learned-robust": {
+      "paired_seeds": 32,
+      "completed_pairs": 32,
+      "delta_b_minus_a": 5.5,
+      "bootstrap95": [
+        2.96875,
+        7.90625
+      ],
+      "b_wins": 6,
+      "ties": 1,
+      "b_losses": 25
+    }
+  },
+  "checks": {
+    "robust-global-f": {
+      "completion_no_worse": true,
+      "mean_lower": false
+    },
+    "learned-robust": {
+      "completion_no_worse": true,
+      "mean_lower": false
+    }
+  }
+}

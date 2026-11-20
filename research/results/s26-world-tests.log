@@ -1,0 +1,21 @@
+   Compiling block-stacker v0.1.0 (/workspace/blockfish/block-stacker)
+    Finished test [optimized + debuginfo] target(s) in 0.31s
+     Running unittests src/lib.rs (target/debug/deps/block_stacker-d45156922b85c749)
+
+running 7 tests
+test ruleset::test::test_normalize_rot ... ok
+test ruleset::test::test_rotate_coord ... ok
+test ruleset::test::test_guideline_o_kicks ... ok
+test stacker::test::private_rng_changes_cannot_change_reconstructed_world ... ok
+test stacker::test::reconstructed_world_preserves_remaining_garbage_cap ... ok
+test stacker::test::test_prng ... ok
+test stacker::test::public_reconstruction_preserves_root_and_known_first_transition ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests block-stacker
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

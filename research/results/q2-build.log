@@ -1,0 +1,26 @@
+   Compiling blockfish v0.1.0 (/workspace/blockfish/blockfish-engine)
+    Finished release [optimized] target(s) in 2.24s
+   Compiling blockfish v0.1.0 (/workspace/blockfish/blockfish-engine)
+    Finished release [optimized] target(s) in 2.21s
+   Compiling blockfish v0.1.0 (/workspace/blockfish/blockfish-engine)
+error[E0599]: no function or associated item named `n` found for struct `Color` in the current scope
+  --> blockfish-engine/src/ai/b_star.rs:83:57
+   |
+83 |         if state.next().1 == Some(crate::common::Color::n('I')) {
+   |                                                         ^ function or associated item not found in `Color`
+   |
+  ::: blockfish-engine/src/common.rs:9:1
+   |
+9  | pub struct Color(NonZeroU8);
+   | ---------------- function or associated item `n` not found for this struct
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `blockfish` (lib) due to previous error
+Traceback (most recent call last):
+  File "/workspace/blockfish/research/build.py", line 76, in <module>
+    main()
+  File "/workspace/blockfish/research/build.py", line 71, in main
+    subprocess.run(['cargo','build','--release','--locked','-p','blockfish',
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['cargo', 'build', '--release', '--locked', '-p', 'blockfish', '--no-default-features', '--features', 'race,flood-eval,eval-cache,wide-beam,beam-leaves,hold-credit']' returned non-zero exit status 101.

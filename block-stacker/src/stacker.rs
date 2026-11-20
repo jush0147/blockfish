@@ -15,6 +15,20 @@ pub struct Stacker {
     held: Option<PieceType>,
 }
 
+/// Public information at a fresh piece spawn. `remaining_bag` is derived from
+/// public reveal history AFTER the last visible preview, not from the RNG.
+#[cfg(feature = "public-world")]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
+pub struct PublicObservation {
+    pub cells: Vec<((u16,u16),CellColor)>,
+    pub current: PieceType,
+    pub next: Vec<PieceType>,
+    pub held: Option<PieceType>,
+    pub remaining_bag: Vec<PieceType>,
+    pub garbage_generated: usize,
+    pub last_garbage_hole: Option<u16>,
+}
+
 #[derive(Clone, Debug, Default)]
 pub struct Config {
     pub garbage: GarbageConfig,
@@ -39,6 +53,37 @@ impl Default for GarbageConfig {
 }
 
 impl Stacker {
+    /// Reconstruct a hypothetical world without accepting an actual game or its
+    /// private RNG. Sample seed is a planner seed; streams are domain separated.
+    #[cfg(feature = "public-world")]
+    pub fn from_public(rules: Rc<Ruleset>, cfg: GarbageConfig,
+                       observation: &PublicObservation, sample_seed: u64) -> Self {
+        let types:Vec<_>=rules.types().collect();
+        assert_eq!(observation.next.len(),rules.previews);
+        assert!(types.contains(&observation.current));
+        assert!(observation.next.iter().all(|c|types.contains(c)));
+        assert!(observation.held.map_or(true,|c|types.contains(&c)));
+        assert!(cfg.total_lines.map_or(true,|n|observation.garbage_generated<=n));
+        let mut matrix=Matrix::new(rules.cols as u16);
+        for &((row,col),color) in &observation.cells {
+            assert!(row<i16::MAX as u16 && col<rules.cols as u16 && color!=' ');
+            assert!(matrix.get((row as i16,col as i16)).is_none());
+            matrix.set((row as i16,col as i16),color);
+        }
+        assert!(observation.garbage_generated>=matrix.garbage_rows());
+        let mut world=Self {
+            matrix,
+            cheese:Cheese {cfg,count:observation.garbage_generated,
+                source:random::CheeseCols::conditioned(random::prng(Some(sample_seed^0x4741524241474501)).1,
+                    rules.cols as u16,observation.last_garbage_hole)},
+            current:None,
+            next:Next {previews:observation.next.clone(),source:random::Pieces::conditioned(
+                random::prng(Some(sample_seed^0x5049454345530001)).1,types,&observation.remaining_bag)},
+            held:observation.held,rules,rng_seed:sample_seed,
+        };
+        world.spawn(observation.current);
+        world
+    }
     /// Constructs a new stacker game state with ruleset `rules`.
     pub fn new(rules: Rc<Ruleset>, cfg: Config) -> Self {
         let (rng_seed, prng) = random::prng(cfg.prng_seed);
@@ -580,6 +625,67 @@ impl Cheese {
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[cfg(feature = "public-world")]
+    fn fresh_observation(game:&Stacker) -> PublicObservation {
+        let mut revealed=vec![game.current_piece_type().unwrap()];revealed.extend(game.next());
+        PublicObservation {cells:game.matrix().collect(),current:revealed[0],next:game.next().to_vec(),
+            held:game.held(),remaining_bag:game.rules.types().filter(|c|!revealed.contains(c)).collect(),
+            garbage_generated:game.matrix.garbage_rows(),
+            last_garbage_hole:(0..game.rules.cols).find(|&c|game.matrix.get((0,c as i16)).is_none()).map(|c|c as u16)}
+    }
+    #[cfg(feature = "public-world")]
+    #[test]
+    fn public_reconstruction_preserves_root_and_known_first_transition() {
+        for seed in 0..32 {
+            let mut game=Stacker::new(Ruleset::guideline().into(),Config {prng_seed:Some(seed),
+                garbage:GarbageConfig {total_lines:Some(100),..GarbageConfig::default()}});
+            let obs=fresh_observation(&game);
+            let mut world=Stacker::from_public(game.rules.clone(),game.cheese.cfg.clone(),&obs,777);
+            assert_eq!(world.matrix().collect::<Vec<_>>(),game.matrix().collect::<Vec<_>>());
+            assert_eq!(world.current_piece(),game.current_piece());assert_eq!(world.next(),game.next());
+            assert_eq!(world.held(),game.held());
+            assert_eq!(world.hard_drop(),game.hard_drop());
+            assert_eq!(world.matrix().collect::<Vec<_>>(),game.matrix().collect::<Vec<_>>());
+            assert_eq!(world.current_piece(),game.current_piece());assert_eq!(world.next(),game.next());
+        }
+    }
+    #[cfg(feature = "public-world")]
+    #[test]
+    fn private_rng_changes_cannot_change_reconstructed_world() {
+        let game=Stacker::new(Ruleset::guideline().into(),Config {prng_seed:Some(3),..Config::default()});
+        let obs=fresh_observation(&game);let mut other=game.clone();other.rng_seed=999;
+        other.next.source=random::Pieces::conditioned(random::prng(Some(999)).1,
+            game.rules.types().collect(),&obs.remaining_bag);
+        other.cheese.source=random::CheeseCols::conditioned(random::prng(Some(888)).1,
+            game.rules.cols as u16,obs.last_garbage_hole);
+        assert_eq!(obs,fresh_observation(&other));
+        let mut a=Stacker::from_public(game.rules.clone(),game.cheese.cfg.clone(),&obs,123);
+        let mut b=Stacker::from_public(other.rules.clone(),other.cheese.cfg.clone(),&fresh_observation(&other),123);
+        assert_eq!(a.next.source.next(),obs.remaining_bag[0]);
+        assert_eq!(b.next.source.next(),obs.remaining_bag[0]);
+        for _ in 0..4 {
+            let aa:Vec<_>=(0..7).map(|_|a.next.source.next()).collect();
+            let bb:Vec<_>=(0..7).map(|_|b.next.source.next()).collect();assert_eq!(aa,bb);
+            let mut sorted=aa;sorted.sort_unstable();assert_eq!(sorted,vec!['I','J','L','O','S','T','Z']);
+        }
+        let mut previous=obs.last_garbage_hole;
+        for _ in 0..50 {
+            let col=a.cheese.source.next_col();assert_eq!(col,b.cheese.source.next_col());
+            assert_ne!(Some(col),previous);previous=Some(col);
+        }
+    }
+    #[cfg(feature = "public-world")]
+    #[test]
+    fn reconstructed_world_preserves_remaining_garbage_cap() {
+        let game=Stacker::new(Ruleset::guideline().into(),Config {prng_seed:Some(3),..Config::default()});
+        let mut obs=fresh_observation(&game);obs.garbage_generated=95;
+        let mut world=Stacker::from_public(game.rules.clone(),GarbageConfig {
+            total_lines:Some(100),..GarbageConfig::default()},&obs,456);
+        world.matrix=Matrix::new(10);world.cheese(false);
+        assert_eq!(world.matrix.garbage_rows(),5);assert_eq!(world.cheese.count,100);
+        world.matrix=Matrix::new(10);world.cheese(false);assert_eq!(world.matrix.rows(),0);
+    }
 
     #[test]
     fn test_prng() {

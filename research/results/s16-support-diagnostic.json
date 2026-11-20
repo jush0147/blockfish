@@ -1,0 +1,40 @@
+{
+  "games": [
+    {
+      "seed": 76000,
+      "decisions": 214,
+      "full_roots": 871,
+      "full_unique_second_actions": 1255,
+      "full_single_second_roots": 565,
+      "mean_unique_second_actions": 1.4408725602755454,
+      "fraction_single_second": 0.6486796785304249,
+      "identical_inputs": true,
+      "identical_clears": true
+    },
+    {
+      "seed": 76002,
+      "decisions": 189,
+      "full_roots": 735,
+      "full_unique_second_actions": 1031,
+      "full_single_second_roots": 485,
+      "mean_unique_second_actions": 1.4027210884353742,
+      "fraction_single_second": 0.6598639455782312,
+      "identical_inputs": true,
+      "identical_clears": true
+    },
+    {
+      "seed": 76001,
+      "decisions": 200,
+      "full_roots": 828,
+      "full_unique_second_actions": 1190,
+      "full_single_second_roots": 543,
+      "mean_unique_second_actions": 1.4371980676328502,
+      "fraction_single_second": 0.6557971014492754,
+      "identical_inputs": true,
+      "identical_clears": true
+    }
+  ],
+  "weighted_mean_unique_second_actions": 1.4281018898931799,
+  "weighted_fraction_single_second": 0.6544782251437962,
+  "caveat": "Descriptive three-game mechanism probe; root observations are correlated, not independent games."
+}

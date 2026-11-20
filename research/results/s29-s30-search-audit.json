@@ -1,0 +1,862 @@
+{
+  "records": [
+    {
+      "binary": "robust-global-regret",
+      "seed": 77004,
+      "status": "complete",
+      "logged_decisions": 207,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1731.5217391304348,
+        "completed": 1787.7971014492753,
+        "roots": 7.618357487922705,
+        "pending_children": 18.004830917874397
+      }
+    },
+    {
+      "binary": "robust-global-regret",
+      "seed": 77006,
+      "status": "complete",
+      "logged_decisions": 201,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1730.0348258706467,
+        "completed": 1783.8009950248756,
+        "roots": 7.681592039800995,
+        "pending_children": 19.945273631840795
+      }
+    },
+    {
+      "binary": "robust-global-f",
+      "seed": 77006,
+      "status": "complete",
+      "logged_decisions": 185,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1613.7513513513513,
+        "completed": 719.972972972973,
+        "roots": 4.821621621621621,
+        "pending_children": 20.156756756756756
+      }
+    },
+    {
+      "binary": "robust-global-regret",
+      "seed": 77007,
+      "status": "complete",
+      "logged_decisions": 191,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1755.738219895288,
+        "completed": 1819.3560209424083,
+        "roots": 7.209424083769633,
+        "pending_children": 18.958115183246072
+      }
+    },
+    {
+      "binary": "robust-global-f",
+      "seed": 77031,
+      "status": "complete",
+      "logged_decisions": 205,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1563.360975609756,
+        "completed": 563.2682926829268,
+        "roots": 4.726829268292683,
+        "pending_children": 19.71707317073171
+      }
+    },
+    {
+      "binary": "robust-global-regret",
+      "seed": 77009,
+      "status": "complete",
+      "logged_decisions": 202,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1761.0643564356435,
+        "completed": 1811.490099009901,
+        "roots": 7.48019801980198,
+        "pending_children": 19.04950495049505
+      }
+    },
+    {
+      "binary": "robust-global-f",
+      "seed": 77002,
+      "status": "complete",
+      "logged_decisions": 188,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1568.3351063829787,
+        "completed": 625.1276595744681,
+        "roots": 4.579787234042553,
+        "pending_children": 19.840425531914892
+      }
+    },
+    {
+      "binary": "robust-global-f",
+      "seed": 77019,
+      "status": "complete",
+      "logged_decisions": 195,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1573.6307692307691,
+        "completed": 611.5435897435898,
+        "roots": 4.846153846153846,
+        "pending_children": 19.502564102564104
+      }
+    },
+    {
+      "binary": "robust-global-f",
+      "seed": 77015,
+      "status": "complete",
+      "logged_decisions": 202,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1605.118811881188,
+        "completed": 636.5247524752475,
+        "roots": 4.836633663366337,
+        "pending_children": 18.475247524752476
+      }
+    },
+    {
+      "binary": "robust-global-regret",
+      "seed": 77010,
+      "status": "complete",
+      "logged_decisions": 206,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1775.1990291262136,
+        "completed": 1835.5679611650485,
+        "roots": 8.087378640776699,
+        "pending_children": 19.21359223300971
+      }
+    },
+    {
+      "binary": "robust-global-regret",
+      "seed": 77005,
+      "status": "complete",
+      "logged_decisions": 199,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1743.7286432160804,
+        "completed": 1851.4321608040202,
+        "roots": 7.457286432160804,
+        "pending_children": 17.185929648241206
+      }
+    },
+    {
+      "binary": "robust-global-f",
+      "seed": 77030,
+      "status": "complete",
+      "logged_decisions": 205,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1578.0634146341463,
+        "completed": 557.9121951219512,
+        "roots": 4.824390243902439,
+        "pending_children": 19.117073170731707
+      }
+    },
+    {
+      "binary": "robust-global-f",
+      "seed": 77020,
+      "status": "complete",
+      "logged_decisions": 198,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1577.9949494949494,
+        "completed": 602.7979797979798,
+        "roots": 5.045454545454546,
+        "pending_children": 21.757575757575758
+      }
+    },
+    {
+      "binary": "robust-global-regret",
+      "seed": 77013,
+      "status": "complete",
+      "logged_decisions": 189,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1750.8941798941798,
+        "completed": 1815.7671957671957,
+        "roots": 7.751322751322752,
+        "pending_children": 18.650793650793652
+      }
+    },
+    {
+      "binary": "robust-global-regret",
+      "seed": 77022,
+      "status": "complete",
+      "logged_decisions": 204,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1748.8578431372548,
+        "completed": 1882.3088235294117,
+        "roots": 7.7254901960784315,
+        "pending_children": 18.901960784313726
+      }
+    },
+    {
+      "binary": "robust-global-f",
+      "seed": 77012,
+      "status": "complete",
+      "logged_decisions": 194,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1602.5463917525774,
+        "completed": 628.2216494845361,
+        "roots": 4.896907216494846,
+        "pending_children": 19.201030927835053
+      }
+    },
+    {
+      "binary": "robust-global-regret",
+      "seed": 77016,
+      "status": "complete",
+      "logged_decisions": 208,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1756.0528846153845,
+        "completed": 1829.6442307692307,
+        "roots": 7.6201923076923075,
+        "pending_children": 18.721153846153847
+      }
+    },
+    {
+      "binary": "robust-global-f",
+      "seed": 77011,
+      "status": "complete",
+      "logged_decisions": 195,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1578.697435897436,
+        "completed": 617.4512820512821,
+        "roots": 4.917948717948718,
+        "pending_children": 19.323076923076922
+      }
+    },
+    {
+      "binary": "robust-global-f",
+      "seed": 77029,
+      "status": "complete",
+      "logged_decisions": 184,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1590.5923913043478,
+        "completed": 637.8152173913044,
+        "roots": 4.842391304347826,
+        "pending_children": 18.983695652173914
+      }
+    },
+    {
+      "binary": "robust-global-regret",
+      "seed": 77012,
+      "status": "complete",
+      "logged_decisions": 204,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1731.4950980392157,
+        "completed": 1791.1274509803923,
+        "roots": 7.838235294117647,
+        "pending_children": 17.764705882352942
+      }
+    },
+    {
+      "binary": "robust-global-f",
+      "seed": 77025,
+      "status": "complete",
+      "logged_decisions": 207,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1576.87922705314,
+        "completed": 616.1594202898551,
+        "roots": 4.734299516908212,
+        "pending_children": 20.270531400966185
+      }
+    },
+    {
+      "binary": "robust-global-regret",
+      "seed": 77020,
+      "status": "complete",
+      "logged_decisions": 208,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1746.5192307692307,
+        "completed": 1833.6923076923076,
+        "roots": 7.475961538461538,
+        "pending_children": 18.490384615384617
+      }
+    },
+    {
+      "binary": "robust-global-f",
+      "seed": 77005,
+      "status": "complete",
+      "logged_decisions": 192,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1591.5208333333333,
+        "completed": 661.5208333333334,
+        "roots": 4.458333333333333,
+        "pending_children": 19.651041666666668
+      }
+    },
+    {
+      "binary": "robust-global-f",
+      "seed": 77024,
+      "status": "complete",
+      "logged_decisions": 196,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1580.2908163265306,
+        "completed": 635.8061224489796,
+        "roots": 5.270408163265306,
+        "pending_children": 19.3265306122449
+      }
+    },
+    {
+      "binary": "robust-global-regret",
+      "seed": 77024,
+      "status": "complete",
+      "logged_decisions": 200,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1749.085,
+        "completed": 1864.54,
+        "roots": 7.49,
+        "pending_children": 17.28
+      }
+    },
+    {
+      "binary": "robust-global-regret",
+      "seed": 77003,
+      "status": "complete",
+      "logged_decisions": 204,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1737.3529411764705,
+        "completed": 1752.7254901960785,
+        "roots": 7.96078431372549,
+        "pending_children": 17.220588235294116
+      }
+    },
+    {
+      "binary": "robust-global-f",
+      "seed": 77007,
+      "status": "failed",
+      "logged_decisions": 12,
+      "zero_root_decisions": 1,
+      "means": {
+        "expanded": 1589.1666666666667,
+        "completed": 387.3333333333333,
+        "roots": 4.25,
+        "pending_children": 21.833333333333332
+      }
+    },
+    {
+      "binary": "robust-global-regret",
+      "seed": 77001,
+      "status": "complete",
+      "logged_decisions": 198,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1736.6868686868686,
+        "completed": 1778.040404040404,
+        "roots": 7.883838383838384,
+        "pending_children": 17.08080808080808
+      }
+    },
+    {
+      "binary": "robust-global-f",
+      "seed": 77013,
+      "status": "complete",
+      "logged_decisions": 198,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1602.5959595959596,
+        "completed": 655.929292929293,
+        "roots": 4.863636363636363,
+        "pending_children": 19.803030303030305
+      }
+    },
+    {
+      "binary": "robust-global-regret",
+      "seed": 77023,
+      "status": "complete",
+      "logged_decisions": 210,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1732.0142857142857,
+        "completed": 1762.4095238095238,
+        "roots": 7.642857142857143,
+        "pending_children": 17.876190476190477
+      }
+    },
+    {
+      "binary": "robust-global-regret",
+      "seed": 77025,
+      "status": "complete",
+      "logged_decisions": 209,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1757.6507177033493,
+        "completed": 1795.4832535885168,
+        "roots": 7.76555023923445,
+        "pending_children": 19.071770334928228
+      }
+    },
+    {
+      "binary": "robust-global-f",
+      "seed": 77021,
+      "status": "complete",
+      "logged_decisions": 212,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1564.9292452830189,
+        "completed": 547.872641509434,
+        "roots": 5.066037735849057,
+        "pending_children": 19.080188679245282
+      }
+    },
+    {
+      "binary": "robust-global-f",
+      "seed": 77001,
+      "status": "complete",
+      "logged_decisions": 193,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1618.0880829015543,
+        "completed": 663.6528497409327,
+        "roots": 4.606217616580311,
+        "pending_children": 19.4559585492228
+      }
+    },
+    {
+      "binary": "robust-global-regret",
+      "seed": 77008,
+      "status": "complete",
+      "logged_decisions": 204,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1770,
+        "completed": 1890.7205882352941,
+        "roots": 7.431372549019608,
+        "pending_children": 19.651960784313726
+      }
+    },
+    {
+      "binary": "robust-global-f",
+      "seed": 77010,
+      "status": "complete",
+      "logged_decisions": 207,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1605.7777777777778,
+        "completed": 557.0144927536232,
+        "roots": 5.028985507246377,
+        "pending_children": 21.81159420289855
+      }
+    },
+    {
+      "binary": "robust-global-regret",
+      "seed": 77015,
+      "status": "complete",
+      "logged_decisions": 202,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1779.6683168316831,
+        "completed": 1917.618811881188,
+        "roots": 7.336633663366337,
+        "pending_children": 16.846534653465348
+      }
+    },
+    {
+      "binary": "robust-global-regret",
+      "seed": 77026,
+      "status": "complete",
+      "logged_decisions": 219,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1744.4155251141553,
+        "completed": 1846.593607305936,
+        "roots": 7.3561643835616435,
+        "pending_children": 18.589041095890412
+      }
+    },
+    {
+      "binary": "robust-global-f",
+      "seed": 77017,
+      "status": "complete",
+      "logged_decisions": 198,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1594.6161616161617,
+        "completed": 616.9545454545455,
+        "roots": 4.686868686868687,
+        "pending_children": 17.80808080808081
+      }
+    },
+    {
+      "binary": "robust-global-regret",
+      "seed": 77031,
+      "status": "complete",
+      "logged_decisions": 205,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1749.7268292682927,
+        "completed": 1850.8634146341462,
+        "roots": 7.917073170731707,
+        "pending_children": 18.66829268292683
+      }
+    },
+    {
+      "binary": "robust-global-f",
+      "seed": 77014,
+      "status": "complete",
+      "logged_decisions": 197,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1602.0355329949239,
+        "completed": 633.8680203045685,
+        "roots": 5.035532994923858,
+        "pending_children": 20.304568527918782
+      }
+    },
+    {
+      "binary": "robust-global-regret",
+      "seed": 77002,
+      "status": "complete",
+      "logged_decisions": 202,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1741.6237623762377,
+        "completed": 1809.529702970297,
+        "roots": 7.326732673267327,
+        "pending_children": 18.371287128712872
+      }
+    },
+    {
+      "binary": "robust-global-f",
+      "seed": 77022,
+      "status": "complete",
+      "logged_decisions": 192,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1613.921875,
+        "completed": 664.6666666666666,
+        "roots": 4.760416666666667,
+        "pending_children": 19.140625
+      }
+    },
+    {
+      "binary": "robust-global-f",
+      "seed": 77026,
+      "status": "complete",
+      "logged_decisions": 200,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1581.515,
+        "completed": 608.82,
+        "roots": 5.045,
+        "pending_children": 18.875
+      }
+    },
+    {
+      "binary": "robust-global-regret",
+      "seed": 77021,
+      "status": "complete",
+      "logged_decisions": 210,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1724.3714285714286,
+        "completed": 1800.1666666666667,
+        "roots": 7.680952380952381,
+        "pending_children": 18.476190476190474
+      }
+    },
+    {
+      "binary": "robust-global-f",
+      "seed": 77018,
+      "status": "complete",
+      "logged_decisions": 191,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1599.3246073298428,
+        "completed": 592.2931937172775,
+        "roots": 5.020942408376963,
+        "pending_children": 20.905759162303664
+      }
+    },
+    {
+      "binary": "robust-global-f",
+      "seed": 77008,
+      "status": "complete",
+      "logged_decisions": 185,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1605.8216216216217,
+        "completed": 688.9675675675676,
+        "roots": 4.605405405405405,
+        "pending_children": 20.594594594594593
+      }
+    },
+    {
+      "binary": "robust-global-f",
+      "seed": 77027,
+      "status": "failed",
+      "logged_decisions": 187,
+      "zero_root_decisions": 1,
+      "means": {
+        "expanded": 1602.096256684492,
+        "completed": 649.8449197860963,
+        "roots": 4.459893048128342,
+        "pending_children": 20.524064171122994
+      }
+    },
+    {
+      "binary": "robust-global-regret",
+      "seed": 77014,
+      "status": "complete",
+      "logged_decisions": 209,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1764.8277511961724,
+        "completed": 1854.5645933014355,
+        "roots": 7.641148325358851,
+        "pending_children": 18.27751196172249
+      }
+    },
+    {
+      "binary": "robust-global-regret",
+      "seed": 77028,
+      "status": "complete",
+      "logged_decisions": 202,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1751.2475247524753,
+        "completed": 1829.5445544554455,
+        "roots": 7.678217821782178,
+        "pending_children": 19.544554455445546
+      }
+    },
+    {
+      "binary": "robust-global-regret",
+      "seed": 77027,
+      "status": "complete",
+      "logged_decisions": 194,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1738.6701030927834,
+        "completed": 1744.7525773195875,
+        "roots": 8.108247422680412,
+        "pending_children": 18.9020618556701
+      }
+    },
+    {
+      "binary": "robust-global-regret",
+      "seed": 77011,
+      "status": "complete",
+      "logged_decisions": 195,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1751.2564102564102,
+        "completed": 1847.6051282051283,
+        "roots": 7.533333333333333,
+        "pending_children": 19.435897435897434
+      }
+    },
+    {
+      "binary": "robust-global-regret",
+      "seed": 77029,
+      "status": "complete",
+      "logged_decisions": 196,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1784.2244897959183,
+        "completed": 1940.0867346938776,
+        "roots": 7.423469387755102,
+        "pending_children": 16.377551020408163
+      }
+    },
+    {
+      "binary": "robust-global-regret",
+      "seed": 77017,
+      "status": "complete",
+      "logged_decisions": 192,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1762.421875,
+        "completed": 1847.8958333333333,
+        "roots": 7.390625,
+        "pending_children": 18.005208333333332
+      }
+    },
+    {
+      "binary": "robust-global-regret",
+      "seed": 77000,
+      "status": "complete",
+      "logged_decisions": 198,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1759.080808080808,
+        "completed": 1901.8838383838383,
+        "roots": 7.570707070707071,
+        "pending_children": 19.40909090909091
+      }
+    },
+    {
+      "binary": "robust-global-f",
+      "seed": 77004,
+      "status": "complete",
+      "logged_decisions": 197,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1579.9441624365481,
+        "completed": 597.5329949238578,
+        "roots": 4.6091370558375635,
+        "pending_children": 18.517766497461928
+      }
+    },
+    {
+      "binary": "robust-global-f",
+      "seed": 77003,
+      "status": "complete",
+      "logged_decisions": 197,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1583.2893401015228,
+        "completed": 618.8172588832488,
+        "roots": 4.8578680203045685,
+        "pending_children": 20.639593908629443
+      }
+    },
+    {
+      "binary": "robust-global-f",
+      "seed": 77000,
+      "status": "failed",
+      "logged_decisions": 86,
+      "zero_root_decisions": 1,
+      "means": {
+        "expanded": 1580.6511627906978,
+        "completed": 705.2906976744187,
+        "roots": 4.5,
+        "pending_children": 22.24418604651163
+      }
+    },
+    {
+      "binary": "robust-global-regret",
+      "seed": 77018,
+      "status": "complete",
+      "logged_decisions": 196,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1762.6020408163265,
+        "completed": 1863.8877551020407,
+        "roots": 7.438775510204081,
+        "pending_children": 18.79591836734694
+      }
+    },
+    {
+      "binary": "robust-global-f",
+      "seed": 77028,
+      "status": "failed",
+      "logged_decisions": 180,
+      "zero_root_decisions": 1,
+      "means": {
+        "expanded": 1590.338888888889,
+        "completed": 581.1611111111112,
+        "roots": 4.761111111111111,
+        "pending_children": 19.57777777777778
+      }
+    },
+    {
+      "binary": "robust-global-regret",
+      "seed": 77030,
+      "status": "complete",
+      "logged_decisions": 203,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1759.8374384236454,
+        "completed": 1852.6847290640394,
+        "roots": 7.497536945812808,
+        "pending_children": 17.497536945812808
+      }
+    },
+    {
+      "binary": "robust-global-f",
+      "seed": 77023,
+      "status": "complete",
+      "logged_decisions": 199,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1588.5577889447236,
+        "completed": 608.9045226130653,
+        "roots": 4.919597989949748,
+        "pending_children": 21.366834170854272
+      }
+    },
+    {
+      "binary": "robust-global-f",
+      "seed": 77016,
+      "status": "complete",
+      "logged_decisions": 189,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1588.4232804232804,
+        "completed": 639.7037037037037,
+        "roots": 4.873015873015873,
+        "pending_children": 20.25925925925926
+      }
+    },
+    {
+      "binary": "robust-global-f",
+      "seed": 77009,
+      "status": "complete",
+      "logged_decisions": 189,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1609.8306878306878,
+        "completed": 617.6613756613757,
+        "roots": 4.783068783068783,
+        "pending_children": 20.07936507936508
+      }
+    },
+    {
+      "binary": "robust-global-regret",
+      "seed": 77019,
+      "status": "complete",
+      "logged_decisions": 186,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1729.3333333333333,
+        "completed": 1812.52688172043,
+        "roots": 7.666666666666667,
+        "pending_children": 18.758064516129032
+      }
+    }
+  ],
+  "non_candidate_control_records": 32,
+  "groups": {
+    "robust-global-regret": {
+      "games": 32,
+      "complete": 32,
+      "zero_root_decisions": 0,
+      "means": {
+        "expanded": 1750.5376093850068,
+        "completed": 1831.4408886262897,
+        "roots": 7.615191411773765,
+        "pending_children": 18.406947034165103
+      }
+    },
+    "robust-global-f": {
+      "games": 32,
+      "complete": 28,
+      "zero_root_decisions": 4,
+      "means": {
+        "expanded": 1590.6783304106523,
+        "completed": 617.2003486157046,
+        "roots": 4.797934185690686,
+        "pending_children": 19.94200635217505
+      }
+    }
+  },
+  "note": "All failure rows retained; per-game means descriptive, not causal quality comparisons. Control uses frozen implementation."
+}

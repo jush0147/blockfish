@@ -1,0 +1,55 @@
+{
+  "gate": "mean",
+  "passed": true,
+  "lock": "research/results/s18-validation-lock.json",
+  "scores": {
+    "robust-bag": {
+      "complete": 48,
+      "mean_pieces": 195.64583333333334
+    },
+    "robust-bag-placebo": {
+      "complete": 48,
+      "mean_pieces": 195.85416666666666
+    },
+    "learned-fast": {
+      "complete": 48,
+      "mean_pieces": 198.125
+    }
+  },
+  "candidate_minus_controls": {
+    "robust-bag-placebo": {
+      "paired_seeds": 48,
+      "completed_pairs": 48,
+      "delta_b_minus_a": -0.20833333333333334,
+      "bootstrap95": [
+        -2.4166666666666665,
+        2.0208333333333335
+      ],
+      "b_wins": 22,
+      "ties": 3,
+      "b_losses": 23
+    },
+    "learned-fast": {
+      "paired_seeds": 48,
+      "completed_pairs": 48,
+      "delta_b_minus_a": -2.4791666666666665,
+      "bootstrap95": [
+        -4.520833333333333,
+        -0.3958333333333333
+      ],
+      "b_wins": 27,
+      "ties": 3,
+      "b_losses": 18
+    }
+  },
+  "checks": {
+    "robust-bag-placebo": {
+      "completion_no_worse": true,
+      "mean_lower": true
+    },
+    "learned-fast": {
+      "completion_no_worse": true,
+      "mean_lower": true
+    }
+  }
+}

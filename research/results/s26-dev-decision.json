@@ -1,0 +1,55 @@
+{
+  "gate": "mean",
+  "passed": false,
+  "lock": "research/results/s26-dev-lock.json",
+  "scores": {
+    "world-rollout": {
+      "complete": 32,
+      "mean_pieces": 209.96875
+    },
+    "world-rollout-placebo": {
+      "complete": 32,
+      "mean_pieces": 198.1875
+    },
+    "learned-robust": {
+      "complete": 32,
+      "mean_pieces": 196.21875
+    }
+  },
+  "candidate_minus_controls": {
+    "world-rollout-placebo": {
+      "paired_seeds": 32,
+      "completed_pairs": 32,
+      "delta_b_minus_a": 11.78125,
+      "bootstrap95": [
+        8.78125,
+        14.90625
+      ],
+      "b_wins": 3,
+      "ties": 1,
+      "b_losses": 28
+    },
+    "learned-robust": {
+      "paired_seeds": 32,
+      "completed_pairs": 32,
+      "delta_b_minus_a": 13.75,
+      "bootstrap95": [
+        11.0,
+        16.375
+      ],
+      "b_wins": 2,
+      "ties": 1,
+      "b_losses": 29
+    }
+  },
+  "checks": {
+    "world-rollout-placebo": {
+      "completion_no_worse": true,
+      "mean_lower": false
+    },
+    "learned-robust": {
+      "completion_no_worse": true,
+      "mean_lower": false
+    }
+  }
+}

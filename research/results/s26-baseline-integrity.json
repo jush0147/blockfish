@@ -1,0 +1,12 @@
+{
+  "all_unchanged": true,
+  "files": {
+    "research/checkpoints/s11-20261113-source.tar.gz": "3f4dd64123cf879861c510c2a34df008c691a6e1107e633e7a2b794100b17886",
+    "research/bin/learned-fast": "824eca4f6675630f072c062e3ec72e6a8aa3d1ba935c147b64960bda1c98c2c3",
+    "research/bin/learned-robust": "c9516ea2d6c77029a2de192627c541002fb3f2046ab681bf1410a70f3205aa50",
+    "research/bin/cheese-robust": "6ba038f8f9ef7c75efd9dd12523e00ba346da967cc723db0862b555c4f5a9baf",
+    "research/results/s11-final-lock.json": "2369ad496ee3ee966f9debc62c43054ed3fbfc9f71422651979227307a23bab2",
+    "research/results/s11-final-summary.json": "54afd607543ed4a9d6fd2a066a852bfee8f57611fd2d52fa6368d445c1125cf4",
+    "research/results/s11-final-decision.json": "e080a09048c4fe913b9bf729f6b1e8c59a27919093048023490518a3d00a5ae1"
+  }
+}

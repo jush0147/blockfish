@@ -1,0 +1,190 @@
+{
+  "groups": {
+    "global-blend:50/5,10,10,10:None": {
+      "total": 12,
+      "complete": 12,
+      "seeds": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "binary_sha256": [
+        "e8ad0b4b0754770c89528320c22c3b9a86235cdd45bf634e0ea1da376ab67166"
+      ],
+      "mean_pieces": 198.91666666666666,
+      "min_pieces": 184,
+      "cpu_records": 0,
+      "mean_cpu_seconds": null
+    },
+    "learned-blend:50/5,10,10,10:None": {
+      "total": 12,
+      "complete": 12,
+      "seeds": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "binary_sha256": [
+        "37299eb31cbe89ed3f978dafb904ae282a78df99549ab11073058bd83b3b4ab0"
+      ],
+      "mean_pieces": 201.66666666666666,
+      "min_pieces": 192,
+      "cpu_records": 0,
+      "mean_cpu_seconds": null
+    },
+    "learned-terminal:50/5,10,10,10:None": {
+      "total": 12,
+      "complete": 12,
+      "seeds": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "binary_sha256": [
+        "e4b2afde10ef78a6a356357d4fb5b0aeaaefd035f05b499005cfcd3a8af23d68"
+      ],
+      "mean_pieces": 202.83333333333334,
+      "min_pieces": 192,
+      "cpu_records": 12,
+      "mean_cpu_seconds": 17.324907833333334
+    },
+    "learned:50/5,10,10,10:None": {
+      "total": 12,
+      "complete": 12,
+      "seeds": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "binary_sha256": [
+        "1e6e55c739cf547da7cc07c2d75f15ee0c301b4f27c6ea5de07271f195374fb2"
+      ],
+      "mean_pieces": 198.08333333333334,
+      "min_pieces": 183,
+      "cpu_records": 0,
+      "mean_cpu_seconds": null
+    }
+  },
+  "pairs": [
+    {
+      "a": "global-blend:50/5,10,10,10:None",
+      "b": "learned-blend:50/5,10,10,10:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": 2.75,
+      "bootstrap95": [
+        -1.75,
+        7.166666666666667
+      ],
+      "b_wins": 4,
+      "ties": 1,
+      "b_losses": 7
+    },
+    {
+      "a": "global-blend:50/5,10,10,10:None",
+      "b": "learned-terminal:50/5,10,10,10:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": 3.9166666666666665,
+      "bootstrap95": [
+        -0.6666666666666666,
+        8.5
+      ],
+      "b_wins": 4,
+      "ties": 1,
+      "b_losses": 7
+    },
+    {
+      "a": "global-blend:50/5,10,10,10:None",
+      "b": "learned:50/5,10,10,10:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": -0.8333333333333334,
+      "bootstrap95": [
+        -6.083333333333333,
+        4.083333333333333
+      ],
+      "b_wins": 5,
+      "ties": 0,
+      "b_losses": 7
+    },
+    {
+      "a": "learned-blend:50/5,10,10,10:None",
+      "b": "learned-terminal:50/5,10,10,10:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": 1.1666666666666667,
+      "bootstrap95": [
+        -4.166666666666667,
+        6.75
+      ],
+      "b_wins": 4,
+      "ties": 1,
+      "b_losses": 7
+    },
+    {
+      "a": "learned-blend:50/5,10,10,10:None",
+      "b": "learned:50/5,10,10,10:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": -3.5833333333333335,
+      "bootstrap95": [
+        -6.916666666666667,
+        -0.08333333333333333
+      ],
+      "b_wins": 8,
+      "ties": 1,
+      "b_losses": 3
+    },
+    {
+      "a": "learned-terminal:50/5,10,10,10:None",
+      "b": "learned:50/5,10,10,10:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": -4.75,
+      "bootstrap95": [
+        -11.166666666666666,
+        0.8333333333333334
+      ],
+      "b_wins": 8,
+      "ties": 0,
+      "b_losses": 4
+    }
+  ]
+}

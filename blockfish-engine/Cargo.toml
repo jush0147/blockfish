@@ -10,6 +10,11 @@ path = "src/bin/race.rs"
 required-features = ["race"]
 
 [[bin]]
+name = "blockfish-rank-data"
+path = "src/bin/rank_data.rs"
+required-features = ["race"]
+
+[[bin]]
 name = "blockfish-gen-shtb"
 path = "src/bin/gen_shtb.rs"
 required-features = ["gen-shtb"]
@@ -20,12 +25,84 @@ path = "src/bin/service.rs"
 required-features = ["service"]
 
 [features]
-default = []
+mirror-fusion=["cheese-robust"]
+reveal-boundary = ["cheese-robust","plan-observer"]
+dig-geometry = ["cheese-robust"]
+plan-reuse = ["robust-backup", "generated-budget"]
+plan-observer = ["plan-reuse"]
+global-regret = ["robust-backup", "generated-budget"]
+global-absolute = ["global-regret"]
+root-dag = ["robust-backup", "generated-budget"]
+dag-observer = ["root-dag"]
+default = ["flood-eval", "eval-cache"]
 gen-shtb = ["block-stacker"]
 protos = ["protobuf", "protoc-rust"]
 race = ["block-stacker", "argh", "signal-hook"]
 service = ["protos", "pretty_env_logger"]
 slow-tests = []
+# Exact evaluation optimizations are enabled by default. Search/score variants
+# are opt-in; cheese-quality names the selected learned-value profile.
+eval-cache = []
+terminal-only = []
+robust-backup = []
+root-halving = ["robust-backup", "generated-budget"]
+root-focus = ["robust-backup", "generated-budget"]
+public-rollout = ["cheese-robust", "bag-placebo", "block-stacker/public-world"]
+rollout-placebo = ["public-rollout"]
+bag-inference = []
+bag-placebo = ["bag-inference"]
+branch-backup = ["robust-backup"]
+hierarchical-backup = ["robust-backup"]
+support-probe = ["robust-backup"]
+tail-expectation = ["generated-budget"]
+tail-placebo = ["tail-expectation"]
+tail-hold = ["tail-expectation", "preserve-hold"]
+robust-placebo = ["robust-backup"]
+goal-residue = []
+generated-budget = []
+deduplicate = ["generated-budget"]
+bit-eval = []
+shallow-discount = []
+surface-cost = []
+flood-eval = ["bit-eval"]
+beam-search = ["generated-budget"]
+wide-beam = ["beam-search"]
+preserve-hold = []
+beam-leaves = ["beam-search"]
+beam-dedup = ["beam-leaves"]
+beam-wider = ["beam-leaves"]
+beam-widest = ["beam-leaves"]
+hold-credit = ["preserve-hold"]
+hold-context = ["learned-value"]
+hold-context-cache = ["hold-context", "eval-cache"]
+global-dedup = ["deduplicate"]
+learned-value = []
+policy2-value = ["learned-value"]
+td-value = ["learned-value"]
+race-goal = []
+eager-leaves = []
+root-coverage = []
+root-complete = ["root-coverage"]
+rank-value = ["learned-value"]
+rank-blend = ["rank-value"]
+root-rerank = []
+root-rerank-placebo = ["root-rerank"]
+endgame-solver = []
+endgame-placebo = ["endgame-solver"]
+endgame-color-bound = ["endgame-solver"]
+endgame-queue-bound = ["endgame-color-bound"]
+endgame-wide = ["endgame-queue-bound"]
+tunable-value = ["learned-value"]
+learned-blend = ["learned-value"]
+shared-states = ["global-dedup"]
+fast-value = ["flood-eval"]
+# Explicit quality-oriented profile; other research ablations remain independent.
+cheese-quality = ["eval-cache", "fast-value", "learned-value", "generated-budget"]
+# Independently validated at50k generated nodes; keep cheese-quality as control.
+cheese-robust = ["cheese-quality", "robust-backup"]
+
+# Frozen full-game optimization candidate, not the default.
+direct-value = ["learned-value"]
 
 [dependencies]
 thiserror = "1.0"
@@ -44,3 +121,18 @@ optional = true
 
 [build-dependencies]
 protoc-rust = { version = "2.20", optional = true }
+
+[[bin]]
+name = "blockfish-world-diagnostic"
+path = "src/bin/world_diagnostic.rs"
+required-features = ["race", "public-rollout"]
+
+[[bin]]
+name = "blockfish-public-labels"
+path = "src/bin/public_labels.rs"
+required-features = ["race", "public-rollout"]
+
+[[bin]]
+name="blockfish-mirror-probe"
+path="src/bin/mirror_probe.rs"
+required-features=["mirror-fusion"]

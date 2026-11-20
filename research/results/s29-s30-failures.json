@@ -1,0 +1,85 @@
+{
+  "failures": [
+    {
+      "binary": "research/bin/robust-global-f",
+      "seed": 77007,
+      "returncode": 101,
+      "logged_decisions": 12,
+      "last_search": {
+        "absolute": true,
+        "completed": 0,
+        "expanded": 1280,
+        "generated": 50000,
+        "pending_children": 18,
+        "roots": 0
+      },
+      "trace_exists": false,
+      "error_tail": [
+        "thread 'main' panicked at blockfish-engine/src/bin/race.rs:369:38:",
+        "no suggestions",
+        "note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+      ]
+    },
+    {
+      "binary": "research/bin/robust-global-f",
+      "seed": 77027,
+      "returncode": 101,
+      "logged_decisions": 187,
+      "last_search": {
+        "absolute": true,
+        "completed": 0,
+        "expanded": 1064,
+        "generated": 50000,
+        "pending_children": 33,
+        "roots": 0
+      },
+      "trace_exists": false,
+      "error_tail": [
+        "thread 'main' panicked at blockfish-engine/src/bin/race.rs:369:38:",
+        "no suggestions",
+        "note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+      ]
+    },
+    {
+      "binary": "research/bin/robust-global-f",
+      "seed": 77000,
+      "returncode": 101,
+      "logged_decisions": 86,
+      "last_search": {
+        "absolute": true,
+        "completed": 0,
+        "expanded": 1881,
+        "generated": 50000,
+        "pending_children": 15,
+        "roots": 0
+      },
+      "trace_exists": false,
+      "error_tail": [
+        "thread 'main' panicked at blockfish-engine/src/bin/race.rs:369:38:",
+        "no suggestions",
+        "note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+      ]
+    },
+    {
+      "binary": "research/bin/robust-global-f",
+      "seed": 77028,
+      "returncode": 101,
+      "logged_decisions": 180,
+      "last_search": {
+        "absolute": true,
+        "completed": 0,
+        "expanded": 1449,
+        "generated": 50000,
+        "pending_children": 18,
+        "roots": 0
+      },
+      "trace_exists": false,
+      "error_tail": [
+        "thread 'main' panicked at blockfish-engine/src/bin/race.rs:369:38:",
+        "no suggestions",
+        "note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+      ]
+    }
+  ],
+  "note": "Original96-row cohort retains all failures. Complete-only file is for replay auditing, not quality selection. Panic exits did not write operation traces; no replay claim for those attempts."
+}

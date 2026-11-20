@@ -1,0 +1,1448 @@
+{
+  "verifier": "research/bin/learned-fast",
+  "verifier_sha256": "824eca4f6675630f072c062e3ec72e6a8aa3d1ba935c147b64960bda1c98c2c3",
+  "total": 144,
+  "passed": 144,
+  "records": [
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76702.json",
+      "seed": 76702,
+      "pieces": 181,
+      "returncode": 0,
+      "sha256": "944285fc0d9c6321133ad7cdaab1157000080e7dac5041cb9b58c030a1edd309",
+      "stdout": "Verified 181 pieces, 100 garbage rows, seed 76702",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76710.json",
+      "seed": 76710,
+      "pieces": 194,
+      "returncode": 0,
+      "sha256": "5b9b1e92d14f322a40c27755ca6802be85bea07e1cd6d0df8cc23fcd92dad703",
+      "stdout": "Verified 194 pieces, 100 garbage rows, seed 76710",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76732.json",
+      "seed": 76732,
+      "pieces": 194,
+      "returncode": 0,
+      "sha256": "1992b0d4bb5aa52cb5a4eb09f957946589879f22350f09b1bd1c7b93c5a90d7b",
+      "stdout": "Verified 194 pieces, 100 garbage rows, seed 76732",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76725.json",
+      "seed": 76725,
+      "pieces": 203,
+      "returncode": 0,
+      "sha256": "4ee89401fc95215d2ef93ffc15d8eb13a8906a76a14fed525cbff1c2ad5848d3",
+      "stdout": "Verified 203 pieces, 100 garbage rows, seed 76725",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76742.json",
+      "seed": 76742,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "f8090b1cbfe519d495a74464afb509b72fdb820fdb3585fe03a966d6cd6052ae",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 76742",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76728.json",
+      "seed": 76728,
+      "pieces": 186,
+      "returncode": 0,
+      "sha256": "e210377e55cc96af93501503e25a2a4adde8e9986ce43980e1f84c8b50a686bd",
+      "stdout": "Verified 186 pieces, 100 garbage rows, seed 76728",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76743.json",
+      "seed": 76743,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "696c2e6a4564ff6cc72a2f6fa191523128d3c5a7a3676c0e3b00b3628df46617",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 76743",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76728.json",
+      "seed": 76728,
+      "pieces": 204,
+      "returncode": 0,
+      "sha256": "7ef72397d4ae4f0d2bf3743da71788b9a65bf69596d5c18b69de71d05b7005d8",
+      "stdout": "Verified 204 pieces, 100 garbage rows, seed 76728",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76726.json",
+      "seed": 76726,
+      "pieces": 185,
+      "returncode": 0,
+      "sha256": "ea8c08e8028479d59c9f84891b09dec979d6aa95a34f59edc0809036e3ef377d",
+      "stdout": "Verified 185 pieces, 100 garbage rows, seed 76726",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76715.json",
+      "seed": 76715,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "29f6ae0e5b4a74dd8421335e1b35555234bd47eee30d99096405e886fbe149f5",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 76715",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76744.json",
+      "seed": 76744,
+      "pieces": 191,
+      "returncode": 0,
+      "sha256": "bce2073fad8949f89e3303e98b34861bd78fb5c5e9141481c0b46ab35312baf4",
+      "stdout": "Verified 191 pieces, 100 garbage rows, seed 76744",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76740.json",
+      "seed": 76740,
+      "pieces": 210,
+      "returncode": 0,
+      "sha256": "efe4a72adec4a28d0578c58c4946ef4a1545bea2a6627a3d5cac14f8b4b5f808",
+      "stdout": "Verified 210 pieces, 100 garbage rows, seed 76740",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76712.json",
+      "seed": 76712,
+      "pieces": 187,
+      "returncode": 0,
+      "sha256": "fe0e75d72ee2db96b09961559ac1fd5216b7345c832f6c11526a58673657e7e8",
+      "stdout": "Verified 187 pieces, 100 garbage rows, seed 76712",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76746.json",
+      "seed": 76746,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "6be1a86bd2f4754f2a2df84acca49c3afd6474acc49f2da55b7189e2afdce6ea",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 76746",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76724.json",
+      "seed": 76724,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "41ddbc795e1aa22161fa432826d84f806f3280e699b1f1762442a6c4bb02353a",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 76724",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76713.json",
+      "seed": 76713,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "95749725f190dd4ee0e622a6f63a3686d6f147a8bba461ac64f7ee1f0d6609bb",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 76713",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76728.json",
+      "seed": 76728,
+      "pieces": 186,
+      "returncode": 0,
+      "sha256": "a797ded861245c1fdff72877cb5a96bbfbda21b85d43a7e617146d0a5f4a7d5e",
+      "stdout": "Verified 186 pieces, 100 garbage rows, seed 76728",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76745.json",
+      "seed": 76745,
+      "pieces": 173,
+      "returncode": 0,
+      "sha256": "68384592997fba0f73f74dd6543f31cf42f49b6e0274b1621ee429860f7ebaf9",
+      "stdout": "Verified 173 pieces, 100 garbage rows, seed 76745",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76730.json",
+      "seed": 76730,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "5ecb1162eaed4775376cba245c15ad7f6c96d6c43c84b986c1707384742c868a",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 76730",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76731.json",
+      "seed": 76731,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "f66ca1e44705372ec13ebae0ffc8fd8aed5a46932fc6aea76d796e3948623c2f",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 76731",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76708.json",
+      "seed": 76708,
+      "pieces": 211,
+      "returncode": 0,
+      "sha256": "138d12ed085951eeae3472012de0ff1a3004d727fe56e509703d206549d0f068",
+      "stdout": "Verified 211 pieces, 100 garbage rows, seed 76708",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76742.json",
+      "seed": 76742,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "1a7391b049790c9aa432c1628ba51c7ffb287da127decfe8bc2d3895cb113966",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 76742",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76709.json",
+      "seed": 76709,
+      "pieces": 199,
+      "returncode": 0,
+      "sha256": "7599065678a4e02e887a90cabbe3a70318f927da9967ea58efbfcf103a5bc316",
+      "stdout": "Verified 199 pieces, 100 garbage rows, seed 76709",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76726.json",
+      "seed": 76726,
+      "pieces": 185,
+      "returncode": 0,
+      "sha256": "5a63a01e302eaf24941a9d82cfe40bf3a505de03c5b2db4096c516a49219513b",
+      "stdout": "Verified 185 pieces, 100 garbage rows, seed 76726",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76700.json",
+      "seed": 76700,
+      "pieces": 194,
+      "returncode": 0,
+      "sha256": "ba24f767e95af83ceea9c39ceef326bfe219335eeb5340a46373f4df7fd54134",
+      "stdout": "Verified 194 pieces, 100 garbage rows, seed 76700",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76712.json",
+      "seed": 76712,
+      "pieces": 187,
+      "returncode": 0,
+      "sha256": "a05532af1cb2efb6700a82e6f93fecb27503956ae69dbd9938a457d7dd3d2f88",
+      "stdout": "Verified 187 pieces, 100 garbage rows, seed 76712",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76707.json",
+      "seed": 76707,
+      "pieces": 202,
+      "returncode": 0,
+      "sha256": "ac88aa0575d51765b4eb771d2fa7f0b7bc1a604ec0ea9137372578e9b293471b",
+      "stdout": "Verified 202 pieces, 100 garbage rows, seed 76707",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76742.json",
+      "seed": 76742,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "06b1ad1304ae34da94d28bc221803edb2d9de271c4466a74f3b0c3aae5bc8052",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 76742",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76718.json",
+      "seed": 76718,
+      "pieces": 202,
+      "returncode": 0,
+      "sha256": "57e1ea786866265eca28328d21d9ccda6ab690c01bd035dcd43de4b33ae4f412",
+      "stdout": "Verified 202 pieces, 100 garbage rows, seed 76718",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76717.json",
+      "seed": 76717,
+      "pieces": 201,
+      "returncode": 0,
+      "sha256": "df926eac292325668aa88378d701b34753f21464a07ff3ee5b323c5367d762c2",
+      "stdout": "Verified 201 pieces, 100 garbage rows, seed 76717",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76719.json",
+      "seed": 76719,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "300e72e8a35da62369ab713e1164a36a93329cc2d54a72556f3c16d8d82b274d",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 76719",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76737.json",
+      "seed": 76737,
+      "pieces": 194,
+      "returncode": 0,
+      "sha256": "8cba84a57863f50f8ffab9f8d0e09c2f13a74c30f1108980a3355cb9ee1a073d",
+      "stdout": "Verified 194 pieces, 100 garbage rows, seed 76737",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76721.json",
+      "seed": 76721,
+      "pieces": 194,
+      "returncode": 0,
+      "sha256": "da5ee2c3a21f53528d324689da6e5266de318ccdbf04689fda481ea969b30920",
+      "stdout": "Verified 194 pieces, 100 garbage rows, seed 76721",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76717.json",
+      "seed": 76717,
+      "pieces": 186,
+      "returncode": 0,
+      "sha256": "e51dd4a63e06c08f6c62bbede465a0f0fb542d22bda695bb4380d5765428ba73",
+      "stdout": "Verified 186 pieces, 100 garbage rows, seed 76717",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76704.json",
+      "seed": 76704,
+      "pieces": 203,
+      "returncode": 0,
+      "sha256": "d68a7cbbeba62aebe9de83e60c707c825403c7ff01b65691ef460b35203e02cb",
+      "stdout": "Verified 203 pieces, 100 garbage rows, seed 76704",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76734.json",
+      "seed": 76734,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "d93f1e73358e85bd1c957bb9d507b3ad39c5cd1619cbcb64466d148ed36d0aa0",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 76734",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76706.json",
+      "seed": 76706,
+      "pieces": 188,
+      "returncode": 0,
+      "sha256": "c271d5d30054cbdd8f2c3a594c2e924f63a735314d042d30b84e3996f2377a1b",
+      "stdout": "Verified 188 pieces, 100 garbage rows, seed 76706",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76713.json",
+      "seed": 76713,
+      "pieces": 190,
+      "returncode": 0,
+      "sha256": "129ec2e8522f893f652634e04a03a752d06a10d714b3e19949f82a22c25b8e34",
+      "stdout": "Verified 190 pieces, 100 garbage rows, seed 76713",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76714.json",
+      "seed": 76714,
+      "pieces": 185,
+      "returncode": 0,
+      "sha256": "7d87526521c8f3bd7b2f044c4df317598419b081a156d2d53d7be4b33a978ae7",
+      "stdout": "Verified 185 pieces, 100 garbage rows, seed 76714",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76716.json",
+      "seed": 76716,
+      "pieces": 199,
+      "returncode": 0,
+      "sha256": "2cff8ed765341f2dc48152ed379ed32be51b60c3814c21ceadd55c8d1b49fb1a",
+      "stdout": "Verified 199 pieces, 100 garbage rows, seed 76716",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76723.json",
+      "seed": 76723,
+      "pieces": 210,
+      "returncode": 0,
+      "sha256": "3f2770d9f862e0f475f676648e79d030260b04016472a398e745df75093db2ed",
+      "stdout": "Verified 210 pieces, 100 garbage rows, seed 76723",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76724.json",
+      "seed": 76724,
+      "pieces": 184,
+      "returncode": 0,
+      "sha256": "777cb983131c54a55be97b110a19c56087faccb345c9424b9aa7c168ac999eab",
+      "stdout": "Verified 184 pieces, 100 garbage rows, seed 76724",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76705.json",
+      "seed": 76705,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "99b113e5b8ee36df6d030d57b2a150c14f401cf4c558b153cd30e0073c698860",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 76705",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76722.json",
+      "seed": 76722,
+      "pieces": 209,
+      "returncode": 0,
+      "sha256": "5d453d42458ec27ee1b0da70b3eacbf0801c97ea4e80d085bc14e8c79c187031",
+      "stdout": "Verified 209 pieces, 100 garbage rows, seed 76722",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76738.json",
+      "seed": 76738,
+      "pieces": 180,
+      "returncode": 0,
+      "sha256": "559f0185a2fb8be0ed8ffd0f8cb6c28f8948db304576e1b7f8afb778e1fa216f",
+      "stdout": "Verified 180 pieces, 100 garbage rows, seed 76738",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76701.json",
+      "seed": 76701,
+      "pieces": 187,
+      "returncode": 0,
+      "sha256": "4c7d0eac8f3b458df8f90db1e4f14abefa50e165f609f2fa088f3d3db8ee6d55",
+      "stdout": "Verified 187 pieces, 100 garbage rows, seed 76701",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76720.json",
+      "seed": 76720,
+      "pieces": 209,
+      "returncode": 0,
+      "sha256": "f3d2270e89db83ad87c5de9b2d418d7de5cd2bd7c796e2517a7b0439eb593ed4",
+      "stdout": "Verified 209 pieces, 100 garbage rows, seed 76720",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76741.json",
+      "seed": 76741,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "3929f21946902a36d3e4c1b1cdd328c45b62cab8fbba678ed569feced323b781",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 76741",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76745.json",
+      "seed": 76745,
+      "pieces": 179,
+      "returncode": 0,
+      "sha256": "33cd9aa3d6240b3e83c2f845d19a88d5fb5342f95634601232eb9b5c8de8ec6b",
+      "stdout": "Verified 179 pieces, 100 garbage rows, seed 76745",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76710.json",
+      "seed": 76710,
+      "pieces": 194,
+      "returncode": 0,
+      "sha256": "eea024f1152865a9b5616003483ed20082f2946d3bfacff06f190147488cdfa9",
+      "stdout": "Verified 194 pieces, 100 garbage rows, seed 76710",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76714.json",
+      "seed": 76714,
+      "pieces": 196,
+      "returncode": 0,
+      "sha256": "c5fed963c125c11d2b0312719c5686700e0d5426a0525d25f1cb1713a7a7fb23",
+      "stdout": "Verified 196 pieces, 100 garbage rows, seed 76714",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76743.json",
+      "seed": 76743,
+      "pieces": 206,
+      "returncode": 0,
+      "sha256": "2127c019f9d8c927c05d798ae6fbbb056a7e406e155541c919cd90d3ab093473",
+      "stdout": "Verified 206 pieces, 100 garbage rows, seed 76743",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76725.json",
+      "seed": 76725,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "35242c0d223e62e87e5753d26a62bafe1238ee4fbe8e3518f35f99e368b11204",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 76725",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76711.json",
+      "seed": 76711,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "799b488b8ccc44a0984adb5be45d4b568a451b77e3c06f482c7a8e16b564c181",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 76711",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76705.json",
+      "seed": 76705,
+      "pieces": 199,
+      "returncode": 0,
+      "sha256": "1780857ac016fb5e8c34794e366e65c5f48c42d3141bd51d6940678e6b69b9ef",
+      "stdout": "Verified 199 pieces, 100 garbage rows, seed 76705",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76712.json",
+      "seed": 76712,
+      "pieces": 187,
+      "returncode": 0,
+      "sha256": "b94bd6317090329502b2007923a168713b9ff2347411788f1331e3ff9974d46d",
+      "stdout": "Verified 187 pieces, 100 garbage rows, seed 76712",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76739.json",
+      "seed": 76739,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "a1cd2b7a19394cfe7e4b10b76606df91044cda46a38327daba40226809c48005",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 76739",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76708.json",
+      "seed": 76708,
+      "pieces": 196,
+      "returncode": 0,
+      "sha256": "40157e645562a154b6e8355e1c4fb3ec6fb3d7b76c4a9980aaef4a1e947588b8",
+      "stdout": "Verified 196 pieces, 100 garbage rows, seed 76708",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76720.json",
+      "seed": 76720,
+      "pieces": 203,
+      "returncode": 0,
+      "sha256": "8363c18be24079403fa025d72d8ea4a472ccde7341d092e9aadad323baef2990",
+      "stdout": "Verified 203 pieces, 100 garbage rows, seed 76720",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76702.json",
+      "seed": 76702,
+      "pieces": 187,
+      "returncode": 0,
+      "sha256": "18b8dd9514b4de319a1dd92cf78b752dde1568b206f6bafa466c81b05cfa8ff8",
+      "stdout": "Verified 187 pieces, 100 garbage rows, seed 76702",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76736.json",
+      "seed": 76736,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "ca0f5a07c7ec9c7903e679a24e7d13dd4e861ff65354295eb9c34232fd541dd9",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 76736",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76709.json",
+      "seed": 76709,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "30d2014b45349c6043b3ea7f5821f1b98cc714ab0d0be95fcb97bbfdf816ba0e",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 76709",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76711.json",
+      "seed": 76711,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "b073d81ef71cf8664abccad80c9214cc82e13f62972b8a6b40356bb12407e6b2",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 76711",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76705.json",
+      "seed": 76705,
+      "pieces": 201,
+      "returncode": 0,
+      "sha256": "d1d29dc3b7d3f6e821755540f5aa0b4677b75b08dd6c2ae40c81b5a123bf8e7a",
+      "stdout": "Verified 201 pieces, 100 garbage rows, seed 76705",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76739.json",
+      "seed": 76739,
+      "pieces": 193,
+      "returncode": 0,
+      "sha256": "e04879ef1c1eb2641b10e75189141f3090b7abc9b5fe8651a36536f2f04ce988",
+      "stdout": "Verified 193 pieces, 100 garbage rows, seed 76739",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76737.json",
+      "seed": 76737,
+      "pieces": 190,
+      "returncode": 0,
+      "sha256": "e5906769ddbd612733b8b4c9ddb2ff49d4bd862961d66a49eef8ce9a1a562bef",
+      "stdout": "Verified 190 pieces, 100 garbage rows, seed 76737",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76713.json",
+      "seed": 76713,
+      "pieces": 190,
+      "returncode": 0,
+      "sha256": "f1e78df8a16fbc8974431cb04b6bfe8d910a3e036b83377b70def8be0600dfbe",
+      "stdout": "Verified 190 pieces, 100 garbage rows, seed 76713",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76731.json",
+      "seed": 76731,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "b8b21a269b5ad06c355d0da2d9ba0096b3d9d0b703864f16ded24ede89c5ca9b",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 76731",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76733.json",
+      "seed": 76733,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "70f7f857fe4b46f6f802d088b899e45fb5bf213e74d5a8982cdcca08951c7051",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 76733",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76741.json",
+      "seed": 76741,
+      "pieces": 190,
+      "returncode": 0,
+      "sha256": "ca64a63437a56fdc3428d147cd8e0e4c1432da0352b2c5716ebd9bf27d200ae7",
+      "stdout": "Verified 190 pieces, 100 garbage rows, seed 76741",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76723.json",
+      "seed": 76723,
+      "pieces": 208,
+      "returncode": 0,
+      "sha256": "e4d08d34fbafe0958f3c31bce1835bb3e3b500293c52f06be7a2d3c3741be315",
+      "stdout": "Verified 208 pieces, 100 garbage rows, seed 76723",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76730.json",
+      "seed": 76730,
+      "pieces": 190,
+      "returncode": 0,
+      "sha256": "eb7e98d8d50f6361cff5da53acd0704cb87183cded9b8c0722f6a145e9cbedcd",
+      "stdout": "Verified 190 pieces, 100 garbage rows, seed 76730",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76740.json",
+      "seed": 76740,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "c0f68b3c682f7862d23d530a86c641eb91d2bc4c7ce9738762f44a267e663b5b",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 76740",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76701.json",
+      "seed": 76701,
+      "pieces": 196,
+      "returncode": 0,
+      "sha256": "8013745004b50545f7cdf099d91375b6735f6c57628e9a7c44c9ca519ac1986f",
+      "stdout": "Verified 196 pieces, 100 garbage rows, seed 76701",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76744.json",
+      "seed": 76744,
+      "pieces": 187,
+      "returncode": 0,
+      "sha256": "280b81b67bc59c64065c08d3db18a3ee6058da1445e9da052a08f8f134c20ac9",
+      "stdout": "Verified 187 pieces, 100 garbage rows, seed 76744",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76735.json",
+      "seed": 76735,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "58712a74b211b378303c48a83d93e0e50d8a275d178709f903bc4d465e592fd1",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 76735",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76726.json",
+      "seed": 76726,
+      "pieces": 196,
+      "returncode": 0,
+      "sha256": "fc469ac7a588af96047c53bacca5f1cbd34aad36d36a006ef628380028a88fa5",
+      "stdout": "Verified 196 pieces, 100 garbage rows, seed 76726",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76704.json",
+      "seed": 76704,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "dfeb6707e29cbeacb6f585b2b3cbd4f4bcb50aa1803412ec37498fd60e8663a5",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 76704",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76737.json",
+      "seed": 76737,
+      "pieces": 196,
+      "returncode": 0,
+      "sha256": "94b3aa38e7e3801a9e4173d4324265997931b56b53ede3fb102a3e282ead499f",
+      "stdout": "Verified 196 pieces, 100 garbage rows, seed 76737",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76722.json",
+      "seed": 76722,
+      "pieces": 203,
+      "returncode": 0,
+      "sha256": "6947b5a48fce99a28bd998814bba6207c2d5919e04805df25b25c0d08914d902",
+      "stdout": "Verified 203 pieces, 100 garbage rows, seed 76722",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76736.json",
+      "seed": 76736,
+      "pieces": 202,
+      "returncode": 0,
+      "sha256": "4860569567cf7bb0bee2ad1da56dd9e4e993a76a18321e2ab11ae5f2fc0e61ed",
+      "stdout": "Verified 202 pieces, 100 garbage rows, seed 76736",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76710.json",
+      "seed": 76710,
+      "pieces": 202,
+      "returncode": 0,
+      "sha256": "7e847374b61cf4d8af3e47af067face679c35bcfe3d7a84cd8ca992034431812",
+      "stdout": "Verified 202 pieces, 100 garbage rows, seed 76710",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76706.json",
+      "seed": 76706,
+      "pieces": 188,
+      "returncode": 0,
+      "sha256": "e37f63d3e53f7f3693f0266ed529658a85c7dce63bf5ec153e0f2fb2cc839a11",
+      "stdout": "Verified 188 pieces, 100 garbage rows, seed 76706",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76732.json",
+      "seed": 76732,
+      "pieces": 189,
+      "returncode": 0,
+      "sha256": "ea37f6f7bb253530ec8e8a3626006de10b0c92dea486b5cfd0bc3ac280f46641",
+      "stdout": "Verified 189 pieces, 100 garbage rows, seed 76732",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76702.json",
+      "seed": 76702,
+      "pieces": 187,
+      "returncode": 0,
+      "sha256": "b5b788cfd3f3a54b6a1f0a783d5f942c2189a39859370f08243b3b09c7d22052",
+      "stdout": "Verified 187 pieces, 100 garbage rows, seed 76702",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76711.json",
+      "seed": 76711,
+      "pieces": 203,
+      "returncode": 0,
+      "sha256": "1c8fa36960a06775953fb9793377f3b895c3fbbaf1e4ee4755d724d89ecfcd14",
+      "stdout": "Verified 203 pieces, 100 garbage rows, seed 76711",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76715.json",
+      "seed": 76715,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "ae85d07c62c2f1f6d158da9d7fb355f8e9564c5b1a315e16c7f160a54db0ecf7",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 76715",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76729.json",
+      "seed": 76729,
+      "pieces": 191,
+      "returncode": 0,
+      "sha256": "b0feaa92b3ee5003f84dee3b3f75e69560a890f2d2470a0eaaaf6c36cdca4910",
+      "stdout": "Verified 191 pieces, 100 garbage rows, seed 76729",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76735.json",
+      "seed": 76735,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "a0334ab3d67f5f28f0240ccf7153af397614073f99d4dfb675765cfcbe4c176f",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 76735",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76727.json",
+      "seed": 76727,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "4b7a505cf4ac77f4b8ee9c2366faa01758fd74e6663f8d4af57d7716b8b8cce3",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 76727",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76703.json",
+      "seed": 76703,
+      "pieces": 196,
+      "returncode": 0,
+      "sha256": "16d1893bb74f10c4d571cc279dcf81f0be21efc8b12970463a36dc2280bc3e74",
+      "stdout": "Verified 196 pieces, 100 garbage rows, seed 76703",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76703.json",
+      "seed": 76703,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "d83f7b8958de1af17f1b9eba307ecaf007c8c27b156f494559c6d4c1a5915c16",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 76703",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76721.json",
+      "seed": 76721,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "662c20af912d31bb92da6eddc6b9c32b212e75f34c51cd62f55ae5a89b7fe37c",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 76721",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76727.json",
+      "seed": 76727,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "c5f38f485b18560977010a7b14d17b6c9e22d9a5d133a37f2789845939035c68",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 76727",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76716.json",
+      "seed": 76716,
+      "pieces": 199,
+      "returncode": 0,
+      "sha256": "0c7713a03ea5bef705cf5f45b996fb106f65a04a1af177e2785ca1bfa6752d4f",
+      "stdout": "Verified 199 pieces, 100 garbage rows, seed 76716",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76723.json",
+      "seed": 76723,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "7ed931f5b3403c38b914d4c48461b2041b834677ac9f5b93fc965e77b2e3cf1d",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 76723",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76703.json",
+      "seed": 76703,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "779cef622eca98f1ed7a89e8b7e42527b1ca7af1717628d9635c029d8d51f755",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 76703",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76743.json",
+      "seed": 76743,
+      "pieces": 206,
+      "returncode": 0,
+      "sha256": "1ff7baecba4e3ebf82a33a31d2c7b41757f8827520fb80b075682ae0565baaeb",
+      "stdout": "Verified 206 pieces, 100 garbage rows, seed 76743",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76730.json",
+      "seed": 76730,
+      "pieces": 196,
+      "returncode": 0,
+      "sha256": "fe68125aab2ea672ecbc90e4b34eb64ca3f01869ac066b9a03cf777980d35260",
+      "stdout": "Verified 196 pieces, 100 garbage rows, seed 76730",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76719.json",
+      "seed": 76719,
+      "pieces": 204,
+      "returncode": 0,
+      "sha256": "ca445a8eba703292a1ba7ad913dfe381ffe8c6ac15cb992e3663a87feec3c27c",
+      "stdout": "Verified 204 pieces, 100 garbage rows, seed 76719",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76747.json",
+      "seed": 76747,
+      "pieces": 192,
+      "returncode": 0,
+      "sha256": "7cb159ebde562487cdc9b8f59227378d5f3f7c9ef4825504fce9909e43a55cb1",
+      "stdout": "Verified 192 pieces, 100 garbage rows, seed 76747",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76704.json",
+      "seed": 76704,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "58822ad0df5d02cb08afb8c3a64b89bf17a839004115d2c04e02657647f93718",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 76704",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76729.json",
+      "seed": 76729,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "3b2f3f16b75387fad2db0d9c1181f28a207bb209a3a7a9f58a3679c56e71948a",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 76729",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76721.json",
+      "seed": 76721,
+      "pieces": 194,
+      "returncode": 0,
+      "sha256": "9cb18eabc63ce5c3d30cb9e2d8322cf5344465d0447fa415852766c764903d82",
+      "stdout": "Verified 194 pieces, 100 garbage rows, seed 76721",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76733.json",
+      "seed": 76733,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "e92467fce83a9b8727cb3973b6348792c6e232797058ad534d8c5438239f2024",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 76733",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76741.json",
+      "seed": 76741,
+      "pieces": 196,
+      "returncode": 0,
+      "sha256": "c4257bf0a9b62317be47928d8bd80b262c2af6fd860cc362533eda30c32f880d",
+      "stdout": "Verified 196 pieces, 100 garbage rows, seed 76741",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76717.json",
+      "seed": 76717,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "20f76a6160a25928b9be30d6dfadc75853e27c28ee22f8b489bd44162f66f237",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 76717",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76735.json",
+      "seed": 76735,
+      "pieces": 184,
+      "returncode": 0,
+      "sha256": "3eddfca6f70a6b9575120f22d608df0524f20a76c8bd7414e8b7a5556afe7cef",
+      "stdout": "Verified 184 pieces, 100 garbage rows, seed 76735",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76746.json",
+      "seed": 76746,
+      "pieces": 199,
+      "returncode": 0,
+      "sha256": "7dd071ae40db4b06d8db2e963643b485978894c8d196a26137768822617ba9cb",
+      "stdout": "Verified 199 pieces, 100 garbage rows, seed 76746",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76700.json",
+      "seed": 76700,
+      "pieces": 199,
+      "returncode": 0,
+      "sha256": "dc48a7959defef6bbaaf17a74c4dd42ecb354e6e5f7fdd4aeaac49d92d4ee74b",
+      "stdout": "Verified 199 pieces, 100 garbage rows, seed 76700",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76707.json",
+      "seed": 76707,
+      "pieces": 203,
+      "returncode": 0,
+      "sha256": "7b5d920c4aaea4a029f0202aefdf3947150b2fe2c61efe62125815822b14491f",
+      "stdout": "Verified 203 pieces, 100 garbage rows, seed 76707",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76747.json",
+      "seed": 76747,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "3056504c4e7b4c8beb5d19a4c84d98ca17a7f1e25710b28a4ada0866c0fcd5c2",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 76747",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76720.json",
+      "seed": 76720,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "17ca50a756c3c2dce91b3b48adcd60cf46cc018ad31527b814221eea99007326",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 76720",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76716.json",
+      "seed": 76716,
+      "pieces": 209,
+      "returncode": 0,
+      "sha256": "09b988a13421c1f24514cc36c86d911ff691967ba06d67e19d48a75d4104c15b",
+      "stdout": "Verified 209 pieces, 100 garbage rows, seed 76716",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76718.json",
+      "seed": 76718,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "79552e613fa2f8ec43fb3f2dab1d4c7f3559703f7af810673cd0c186dd414397",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 76718",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76708.json",
+      "seed": 76708,
+      "pieces": 199,
+      "returncode": 0,
+      "sha256": "9fc678c6d1d58eafc700373a00b409702f28db9e9b285ef6f0a69bd7086a93b2",
+      "stdout": "Verified 199 pieces, 100 garbage rows, seed 76708",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76714.json",
+      "seed": 76714,
+      "pieces": 196,
+      "returncode": 0,
+      "sha256": "462dae7284f262b94b9f9b776ab811b3096bd939d16edab5ba0bd406ff9f575e",
+      "stdout": "Verified 196 pieces, 100 garbage rows, seed 76714",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76724.json",
+      "seed": 76724,
+      "pieces": 184,
+      "returncode": 0,
+      "sha256": "8153dd27ed5d45d8570d43504ba8bc49e93a8077a6c798c4a774f99aba05f035",
+      "stdout": "Verified 184 pieces, 100 garbage rows, seed 76724",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76738.json",
+      "seed": 76738,
+      "pieces": 208,
+      "returncode": 0,
+      "sha256": "9afdbebf892608aba4cbcd0d252c1abd3fe7a2c8c966b69ef7a3cd40a8e53af7",
+      "stdout": "Verified 208 pieces, 100 garbage rows, seed 76738",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76740.json",
+      "seed": 76740,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "f4e884b2a525a264ccdf18716994b4ef73dec5599a3ee44ceb76e78129cceda7",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 76740",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76744.json",
+      "seed": 76744,
+      "pieces": 191,
+      "returncode": 0,
+      "sha256": "3155a41aea13ebe4b781f57d1cb5ac1fb3c407b118986f6c0bd772fc5e3485f3",
+      "stdout": "Verified 191 pieces, 100 garbage rows, seed 76744",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76747.json",
+      "seed": 76747,
+      "pieces": 188,
+      "returncode": 0,
+      "sha256": "e60d28a83ae8feb3b828d124cebdc20ecd3cd0ca0c07b3e51d3e3ce43f829ffa",
+      "stdout": "Verified 188 pieces, 100 garbage rows, seed 76747",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76718.json",
+      "seed": 76718,
+      "pieces": 193,
+      "returncode": 0,
+      "sha256": "d15f8b33de82d93519a0a1a247c1f352ff83c9ca019bed2c16590fe9b121b3d9",
+      "stdout": "Verified 193 pieces, 100 garbage rows, seed 76718",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76729.json",
+      "seed": 76729,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "e2a30a95a4dd7dd35d43a042d6a98f2a35d5d08dee164f5d0acf8db3dff1c294",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 76729",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76734.json",
+      "seed": 76734,
+      "pieces": 194,
+      "returncode": 0,
+      "sha256": "1208084625acbcd926b120c5b84460a0cc73f97b81f948bd43996f5a7737d100",
+      "stdout": "Verified 194 pieces, 100 garbage rows, seed 76734",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76715.json",
+      "seed": 76715,
+      "pieces": 201,
+      "returncode": 0,
+      "sha256": "0a29c6b3ad3979d83d81bb9990104b88a79262b1ecddb3c9141baeaa6a0501fe",
+      "stdout": "Verified 201 pieces, 100 garbage rows, seed 76715",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76733.json",
+      "seed": 76733,
+      "pieces": 190,
+      "returncode": 0,
+      "sha256": "c1a8509a7ab06d64ef165fddc23830a60dd59e89313e9bd7d28ef7c509bfbd29",
+      "stdout": "Verified 190 pieces, 100 garbage rows, seed 76733",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76722.json",
+      "seed": 76722,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "eaba4a27f81bf4f7d0a448b69308e9f5289c45c69621ee87fe6cfd7fe4e32466",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 76722",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76707.json",
+      "seed": 76707,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "53e9ac0b426d5b80c5132ffb4442ff1708eb02f6ff5567aad450220edab4167f",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 76707",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76739.json",
+      "seed": 76739,
+      "pieces": 185,
+      "returncode": 0,
+      "sha256": "ef386aed5a2834f0f9284054573e9e4ce0eaa5ea781cffe061485ea91ec68f1d",
+      "stdout": "Verified 185 pieces, 100 garbage rows, seed 76739",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76734.json",
+      "seed": 76734,
+      "pieces": 206,
+      "returncode": 0,
+      "sha256": "4e1356571c0715ae82c6cd3d4a820c04c7439689a7aa12825def823f98a3156c",
+      "stdout": "Verified 206 pieces, 100 garbage rows, seed 76734",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76746.json",
+      "seed": 76746,
+      "pieces": 203,
+      "returncode": 0,
+      "sha256": "9e42d30e7ffeede8ffd192ff0e2d639d4d46225f8cc68100faf609d0af3ae39f",
+      "stdout": "Verified 203 pieces, 100 garbage rows, seed 76746",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76731.json",
+      "seed": 76731,
+      "pieces": 202,
+      "returncode": 0,
+      "sha256": "304a62d68d17415cbf7d0b965b325cda0545091eceda31a272de277f19e0f731",
+      "stdout": "Verified 202 pieces, 100 garbage rows, seed 76731",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76700.json",
+      "seed": 76700,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "7b34f356025c4339e690e6b372eaa6487ff28a090dac0b8d22e76dc394615b77",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 76700",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76709.json",
+      "seed": 76709,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "ee75d8d42ab7f53e6144fb2b8f58f4529f61b1139f6e50391429d414e2d47644",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 76709",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76745.json",
+      "seed": 76745,
+      "pieces": 187,
+      "returncode": 0,
+      "sha256": "598a238ded9f6babb3411740c175cd26160198df5ce9ebaa38190ebc3aaf0aec",
+      "stdout": "Verified 187 pieces, 100 garbage rows, seed 76745",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76706.json",
+      "seed": 76706,
+      "pieces": 183,
+      "returncode": 0,
+      "sha256": "035ed996702e23b37ab41fc27480efafc1ace90c824b6b8ba91398dcc5dcef41",
+      "stdout": "Verified 183 pieces, 100 garbage rows, seed 76706",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76736.json",
+      "seed": 76736,
+      "pieces": 202,
+      "returncode": 0,
+      "sha256": "ad953e97f0ee4e2bb2bc4a857baabb4bf72377c53471678dd7f0e19f7713feef",
+      "stdout": "Verified 202 pieces, 100 garbage rows, seed 76736",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76701.json",
+      "seed": 76701,
+      "pieces": 190,
+      "returncode": 0,
+      "sha256": "8ab6524236a3bae365a0583b87e45ce104a4294970990c0de78e2f74cea623b8",
+      "stdout": "Verified 190 pieces, 100 garbage rows, seed 76701",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76732.json",
+      "seed": 76732,
+      "pieces": 194,
+      "returncode": 0,
+      "sha256": "00c52fdd26a5abecc730582fcb7a5f6e231b88682670a22e7c168126cfb59165",
+      "stdout": "Verified 194 pieces, 100 garbage rows, seed 76732",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76725.json",
+      "seed": 76725,
+      "pieces": 194,
+      "returncode": 0,
+      "sha256": "894c83f8acd33a4179051ea485002cddf5fe82bc78fd12000ba72ddbf19f4c59",
+      "stdout": "Verified 194 pieces, 100 garbage rows, seed 76725",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-robust-plan-reuse-71a8b47f-3c6e49c1-None-False-76719.json",
+      "seed": 76719,
+      "pieces": 204,
+      "returncode": 0,
+      "sha256": "49b2635357e7f97c2e4660a617e8b6df155d52205f9dd60487dfd7cf1712ff6f",
+      "stdout": "Verified 204 pieces, 100 garbage rows, seed 76719",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-robust-c9516ea2-3c6e49c1-None-False-76738.json",
+      "seed": 76738,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "f49f15b5438d18361bf8f7de0b22e7ff2ba4fcfc3065aa00e90325c53e2c3c93",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 76738",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-val-complete.jsonl",
+      "trace": "research/results/s31-val-learned-fast-824eca4f-3c6e49c1-None-False-76727.json",
+      "seed": 76727,
+      "pieces": 203,
+      "returncode": 0,
+      "sha256": "af01fc0df8faed2eb15830ddf9791646b99249cfe2fa874a04d642c82fbf505a",
+      "stdout": "Verified 203 pieces, 100 garbage rows, seed 76727",
+      "stderr": ""
+    }
+  ]
+}

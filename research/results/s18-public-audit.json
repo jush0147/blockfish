@@ -1,0 +1,583 @@
+{
+  "games": 64,
+  "passed": 64,
+  "records": [
+    {
+      "binary": "research/bin/robust-bag",
+      "seed": 76009,
+      "decisions": 193,
+      "inferences_from_public_history": 28,
+      "reveal_confirmed": 28,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": null
+    },
+    {
+      "binary": "research/bin/robust-bag-placebo",
+      "seed": 76004,
+      "decisions": 191,
+      "inferences_from_public_history": 28,
+      "reveal_confirmed": 28,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": true
+    },
+    {
+      "binary": "research/bin/robust-bag-placebo",
+      "seed": 76003,
+      "decisions": 187,
+      "inferences_from_public_history": 27,
+      "reveal_confirmed": 27,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": true
+    },
+    {
+      "binary": "research/bin/robust-bag",
+      "seed": 76027,
+      "decisions": 200,
+      "inferences_from_public_history": 29,
+      "reveal_confirmed": 29,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": null
+    },
+    {
+      "binary": "research/bin/robust-bag",
+      "seed": 76004,
+      "decisions": 189,
+      "inferences_from_public_history": 28,
+      "reveal_confirmed": 27,
+      "final_prediction_logically_checked": true,
+      "placebo_matches_frozen": null
+    },
+    {
+      "binary": "research/bin/robust-bag-placebo",
+      "seed": 76006,
+      "decisions": 193,
+      "inferences_from_public_history": 28,
+      "reveal_confirmed": 28,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": true
+    },
+    {
+      "binary": "research/bin/robust-bag",
+      "seed": 76002,
+      "decisions": 196,
+      "inferences_from_public_history": 29,
+      "reveal_confirmed": 28,
+      "final_prediction_logically_checked": true,
+      "placebo_matches_frozen": null
+    },
+    {
+      "binary": "research/bin/robust-bag-placebo",
+      "seed": 76016,
+      "decisions": 199,
+      "inferences_from_public_history": 29,
+      "reveal_confirmed": 29,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": true
+    },
+    {
+      "binary": "research/bin/robust-bag",
+      "seed": 76031,
+      "decisions": 192,
+      "inferences_from_public_history": 28,
+      "reveal_confirmed": 28,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": null
+    },
+    {
+      "binary": "research/bin/robust-bag-placebo",
+      "seed": 76024,
+      "decisions": 200,
+      "inferences_from_public_history": 29,
+      "reveal_confirmed": 29,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": true
+    },
+    {
+      "binary": "research/bin/robust-bag-placebo",
+      "seed": 76022,
+      "decisions": 198,
+      "inferences_from_public_history": 29,
+      "reveal_confirmed": 29,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": true
+    },
+    {
+      "binary": "research/bin/robust-bag-placebo",
+      "seed": 76005,
+      "decisions": 193,
+      "inferences_from_public_history": 28,
+      "reveal_confirmed": 28,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": true
+    },
+    {
+      "binary": "research/bin/robust-bag",
+      "seed": 76005,
+      "decisions": 196,
+      "inferences_from_public_history": 29,
+      "reveal_confirmed": 28,
+      "final_prediction_logically_checked": true,
+      "placebo_matches_frozen": null
+    },
+    {
+      "binary": "research/bin/robust-bag",
+      "seed": 76020,
+      "decisions": 195,
+      "inferences_from_public_history": 28,
+      "reveal_confirmed": 28,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": null
+    },
+    {
+      "binary": "research/bin/robust-bag-placebo",
+      "seed": 76000,
+      "decisions": 214,
+      "inferences_from_public_history": 31,
+      "reveal_confirmed": 31,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": true
+    },
+    {
+      "binary": "research/bin/robust-bag-placebo",
+      "seed": 76008,
+      "decisions": 196,
+      "inferences_from_public_history": 29,
+      "reveal_confirmed": 28,
+      "final_prediction_logically_checked": true,
+      "placebo_matches_frozen": true
+    },
+    {
+      "binary": "research/bin/robust-bag",
+      "seed": 76016,
+      "decisions": 187,
+      "inferences_from_public_history": 27,
+      "reveal_confirmed": 27,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": null
+    },
+    {
+      "binary": "research/bin/robust-bag",
+      "seed": 76001,
+      "decisions": 196,
+      "inferences_from_public_history": 29,
+      "reveal_confirmed": 28,
+      "final_prediction_logically_checked": true,
+      "placebo_matches_frozen": null
+    },
+    {
+      "binary": "research/bin/robust-bag",
+      "seed": 76015,
+      "decisions": 197,
+      "inferences_from_public_history": 29,
+      "reveal_confirmed": 29,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": null
+    },
+    {
+      "binary": "research/bin/robust-bag-placebo",
+      "seed": 76019,
+      "decisions": 197,
+      "inferences_from_public_history": 29,
+      "reveal_confirmed": 29,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": true
+    },
+    {
+      "binary": "research/bin/robust-bag-placebo",
+      "seed": 76030,
+      "decisions": 196,
+      "inferences_from_public_history": 29,
+      "reveal_confirmed": 28,
+      "final_prediction_logically_checked": true,
+      "placebo_matches_frozen": true
+    },
+    {
+      "binary": "research/bin/robust-bag-placebo",
+      "seed": 76001,
+      "decisions": 200,
+      "inferences_from_public_history": 29,
+      "reveal_confirmed": 29,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": true
+    },
+    {
+      "binary": "research/bin/robust-bag-placebo",
+      "seed": 76007,
+      "decisions": 187,
+      "inferences_from_public_history": 27,
+      "reveal_confirmed": 27,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": true
+    },
+    {
+      "binary": "research/bin/robust-bag-placebo",
+      "seed": 76027,
+      "decisions": 210,
+      "inferences_from_public_history": 31,
+      "reveal_confirmed": 30,
+      "final_prediction_logically_checked": true,
+      "placebo_matches_frozen": true
+    },
+    {
+      "binary": "research/bin/robust-bag",
+      "seed": 76011,
+      "decisions": 187,
+      "inferences_from_public_history": 27,
+      "reveal_confirmed": 27,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": null
+    },
+    {
+      "binary": "research/bin/robust-bag",
+      "seed": 76017,
+      "decisions": 198,
+      "inferences_from_public_history": 29,
+      "reveal_confirmed": 29,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": null
+    },
+    {
+      "binary": "research/bin/robust-bag",
+      "seed": 76013,
+      "decisions": 194,
+      "inferences_from_public_history": 28,
+      "reveal_confirmed": 28,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": null
+    },
+    {
+      "binary": "research/bin/robust-bag",
+      "seed": 76029,
+      "decisions": 197,
+      "inferences_from_public_history": 29,
+      "reveal_confirmed": 29,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": null
+    },
+    {
+      "binary": "research/bin/robust-bag-placebo",
+      "seed": 76018,
+      "decisions": 195,
+      "inferences_from_public_history": 28,
+      "reveal_confirmed": 28,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": true
+    },
+    {
+      "binary": "research/bin/robust-bag",
+      "seed": 76010,
+      "decisions": 191,
+      "inferences_from_public_history": 28,
+      "reveal_confirmed": 28,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": null
+    },
+    {
+      "binary": "research/bin/robust-bag-placebo",
+      "seed": 76031,
+      "decisions": 194,
+      "inferences_from_public_history": 28,
+      "reveal_confirmed": 28,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": true
+    },
+    {
+      "binary": "research/bin/robust-bag-placebo",
+      "seed": 76015,
+      "decisions": 205,
+      "inferences_from_public_history": 30,
+      "reveal_confirmed": 30,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": true
+    },
+    {
+      "binary": "research/bin/robust-bag-placebo",
+      "seed": 76021,
+      "decisions": 183,
+      "inferences_from_public_history": 27,
+      "reveal_confirmed": 27,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": true
+    },
+    {
+      "binary": "research/bin/robust-bag",
+      "seed": 76006,
+      "decisions": 189,
+      "inferences_from_public_history": 28,
+      "reveal_confirmed": 27,
+      "final_prediction_logically_checked": true,
+      "placebo_matches_frozen": null
+    },
+    {
+      "binary": "research/bin/robust-bag",
+      "seed": 76018,
+      "decisions": 205,
+      "inferences_from_public_history": 30,
+      "reveal_confirmed": 30,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": null
+    },
+    {
+      "binary": "research/bin/robust-bag-placebo",
+      "seed": 76010,
+      "decisions": 193,
+      "inferences_from_public_history": 28,
+      "reveal_confirmed": 28,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": true
+    },
+    {
+      "binary": "research/bin/robust-bag",
+      "seed": 76019,
+      "decisions": 198,
+      "inferences_from_public_history": 29,
+      "reveal_confirmed": 29,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": null
+    },
+    {
+      "binary": "research/bin/robust-bag",
+      "seed": 76025,
+      "decisions": 197,
+      "inferences_from_public_history": 29,
+      "reveal_confirmed": 29,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": null
+    },
+    {
+      "binary": "research/bin/robust-bag-placebo",
+      "seed": 76023,
+      "decisions": 206,
+      "inferences_from_public_history": 30,
+      "reveal_confirmed": 30,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": true
+    },
+    {
+      "binary": "research/bin/robust-bag",
+      "seed": 76023,
+      "decisions": 196,
+      "inferences_from_public_history": 29,
+      "reveal_confirmed": 28,
+      "final_prediction_logically_checked": true,
+      "placebo_matches_frozen": null
+    },
+    {
+      "binary": "research/bin/robust-bag",
+      "seed": 76008,
+      "decisions": 196,
+      "inferences_from_public_history": 29,
+      "reveal_confirmed": 28,
+      "final_prediction_logically_checked": true,
+      "placebo_matches_frozen": null
+    },
+    {
+      "binary": "research/bin/robust-bag-placebo",
+      "seed": 76025,
+      "decisions": 190,
+      "inferences_from_public_history": 28,
+      "reveal_confirmed": 28,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": true
+    },
+    {
+      "binary": "research/bin/robust-bag-placebo",
+      "seed": 76014,
+      "decisions": 201,
+      "inferences_from_public_history": 29,
+      "reveal_confirmed": 29,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": true
+    },
+    {
+      "binary": "research/bin/robust-bag-placebo",
+      "seed": 76012,
+      "decisions": 204,
+      "inferences_from_public_history": 30,
+      "reveal_confirmed": 30,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": true
+    },
+    {
+      "binary": "research/bin/robust-bag-placebo",
+      "seed": 76026,
+      "decisions": 199,
+      "inferences_from_public_history": 29,
+      "reveal_confirmed": 29,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": true
+    },
+    {
+      "binary": "research/bin/robust-bag-placebo",
+      "seed": 76029,
+      "decisions": 205,
+      "inferences_from_public_history": 30,
+      "reveal_confirmed": 30,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": true
+    },
+    {
+      "binary": "research/bin/robust-bag-placebo",
+      "seed": 76011,
+      "decisions": 203,
+      "inferences_from_public_history": 30,
+      "reveal_confirmed": 29,
+      "final_prediction_logically_checked": true,
+      "placebo_matches_frozen": true
+    },
+    {
+      "binary": "research/bin/robust-bag",
+      "seed": 76028,
+      "decisions": 201,
+      "inferences_from_public_history": 29,
+      "reveal_confirmed": 29,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": null
+    },
+    {
+      "binary": "research/bin/robust-bag",
+      "seed": 76003,
+      "decisions": 192,
+      "inferences_from_public_history": 28,
+      "reveal_confirmed": 28,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": null
+    },
+    {
+      "binary": "research/bin/robust-bag",
+      "seed": 76022,
+      "decisions": 197,
+      "inferences_from_public_history": 29,
+      "reveal_confirmed": 29,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": null
+    },
+    {
+      "binary": "research/bin/robust-bag",
+      "seed": 76026,
+      "decisions": 194,
+      "inferences_from_public_history": 28,
+      "reveal_confirmed": 28,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": null
+    },
+    {
+      "binary": "research/bin/robust-bag-placebo",
+      "seed": 76002,
+      "decisions": 189,
+      "inferences_from_public_history": 28,
+      "reveal_confirmed": 27,
+      "final_prediction_logically_checked": true,
+      "placebo_matches_frozen": true
+    },
+    {
+      "binary": "research/bin/robust-bag-placebo",
+      "seed": 76013,
+      "decisions": 200,
+      "inferences_from_public_history": 29,
+      "reveal_confirmed": 29,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": true
+    },
+    {
+      "binary": "research/bin/robust-bag",
+      "seed": 76021,
+      "decisions": 182,
+      "inferences_from_public_history": 27,
+      "reveal_confirmed": 26,
+      "final_prediction_logically_checked": true,
+      "placebo_matches_frozen": null
+    },
+    {
+      "binary": "research/bin/robust-bag",
+      "seed": 76024,
+      "decisions": 195,
+      "inferences_from_public_history": 28,
+      "reveal_confirmed": 28,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": null
+    },
+    {
+      "binary": "research/bin/robust-bag",
+      "seed": 76030,
+      "decisions": 199,
+      "inferences_from_public_history": 29,
+      "reveal_confirmed": 29,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": null
+    },
+    {
+      "binary": "research/bin/robust-bag",
+      "seed": 76000,
+      "decisions": 197,
+      "inferences_from_public_history": 29,
+      "reveal_confirmed": 29,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": null
+    },
+    {
+      "binary": "research/bin/robust-bag-placebo",
+      "seed": 76017,
+      "decisions": 193,
+      "inferences_from_public_history": 28,
+      "reveal_confirmed": 28,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": true
+    },
+    {
+      "binary": "research/bin/robust-bag",
+      "seed": 76012,
+      "decisions": 197,
+      "inferences_from_public_history": 29,
+      "reveal_confirmed": 29,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": null
+    },
+    {
+      "binary": "research/bin/robust-bag-placebo",
+      "seed": 76009,
+      "decisions": 198,
+      "inferences_from_public_history": 29,
+      "reveal_confirmed": 29,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": true
+    },
+    {
+      "binary": "research/bin/robust-bag-placebo",
+      "seed": 76028,
+      "decisions": 195,
+      "inferences_from_public_history": 28,
+      "reveal_confirmed": 28,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": true
+    },
+    {
+      "binary": "research/bin/robust-bag",
+      "seed": 76007,
+      "decisions": 187,
+      "inferences_from_public_history": 27,
+      "reveal_confirmed": 27,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": null
+    },
+    {
+      "binary": "research/bin/robust-bag",
+      "seed": 76014,
+      "decisions": 198,
+      "inferences_from_public_history": 29,
+      "reveal_confirmed": 29,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": null
+    },
+    {
+      "binary": "research/bin/robust-bag-placebo",
+      "seed": 76020,
+      "decisions": 196,
+      "inferences_from_public_history": 29,
+      "reveal_confirmed": 28,
+      "final_prediction_logically_checked": true,
+      "placebo_matches_frozen": true
+    }
+  ],
+  "note": "Public-history audit; only final-decision predictions lack a subsequent saved reveal."
+}

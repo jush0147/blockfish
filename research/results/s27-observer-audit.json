@@ -1,0 +1,33 @@
+{
+  "passed": 3,
+  "records": [
+    {
+      "binary": "robust-dag-observer",
+      "seed": 76002,
+      "mean_duplicates": 746.4761904761905,
+      "mean_unique_expanded": 847.1216931216932,
+      "mean_sequences": 830.8730158730159
+    },
+    {
+      "binary": "robust-dag-observer",
+      "seed": 76001,
+      "mean_duplicates": 727.025,
+      "mean_unique_expanded": 862.44,
+      "mean_sequences": 836.16
+    },
+    {
+      "binary": "robust-dag-observer",
+      "seed": 76000,
+      "mean_duplicates": 732.8084112149533,
+      "mean_unique_expanded": 835.8084112149533,
+      "mean_sequences": 762.9626168224299
+    }
+  ],
+  "means": {
+    "robust-dag-observer": {
+      "mean_duplicates": 735.4365338970479,
+      "mean_unique_expanded": 848.4567014455488,
+      "mean_sequences": 809.9985442318152
+    }
+  }
+}

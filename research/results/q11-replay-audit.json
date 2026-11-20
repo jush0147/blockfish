@@ -1,0 +1,128 @@
+{
+  "verifier": "research/bin/learned-fast",
+  "verifier_sha256": "824eca4f6675630f072c062e3ec72e6a8aa3d1ba935c147b64960bda1c98c2c3",
+  "total": 12,
+  "passed": 12,
+  "records": [
+    {
+      "source": "research/results/q11-local-budget-scan.jsonl",
+      "trace": "research/results/q11-local-budget-scan-cheese-quality-64a272eb-681314e6-None-False-3.json",
+      "seed": 3,
+      "pieces": 206,
+      "returncode": 0,
+      "sha256": "7a411db024c6c0fe7fd83a5947455cc20bf6299fcd0e7022cdbce3109098c4d9",
+      "stdout": "Verified 206 pieces, 100 garbage rows, seed 3",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/q11-local-budget-scan.jsonl",
+      "trace": "research/results/q11-local-budget-scan-cheese-quality-64a272eb-98589752-None-False-3.json",
+      "seed": 3,
+      "pieces": 210,
+      "returncode": 0,
+      "sha256": "118b4d8d3bbc6a394de54eeb1ae38c3c52b2e54772faf0bc0e0b2c562893f039",
+      "stdout": "Verified 210 pieces, 100 garbage rows, seed 3",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/q11-local-budget-scan.jsonl",
+      "trace": "research/results/q11-local-budget-scan-cheese-quality-64a272eb-10dc0392-None-False-3.json",
+      "seed": 3,
+      "pieces": 243,
+      "returncode": 0,
+      "sha256": "83903279dd195f2fe5308cbf4154a5de4463d341f9b8f71487853a1333e97cc3",
+      "stdout": "Verified 243 pieces, 100 garbage rows, seed 3",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/q11-local-budget-scan.jsonl",
+      "trace": "research/results/q11-local-budget-scan-cheese-quality-64a272eb-a9acd7a3-None-False-3.json",
+      "seed": 3,
+      "pieces": 188,
+      "returncode": 0,
+      "sha256": "4ed4f8452488d6d1ed2647a1ae06a7e07fb5b2d9a0a48c751c8d2ea8fc054322",
+      "stdout": "Verified 188 pieces, 100 garbage rows, seed 3",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/q11-local-budget-scan.jsonl",
+      "trace": "research/results/q11-local-budget-scan-cheese-quality-64a272eb-f7bd3894-None-False-3.json",
+      "seed": 3,
+      "pieces": 202,
+      "returncode": 0,
+      "sha256": "6d1fac6fd09bf5159f810afc2182c3618c294a456dada0c3eb1bfbefb2499164",
+      "stdout": "Verified 202 pieces, 100 garbage rows, seed 3",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/q11-local-budget-scan.jsonl",
+      "trace": "research/results/q11-local-budget-scan-cheese-quality-64a272eb-dbe004cd-None-False-3.json",
+      "seed": 3,
+      "pieces": 178,
+      "returncode": 0,
+      "sha256": "35d384ed19b6d62b0ecf3998338d08b3031c600b7ef1d2a06764e6cec6290fdd",
+      "stdout": "Verified 178 pieces, 100 garbage rows, seed 3",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/q11-local-budget-scan.jsonl",
+      "trace": "research/results/q11-local-budget-scan-cheese-quality-64a272eb-15c226c6-None-False-3.json",
+      "seed": 3,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "052f61547b6c8c3a947ca3af7e28f5230a4adb25213a92934818723fc5292f0b",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 3",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/q11-local-budget-scan.jsonl",
+      "trace": "research/results/q11-local-budget-scan-cheese-quality-64a272eb-c780dc28-None-False-3.json",
+      "seed": 3,
+      "pieces": 181,
+      "returncode": 0,
+      "sha256": "7a005feb28f12d184c6487ae2278f6f404c05b3bd3403206ecd7701c7350990e",
+      "stdout": "Verified 181 pieces, 100 garbage rows, seed 3",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/q11-local-budget-scan.jsonl",
+      "trace": "research/results/q11-local-budget-scan-cheese-quality-64a272eb-a181f3cc-None-False-3.json",
+      "seed": 3,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "85f4a99a200728196c33860a062b1b83b2820b3b3bc6f2cd8c73d7cc8f6c5a9b",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 3",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/q11-local-budget-scan.jsonl",
+      "trace": "research/results/q11-local-budget-scan-cheese-quality-64a272eb-dfe37108-None-False-3.json",
+      "seed": 3,
+      "pieces": 183,
+      "returncode": 0,
+      "sha256": "91b4c3ddd87723ac30f1f7d0c1c14b25ce984e5f20358e14bfe82adeb7dd5bf6",
+      "stdout": "Verified 183 pieces, 100 garbage rows, seed 3",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/q11-local-budget-scan.jsonl",
+      "trace": "research/results/q11-local-budget-scan-cheese-quality-64a272eb-45eb9d30-None-False-3.json",
+      "seed": 3,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "68a9c051828205175d8934d70d956716a29dec05350da282ba8090e61832d2b5",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 3",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/q11-local-budget-scan.jsonl",
+      "trace": "research/results/q11-local-budget-scan-cheese-quality-64a272eb-3c6e49c1-None-False-3.json",
+      "seed": 3,
+      "pieces": 204,
+      "returncode": 0,
+      "sha256": "a39a123c9970d3c85b1c0c55ae4d0c7b03c41f37244e0ba89b756a19e048a25c",
+      "stdout": "Verified 204 pieces, 100 garbage rows, seed 3",
+      "stderr": ""
+    }
+  ]
+}

@@ -1,0 +1,99 @@
+   Compiling blockfish v0.1.0 (/workspace/blockfish/blockfish-engine)
+   Compiling blockfish-client v0.1.0 (/workspace/blockfish/blockfish-client)
+    Finished test [optimized + debuginfo] target(s) in 7.96s
+     Running unittests src/lib.rs (target/debug/deps/block_stacker-7275057a8d3c5014)
+
+running 4 tests
+test ruleset::test::test_rotate_coord ... ok
+test ruleset::test::test_normalize_rot ... ok
+test ruleset::test::test_guideline_o_kicks ... ok
+test stacker::test::test_prng ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/blockfish-fe302a0883930a2b)
+
+running 60 tests
+test ai::analysis::test::test_analysis_all_suggestions ... ok
+test ai::analysis::test::test_analysis_cmp ... ok
+test ai::analysis::test::test_analysis_is_send ... ok
+test ai::analysis::test::test_analysis_statistics ... ok
+test ai::analysis::test::test_analysis_wait ... ok
+test ai::analysis::test::test_analysis_suggestion ... ok
+test ai::analysis::test::test_analysis_poll ... ok
+test ai::eval::test::test_covered_hole_0 ... ok
+test ai::eval::test::test_covered_hole_1 ... ok
+test ai::eval::test::test_covered_holes ... ok
+test ai::eval::test::test_covered_hole_2 ... ok
+test ai::eval::test::test_i_deps_1 ... ok
+test ai::eval::test::test_intersecting_ranges ... ok
+test ai::eval::test::test_negative_spaces_1 ... ok
+test ai::eval::test::test_negative_spaces_2 ... ok
+test ai::eval::test::test_negative_spaces_3 ... ok
+test ai::eval::test::test_negative_spaces_all_clear ... ok
+test ai::state::test::test_state_use_hold ... ok
+test ai::state::test::test_state_operations ... ok
+test ai::state::test::test_state_nearly_empty_queue ... ok
+test common::test::test_parse_color ... ok
+test common::test::test_all_orientations ... ok
+test common::test::test_sizeof ... ok
+test config::test::test_parse_config ... ok
+test config::test::test_display_config ... ok
+test config::test::test_parse_params ... ok
+test finesse::test::test_ord_kpp ... ok
+test finesse::test::test_o_finesse ... ok
+test matrix::test::test_bm_blit ... ok
+test matrix::test::test_bm_gaps ... ok
+test matrix::test::test_bm_get ... ok
+test finesse::test::test_s_finesse ... ok
+test matrix::test::test_bm_macro ... ok
+test matrix::test::test_bm_overlaps ... ok
+test matrix::test::test_bm_overlaps_oob ... ok
+test matrix::test::test_bm_sift ... ok
+test matrix::test::test_bm_set ... ok
+test matrix::test::test_insert_empty_bottom_row ... ok
+test matrix::test::test_remove_rows ... ok
+test place::test::test_lspeen ... ok
+test place::test::test_overlapping_placements ... ok
+test ai::eval::test::bit_evaluation_matches_reference_on_random_matrices ... ok
+test place::test::test_place_input ... ok
+test place::test::test_pierce ... ok
+test place::test::test_placements_w_hold ... ok
+test place::test::test_placements_idx ... ok
+test place::test::test_s_spin_triple_overhangless ... ok
+test place::test::test_s_spin_triple ... ok
+test place::test::test_tspeen ... ok
+test place::test::test_tuck_ambiguous ... ok
+test place::test::test_tuck_double_sd ... ok
+test place::test::test_tuck_easy ... ok
+test shape::test::test_normalize ... ok
+test shape::test::test_normalize_coords ... ok
+test shape::test::test_parse_kick ... ok
+test shape::test::test_srs_col_range ... ok
+test shape::test::test_srs_peak ... ok
+test shape::test::test_srs_peak_cheese ... ok
+test shape::test::test_srs_peak_o ... ok
+test ai::timed_tests::zero_deadline_still_returns_a_legal_sequence ... ok
+
+test result: ok. 60 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running unittests src/main.rs (target/debug/deps/blockfish_client-c1dd6012254203c7)
+
+running 2 tests
+test theme::test::test_parse_hex_color ... ok
+test controls::test::test_parse_keycode ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests block-stacker
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests blockfish
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

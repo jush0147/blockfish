@@ -1,0 +1,1152 @@
+{
+  "garbage_price_from_training": 2.083984375,
+  "summary": {
+    "learned-fast:50/5,10,10,10": {
+      "games": 16,
+      "mean_pieces": 196.9375,
+      "errors": {
+        "legacy": {
+          "bias": 3.622350341635204,
+          "mse": 37.225352906993464
+        },
+        "learned": {
+          "bias": 6.766552453448092,
+          "mse": 69.57752456524534
+        }
+      }
+    },
+    "quality-baseline:200/5,10,10,10": {
+      "games": 16,
+      "mean_pieces": 199.0625,
+      "errors": {
+        "legacy": {
+          "bias": 2.917016839958463,
+          "mse": 42.444809930090685
+        },
+        "learned": {
+          "bias": 6.206071699912795,
+          "mse": 72.61817745857874
+        }
+      }
+    },
+    "learned-fast:200/5,10,10,10": {
+      "games": 16,
+      "mean_pieces": 196,
+      "errors": {
+        "legacy": {
+          "bias": 4.417282817551791,
+          "mse": 47.7964262444051
+        },
+        "learned": {
+          "bias": 7.570726691617331,
+          "mse": 85.36212477182669
+        }
+      }
+    },
+    "quality-baseline:50/5,10,10,10": {
+      "games": 16,
+      "mean_pieces": 201,
+      "errors": {
+        "legacy": {
+          "bias": 1.0745593130680235,
+          "mse": 27.289841834210296
+        },
+        "learned": {
+          "bias": 4.368508817362627,
+          "mse": 44.81534980539263
+        }
+      }
+    }
+  },
+  "records": [
+    {
+      "seed": 50002,
+      "binary": "research/bin/learned-fast",
+      "config": "50/5,10,10,10",
+      "pieces": 190,
+      "samples": 144,
+      "errors": {
+        "legacy": {
+          "bias": 9.11691623263889,
+          "mse": 93.82992156346639
+        },
+        "learned": {
+          "bias": 12.270692232159696,
+          "mse": 161.01297165321978
+        }
+      }
+    },
+    {
+      "seed": 50013,
+      "binary": "research/bin/quality-baseline",
+      "config": "200/5,10,10,10",
+      "pieces": 190,
+      "samples": 141,
+      "errors": {
+        "legacy": {
+          "bias": 11.12677304964539,
+          "mse": 137.313296974128
+        },
+        "learned": {
+          "bias": 14.374463865843204,
+          "mse": 220.1264301673122
+        }
+      }
+    },
+    {
+      "seed": 50001,
+      "binary": "research/bin/learned-fast",
+      "config": "200/5,10,10,10",
+      "pieces": 195,
+      "samples": 143,
+      "errors": {
+        "legacy": {
+          "bias": 3.9730113636363638,
+          "mse": 27.918464127120437
+        },
+        "learned": {
+          "bias": 7.14822009535971,
+          "mse": 64.00370358016171
+        }
+      }
+    },
+    {
+      "seed": 50004,
+      "binary": "research/bin/quality-baseline",
+      "config": "200/5,10,10,10",
+      "pieces": 189,
+      "samples": 142,
+      "errors": {
+        "legacy": {
+          "bias": 8.25035761443662,
+          "mse": 81.87143932933539
+        },
+        "learned": {
+          "bias": 11.447929867461108,
+          "mse": 144.95098114191507
+        }
+      }
+    },
+    {
+      "seed": 50003,
+      "binary": "research/bin/learned-fast",
+      "config": "50/5,10,10,10",
+      "pieces": 197,
+      "samples": 138,
+      "errors": {
+        "legacy": {
+          "bias": 2.4299564085144927,
+          "mse": 24.143337056256723
+        },
+        "learned": {
+          "bias": 5.602601903308513,
+          "mse": 48.983841217067805
+        }
+      }
+    },
+    {
+      "seed": 50002,
+      "binary": "research/bin/quality-baseline",
+      "config": "50/5,10,10,10",
+      "pieces": 215,
+      "samples": 152,
+      "errors": {
+        "legacy": {
+          "bias": -9.369166324013158,
+          "mse": 91.44696115192615
+        },
+        "learned": {
+          "bias": -6.077524463157157,
+          "mse": 40.69994016214767
+        }
+      }
+    },
+    {
+      "seed": 50008,
+      "binary": "research/bin/learned-fast",
+      "config": "50/5,10,10,10",
+      "pieces": 198,
+      "samples": 143,
+      "errors": {
+        "legacy": {
+          "bias": 0.8581594187062938,
+          "mse": 17.351578959218273
+        },
+        "learned": {
+          "bias": 3.9718709571170443,
+          "mse": 32.278127015384605
+        }
+      }
+    },
+    {
+      "seed": 50001,
+      "binary": "research/bin/quality-baseline",
+      "config": "50/5,10,10,10",
+      "pieces": 199,
+      "samples": 142,
+      "errors": {
+        "legacy": {
+          "bias": -1.318661971830986,
+          "mse": 13.794437569631658
+        },
+        "learned": {
+          "bias": 1.92117903457822,
+          "mse": 15.628852624250573
+        }
+      }
+    },
+    {
+      "seed": 50012,
+      "binary": "research/bin/learned-fast",
+      "config": "50/5,10,10,10",
+      "pieces": 195,
+      "samples": 141,
+      "errors": {
+        "legacy": {
+          "bias": 4.645140735815603,
+          "mse": 26.62571586446559
+        },
+        "learned": {
+          "bias": 7.822319352462355,
+          "mse": 65.98411262528413
+        }
+      }
+    },
+    {
+      "seed": 50011,
+      "binary": "research/bin/learned-fast",
+      "config": "50/5,10,10,10",
+      "pieces": 195,
+      "samples": 142,
+      "errors": {
+        "legacy": {
+          "bias": 5.058841329225352,
+          "mse": 34.829226211762766
+        },
+        "learned": {
+          "bias": 8.375658810106168,
+          "mse": 79.3591121854815
+        }
+      }
+    },
+    {
+      "seed": 50015,
+      "binary": "research/bin/quality-baseline",
+      "config": "200/5,10,10,10",
+      "pieces": 201,
+      "samples": 152,
+      "errors": {
+        "legacy": {
+          "bias": 2.4727975945723686,
+          "mse": 14.806899296609979
+        },
+        "learned": {
+          "bias": 5.643193556510065,
+          "mse": 40.41031921546793
+        }
+      }
+    },
+    {
+      "seed": 50000,
+      "binary": "research/bin/learned-fast",
+      "config": "50/5,10,10,10",
+      "pieces": 190,
+      "samples": 146,
+      "errors": {
+        "legacy": {
+          "bias": 9.671527183219178,
+          "mse": 97.85632909487371
+        },
+        "learned": {
+          "bias": 12.831521451785136,
+          "mse": 168.95442380238188
+        }
+      }
+    },
+    {
+      "seed": 50002,
+      "binary": "research/bin/learned-fast",
+      "config": "200/5,10,10,10",
+      "pieces": 187,
+      "samples": 139,
+      "errors": {
+        "legacy": {
+          "bias": 12.588354316546763,
+          "mse": 179.88835649010088
+        },
+        "learned": {
+          "bias": 15.851364346322905,
+          "mse": 272.27397768757726
+        }
+      }
+    },
+    {
+      "seed": 50010,
+      "binary": "research/bin/quality-baseline",
+      "config": "50/5,10,10,10",
+      "pieces": 202,
+      "samples": 145,
+      "errors": {
+        "legacy": {
+          "bias": 1.5053205818965518,
+          "mse": 5.240900368526064
+        },
+        "learned": {
+          "bias": 4.776232297987166,
+          "mse": 25.58196757037155
+        }
+      }
+    },
+    {
+      "seed": 50002,
+      "binary": "research/bin/quality-baseline",
+      "config": "200/5,10,10,10",
+      "pieces": 205,
+      "samples": 154,
+      "errors": {
+        "legacy": {
+          "bias": 0.987101765422078,
+          "mse": 3.9781046037550096
+        },
+        "learned": {
+          "bias": 4.301355905080116,
+          "mse": 21.858620320364576
+        }
+      }
+    },
+    {
+      "seed": 50004,
+      "binary": "research/bin/learned-fast",
+      "config": "50/5,10,10,10",
+      "pieces": 201,
+      "samples": 150,
+      "errors": {
+        "legacy": {
+          "bias": -1.2304947916666666,
+          "mse": 5.712797342936198
+        },
+        "learned": {
+          "bias": 1.9083471098874085,
+          "mse": 7.554030725128184
+        }
+      }
+    },
+    {
+      "seed": 50008,
+      "binary": "research/bin/quality-baseline",
+      "config": "50/5,10,10,10",
+      "pieces": 193,
+      "samples": 134,
+      "errors": {
+        "legacy": {
+          "bias": 4.033057369402985,
+          "mse": 43.988249536770496
+        },
+        "learned": {
+          "bias": 7.312090317441056,
+          "mse": 80.98680279687865
+        }
+      }
+    },
+    {
+      "seed": 50000,
+      "binary": "research/bin/quality-baseline",
+      "config": "200/5,10,10,10",
+      "pieces": 193,
+      "samples": 142,
+      "errors": {
+        "legacy": {
+          "bias": 8.574521346830986,
+          "mse": 80.58786145062514
+        },
+        "learned": {
+          "bias": 11.946922993311063,
+          "mse": 150.46559722501067
+        }
+      }
+    },
+    {
+      "seed": 50009,
+      "binary": "research/bin/learned-fast",
+      "config": "200/5,10,10,10",
+      "pieces": 205,
+      "samples": 154,
+      "errors": {
+        "legacy": {
+          "bias": -2.631024249188312,
+          "mse": 14.299868967626002
+        },
+        "learned": {
+          "bias": 0.49838937910505127,
+          "mse": 7.208617141731705
+        }
+      }
+    },
+    {
+      "seed": 50015,
+      "binary": "research/bin/learned-fast",
+      "config": "50/5,10,10,10",
+      "pieces": 196,
+      "samples": 147,
+      "errors": {
+        "legacy": {
+          "bias": 4.482568027210885,
+          "mse": 26.589664588980124
+        },
+        "learned": {
+          "bias": 7.511388287099964,
+          "mse": 62.38386040084349
+        }
+      }
+    },
+    {
+      "seed": 50007,
+      "binary": "research/bin/quality-baseline",
+      "config": "200/5,10,10,10",
+      "pieces": 197,
+      "samples": 151,
+      "errors": {
+        "legacy": {
+          "bias": 3.916054428807947,
+          "mse": 19.70171113677372
+        },
+        "learned": {
+          "bias": 7.332059369616147,
+          "mse": 58.257896816806095
+        }
+      }
+    },
+    {
+      "seed": 50000,
+      "binary": "research/bin/learned-fast",
+      "config": "200/5,10,10,10",
+      "pieces": 185,
+      "samples": 139,
+      "errors": {
+        "legacy": {
+          "bias": 12.330991456834532,
+          "mse": 170.43490271259554
+        },
+        "learned": {
+          "bias": 15.465068570524975,
+          "mse": 257.6049227732411
+        }
+      }
+    },
+    {
+      "seed": 50003,
+      "binary": "research/bin/learned-fast",
+      "config": "200/5,10,10,10",
+      "pieces": 201,
+      "samples": 150,
+      "errors": {
+        "legacy": {
+          "bias": 3.733125,
+          "mse": 18.442733103434247
+        },
+        "learned": {
+          "bias": 6.927364954017679,
+          "mse": 51.781723764378654
+        }
+      }
+    },
+    {
+      "seed": 50013,
+      "binary": "research/bin/learned-fast",
+      "config": "200/5,10,10,10",
+      "pieces": 199,
+      "samples": 141,
+      "errors": {
+        "legacy": {
+          "bias": 3.4185643838652484,
+          "mse": 19.315854688062736
+        },
+        "learned": {
+          "bias": 6.572335168429651,
+          "mse": 50.63944656760046
+        }
+      }
+    },
+    {
+      "seed": 50005,
+      "binary": "research/bin/quality-baseline",
+      "config": "200/5,10,10,10",
+      "pieces": 196,
+      "samples": 150,
+      "errors": {
+        "legacy": {
+          "bias": 3.9240625,
+          "mse": 18.36332066853841
+        },
+        "learned": {
+          "bias": 7.139153880260113,
+          "mse": 54.03014018747699
+        }
+      }
+    },
+    {
+      "seed": 50008,
+      "binary": "research/bin/quality-baseline",
+      "config": "200/5,10,10,10",
+      "pieces": 192,
+      "samples": 132,
+      "errors": {
+        "legacy": {
+          "bias": 4.149236505681818,
+          "mse": 57.1554293199019
+        },
+        "learned": {
+          "bias": 7.357556125383432,
+          "mse": 94.78941916852774
+        }
+      }
+    },
+    {
+      "seed": 50006,
+      "binary": "research/bin/quality-baseline",
+      "config": "200/5,10,10,10",
+      "pieces": 195,
+      "samples": 144,
+      "errors": {
+        "legacy": {
+          "bias": 10.020928276909721,
+          "mse": 112.03735333018832
+        },
+        "learned": {
+          "bias": 13.369301015828768,
+          "mse": 191.6919769684614
+        }
+      }
+    },
+    {
+      "seed": 50009,
+      "binary": "research/bin/learned-fast",
+      "config": "50/5,10,10,10",
+      "pieces": 205,
+      "samples": 152,
+      "errors": {
+        "legacy": {
+          "bias": 2.2129548725328947,
+          "mse": 11.255681163386294
+        },
+        "learned": {
+          "bias": 5.310620790679614,
+          "mse": 33.77687210761364
+        }
+      }
+    },
+    {
+      "seed": 50005,
+      "binary": "research/bin/quality-baseline",
+      "config": "50/5,10,10,10",
+      "pieces": 199,
+      "samples": 148,
+      "errors": {
+        "legacy": {
+          "bias": 2.0488413217905403,
+          "mse": 10.573787044834447
+        },
+        "learned": {
+          "bias": 5.350405085846276,
+          "mse": 34.87945660195344
+        }
+      }
+    },
+    {
+      "seed": 50014,
+      "binary": "research/bin/quality-baseline",
+      "config": "200/5,10,10,10",
+      "pieces": 202,
+      "samples": 148,
+      "errors": {
+        "legacy": {
+          "bias": 0.5559411951013513,
+          "mse": 2.777418780971218
+        },
+        "learned": {
+          "bias": 3.758242352202119,
+          "mse": 16.49249712229678
+        }
+      }
+    },
+    {
+      "seed": 50015,
+      "binary": "research/bin/learned-fast",
+      "config": "200/5,10,10,10",
+      "pieces": 188,
+      "samples": 136,
+      "errors": {
+        "legacy": {
+          "bias": 9.892736098345589,
+          "mse": 124.5555401689866
+        },
+        "learned": {
+          "bias": 12.923322339105253,
+          "mse": 193.3674809329669
+        }
+      }
+    },
+    {
+      "seed": 50009,
+      "binary": "research/bin/quality-baseline",
+      "config": "50/5,10,10,10",
+      "pieces": 209,
+      "samples": 148,
+      "errors": {
+        "legacy": {
+          "bias": -5.32374366554054,
+          "mse": 32.608256314251875
+        },
+        "learned": {
+          "bias": -1.902398171556534,
+          "mse": 7.877146333716206
+        }
+      }
+    },
+    {
+      "seed": 50003,
+      "binary": "research/bin/quality-baseline",
+      "config": "50/5,10,10,10",
+      "pieces": 205,
+      "samples": 150,
+      "errors": {
+        "legacy": {
+          "bias": -2.2551041666666665,
+          "mse": 8.714364013671876
+        },
+        "learned": {
+          "bias": 1.1251394070974021,
+          "mse": 4.940577080118666
+        }
+      }
+    },
+    {
+      "seed": 50007,
+      "binary": "research/bin/learned-fast",
+      "config": "200/5,10,10,10",
+      "pieces": 205,
+      "samples": 158,
+      "errors": {
+        "legacy": {
+          "bias": -1.0529939675632911,
+          "mse": 16.06931915766076
+        },
+        "learned": {
+          "bias": 2.1451519568074944,
+          "mse": 18.057715368823626
+        }
+      }
+    },
+    {
+      "seed": 50005,
+      "binary": "research/bin/learned-fast",
+      "config": "50/5,10,10,10",
+      "pieces": 193,
+      "samples": 143,
+      "errors": {
+        "legacy": {
+          "bias": 2.970457277097902,
+          "mse": 20.728137863265886
+        },
+        "learned": {
+          "bias": 6.02279383881721,
+          "mse": 47.12026355622394
+        }
+      }
+    },
+    {
+      "seed": 50010,
+      "binary": "research/bin/learned-fast",
+      "config": "200/5,10,10,10",
+      "pieces": 198,
+      "samples": 148,
+      "errors": {
+        "legacy": {
+          "bias": 3.7937605574324325,
+          "mse": 19.76235786644188
+        },
+        "learned": {
+          "bias": 7.001291454981845,
+          "mse": 54.03381572326784
+        }
+      }
+    },
+    {
+      "seed": 50009,
+      "binary": "research/bin/quality-baseline",
+      "config": "200/5,10,10,10",
+      "pieces": 209,
+      "samples": 147,
+      "errors": {
+        "legacy": {
+          "bias": -5.487656781462585,
+          "mse": 35.3345507407675
+        },
+        "learned": {
+          "bias": -2.151481552256905,
+          "mse": 10.092266750285106
+        }
+      }
+    },
+    {
+      "seed": 50011,
+      "binary": "research/bin/learned-fast",
+      "config": "200/5,10,10,10",
+      "pieces": 198,
+      "samples": 143,
+      "errors": {
+        "legacy": {
+          "bias": 3.1882921765734267,
+          "mse": 29.568449327162096
+        },
+        "learned": {
+          "bias": 6.455794967521729,
+          "mse": 61.54473791300632
+        }
+      }
+    },
+    {
+      "seed": 50012,
+      "binary": "research/bin/quality-baseline",
+      "config": "200/5,10,10,10",
+      "pieces": 196,
+      "samples": 136,
+      "errors": {
+        "legacy": {
+          "bias": 1.7131204044117647,
+          "mse": 13.306216296027689
+        },
+        "learned": {
+          "bias": 5.042921062174873,
+          "mse": 35.551357842390715
+        }
+      }
+    },
+    {
+      "seed": 50004,
+      "binary": "research/bin/quality-baseline",
+      "config": "50/5,10,10,10",
+      "pieces": 190,
+      "samples": 143,
+      "errors": {
+        "legacy": {
+          "bias": 7.449246066433567,
+          "mse": 67.43243061412464
+        },
+        "learned": {
+          "bias": 10.72506210909882,
+          "mse": 126.60514327801316
+        }
+      }
+    },
+    {
+      "seed": 50007,
+      "binary": "research/bin/learned-fast",
+      "config": "50/5,10,10,10",
+      "pieces": 205,
+      "samples": 155,
+      "errors": {
+        "legacy": {
+          "bias": -0.8122605846774194,
+          "mse": 19.771549323297315
+        },
+        "learned": {
+          "bias": 2.4017209028000868,
+          "mse": 23.425640378096418
+        }
+      }
+    },
+    {
+      "seed": 50006,
+      "binary": "research/bin/learned-fast",
+      "config": "50/5,10,10,10",
+      "pieces": 198,
+      "samples": 144,
+      "errors": {
+        "legacy": {
+          "bias": 1.1537272135416667,
+          "mse": 5.816064516703288
+        },
+        "learned": {
+          "bias": 4.179945672726432,
+          "mse": 21.766187020816687
+        }
+      }
+    },
+    {
+      "seed": 50011,
+      "binary": "research/bin/quality-baseline",
+      "config": "200/5,10,10,10",
+      "pieces": 213,
+      "samples": 164,
+      "errors": {
+        "legacy": {
+          "bias": -2.7495712652439024,
+          "mse": 18.142451635221157
+        },
+        "learned": {
+          "bias": 0.6014769354460149,
+          "mse": 10.999728996810912
+        }
+      }
+    },
+    {
+      "seed": 50013,
+      "binary": "research/bin/learned-fast",
+      "config": "50/5,10,10,10",
+      "pieces": 192,
+      "samples": 135,
+      "errors": {
+        "legacy": {
+          "bias": 8.025202546296295,
+          "mse": 91.83831787109375
+        },
+        "learned": {
+          "bias": 11.146510598623456,
+          "mse": 151.05090100105852
+        }
+      }
+    },
+    {
+      "seed": 50012,
+      "binary": "research/bin/learned-fast",
+      "config": "200/5,10,10,10",
+      "pieces": 195,
+      "samples": 141,
+      "errors": {
+        "legacy": {
+          "bias": 4.645140735815603,
+          "mse": 26.62571586446559
+        },
+        "learned": {
+          "bias": 7.822319352462355,
+          "mse": 65.98411262528413
+        }
+      }
+    },
+    {
+      "seed": 50014,
+      "binary": "research/bin/quality-baseline",
+      "config": "50/5,10,10,10",
+      "pieces": 202,
+      "samples": 148,
+      "errors": {
+        "legacy": {
+          "bias": 0.5559411951013513,
+          "mse": 2.777418780971218
+        },
+        "learned": {
+          "bias": 3.758242352202119,
+          "mse": 16.49249712229678
+        }
+      }
+    },
+    {
+      "seed": 50014,
+      "binary": "research/bin/learned-fast",
+      "config": "200/5,10,10,10",
+      "pieces": 202,
+      "samples": 155,
+      "errors": {
+        "legacy": {
+          "bias": 0.9379158266129032,
+          "mse": 3.1725438025689896
+        },
+        "learned": {
+          "bias": 4.075712563092743,
+          "mse": 18.731689244472655
+        }
+      }
+    },
+    {
+      "seed": 50005,
+      "binary": "research/bin/learned-fast",
+      "config": "200/5,10,10,10",
+      "pieces": 195,
+      "samples": 142,
+      "errors": {
+        "legacy": {
+          "bias": 3.761443661971831,
+          "mse": 20.87439733156016
+        },
+        "learned": {
+          "bias": 6.867073882116505,
+          "mse": 53.81200239299
+        }
+      }
+    },
+    {
+      "seed": 50011,
+      "binary": "research/bin/quality-baseline",
+      "config": "50/5,10,10,10",
+      "pieces": 198,
+      "samples": 144,
+      "errors": {
+        "legacy": {
+          "bias": 2.94970703125,
+          "mse": 20.130903667873806
+        },
+        "learned": {
+          "bias": 6.131347403690689,
+          "mse": 48.60342714409422
+        }
+      }
+    },
+    {
+      "seed": 50013,
+      "binary": "research/bin/quality-baseline",
+      "config": "50/5,10,10,10",
+      "pieces": 198,
+      "samples": 144,
+      "errors": {
+        "legacy": {
+          "bias": 4.166259765625,
+          "mse": 20.318850888146294
+        },
+        "learned": {
+          "bias": 7.4090933267615755,
+          "mse": 57.41221351194125
+        }
+      }
+    },
+    {
+      "seed": 50001,
+      "binary": "research/bin/learned-fast",
+      "config": "50/5,10,10,10",
+      "pieces": 198,
+      "samples": 140,
+      "errors": {
+        "legacy": {
+          "bias": 0.9377232142857143,
+          "mse": 10.211625507899694
+        },
+        "learned": {
+          "bias": 4.067509023979649,
+          "mse": 25.90081383045185
+        }
+      }
+    },
+    {
+      "seed": 50001,
+      "binary": "research/bin/quality-baseline",
+      "config": "200/5,10,10,10",
+      "pieces": 208,
+      "samples": 151,
+      "errors": {
+        "legacy": {
+          "bias": -5.997542425496689,
+          "mse": 46.34171123378324
+        },
+        "learned": {
+          "bias": -2.7341199969913625,
+          "mse": 17.354929588983687
+        }
+      }
+    },
+    {
+      "seed": 50012,
+      "binary": "research/bin/quality-baseline",
+      "config": "50/5,10,10,10",
+      "pieces": 197,
+      "samples": 136,
+      "errors": {
+        "legacy": {
+          "bias": 0.7131204044117647,
+          "mse": 10.87997548720416
+        },
+        "learned": {
+          "bias": 4.042921062174873,
+          "mse": 26.46551571804097
+        }
+      }
+    },
+    {
+      "seed": 50015,
+      "binary": "research/bin/quality-baseline",
+      "config": "50/5,10,10,10",
+      "pieces": 206,
+      "samples": 151,
+      "errors": {
+        "legacy": {
+          "bias": -1.9697977028145695,
+          "mse": 5.4574000630157675
+        },
+        "learned": {
+          "bias": 1.400711166841598,
+          "mse": 3.4089573142592413
+        }
+      }
+    },
+    {
+      "seed": 50006,
+      "binary": "research/bin/learned-fast",
+      "config": "200/5,10,10,10",
+      "pieces": 192,
+      "samples": 141,
+      "errors": {
+        "legacy": {
+          "bias": 7.039699689716312,
+          "mse": 54.05681258397745
+        },
+        "learned": {
+          "bias": 10.137516883702883,
+          "mse": 106.68269076929143
+        }
+      }
+    },
+    {
+      "seed": 50000,
+      "binary": "research/bin/quality-baseline",
+      "config": "50/5,10,10,10",
+      "pieces": 203,
+      "samples": 155,
+      "errors": {
+        "legacy": {
+          "bias": 6.351083669354839,
+          "mse": 47.029431743006555
+        },
+        "learned": {
+          "bias": 9.642182315640323,
+          "mse": 98.764648266596
+        }
+      }
+    },
+    {
+      "seed": 50010,
+      "binary": "research/bin/quality-baseline",
+      "config": "200/5,10,10,10",
+      "pieces": 197,
+      "samples": 151,
+      "errors": {
+        "legacy": {
+          "bias": 4.576262417218543,
+          "mse": 30.72536801976084
+        },
+        "learned": {
+          "bias": 7.9391968300376226,
+          "mse": 72.99349105740332
+        }
+      }
+    },
+    {
+      "seed": 50006,
+      "binary": "research/bin/quality-baseline",
+      "config": "50/5,10,10,10",
+      "pieces": 199,
+      "samples": 146,
+      "errors": {
+        "legacy": {
+          "bias": 6.712904002568493,
+          "mse": 52.898422371851254
+        },
+        "learned": {
+          "bias": 10.0100387466647,
+          "mse": 108.05329677056122
+        }
+      }
+    },
+    {
+      "seed": 50014,
+      "binary": "research/bin/learned-fast",
+      "config": "50/5,10,10,10",
+      "pieces": 205,
+      "samples": 152,
+      "errors": {
+        "legacy": {
+          "bias": -1.526148745888158,
+          "mse": 5.309440386922736
+        },
+        "learned": {
+          "bias": 1.6279279761367662,
+          "mse": 5.333249357756925
+        }
+      }
+    },
+    {
+      "seed": 50008,
+      "binary": "research/bin/learned-fast",
+      "config": "200/5,10,10,10",
+      "pieces": 197,
+      "samples": 141,
+      "errors": {
+        "legacy": {
+          "bias": 1.8458277925531914,
+          "mse": 19.842291974006816
+        },
+        "learned": {
+          "bias": 4.955436971224708,
+          "mse": 41.179180675036655
+        }
+      }
+    },
+    {
+      "seed": 50004,
+      "binary": "research/bin/learned-fast",
+      "config": "200/5,10,10,10",
+      "pieces": 194,
+      "samples": 142,
+      "errors": {
+        "legacy": {
+          "bias": 3.2116802376760565,
+          "mse": 19.91521174471143
+        },
+        "learned": {
+          "bias": 6.285264181101808,
+          "mse": 48.88817918939647
+        }
+      }
+    },
+    {
+      "seed": 50007,
+      "binary": "research/bin/quality-baseline",
+      "config": "50/5,10,10,10",
+      "pieces": 201,
+      "samples": 151,
+      "errors": {
+        "legacy": {
+          "bias": 0.9439414321192053,
+          "mse": 3.3456797315584903
+        },
+        "learned": {
+          "bias": 4.271419086490908,
+          "mse": 20.645154591042466
+        }
+      }
+    },
+    {
+      "seed": 50010,
+      "binary": "research/bin/learned-fast",
+      "config": "50/5,10,10,10",
+      "pieces": 193,
+      "samples": 145,
+      "errors": {
+        "legacy": {
+          "bias": 9.963335129310344,
+          "mse": 103.73625919736665
+        },
+        "learned": {
+          "bias": 13.213410347479975,
+          "mse": 178.35598616711604
+        }
+      }
+    },
+    {
+      "seed": 50003,
+      "binary": "research/bin/quality-baseline",
+      "config": "200/5,10,10,10",
+      "pieces": 202,
+      "samples": 150,
+      "errors": {
+        "legacy": {
+          "bias": 0.6398828125,
+          "mse": 6.673826065063476
+        },
+        "learned": {
+          "bias": 3.9289749886983367,
+          "mse": 21.825186767746718
+        }
+      }
+    }
+  ],
+  "limitation": "Executed states only; errors include policy-dependent returns. This does not measure search-leaf error or prove ranking causality."
+}

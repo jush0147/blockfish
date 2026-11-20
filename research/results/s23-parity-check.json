@@ -1,0 +1,41 @@
+{
+  "paired_games": 3,
+  "passed": 3,
+  "records": [
+    {
+      "seed": 76000,
+      "pieces": 200,
+      "inputs_clears_search_counts_equal": true,
+      "original_cpu": 23.394207,
+      "cached_cpu": 20.527339
+    },
+    {
+      "seed": 76001,
+      "pieces": 195,
+      "inputs_clears_search_counts_equal": true,
+      "original_cpu": 22.088701,
+      "cached_cpu": 19.65645
+    },
+    {
+      "seed": 76002,
+      "pieces": 197,
+      "inputs_clears_search_counts_equal": true,
+      "original_cpu": 22.401601,
+      "cached_cpu": 20.733824000000002
+    }
+  ],
+  "summary": {
+    "robust-hold-order": {
+      "mean_cpu": 22.62816966666667,
+      "mean_max_rss_kib": 26209.333333333332,
+      "sha256": "6c2d3a7b1881418e8443bbeb50fd9a1e3fe6cba82eb00c667babcd4252d96b8c"
+    },
+    "robust-hold-cached": {
+      "mean_cpu": 20.305871,
+      "mean_max_rss_kib": 30996,
+      "sha256": "03a71c8e26d5315d9b1b0174468f2d714854c06d87d2274dd527daf23c7f9d46"
+    }
+  },
+  "weights_sha256": "4efc3489eacfd0dd3437866a18972563ca7d7451628a22d92f0c415adc000d79",
+  "note": "Three development seeds, interleaved one worker with other fixed-node jobs running. Pilot CPU/RSS only; not independent piece-count improvement evidence."
+}

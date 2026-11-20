@@ -1,0 +1,59 @@
+{
+  "gate": "ci",
+  "passed": false,
+  "lock": "research/results/s31-final-lock.json",
+  "scores": {
+    "robust-plan-reuse": {
+      "complete": 64,
+      "mean_pieces": 197.4375
+    },
+    "learned-robust": {
+      "complete": 64,
+      "mean_pieces": 197.0625
+    },
+    "learned-fast": {
+      "complete": 64,
+      "mean_pieces": 199.984375
+    }
+  },
+  "candidate_minus_controls": {
+    "learned-robust": {
+      "paired_seeds": 64,
+      "completed_pairs": 64,
+      "delta_b_minus_a": 0.375,
+      "bootstrap95": [
+        -1.25,
+        2.0625
+      ],
+      "b_wins": 18,
+      "ties": 25,
+      "b_losses": 21
+    },
+    "learned-fast": {
+      "paired_seeds": 64,
+      "completed_pairs": 64,
+      "delta_b_minus_a": -2.546875,
+      "bootstrap95": [
+        -5.03125,
+        -0.015625
+      ],
+      "b_wins": 37,
+      "ties": 4,
+      "b_losses": 23
+    }
+  },
+  "checks": {
+    "learned-robust": {
+      "completion_no_worse": true,
+      "mean_lower": false,
+      "complete_paired_cohort": true,
+      "negative_95_interval": false
+    },
+    "learned-fast": {
+      "completion_no_worse": true,
+      "mean_lower": true,
+      "complete_paired_cohort": true,
+      "negative_95_interval": true
+    }
+  }
+}

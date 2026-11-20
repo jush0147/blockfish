@@ -1,0 +1,128 @@
+{
+  "verifier": "research/bin/learned-fast",
+  "verifier_sha256": "824eca4f6675630f072c062e3ec72e6a8aa3d1ba935c147b64960bda1c98c2c3",
+  "total": 12,
+  "passed": 12,
+  "records": [
+    {
+      "source": "research/results/s-direct-midpoint-dev.jsonl",
+      "trace": "research/results/s-direct-midpoint-dev-learned-tunable-1149c770-3c6e49c1-None-False-62002-53afc125c1ed.json",
+      "seed": 62002,
+      "pieces": 199,
+      "returncode": 0,
+      "sha256": "cead79dd8ffb4b067fac888a77d9e1e8a86d12e7ec4137f800eb026136ad2bb9",
+      "stdout": "Verified 199 pieces, 100 garbage rows, seed 62002",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-midpoint-dev.jsonl",
+      "trace": "research/results/s-direct-midpoint-dev-learned-tunable-1149c770-3c6e49c1-None-False-62001-53afc125c1ed.json",
+      "seed": 62001,
+      "pieces": 192,
+      "returncode": 0,
+      "sha256": "e9c7f15278ef63e3efd29cbfddf2ec25e60b0d8f12f06b701b55e0ac1605f39a",
+      "stdout": "Verified 192 pieces, 100 garbage rows, seed 62001",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-midpoint-dev.jsonl",
+      "trace": "research/results/s-direct-midpoint-dev-learned-tunable-1149c770-3c6e49c1-None-False-62011-53afc125c1ed.json",
+      "seed": 62011,
+      "pieces": 194,
+      "returncode": 0,
+      "sha256": "b5903da2080520c78a33ce6b2dbba2d4dec8f4b81b55a418c760a9ea2e4a5581",
+      "stdout": "Verified 194 pieces, 100 garbage rows, seed 62011",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-midpoint-dev.jsonl",
+      "trace": "research/results/s-direct-midpoint-dev-learned-tunable-1149c770-3c6e49c1-None-False-62009-53afc125c1ed.json",
+      "seed": 62009,
+      "pieces": 201,
+      "returncode": 0,
+      "sha256": "8b892d8569bf2168927d654d9ad4ffe5d12a70c54b9aeb2b6cebc61ffd300e0a",
+      "stdout": "Verified 201 pieces, 100 garbage rows, seed 62009",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-midpoint-dev.jsonl",
+      "trace": "research/results/s-direct-midpoint-dev-learned-tunable-1149c770-3c6e49c1-None-False-62010-53afc125c1ed.json",
+      "seed": 62010,
+      "pieces": 201,
+      "returncode": 0,
+      "sha256": "afe5f2a5713a4f18c9e5d829f3a79a18c899747f5de04360f97053d6c89c7ff0",
+      "stdout": "Verified 201 pieces, 100 garbage rows, seed 62010",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-midpoint-dev.jsonl",
+      "trace": "research/results/s-direct-midpoint-dev-learned-tunable-1149c770-3c6e49c1-None-False-62000-53afc125c1ed.json",
+      "seed": 62000,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "10d3b61bec4dc3f5fe291848ada754fa1114d3bcdbfe32a7cc237772d1d89e1a",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 62000",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-midpoint-dev.jsonl",
+      "trace": "research/results/s-direct-midpoint-dev-learned-tunable-1149c770-3c6e49c1-None-False-62008-53afc125c1ed.json",
+      "seed": 62008,
+      "pieces": 194,
+      "returncode": 0,
+      "sha256": "eecf869ba9d3bf5cc4054d47c1a2a2e969e28851524eb38281616be0d58e5ca1",
+      "stdout": "Verified 194 pieces, 100 garbage rows, seed 62008",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-midpoint-dev.jsonl",
+      "trace": "research/results/s-direct-midpoint-dev-learned-tunable-1149c770-3c6e49c1-None-False-62006-53afc125c1ed.json",
+      "seed": 62006,
+      "pieces": 191,
+      "returncode": 0,
+      "sha256": "8487fc21e9eb510eda66776f0de22505975c9a3c6db0edced5b4cb72992cb036",
+      "stdout": "Verified 191 pieces, 100 garbage rows, seed 62006",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-midpoint-dev.jsonl",
+      "trace": "research/results/s-direct-midpoint-dev-learned-tunable-1149c770-3c6e49c1-None-False-62004-53afc125c1ed.json",
+      "seed": 62004,
+      "pieces": 205,
+      "returncode": 0,
+      "sha256": "577560425f09c68ffa13c0783840190ea50a1373e2ae41a85b61def5429a414a",
+      "stdout": "Verified 205 pieces, 100 garbage rows, seed 62004",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-midpoint-dev.jsonl",
+      "trace": "research/results/s-direct-midpoint-dev-learned-tunable-1149c770-3c6e49c1-None-False-62003-53afc125c1ed.json",
+      "seed": 62003,
+      "pieces": 189,
+      "returncode": 0,
+      "sha256": "3d9441f74a005934992c4811f506eec7d4045b894432b330d097f8bd45e1705d",
+      "stdout": "Verified 189 pieces, 100 garbage rows, seed 62003",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-midpoint-dev.jsonl",
+      "trace": "research/results/s-direct-midpoint-dev-learned-tunable-1149c770-3c6e49c1-None-False-62007-53afc125c1ed.json",
+      "seed": 62007,
+      "pieces": 212,
+      "returncode": 0,
+      "sha256": "0da8812a4cefd031d7a74da4d5702ed924f98290e00dc5133bc928055d70b792",
+      "stdout": "Verified 212 pieces, 100 garbage rows, seed 62007",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-midpoint-dev.jsonl",
+      "trace": "research/results/s-direct-midpoint-dev-learned-tunable-1149c770-3c6e49c1-None-False-62005-53afc125c1ed.json",
+      "seed": 62005,
+      "pieces": 199,
+      "returncode": 0,
+      "sha256": "9d03d8f4df0d8081d6f03b5cba253b599e363c768626191c1b2bc11e6a31ba0b",
+      "stdout": "Verified 199 pieces, 100 garbage rows, seed 62005",
+      "stderr": ""
+    }
+  ]
+}

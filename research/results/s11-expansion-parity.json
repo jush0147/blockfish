@@ -1,0 +1,110 @@
+[
+  {
+    "seed": 62002,
+    "initial_search_counts": {
+      "frontier_nodes": 48145,
+      "generated_nodes": 50000,
+      "sequences": 651
+    },
+    "same_first_move": true
+  },
+  {
+    "seed": 62011,
+    "initial_search_counts": {
+      "frontier_nodes": 48409,
+      "generated_nodes": 50000,
+      "sequences": 401
+    },
+    "same_first_move": false
+  },
+  {
+    "seed": 62001,
+    "initial_search_counts": {
+      "frontier_nodes": 47247,
+      "generated_nodes": 50000,
+      "sequences": 931
+    },
+    "same_first_move": false
+  },
+  {
+    "seed": 62009,
+    "initial_search_counts": {
+      "frontier_nodes": 47355,
+      "generated_nodes": 50000,
+      "sequences": 995
+    },
+    "same_first_move": true
+  },
+  {
+    "seed": 62006,
+    "initial_search_counts": {
+      "frontier_nodes": 47517,
+      "generated_nodes": 50000,
+      "sequences": 875
+    },
+    "same_first_move": true
+  },
+  {
+    "seed": 62000,
+    "initial_search_counts": {
+      "frontier_nodes": 48030,
+      "generated_nodes": 50000,
+      "sequences": 600
+    },
+    "same_first_move": true
+  },
+  {
+    "seed": 62008,
+    "initial_search_counts": {
+      "frontier_nodes": 48059,
+      "generated_nodes": 50000,
+      "sequences": 672
+    },
+    "same_first_move": true
+  },
+  {
+    "seed": 62010,
+    "initial_search_counts": {
+      "frontier_nodes": 48173,
+      "generated_nodes": 50000,
+      "sequences": 477
+    },
+    "same_first_move": false
+  },
+  {
+    "seed": 62004,
+    "initial_search_counts": {
+      "frontier_nodes": 48157,
+      "generated_nodes": 50000,
+      "sequences": 482
+    },
+    "same_first_move": true
+  },
+  {
+    "seed": 62003,
+    "initial_search_counts": {
+      "frontier_nodes": 47575,
+      "generated_nodes": 50000,
+      "sequences": 867
+    },
+    "same_first_move": true
+  },
+  {
+    "seed": 62007,
+    "initial_search_counts": {
+      "frontier_nodes": 47582,
+      "generated_nodes": 50000,
+      "sequences": 905
+    },
+    "same_first_move": true
+  },
+  {
+    "seed": 62005,
+    "initial_search_counts": {
+      "frontier_nodes": 48262,
+      "generated_nodes": 50000,
+      "sequences": 575
+    },
+    "same_first_move": true
+  }
+]

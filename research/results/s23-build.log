@@ -1,0 +1,11 @@
+   Compiling blockfish v0.1.0 (/workspace/blockfish/blockfish-engine)
+warning: function `adjust` is never used
+  --> blockfish-engine/src/ai/hold_context.rs:18:15
+   |
+18 | pub(super) fn adjust(score: i64, state: &State) -> i64 {
+   |               ^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: `blockfish` (lib) generated 1 warning
+    Finished release [optimized] target(s) in 4.55s

@@ -1,0 +1,35 @@
+{
+  "gate": "mean",
+  "passed": false,
+  "lock": "research/results/s33-validation-lock.json",
+  "scores": {
+    "robust-reveal-boundary": {
+      "complete": 24,
+      "mean_pieces": 252.83333333333334
+    },
+    "learned-robust": {
+      "complete": 24,
+      "mean_pieces": 196.29166666666666
+    }
+  },
+  "candidate_minus_controls": {
+    "learned-robust": {
+      "paired_seeds": 24,
+      "completed_pairs": 24,
+      "delta_b_minus_a": 56.541666666666664,
+      "bootstrap95": [
+        50.666666666666664,
+        62.666666666666664
+      ],
+      "b_wins": 0,
+      "ties": 0,
+      "b_losses": 24
+    }
+  },
+  "checks": {
+    "learned-robust": {
+      "completion_no_worse": true,
+      "mean_lower": false
+    }
+  }
+}

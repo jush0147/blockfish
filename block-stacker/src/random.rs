@@ -23,6 +23,18 @@ pub struct Pieces {
 }
 
 impl Pieces {
+    #[cfg(feature = "public-world")]
+    pub fn conditioned(prng: PRNG, types: Vec<PieceType>, remaining: &[PieceType]) -> Self {
+        let mut all=types;all.sort_unstable();all.dedup();
+        assert!(!all.is_empty());
+        let mut rest=remaining.to_vec();rest.sort_unstable();rest.dedup();
+        assert_eq!(rest.len(),remaining.len());
+        assert!(rest.iter().all(|c|all.contains(c)));
+        if rest.is_empty() { return Self::with_random_bag(prng,all); }
+        let mut bag:Vec<_>=all.iter().copied().filter(|c|!rest.contains(c)).collect();
+        let pos=bag.len();bag.extend(rest);
+        Self {prng,bag,pos}
+    }
     pub fn with_random_bag(prng: PRNG, bag: impl IntoIterator<Item = PieceType>) -> Self {
         let mut bag = bag.into_iter().collect::<Vec<_>>();
         bag.sort();
@@ -49,6 +61,11 @@ pub struct CheeseCols {
 }
 
 impl CheeseCols {
+    #[cfg(feature = "public-world")]
+    pub fn conditioned(prng: PRNG, cols: u16, prev: Option<u16>) -> Self {
+        assert!(prev.map_or(true,|c|c<cols));
+        Self {prng,cols,prev}
+    }
     pub fn new(prng: PRNG, cols: u16) -> Self {
         Self {
             prng,

@@ -1,0 +1,27 @@
+{
+  "training_seeds": [
+    76400,
+    76527
+  ],
+  "samples_by_hold": {
+    "I": 2392,
+    "J": 2242,
+    "L": 2277,
+    "O": 3437,
+    "S": 3074,
+    "T": 2067,
+    "Z": 3285,
+    "empty": 221
+  },
+  "games_containing_hold": {
+    "I": 128,
+    "J": 128,
+    "L": 128,
+    "O": 128,
+    "S": 128,
+    "T": 128,
+    "Z": 128,
+    "empty": 128
+  },
+  "note": "Correlated executed states; sample count is not independent sample size."
+}

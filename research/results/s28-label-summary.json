@@ -1,0 +1,325 @@
+{
+  "source_states": 8,
+  "paired_states": 8,
+  "full_paths": 64,
+  "full_completed": 64,
+  "weak_truncated": 0,
+  "base_nodes": 400000,
+  "strong_nodes": 315800000,
+  "weak_nodes": 199680,
+  "simulated_state_nodes": 6764,
+  "total_generated_accounting": 316406444,
+  "cpu_seconds": 507.88818,
+  "max_rss_kib": 54500,
+  "strict_half_agreement": 2,
+  "strong_short_agreement": 3,
+  "weak_short_agreement": 3,
+  "full_mean_ties": 2,
+  "records": [
+    {
+      "seed": 76906,
+      "paired": true,
+      "full_world_deltas": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "strong_short_world_deltas": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "weak_short_world_deltas": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "full_mean_delta": 0.0,
+      "strong_short_mean_delta": 0.0,
+      "weak_short_mean_delta": 0.0,
+      "half_means": [
+        0.0,
+        0.0
+      ],
+      "half_signs": [
+        0,
+        0
+      ],
+      "strict_half_agreement": false,
+      "strong_short_agrees": false,
+      "weak_short_agrees": false,
+      "full_tie": true,
+      "short_policy_difference": 0.0
+    },
+    {
+      "seed": 76907,
+      "paired": true,
+      "full_world_deltas": [
+        -3.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "strong_short_world_deltas": [
+        0.28398437499998863,
+        0.28398437499998863,
+        0.28398437499998863,
+        0.28398437499998863
+      ],
+      "weak_short_world_deltas": [
+        0.28398437499998863,
+        0.28398437499998863,
+        0.28398437499998863,
+        0.28398437499998863
+      ],
+      "full_mean_delta": -0.75,
+      "strong_short_mean_delta": 0.28398437499998863,
+      "weak_short_mean_delta": 0.28398437499998863,
+      "half_means": [
+        -1.5,
+        0.0
+      ],
+      "half_signs": [
+        -1,
+        0
+      ],
+      "strict_half_agreement": false,
+      "strong_short_agrees": false,
+      "weak_short_agrees": false,
+      "full_tie": false,
+      "short_policy_difference": 0.0
+    },
+    {
+      "seed": 76900,
+      "paired": true,
+      "full_world_deltas": [
+        -2.0,
+        2.0,
+        -6.0,
+        0.0
+      ],
+      "strong_short_world_deltas": [
+        0.083984375,
+        0.083984375,
+        -1.5160156249999943,
+        0.38398437499999716
+      ],
+      "weak_short_world_deltas": [
+        0.28398437499998863,
+        0.28398437499998863,
+        0.28398437499998863,
+        0.28398437499998863
+      ],
+      "full_mean_delta": -1.5,
+      "strong_short_mean_delta": -0.2410156249999993,
+      "weak_short_mean_delta": 0.28398437499998863,
+      "half_means": [
+        0.0,
+        -3.0
+      ],
+      "half_signs": [
+        0,
+        -1
+      ],
+      "strict_half_agreement": false,
+      "strong_short_agrees": true,
+      "weak_short_agrees": false,
+      "full_tie": false,
+      "short_policy_difference": 0.5249999999999879
+    },
+    {
+      "seed": 76904,
+      "paired": true,
+      "full_world_deltas": [
+        0.0,
+        -3.0,
+        3.0,
+        -13.0
+      ],
+      "strong_short_world_deltas": [
+        0.6000000000000085,
+        0.5999999999999943,
+        3.299999999999997,
+        0.5999999999999943
+      ],
+      "weak_short_world_deltas": [
+        0.3160156250000057,
+        0.3160156250000057,
+        0.3160156250000057,
+        0.3160156250000057
+      ],
+      "full_mean_delta": -3.25,
+      "strong_short_mean_delta": 1.2749999999999986,
+      "weak_short_mean_delta": 0.3160156250000057,
+      "half_means": [
+        -1.5,
+        -5.0
+      ],
+      "half_signs": [
+        -1,
+        -1
+      ],
+      "strict_half_agreement": true,
+      "strong_short_agrees": false,
+      "weak_short_agrees": false,
+      "full_tie": false,
+      "short_policy_difference": -0.9589843749999929
+    },
+    {
+      "seed": 76902,
+      "paired": true,
+      "full_world_deltas": [
+        -5.0,
+        -1.0,
+        2.0,
+        4.0
+      ],
+      "strong_short_world_deltas": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "weak_short_world_deltas": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "full_mean_delta": 0.0,
+      "strong_short_mean_delta": 1.0,
+      "weak_short_mean_delta": 1.0,
+      "half_means": [
+        -3.0,
+        3.0
+      ],
+      "half_signs": [
+        -1,
+        1
+      ],
+      "strict_half_agreement": false,
+      "strong_short_agrees": false,
+      "weak_short_agrees": false,
+      "full_tie": true,
+      "short_policy_difference": 0.0
+    },
+    {
+      "seed": 76901,
+      "paired": true,
+      "full_world_deltas": [
+        3.0,
+        -3.0,
+        -5.0,
+        2.0
+      ],
+      "strong_short_world_deltas": [
+        -1.2160156249999972,
+        -1.5999999999999943,
+        0.10000000000000853,
+        -1.5999999999999943
+      ],
+      "weak_short_world_deltas": [
+        -1.5999999999999943,
+        -1.5999999999999943,
+        -1.5999999999999943,
+        -1.5999999999999943
+      ],
+      "full_mean_delta": -0.75,
+      "strong_short_mean_delta": -1.0790039062499943,
+      "weak_short_mean_delta": -1.5999999999999943,
+      "half_means": [
+        0.0,
+        -1.5
+      ],
+      "half_signs": [
+        0,
+        -1
+      ],
+      "strict_half_agreement": false,
+      "strong_short_agrees": true,
+      "weak_short_agrees": true,
+      "full_tie": false,
+      "short_policy_difference": -0.52099609375
+    },
+    {
+      "seed": 76905,
+      "paired": true,
+      "full_world_deltas": [
+        9.0,
+        0.0,
+        3.0,
+        -11.0
+      ],
+      "strong_short_world_deltas": [
+        2.299999999999997,
+        2.299999999999997,
+        2.299999999999997,
+        2.299999999999997
+      ],
+      "weak_short_world_deltas": [
+        2.5999999999999943,
+        2.5999999999999943,
+        2.5999999999999943,
+        2.5999999999999943
+      ],
+      "full_mean_delta": 0.25,
+      "strong_short_mean_delta": 2.299999999999997,
+      "weak_short_mean_delta": 2.5999999999999943,
+      "half_means": [
+        4.5,
+        -4.0
+      ],
+      "half_signs": [
+        1,
+        -1
+      ],
+      "strict_half_agreement": false,
+      "strong_short_agrees": true,
+      "weak_short_agrees": true,
+      "full_tie": false,
+      "short_policy_difference": 0.29999999999999716
+    },
+    {
+      "seed": 76903,
+      "paired": true,
+      "full_world_deltas": [
+        1.0,
+        0.0,
+        5.0,
+        -4.0
+      ],
+      "strong_short_world_deltas": [
+        0.20000000000000284,
+        0.0,
+        -0.9000000000000057,
+        -0.9000000000000057
+      ],
+      "weak_short_world_deltas": [
+        0.0,
+        0.0,
+        0.6160156250000028,
+        0.0
+      ],
+      "full_mean_delta": 0.5,
+      "strong_short_mean_delta": -0.40000000000000213,
+      "weak_short_mean_delta": 0.1540039062500007,
+      "half_means": [
+        0.5,
+        0.5
+      ],
+      "half_signs": [
+        1,
+        1
+      ],
+      "strict_half_agreement": true,
+      "strong_short_agrees": false,
+      "weak_short_agrees": true,
+      "full_tie": false,
+      "short_policy_difference": 0.5540039062500028
+    }
+  ],
+  "note": "Post-preregistered fixed pilot, descriptive only. Four sampled worlds do not establish true action values; common simulator/model bias remains. No deployed policy selected, no test-set access, no treating conditional paths as independent games."
+}

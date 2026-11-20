@@ -1,0 +1,5 @@
+{
+  "s27_complete_cohort_unchanged": true,
+  "s29_s30_failed_rows_preserved": 4,
+  "fix": "Treat null search on failed runs as absent; completed runs still require per-placement search records."
+}

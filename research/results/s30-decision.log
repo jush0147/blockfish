@@ -1,0 +1,61 @@
+learned-robust:50/5,10,10,10:None 32 / 32 mean 196.15625 CPU 15.75782028125
+robust-global-f:50/5,10,10,10:None 28 / 32 mean 196.07142857142858 CPU 15.164654071428572
+robust-global-regret:50/5,10,10,10:None 32 / 32 mean 201.65625 CPU 21.22714021875
+{"a": "learned-robust:50/5,10,10,10:None", "b": "robust-global-f:50/5,10,10,10:None", "paired_seeds": 32, "completed_pairs": 28, "delta_b_minus_a": 0.25, "bootstrap95": [-2.5714285714285716, 2.857142857142857], "b_wins": 12, "ties": 1, "b_losses": 15}
+{"a": "learned-robust:50/5,10,10,10:None", "b": "robust-global-regret:50/5,10,10,10:None", "paired_seeds": 32, "completed_pairs": 32, "delta_b_minus_a": 5.5, "bootstrap95": [2.96875, 7.90625], "b_wins": 6, "ties": 1, "b_losses": 25}
+{"a": "robust-global-f:50/5,10,10,10:None", "b": "robust-global-regret:50/5,10,10,10:None", "paired_seeds": 32, "completed_pairs": 28, "delta_b_minus_a": 6.357142857142857, "bootstrap95": [3.4285714285714284, 9.285714285714286], "b_wins": 6, "ties": 3, "b_losses": 19}
+{
+  "gate": "mean",
+  "passed": false,
+  "lock": "research/results/s30-dev-lock.json",
+  "scores": {
+    "robust-global-regret": {
+      "complete": 32,
+      "mean_pieces": 201.65625
+    },
+    "robust-global-f": {
+      "complete": 28,
+      "mean_pieces": 196.07142857142858
+    },
+    "learned-robust": {
+      "complete": 32,
+      "mean_pieces": 196.15625
+    }
+  },
+  "candidate_minus_controls": {
+    "robust-global-regret": {
+      "paired_seeds": 32,
+      "completed_pairs": 28,
+      "delta_b_minus_a": -6.357142857142857,
+      "bootstrap95": [
+        -9.285714285714286,
+        -3.4285714285714284
+      ],
+      "b_wins": 19,
+      "ties": 3,
+      "b_losses": 6
+    },
+    "learned-robust": {
+      "paired_seeds": 32,
+      "completed_pairs": 28,
+      "delta_b_minus_a": 0.25,
+      "bootstrap95": [
+        -2.5714285714285716,
+        2.857142857142857
+      ],
+      "b_wins": 12,
+      "ties": 1,
+      "b_losses": 15
+    }
+  },
+  "checks": {
+    "robust-global-regret": {
+      "completion_no_worse": false,
+      "mean_lower": true
+    },
+    "learned-robust": {
+      "completion_no_worse": false,
+      "mean_lower": true
+    }
+  }
+}

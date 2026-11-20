@@ -1,0 +1,248 @@
+{
+  "verifier": "research/bin/learned-fast",
+  "verifier_sha256": "824eca4f6675630f072c062e3ec72e6a8aa3d1ba935c147b64960bda1c98c2c3",
+  "total": 24,
+  "passed": 24,
+  "records": [
+    {
+      "source": "research/results/s15-dev.jsonl",
+      "trace": "research/results/s15-dev-robust-tail-hold-09872aa5-3c6e49c1-None-False-62004.json",
+      "seed": 62004,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "40526dee476958998da6fb3c093dd10ce765797165e25cc17fa566518eca6189",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 62004",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s15-dev.jsonl",
+      "trace": "research/results/s15-dev-robust-tail-hold-placebo-a3645d81-3c6e49c1-None-False-62009.json",
+      "seed": 62009,
+      "pieces": 216,
+      "returncode": 0,
+      "sha256": "78fae898a93fea534b0d768c3e2a8a544f3dadb72e7a7e84edec07cbece0216e",
+      "stdout": "Verified 216 pieces, 100 garbage rows, seed 62009",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s15-dev.jsonl",
+      "trace": "research/results/s15-dev-robust-tail-hold-09872aa5-3c6e49c1-None-False-62010.json",
+      "seed": 62010,
+      "pieces": 218,
+      "returncode": 0,
+      "sha256": "a84aff6394eca16eef56746911360d45d8e01e75e31b86db7fee41c13228616f",
+      "stdout": "Verified 218 pieces, 100 garbage rows, seed 62010",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s15-dev.jsonl",
+      "trace": "research/results/s15-dev-robust-tail-hold-placebo-a3645d81-3c6e49c1-None-False-62007.json",
+      "seed": 62007,
+      "pieces": 213,
+      "returncode": 0,
+      "sha256": "cc88494a641575bc12d96d13db644d0d78aad644889a0a4cfd8220214042133b",
+      "stdout": "Verified 213 pieces, 100 garbage rows, seed 62007",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s15-dev.jsonl",
+      "trace": "research/results/s15-dev-robust-tail-hold-placebo-a3645d81-3c6e49c1-None-False-62011.json",
+      "seed": 62011,
+      "pieces": 214,
+      "returncode": 0,
+      "sha256": "7beabf5e539ea1655b3df76e0fdca953a6bdc43c3e101123bd4ff4d848f885ca",
+      "stdout": "Verified 214 pieces, 100 garbage rows, seed 62011",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s15-dev.jsonl",
+      "trace": "research/results/s15-dev-robust-tail-hold-09872aa5-3c6e49c1-None-False-62011.json",
+      "seed": 62011,
+      "pieces": 204,
+      "returncode": 0,
+      "sha256": "5c49a362f352adf530a5603c9325953ace8560f91769d7494796a1564eba464e",
+      "stdout": "Verified 204 pieces, 100 garbage rows, seed 62011",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s15-dev.jsonl",
+      "trace": "research/results/s15-dev-robust-tail-hold-placebo-a3645d81-3c6e49c1-None-False-62010.json",
+      "seed": 62010,
+      "pieces": 206,
+      "returncode": 0,
+      "sha256": "7760b4d7830dbb96c5b2d08401a8777d7361d57dbb3fca838c3ebc067a0e31f9",
+      "stdout": "Verified 206 pieces, 100 garbage rows, seed 62010",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s15-dev.jsonl",
+      "trace": "research/results/s15-dev-robust-tail-hold-placebo-a3645d81-3c6e49c1-None-False-62001.json",
+      "seed": 62001,
+      "pieces": 212,
+      "returncode": 0,
+      "sha256": "5138fe55666f27dfdb6c03a01ff375c2c37121fc77a93db2f859ee0d574bb0ff",
+      "stdout": "Verified 212 pieces, 100 garbage rows, seed 62001",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s15-dev.jsonl",
+      "trace": "research/results/s15-dev-robust-tail-hold-09872aa5-3c6e49c1-None-False-62002.json",
+      "seed": 62002,
+      "pieces": 192,
+      "returncode": 0,
+      "sha256": "b4eb26dab32265f22d16e8f6b30b82721f8e8f1cdd4566058a974a58c1c339b8",
+      "stdout": "Verified 192 pieces, 100 garbage rows, seed 62002",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s15-dev.jsonl",
+      "trace": "research/results/s15-dev-robust-tail-hold-09872aa5-3c6e49c1-None-False-62009.json",
+      "seed": 62009,
+      "pieces": 201,
+      "returncode": 0,
+      "sha256": "702245529daed48f4cc6adf041b84bedf7029b917e8519df0bb5b93c65122929",
+      "stdout": "Verified 201 pieces, 100 garbage rows, seed 62009",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s15-dev.jsonl",
+      "trace": "research/results/s15-dev-robust-tail-hold-placebo-a3645d81-3c6e49c1-None-False-62002.json",
+      "seed": 62002,
+      "pieces": 213,
+      "returncode": 0,
+      "sha256": "36db6ab2e2bad8d42897d20349d082f0ae8faf04b2c5bd3d9963c12e9eb94e43",
+      "stdout": "Verified 213 pieces, 100 garbage rows, seed 62002",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s15-dev.jsonl",
+      "trace": "research/results/s15-dev-robust-tail-hold-placebo-a3645d81-3c6e49c1-None-False-62000.json",
+      "seed": 62000,
+      "pieces": 212,
+      "returncode": 0,
+      "sha256": "6adaea411551f935523f6c6c51f4094975f24e26ff48a7e1732ee7c91511c626",
+      "stdout": "Verified 212 pieces, 100 garbage rows, seed 62000",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s15-dev.jsonl",
+      "trace": "research/results/s15-dev-robust-tail-hold-placebo-a3645d81-3c6e49c1-None-False-62005.json",
+      "seed": 62005,
+      "pieces": 205,
+      "returncode": 0,
+      "sha256": "c6c1fecfec97265e4234b0e7f5e60d2858f3536bbd2c64c7636b31cc2e21f45f",
+      "stdout": "Verified 205 pieces, 100 garbage rows, seed 62005",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s15-dev.jsonl",
+      "trace": "research/results/s15-dev-robust-tail-hold-09872aa5-3c6e49c1-None-False-62003.json",
+      "seed": 62003,
+      "pieces": 202,
+      "returncode": 0,
+      "sha256": "abaf3d99fb2faa7990e3175d22bfeda2802a160715a9168616a50d112b805c69",
+      "stdout": "Verified 202 pieces, 100 garbage rows, seed 62003",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s15-dev.jsonl",
+      "trace": "research/results/s15-dev-robust-tail-hold-09872aa5-3c6e49c1-None-False-62008.json",
+      "seed": 62008,
+      "pieces": 194,
+      "returncode": 0,
+      "sha256": "e2084e469efe09e58f89e874f5c7a6b1caded188af956831aafff4af2ebc0ad8",
+      "stdout": "Verified 194 pieces, 100 garbage rows, seed 62008",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s15-dev.jsonl",
+      "trace": "research/results/s15-dev-robust-tail-hold-09872aa5-3c6e49c1-None-False-62001.json",
+      "seed": 62001,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "896a83e77c1cc7a98e57b924682f11ec53d4de0b83333f75126ea65d9df1dad8",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 62001",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s15-dev.jsonl",
+      "trace": "research/results/s15-dev-robust-tail-hold-placebo-a3645d81-3c6e49c1-None-False-62006.json",
+      "seed": 62006,
+      "pieces": 209,
+      "returncode": 0,
+      "sha256": "14a00be522e3456149c0bb686f9ef8f83702b3a448c88084335a48b53140cfdb",
+      "stdout": "Verified 209 pieces, 100 garbage rows, seed 62006",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s15-dev.jsonl",
+      "trace": "research/results/s15-dev-robust-tail-hold-09872aa5-3c6e49c1-None-False-62000.json",
+      "seed": 62000,
+      "pieces": 203,
+      "returncode": 0,
+      "sha256": "e246987b41d5098b9b869dadff5215010d1ec04e636c1e98420edfb424e323be",
+      "stdout": "Verified 203 pieces, 100 garbage rows, seed 62000",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s15-dev.jsonl",
+      "trace": "research/results/s15-dev-robust-tail-hold-placebo-a3645d81-3c6e49c1-None-False-62008.json",
+      "seed": 62008,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "dbebb3e598f5cc4f7a6683402afaa5d5702351e0bbca5d592c3a942223ffc782",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 62008",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s15-dev.jsonl",
+      "trace": "research/results/s15-dev-robust-tail-hold-09872aa5-3c6e49c1-None-False-62006.json",
+      "seed": 62006,
+      "pieces": 202,
+      "returncode": 0,
+      "sha256": "0d8026c757201f43803bcb6c91b2808cc76ab794199f80f02fcd8512fff99f20",
+      "stdout": "Verified 202 pieces, 100 garbage rows, seed 62006",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s15-dev.jsonl",
+      "trace": "research/results/s15-dev-robust-tail-hold-placebo-a3645d81-3c6e49c1-None-False-62003.json",
+      "seed": 62003,
+      "pieces": 199,
+      "returncode": 0,
+      "sha256": "e8a2b8bde35f753d105c7fc061490bca30a38cda48dba9ca797fdb6ddb52ad51",
+      "stdout": "Verified 199 pieces, 100 garbage rows, seed 62003",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s15-dev.jsonl",
+      "trace": "research/results/s15-dev-robust-tail-hold-09872aa5-3c6e49c1-None-False-62007.json",
+      "seed": 62007,
+      "pieces": 205,
+      "returncode": 0,
+      "sha256": "279e0b17b4277e076d797e76b2ca1645121c3e009971b34dccf72e620ebfdd29",
+      "stdout": "Verified 205 pieces, 100 garbage rows, seed 62007",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s15-dev.jsonl",
+      "trace": "research/results/s15-dev-robust-tail-hold-placebo-a3645d81-3c6e49c1-None-False-62004.json",
+      "seed": 62004,
+      "pieces": 203,
+      "returncode": 0,
+      "sha256": "6ddc384c007dbda9a0b25a3a0e3bd21a4d1f4dda332b8547ab09c2c4eaadd188",
+      "stdout": "Verified 203 pieces, 100 garbage rows, seed 62004",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s15-dev.jsonl",
+      "trace": "research/results/s15-dev-robust-tail-hold-09872aa5-3c6e49c1-None-False-62005.json",
+      "seed": 62005,
+      "pieces": 211,
+      "returncode": 0,
+      "sha256": "4d015f34cab7494a6b5bcb4c1425c3d76e75b00ae787e6d325055f55cc5182a5",
+      "stdout": "Verified 211 pieces, 100 garbage rows, seed 62005",
+      "stderr": ""
+    }
+  ]
+}

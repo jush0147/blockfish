@@ -1,0 +1,7 @@
+{
+  "offline_locked_build_passed": true,
+  "original_sha256": "6c2d3a7b1881418e8443bbeb50fd9a1e3fe6cba82eb00c667babcd4252d96b8c",
+  "restored_sha256": "6c2d3a7b1881418e8443bbeb50fd9a1e3fe6cba82eb00c667babcd4252d96b8c",
+  "binary_identical": true,
+  "snapshot": "research/checkpoints/s22-candidate-20261114-source.tar.gz"
+}

@@ -1,0 +1,10 @@
+learned-eager:50/5,10,10,10:None 32 / 32 mean 198.84375 CPU 21.779779
+learned-endgame-queue:50/5,10,10,10:None 32 / 32 mean 198.8125 CPU 17.1592376875
+learned-endgame-strong:50/5,10,10,10:None 32 / 32 mean 198.8125 CPU 17.13765515625
+learned-fast:50/5,10,10,10:None 32 / 32 mean 198.84375 CPU 17.170574000000002
+{"a": "learned-eager:50/5,10,10,10:None", "b": "learned-endgame-queue:50/5,10,10,10:None", "paired_seeds": 32, "completed_pairs": 32, "delta_b_minus_a": -0.03125, "bootstrap95": [-0.09375, 0.0], "b_wins": 1, "ties": 31, "b_losses": 0}
+{"a": "learned-eager:50/5,10,10,10:None", "b": "learned-endgame-strong:50/5,10,10,10:None", "paired_seeds": 32, "completed_pairs": 32, "delta_b_minus_a": -0.03125, "bootstrap95": [-0.09375, 0.0], "b_wins": 1, "ties": 31, "b_losses": 0}
+{"a": "learned-eager:50/5,10,10,10:None", "b": "learned-fast:50/5,10,10,10:None", "paired_seeds": 32, "completed_pairs": 32, "delta_b_minus_a": 0, "bootstrap95": [-0.09375, 0.09375], "b_wins": 1, "ties": 30, "b_losses": 1}
+{"a": "learned-endgame-queue:50/5,10,10,10:None", "b": "learned-endgame-strong:50/5,10,10,10:None", "paired_seeds": 32, "completed_pairs": 32, "delta_b_minus_a": 0, "bootstrap95": [0.0, 0.0], "b_wins": 0, "ties": 32, "b_losses": 0}
+{"a": "learned-endgame-queue:50/5,10,10,10:None", "b": "learned-fast:50/5,10,10,10:None", "paired_seeds": 32, "completed_pairs": 32, "delta_b_minus_a": 0.03125, "bootstrap95": [0.0, 0.09375], "b_wins": 0, "ties": 31, "b_losses": 1}
+{"a": "learned-endgame-strong:50/5,10,10,10:None", "b": "learned-fast:50/5,10,10,10:None", "paired_seeds": 32, "completed_pairs": 32, "delta_b_minus_a": 0.03125, "bootstrap95": [0.0, 0.09375], "b_wins": 0, "ties": 31, "b_losses": 1}

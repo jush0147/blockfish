@@ -1,0 +1,18 @@
+{
+  "baseline": {
+    "games": 32,
+    "mean_sequences_per_move_game_weighted": 785.0512654871708,
+    "mean_initial_sequences": 738.0625,
+    "mean_root_moves_per_move_game_weighted": 5.449730586540734,
+    "mean_initial_root_moves": 11.3125
+  },
+  "preserve_hold": {
+    "games": 32,
+    "mean_sequences_per_move_game_weighted": 1115.9548520596936,
+    "mean_initial_sequences": 1149.9375,
+    "mean_root_moves_per_move_game_weighted": 7.233403563686011,
+    "mean_initial_root_moves": 15.59375
+  },
+  "first_move_changed": 6,
+  "note": "Only first decisions share identical states. Later move averages are descriptive of diverging trajectories; these are not causal evidence."
+}

@@ -1,0 +1,79 @@
+   Compiling blockfish v0.1.0 (/workspace/blockfish/blockfish-engine)
+    Finished test [optimized + debuginfo] target(s) in 8.14s
+     Running unittests src/lib.rs (target/debug/deps/blockfish-2d472251e1d4af5e)
+
+running 59 tests
+test ai::analysis::test::test_analysis_all_suggestions ... ok
+test ai::analysis::test::test_analysis_cmp ... ok
+test ai::analysis::test::test_analysis_is_send ... ok
+test ai::analysis::test::test_analysis_poll ... ok
+test ai::analysis::test::test_analysis_suggestion ... ok
+test ai::analysis::test::test_analysis_wait ... ok
+test ai::eval::test::test_covered_hole_0 ... ok
+test ai::analysis::test::test_analysis_statistics ... ok
+test ai::eval::test::test_covered_hole_1 ... ok
+test ai::eval::test::test_i_deps_1 ... ok
+test ai::eval::test::test_covered_hole_2 ... ok
+test ai::eval::test::test_covered_holes ... ok
+test ai::eval::test::test_intersecting_ranges ... ok
+test ai::eval::test::test_negative_spaces_1 ... ok
+test ai::eval::test::test_negative_spaces_all_clear ... ok
+test ai::eval::test::test_negative_spaces_2 ... ok
+test ai::state::test::test_state_nearly_empty_queue ... ok
+test ai::state::test::test_state_use_hold ... ok
+test ai::eval::test::test_negative_spaces_3 ... ok
+test common::test::test_all_orientations ... ok
+test common::test::test_parse_color ... ok
+test common::test::test_sizeof ... ok
+test config::test::test_display_config ... ok
+test config::test::test_parse_config ... ok
+test config::test::test_parse_params ... ok
+test finesse::test::test_o_finesse ... ok
+test finesse::test::test_ord_kpp ... ok
+test ai::timed_tests::zero_deadline_still_returns_a_legal_sequence ... ok
+test finesse::test::test_s_finesse ... ok
+test matrix::test::test_bm_blit ... ok
+test matrix::test::test_bm_gaps ... ok
+test matrix::test::test_bm_get ... ok
+test matrix::test::test_bm_macro ... ok
+test matrix::test::test_bm_overlaps ... ok
+test matrix::test::test_bm_overlaps_oob ... ok
+test matrix::test::test_bm_set ... ok
+test matrix::test::test_bm_sift ... ok
+test matrix::test::test_insert_empty_bottom_row ... ok
+test matrix::test::test_remove_rows ... ok
+test place::test::test_lspeen ... ok
+test place::test::test_overlapping_placements ... ok
+test place::test::test_pierce ... ok
+test place::test::test_place_input ... ok
+test place::test::test_placements_w_hold ... ok
+test place::test::test_placements_idx ... ok
+test ai::state::test::test_state_operations ... ok
+test place::test::test_s_spin_triple_overhangless ... ok
+test place::test::test_s_spin_triple ... ok
+test place::test::test_tspeen ... ok
+test place::test::test_tuck_ambiguous ... ok
+test place::test::test_tuck_double_sd ... ok
+test place::test::test_tuck_easy ... ok
+test shape::test::test_normalize_coords ... ok
+test shape::test::test_normalize ... ok
+test shape::test::test_parse_kick ... ok
+test shape::test::test_srs_col_range ... ok
+test shape::test::test_srs_peak ... ok
+test shape::test::test_srs_peak_cheese ... ok
+test shape::test::test_srs_peak_o ... ok
+
+test result: ok. 59 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/race.rs (target/debug/deps/blockfish_race-64743b179dd6fc07)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests blockfish
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

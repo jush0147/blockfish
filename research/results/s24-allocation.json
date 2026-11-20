@@ -1,0 +1,335 @@
+{
+  "games": 32,
+  "passed": 32,
+  "game_weighted_means": {
+    "scout_fraction": 0.2166248619804274,
+    "scout_completed_fraction": 1,
+    "generated_roots": 45.73021278461682,
+    "rated_roots": 45.73021278461682,
+    "surviving_moves": 1.51197704285023,
+    "complete_sequences": 599.5154076042395
+  },
+  "records": [
+    {
+      "seed": 76827,
+      "decisions": 192,
+      "scout_fraction": 0.2106112932105847,
+      "scout_completed_fraction": 1,
+      "generated_roots": 44.583333333333336,
+      "rated_roots": 44.583333333333336,
+      "surviving_moves": 1.4635416666666667,
+      "complete_sequences": 598.4635416666666
+    },
+    {
+      "seed": 76809,
+      "decisions": 199,
+      "scout_fraction": 0.21725545480092998,
+      "scout_completed_fraction": 1,
+      "generated_roots": 46.030150753768844,
+      "rated_roots": 46.030150753768844,
+      "surviving_moves": 1.5879396984924623,
+      "complete_sequences": 580.8190954773869
+    },
+    {
+      "seed": 76804,
+      "decisions": 201,
+      "scout_fraction": 0.21031785989292953,
+      "scout_completed_fraction": 1,
+      "generated_roots": 44.81592039800995,
+      "rated_roots": 44.81592039800995,
+      "surviving_moves": 1.5422885572139304,
+      "complete_sequences": 587.2835820895523
+    },
+    {
+      "seed": 76802,
+      "decisions": 200,
+      "scout_fraction": 0.20413210278096988,
+      "scout_completed_fraction": 1,
+      "generated_roots": 43.23,
+      "rated_roots": 43.23,
+      "surviving_moves": 1.525,
+      "complete_sequences": 587.725
+    },
+    {
+      "seed": 76831,
+      "decisions": 207,
+      "scout_fraction": 0.21089906785622603,
+      "scout_completed_fraction": 1,
+      "generated_roots": 44.66183574879227,
+      "rated_roots": 44.66183574879227,
+      "surviving_moves": 1.5120772946859904,
+      "complete_sequences": 588.2512077294685
+    },
+    {
+      "seed": 76805,
+      "decisions": 203,
+      "scout_fraction": 0.2098726672200013,
+      "scout_completed_fraction": 1,
+      "generated_roots": 44.67487684729064,
+      "rated_roots": 44.67487684729064,
+      "surviving_moves": 1.5172413793103448,
+      "complete_sequences": 594.9162561576354
+    },
+    {
+      "seed": 76820,
+      "decisions": 194,
+      "scout_fraction": 0.21096680199539156,
+      "scout_completed_fraction": 1,
+      "generated_roots": 45.09278350515464,
+      "rated_roots": 45.09278350515464,
+      "surviving_moves": 1.5309278350515463,
+      "complete_sequences": 600.2216494845361
+    },
+    {
+      "seed": 76816,
+      "decisions": 196,
+      "scout_fraction": 0.22648227885383246,
+      "scout_completed_fraction": 1,
+      "generated_roots": 47.234693877551024,
+      "rated_roots": 47.234693877551024,
+      "surviving_moves": 1.4846938775510203,
+      "complete_sequences": 578.2091836734694
+    },
+    {
+      "seed": 76801,
+      "decisions": 197,
+      "scout_fraction": 0.21521429721195362,
+      "scout_completed_fraction": 1,
+      "generated_roots": 45.421319796954315,
+      "rated_roots": 45.421319796954315,
+      "surviving_moves": 1.5076142131979695,
+      "complete_sequences": 628.8324873096446
+    },
+    {
+      "seed": 76815,
+      "decisions": 191,
+      "scout_fraction": 0.21191074138393617,
+      "scout_completed_fraction": 1,
+      "generated_roots": 44.675392670157066,
+      "rated_roots": 44.675392670157066,
+      "surviving_moves": 1.544502617801047,
+      "complete_sequences": 597.3769633507853
+    },
+    {
+      "seed": 76811,
+      "decisions": 196,
+      "scout_fraction": 0.21183284865773438,
+      "scout_completed_fraction": 1,
+      "generated_roots": 45.27040816326531,
+      "rated_roots": 45.27040816326531,
+      "surviving_moves": 1.433673469387755,
+      "complete_sequences": 606.75
+    },
+    {
+      "seed": 76817,
+      "decisions": 195,
+      "scout_fraction": 0.21838110056342744,
+      "scout_completed_fraction": 1,
+      "generated_roots": 46,
+      "rated_roots": 46,
+      "surviving_moves": 1.4871794871794872,
+      "complete_sequences": 580.3384615384615
+    },
+    {
+      "seed": 76813,
+      "decisions": 207,
+      "scout_fraction": 0.2182673262790676,
+      "scout_completed_fraction": 1,
+      "generated_roots": 45.79710144927536,
+      "rated_roots": 45.79710144927536,
+      "surviving_moves": 1.5797101449275361,
+      "complete_sequences": 572.6473429951691
+    },
+    {
+      "seed": 76829,
+      "decisions": 207,
+      "scout_fraction": 0.21417071714505928,
+      "scout_completed_fraction": 1,
+      "generated_roots": 45.067632850241544,
+      "rated_roots": 45.067632850241544,
+      "surviving_moves": 1.4685990338164252,
+      "complete_sequences": 583.5458937198067
+    },
+    {
+      "seed": 76810,
+      "decisions": 193,
+      "scout_fraction": 0.22402381441454752,
+      "scout_completed_fraction": 1,
+      "generated_roots": 47.056994818652846,
+      "rated_roots": 47.056994818652846,
+      "surviving_moves": 1.471502590673575,
+      "complete_sequences": 590.8082901554404
+    },
+    {
+      "seed": 76818,
+      "decisions": 202,
+      "scout_fraction": 0.2297632767483941,
+      "scout_completed_fraction": 1,
+      "generated_roots": 47.757425742574256,
+      "rated_roots": 47.757425742574256,
+      "surviving_moves": 1.5841584158415842,
+      "complete_sequences": 588.7326732673267
+    },
+    {
+      "seed": 76806,
+      "decisions": 185,
+      "scout_fraction": 0.22046704807084047,
+      "scout_completed_fraction": 1,
+      "generated_roots": 46.25945945945946,
+      "rated_roots": 46.25945945945946,
+      "surviving_moves": 1.5351351351351352,
+      "complete_sequences": 622.081081081081
+    },
+    {
+      "seed": 76819,
+      "decisions": 197,
+      "scout_fraction": 0.20555469385608838,
+      "scout_completed_fraction": 1,
+      "generated_roots": 43.619289340101524,
+      "rated_roots": 43.619289340101524,
+      "surviving_moves": 1.5126903553299493,
+      "complete_sequences": 629.9187817258884
+    },
+    {
+      "seed": 76825,
+      "decisions": 198,
+      "scout_fraction": 0.2191134778500789,
+      "scout_completed_fraction": 1,
+      "generated_roots": 46.398989898989896,
+      "rated_roots": 46.398989898989896,
+      "surviving_moves": 1.4494949494949494,
+      "complete_sequences": 572.3383838383838
+    },
+    {
+      "seed": 76823,
+      "decisions": 209,
+      "scout_fraction": 0.21246681933518155,
+      "scout_completed_fraction": 1,
+      "generated_roots": 45.00956937799043,
+      "rated_roots": 45.00956937799043,
+      "surviving_moves": 1.569377990430622,
+      "complete_sequences": 600.9377990430622
+    },
+    {
+      "seed": 76808,
+      "decisions": 201,
+      "scout_fraction": 0.21475315537132678,
+      "scout_completed_fraction": 1,
+      "generated_roots": 45.77114427860697,
+      "rated_roots": 45.77114427860697,
+      "surviving_moves": 1.5870646766169154,
+      "complete_sequences": 594.2537313432836
+    },
+    {
+      "seed": 76828,
+      "decisions": 214,
+      "scout_fraction": 0.21431403862129378,
+      "scout_completed_fraction": 1,
+      "generated_roots": 45.61214953271028,
+      "rated_roots": 45.61214953271028,
+      "surviving_moves": 1.4766355140186915,
+      "complete_sequences": 604.4953271028037
+    },
+    {
+      "seed": 76803,
+      "decisions": 201,
+      "scout_fraction": 0.21674535579472945,
+      "scout_completed_fraction": 1,
+      "generated_roots": 45.80597014925373,
+      "rated_roots": 45.80597014925373,
+      "surviving_moves": 1.492537313432836,
+      "complete_sequences": 605.5721393034826
+    },
+    {
+      "seed": 76822,
+      "decisions": 204,
+      "scout_fraction": 0.21744469407934996,
+      "scout_completed_fraction": 1,
+      "generated_roots": 45.84803921568628,
+      "rated_roots": 45.84803921568628,
+      "surviving_moves": 1.5245098039215685,
+      "complete_sequences": 618.1862745098039
+    },
+    {
+      "seed": 76826,
+      "decisions": 194,
+      "scout_fraction": 0.22292886052082858,
+      "scout_completed_fraction": 1,
+      "generated_roots": 46.48969072164948,
+      "rated_roots": 46.48969072164948,
+      "surviving_moves": 1.4742268041237114,
+      "complete_sequences": 586.4072164948453
+    },
+    {
+      "seed": 76821,
+      "decisions": 195,
+      "scout_fraction": 0.23344862022648213,
+      "scout_completed_fraction": 1,
+      "generated_roots": 48.64102564102564,
+      "rated_roots": 48.64102564102564,
+      "surviving_moves": 1.5025641025641026,
+      "complete_sequences": 648.7948717948718
+    },
+    {
+      "seed": 76824,
+      "decisions": 188,
+      "scout_fraction": 0.22864940381198892,
+      "scout_completed_fraction": 1,
+      "generated_roots": 47.87765957446808,
+      "rated_roots": 47.87765957446808,
+      "surviving_moves": 1.4574468085106382,
+      "complete_sequences": 601.1223404255319
+    },
+    {
+      "seed": 76830,
+      "decisions": 199,
+      "scout_fraction": 0.21279931334694582,
+      "scout_completed_fraction": 1,
+      "generated_roots": 45.46733668341709,
+      "rated_roots": 45.46733668341709,
+      "surviving_moves": 1.5175879396984924,
+      "complete_sequences": 613.0452261306533
+    },
+    {
+      "seed": 76800,
+      "decisions": 195,
+      "scout_fraction": 0.2155270797746854,
+      "scout_completed_fraction": 1,
+      "generated_roots": 45.8,
+      "rated_roots": 45.8,
+      "surviving_moves": 1.5025641025641026,
+      "complete_sequences": 613.5179487179487
+    },
+    {
+      "seed": 76812,
+      "decisions": 211,
+      "scout_fraction": 0.21049426359593557,
+      "scout_completed_fraction": 1,
+      "generated_roots": 44.72985781990521,
+      "rated_roots": 44.72985781990521,
+      "surviving_moves": 1.5402843601895735,
+      "complete_sequences": 585.1469194312796
+    },
+    {
+      "seed": 76807,
+      "decisions": 205,
+      "scout_fraction": 0.21281155317888456,
+      "scout_completed_fraction": 1,
+      "generated_roots": 44.95609756097561,
+      "rated_roots": 44.95609756097561,
+      "surviving_moves": 1.4878048780487805,
+      "complete_sequences": 621.0731707317074
+    },
+    {
+      "seed": 76814,
+      "decisions": 197,
+      "scout_fraction": 0.2303755569240514,
+      "scout_completed_fraction": 1,
+      "generated_roots": 47.71065989847716,
+      "rated_roots": 47.71065989847716,
+      "surviving_moves": 1.5126903553299493,
+      "complete_sequences": 602.6802030456853
+    }
+  ],
+  "note": "Descriptive allocation on executed trajectories, not causal evidence or independent per-decision samples."
+}

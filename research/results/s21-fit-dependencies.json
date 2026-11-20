@@ -1,0 +1,9 @@
+{
+  "research/results/value-fit.json": "e38c1fb5743611b272bbfb4d15852fd6b37ad4802f9d6e4a3556b041eaff5435",
+  "research/results/s20-data.jsonl": "a253d3f78ecfa1559186291ba7f6db238d53337e18f2ebaf8cf0bd81353e193c",
+  "research/results/s21-data.jsonl": "afdcefbad795f3489a0e1ee85720d445cfe41c74a970a55d354939953e1a2f27",
+  "research/results/s20-hold-fit.json": "340dc20cadade041fd0aaa8a55291f4bbdc39c62e6c0d61c8cce1b0455f8bbda",
+  "research/results/s21-hold-fit.json": "bb47301ec1c521ae3a7d4186d0b7a9a22bf59e8ec448f58d1282db5aa60ea5be",
+  "blockfish-engine/src/ai/hold_weights.rs": "4efc3489eacfd0dd3437866a18972563ca7d7451628a22d92f0c415adc000d79",
+  "research/fit_hold.py": "44a0955c86f2533ca033bf7fe5a03aae708ce87fd3a87c9b142b701e8cb6ce0e"
+}

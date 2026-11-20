@@ -1,0 +1,27 @@
+{
+  "promoted": false,
+  "best_preserved": "cheese-robust, S11 checkpoint",
+  "source_files": 136,
+  "files": {
+    "research/checkpoints/s23-20261114-source.tar.gz": "6231187ca06eb6239606ad63d257dc1696cdbabd17b6da27046e81a49347fbf5",
+    "research/bin/learned-fast": "824eca4f6675630f072c062e3ec72e6a8aa3d1ba935c147b64960bda1c98c2c3",
+    "research/bin/learned-robust": "c9516ea2d6c77029a2de192627c541002fb3f2046ab681bf1410a70f3205aa50",
+    "research/bin/cheese-robust": "6ba038f8f9ef7c75efd9dd12523e00ba346da967cc723db0862b555c4f5a9baf",
+    "research/bin/context-source": "f9b30055b17acd5b1b9a8c97455dff2fe9589ca7d290969a820bbb6261bb629e",
+    "research/bin/robust-hold-context": "b7a9eaf93413f50c0595494ecd30d8e21339e424ff52a17cf6a1c55a5db4165e",
+    "research/bin/robust-hold-order": "6c2d3a7b1881418e8443bbeb50fd9a1e3fe6cba82eb00c667babcd4252d96b8c",
+    "research/bin/robust-hold-cached": "03a71c8e26d5315d9b1b0174468f2d714854c06d87d2274dd527daf23c7f9d46",
+    "research/results/s20-s23-completion.json": "a0d8f68f508a73a0ce1fa8a26ec651fc13c203301916164da70f3de3190f4938",
+    "research/results/s21-fit-dependencies.json": "27715e373f8a0ecd2578d97f9770c8ea850f9562a6ce30e04524cac9a0803536",
+    "research/results/s20-hold-fit.json": "340dc20cadade041fd0aaa8a55291f4bbdc39c62e6c0d61c8cce1b0455f8bbda",
+    "research/results/s21-hold-fit.json": "bb47301ec1c521ae3a7d4186d0b7a9a22bf59e8ec448f58d1282db5aa60ea5be",
+    "research/results/s22-validation-lock.json": "655663a323c7800ed3b6da92ff4aacf848d29e10a6e26ff9ae84498952602973",
+    "research/results/s22-validation-decision.json": "9dc8d6908da2f00cd9a3ef4911bd317e4a65dd5338b3abb66442fb37539adeba",
+    "research/results/s22-final-lock.json": "78d39eac2ed62758e11680323d84f112ab7226cb88ed3ac9ec281059c0086f78",
+    "research/results/s22-final-decision.json": "c8e3cf0246963413161a7e3ea91233b67d95856c99475da97d3889bd310eef65",
+    "research/results/s22-final-audit.json": "da49029cd6e0a7f34b19ef6bc731fb727078bcbd68a355ec753b5f01cbe5b51e",
+    "research/results/s23-parity-check.json": "c962534125210d1c5092bf648c8bcc68a2dab6f24c46d7e20e23fb877b71eaf7",
+    "research/results/s22-restore-check.json": "2efbc57fd7d571d0e4309c29c408fcb77ae08033dae1135674412bf004af8854"
+  },
+  "note": "S20 predictive/S21 development/S22 final gates failed. S23 exact cache cost pilot retained only.601 new races all replayed. Final75300..75363 retired. No200k rescue."
+}

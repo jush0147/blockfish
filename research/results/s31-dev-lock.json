@@ -1,0 +1,50 @@
+{
+  "seeds": [
+    77100,
+    77101,
+    77102,
+    77103,
+    77104,
+    77105,
+    77106,
+    77107,
+    77108,
+    77109,
+    77110,
+    77111,
+    77112,
+    77113,
+    77114,
+    77115,
+    77116,
+    77117,
+    77118,
+    77119,
+    77120,
+    77121,
+    77122,
+    77123,
+    77124,
+    77125,
+    77126,
+    77127,
+    77128,
+    77129,
+    77130,
+    77131
+  ],
+  "config": "50/5,10,10,10",
+  "generated_node_cap": 50000,
+  "garbage_min": 4,
+  "garbage_max": 9,
+  "candidate": "robust-plan-reuse",
+  "controls": [
+    "robust-plan-observer",
+    "learned-robust"
+  ],
+  "binaries": {
+    "robust-plan-reuse": "71a8b47fd81510adfbf3a0de36532f9afcdc99b15dfedd840cb63cbb6e59d46a",
+    "robust-plan-observer": "8adf4d7eaa8639e31f29fb3744ba28a26e2b6e1c2a138a83b216661f7ef8fdec",
+    "learned-robust": "c9516ea2d6c77029a2de192627c541002fb3f2046ab681bf1410a70f3205aa50"
+  }
+}

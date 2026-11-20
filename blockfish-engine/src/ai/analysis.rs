@@ -5,7 +5,15 @@ use std::{
     sync::{mpsc, Arc, RwLock},
 };
 
-use super::b_star::{Search, Step};
+#[cfg(not(any(feature = "beam-search", feature = "root-halving", feature="global-regret")))]
+use super::b_star::Search;
+#[cfg(feature = "root-halving")]
+use super::halving::Search;
+use super::b_star::Step;
+#[cfg(feature="global-regret")]
+use super::global::Search;
+#[cfg(feature = "beam-search")]
+use super::beam::Search;
 
 // Analysis handle
 
@@ -14,6 +22,9 @@ pub use super::b_star::MoveId;
 
 /// A handle to a blockfish analysis running in the background.
 pub struct Analysis {
+    fallback:Option<usize>,
+    #[cfg(feature="plan-reuse")]
+    make_hint:Option<Box<dyn Fn(&[usize])->super::PlanHint+Send>>,
     moves: HashMap<MoveId, Move>,
     trace_inputs: Box<TraceInputsFn>,
     stats: Arc<RwLock<Option<Stats>>>,
@@ -36,6 +47,8 @@ struct Move {
 /// Message type sent from worker thread to `Analysis` handle.
 #[derive(Debug, Eq, PartialEq)]
 struct Msg {
+    fallback:Option<usize>,
+    removed: Option<MoveId>,
     changed_move_id: Option<MoveId>,
     mov: Move,
 }
@@ -58,6 +71,9 @@ impl Analysis {
                 tx,
             },
             Analysis {
+                fallback:None,
+                #[cfg(feature="plan-reuse")]
+                make_hint:None,
                 moves: HashMap::with_capacity(128),
                 trace_inputs: Box::new(trace_inputs),
                 all_tx: None,
@@ -69,6 +85,11 @@ impl Analysis {
 
     /// Processes a message recieved from the worker thread.
     fn recv(&mut self, msg: Msg) -> Option<MoveId> {
+        if let Some(idx)=msg.fallback {self.fallback=Some(idx);return None;}
+        if let Some(id) = msg.removed {
+            self.moves.remove(&id);
+            return None;
+        }
         // send to all-suggestions channel if listening
         if let Some(all_tx) = self.all_tx.as_ref() {
             let inputs = (self.trace_inputs)(&msg.mov.trace);
@@ -141,6 +162,12 @@ impl Analysis {
 
     /// Returns the statistics gathered about the analysis, if any. Should be `Some` only
     /// after the analysis finishes.
+    #[cfg(feature="plan-reuse")]
+    pub fn continuation(&self,id:MoveId)->super::PlanHint {
+        self.make_hint.as_ref().expect("missing plan mapper")(&self.moves[&id].trace)
+    }
+    #[cfg(feature="plan-reuse")]
+    pub fn fallback_inputs(&self)->Option<Vec<Input>> {self.fallback.map(|idx|(self.trace_inputs)(&[idx]))}
     pub fn stats(&self) -> Option<Stats> {
         self.stats.read().map_or(None, |s| s.clone())
     }
@@ -163,15 +190,34 @@ impl AnalysisSink {
 
 // Analysis thread
 
-fn analysis(shtb: Arc<ShapeTable>, cfg: Config, root: State, sink: AnalysisSink) {
+fn analysis(
+    shtb: Arc<ShapeTable>,
+    cfg: Config,
+    root: State,
+    sink: AnalysisSink,
+    time_limit: Option<std::time::Duration>,
+    #[cfg(feature="plan-reuse")] hint:super::PlanHint,
+) {
     let start_time = std::time::Instant::now();
     let mut iteration = 0;
     let mut global_min = std::i64::MAX;
 
     let mut search = Search::new(&shtb, cfg.parameters);
+    #[cfg(any(feature = "beam-search", feature = "root-halving", feature = "root-focus"))]
+    search.set_budget(cfg.search_limit);
     search.start(root);
+    #[cfg(feature="plan-reuse")]
+    search.set_hint(hint);
 
-    while search.node_count() < cfg.search_limit {
+    let mut steps = 0usize;
+    while search.budget_used() < cfg.search_limit {
+        if iteration > 0
+            && steps % 64 == 0
+            && time_limit.map_or(false, |limit| start_time.elapsed() >= limit)
+        {
+            break;
+        }
+        steps += 1;
         let msg;
         match search.step() {
             Ok(Step::RatingChanged {
@@ -189,6 +235,8 @@ fn analysis(shtb: Arc<ShapeTable>, cfg: Config, root: State, sink: AnalysisSink)
                 );
                 global_min = std::cmp::min(rating, global_min);
                 msg = Some(Msg {
+                    fallback:None,
+                    removed: None,
                     changed_move_id: Some(move_id),
                     mov: Move {
                         iteration,
@@ -201,6 +249,8 @@ fn analysis(shtb: Arc<ShapeTable>, cfg: Config, root: State, sink: AnalysisSink)
             Ok(Step::SequenceRejected { trace, rating }) => {
                 iteration += 1;
                 msg = Some(Msg {
+                    fallback:None,
+                    removed: None,
                     changed_move_id: None,
                     mov: Move {
                         iteration,
@@ -210,6 +260,10 @@ fn analysis(shtb: Arc<ShapeTable>, cfg: Config, root: State, sink: AnalysisSink)
                 });
             }
 
+            Ok(Step::RemoveMove(id)) => {
+                msg = Some(Msg { fallback:None, removed: Some(id), changed_move_id: None,
+                    mov: Move { iteration, rating: 0, trace: vec![] } });
+            }
             Ok(Step::Other) => {
                 msg = None;
             }
@@ -225,9 +279,28 @@ fn analysis(shtb: Arc<ShapeTable>, cfg: Config, root: State, sink: AnalysisSink)
         }
     }
 
+    #[cfg(all(feature = "support-probe", not(any(feature = "beam-search", feature = "root-halving", feature="global-regret"))))]
+    search.report_support();
+    #[cfg(feature = "root-halving")]
+    search.report_allocation();
+    #[cfg(feature = "root-focus")]
+    search.report_focus();
+    #[cfg(feature = "root-dag")]
+    search.report_dag();
+    #[cfg(feature="global-regret")]
+    search.report_global();
+    #[cfg(feature="plan-reuse")]
+    {
+        search.report_plan();
+        if let Some(idx)=search.fallback_move() {
+            sink.send(Msg{fallback:Some(idx),removed:None,changed_move_id:None,
+                mov:Move{iteration,rating:0,trace:vec![]}});
+        }
+    }
     sink.finish(Stats {
         iterations: iteration,
         nodes: search.node_count(),
+        generated_nodes: search.generated_nodes(),
         time_taken: std::time::Instant::now() - start_time,
     });
 }
@@ -236,7 +309,7 @@ fn analysis(shtb: Arc<ShapeTable>, cfg: Config, root: State, sink: AnalysisSink)
 
 type TraceInputsFn = dyn Fn(&[usize]) -> Vec<Input> + Send;
 
-fn reconstruct_inputs(shtb: &ShapeTable, state0: State, trace: &[usize]) -> Vec<Input> {
+pub(super) fn reconstruct_inputs(shtb: &ShapeTable, state0: State, trace: &[usize]) -> Vec<Input> {
     let mut pfind = PlaceFinder::new(&shtb);
     let mut ffind = FinesseFinder::new();
     let mut state = state0;
@@ -268,6 +341,8 @@ pub fn spawn(
     cfg: Config,
     root: State,
     all_suggestions_tx: Option<mpsc::Sender<Suggestion>>,
+    time_limit: Option<std::time::Duration>,
+    #[cfg(feature="plan-reuse")] hint:super::PlanHint,
 ) -> Analysis {
     let trace_inputs = {
         let shtb = shtb.clone();
@@ -276,7 +351,21 @@ pub fn spawn(
     };
     let (sink, mut handle) = Analysis::new(trace_inputs);
     handle.all_tx = all_suggestions_tx;
-    std::thread::spawn(move || analysis(shtb, cfg, root, sink));
+    #[cfg(feature="plan-reuse")]
+    {
+        let table=shtb.clone();let initial=root.clone();
+        handle.make_hint=Some(Box::new(move |trace| {
+            let mut state=initial.clone();let mut finder=PlaceFinder::new(&table);let mut steps=vec![];
+            for (i,&idx) in trace.iter().enumerate() {
+                let p=state.placements(&mut finder).find(|p|p.idx==idx).expect("invalid hint trace");
+                if i>0 {steps.push(super::PlanStep{before:state.matrix().clone(),color:p.shape.color(),normal:p.normal(),hold:p.did_hold});}
+                state.place(&p);
+            }
+            super::PlanHint(steps)
+        }));
+    }
+    std::thread::spawn(move || analysis(shtb, cfg, root, sink, time_limit,
+        #[cfg(feature="plan-reuse")] hint));
     handle
 }
 
@@ -289,6 +378,21 @@ mod test {
     }
 
     #[test]
+    fn eliminated_root_is_removed_without_a_fake_suggestion() {
+        let (sink, mut handle)=Analysis::new(spam_hd_traces);
+        let (tx,rx)=mpsc::channel();handle.all_tx=Some(tx);
+        sink.send(Msg { fallback:None, removed:None,changed_move_id:Some(MoveId::n(1)),
+            mov:Move {iteration:1,rating:1,trace:vec![1]} });
+        assert_eq!(handle.poll(),Ok(Some(MoveId::n(1))));
+        assert!(rx.try_recv().is_ok());
+        sink.send(Msg { fallback:None, removed:Some(MoveId::n(1)),changed_move_id:None,
+            mov:Move {iteration:1,rating:0,trace:vec![]} });
+        assert_eq!(handle.poll(),Ok(None));
+        assert_eq!(handle.all_moves().count(),0);
+        assert!(rx.try_recv().is_err());
+    }
+
+    #[test]
     fn test_analysis_poll() {
         let (sink, mut handle) = Analysis::new(spam_hd_traces);
         assert_eq!(handle.poll(), Ok(None));
@@ -298,6 +402,8 @@ mod test {
             trace: vec![6, 7, 8],
         };
         assert!(sink.send(Msg {
+            fallback:None,
+            removed: None,
             changed_move_id: Some(MoveId::n(6)),
             mov
         }));
@@ -310,6 +416,8 @@ mod test {
 
     fn example_analysis(sink: AnalysisSink) {
         assert!(sink.send(Msg {
+            fallback:None,
+            removed: None,
             changed_move_id: Some(MoveId::n(6)),
             mov: Move {
                 iteration: 1,
@@ -318,6 +426,8 @@ mod test {
             }
         }));
         assert!(sink.send(Msg {
+            fallback:None,
+            removed: None,
             changed_move_id: Some(MoveId::n(7)),
             mov: Move {
                 iteration: 2,
@@ -326,6 +436,8 @@ mod test {
             }
         }));
         assert!(sink.send(Msg {
+            fallback:None,
+            removed: None,
             changed_move_id: Some(MoveId::n(6)),
             mov: Move {
                 iteration: 3,
@@ -334,6 +446,8 @@ mod test {
             }
         }));
         assert!(sink.send(Msg {
+            fallback:None,
+            removed: None,
             changed_move_id: None,
             mov: Move {
                 iteration: 3,
@@ -399,6 +513,7 @@ mod test {
         let s = Stats {
             iterations: 1,
             nodes: 2,
+            generated_nodes: 2,
             time_taken: std::time::Duration::from_millis(300),
         };
         sink.finish(s.clone());
@@ -441,5 +556,24 @@ mod test {
         let (_, handle) = Analysis::new(spam_hd_traces);
         // only needs to typecheck
         std::thread::spawn(move || handle);
+    }
+}
+
+#[cfg(all(test,feature="plan-reuse"))]
+mod fallback_tests {
+    use super::*;
+    use crate::{ai::{AI,Snapshot},BasicMatrix,Color};
+    #[test]
+    fn two_nodes_provide_legal_fallback_without_fake_completed_sequence() {
+        let mut cfg=Config::default();cfg.search_limit=2;
+        let mut ai=AI::new(cfg);let all=ai.listen_all();
+        let snapshot=Snapshot{matrix:BasicMatrix::with_cols(10),hold:None,queue:"IOTLSZ".chars().map(Color::n).collect()};
+        let mut a=ai.analyze(snapshot.clone());a.wait();
+        assert_eq!(a.all_moves().count(),0);assert_eq!(a.stats().unwrap().generated_nodes,2);
+        assert_eq!(a.stats().unwrap().iterations,0);assert!(all.try_recv().is_err());
+        let inputs=a.fallback_inputs().unwrap();assert_eq!(inputs.last(),Some(&Input::HD));
+        let shapes=crate::shape::srs();let state:State=snapshot.into();let mut finder=PlaceFinder::new(&shapes);
+        let p=state.placements(&mut finder).next().unwrap();
+        assert_eq!(inputs,reconstruct_inputs(&shapes,state,&[p.idx]));
     }
 }

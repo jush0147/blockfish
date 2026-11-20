@@ -1,0 +1,40 @@
+{
+  "seeds": [
+    77200,
+    77201,
+    77202,
+    77203,
+    77204,
+    77205,
+    77206,
+    77207,
+    77208,
+    77209,
+    77210,
+    77211,
+    77212,
+    77213,
+    77214,
+    77215,
+    77216,
+    77217,
+    77218,
+    77219,
+    77220,
+    77221,
+    77222,
+    77223
+  ],
+  "config": "50/5,10,10,10",
+  "generated_node_cap": 50000,
+  "garbage_min": 4,
+  "garbage_max": 9,
+  "candidate": "robust-dig-geometry",
+  "controls": [
+    "learned-robust"
+  ],
+  "binaries": {
+    "robust-dig-geometry": "c0c91076348aa914a1d6e2505d9dfff75591992769c97705240493d48c018f03",
+    "learned-robust": "c9516ea2d6c77029a2de192627c541002fb3f2046ab681bf1410a70f3205aa50"
+  }
+}

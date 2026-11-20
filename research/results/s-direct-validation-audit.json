@@ -1,0 +1,1318 @@
+{
+  "verifier": "research/bin/learned-fast",
+  "verifier_sha256": "824eca4f6675630f072c062e3ec72e6a8aa3d1ba935c147b64960bda1c98c2c3",
+  "total": 131,
+  "passed": 131,
+  "records": [
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-dbe004cd-None-False-62123.json",
+      "seed": 62123,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "3601fe439485f6c099c71fbf1f0bb38b64201183cd597f0d92bfa91fb5cb28df",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 62123",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-dbe004cd-None-False-62101.json",
+      "seed": 62101,
+      "pieces": 210,
+      "returncode": 0,
+      "sha256": "bd0b188e903dbad89d185f58bdca41a289f063e21e0dff71b7ef79882e59629f",
+      "stdout": "Verified 210 pieces, 100 garbage rows, seed 62101",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-dbe004cd-None-False-62104.json",
+      "seed": 62104,
+      "pieces": 219,
+      "returncode": 0,
+      "sha256": "74f937432a89e3444730a41574c95415d8a2447497471d56d1729963460c1da7",
+      "stdout": "Verified 219 pieces, 100 garbage rows, seed 62104",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-dbe004cd-None-False-62114.json",
+      "seed": 62114,
+      "pieces": 193,
+      "returncode": 0,
+      "sha256": "7b3b9510f84a526636a060be3fb70a864b3f84eae0c15d58419e6a08febb00a7",
+      "stdout": "Verified 193 pieces, 100 garbage rows, seed 62114",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-dbe004cd-None-False-62101.json",
+      "seed": 62101,
+      "pieces": 222,
+      "returncode": 0,
+      "sha256": "329e9f431247a618a87af3ad273a525cea4585688f106f402dfc1df5b16a13a2",
+      "stdout": "Verified 222 pieces, 100 garbage rows, seed 62101",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-dbe004cd-None-False-62117.json",
+      "seed": 62117,
+      "pieces": 201,
+      "returncode": 0,
+      "sha256": "7b9504f997a5d9dc42b1c9c1a36f30c11834ba67ba097937c81eb49b9aa4be34",
+      "stdout": "Verified 201 pieces, 100 garbage rows, seed 62117",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-dbe004cd-None-False-62109.json",
+      "seed": 62109,
+      "pieces": 208,
+      "returncode": 0,
+      "sha256": "1ca16b09999365be9604328a35492680ebc8c2bd1a34208558810a9b261f0d4c",
+      "stdout": "Verified 208 pieces, 100 garbage rows, seed 62109",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-dbe004cd-None-False-62112.json",
+      "seed": 62112,
+      "pieces": 201,
+      "returncode": 0,
+      "sha256": "bca1ac69f2f75b141290827dd9a1346cc97476ab43235506f53949e72b870fd7",
+      "stdout": "Verified 201 pieces, 100 garbage rows, seed 62112",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-dbe004cd-None-False-62121.json",
+      "seed": 62121,
+      "pieces": 202,
+      "returncode": 0,
+      "sha256": "eb80afde008d6c21cc930731c1830b8898d884b59cdef1749804dc4c57ff799f",
+      "stdout": "Verified 202 pieces, 100 garbage rows, seed 62121",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-3c6e49c1-None-False-62106.json",
+      "seed": 62106,
+      "pieces": 194,
+      "returncode": 0,
+      "sha256": "8b2d5383d6aaa3b3403bbc6710933522798cf7fad0c8c06173c93e607508e412",
+      "stdout": "Verified 194 pieces, 100 garbage rows, seed 62106",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-dbe004cd-None-False-62110.json",
+      "seed": 62110,
+      "pieces": 199,
+      "returncode": 0,
+      "sha256": "3a7827fccec96b2697d41a07de2b1cf292a235fb6df1320869eceda9bc3dde29",
+      "stdout": "Verified 199 pieces, 100 garbage rows, seed 62110",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-3c6e49c1-None-False-62119.json",
+      "seed": 62119,
+      "pieces": 216,
+      "returncode": 0,
+      "sha256": "4e7fd3262fb6d655f2f7d91aa17c03d3975294f12bb32cccf649dfd4b5f7c900",
+      "stdout": "Verified 216 pieces, 100 garbage rows, seed 62119",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-3c6e49c1-None-False-62116.json",
+      "seed": 62116,
+      "pieces": 204,
+      "returncode": 0,
+      "sha256": "3def29ef1f6d694510d293a95eb7941d54be0e9c43d664b1c2dd82ee4c60707a",
+      "stdout": "Verified 204 pieces, 100 garbage rows, seed 62116",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-3c6e49c1-None-False-62100.json",
+      "seed": 62100,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "8ab7420d22ac75b9c8363f91b7497e5484e10464040e780c72dfa1c254e96c10",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 62100",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-dbe004cd-None-False-62104.json",
+      "seed": 62104,
+      "pieces": 215,
+      "returncode": 0,
+      "sha256": "b93c45a9097ec1b65f7f4bc48fe5b1e47a012d2a7165de0e399281d3af4f212d",
+      "stdout": "Verified 215 pieces, 100 garbage rows, seed 62104",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-dbe004cd-None-False-62131.json",
+      "seed": 62131,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "19177c9dd05ef2720b0c31577d02234fd472963c35d8171f6c5f639beada64dd",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 62131",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-3c6e49c1-None-False-62118.json",
+      "seed": 62118,
+      "pieces": 190,
+      "returncode": 0,
+      "sha256": "c4aa0546327339ee5d15fed9576cfb8228dee8fcdbf2889b4b36a34bd952650f",
+      "stdout": "Verified 190 pieces, 100 garbage rows, seed 62118",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-dbe004cd-None-False-62113.json",
+      "seed": 62113,
+      "pieces": 196,
+      "returncode": 0,
+      "sha256": "3ffc03dd581793efc85c326b60a8609d0f91130b5c76c65c7a67cf43c5754f02",
+      "stdout": "Verified 196 pieces, 100 garbage rows, seed 62113",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-3c6e49c1-None-False-62106.json",
+      "seed": 62106,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "dcb1289018e1e01a3e7e450d986e4bfce774e0cc7dab2377879eb1047645d591",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 62106",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-dbe004cd-None-False-62123.json",
+      "seed": 62123,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "54c5ec494168aa55018e35e3d0c44d51de9bf95f75e016d5125987308531368b",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 62123",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-3c6e49c1-None-False-62110.json",
+      "seed": 62110,
+      "pieces": 202,
+      "returncode": 0,
+      "sha256": "2ca831bb44bd3d616e7a60034e9b87883506b7b58c2b0a2a1759c4621661b90f",
+      "stdout": "Verified 202 pieces, 100 garbage rows, seed 62110",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-dbe004cd-None-False-62119.json",
+      "seed": 62119,
+      "pieces": 206,
+      "returncode": 0,
+      "sha256": "252976b1e01a35696eec837346deb6ac0405b641b7768dbae4606f302fb63ca6",
+      "stdout": "Verified 206 pieces, 100 garbage rows, seed 62119",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-3c6e49c1-None-False-62122.json",
+      "seed": 62122,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "fb8d081ff28bd6d89a50261d121888852bd8a7fa5ed06f9b3210ca7207871875",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 62122",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-dbe004cd-None-False-62128.json",
+      "seed": 62128,
+      "pieces": 188,
+      "returncode": 0,
+      "sha256": "dd77004e62d323a34fb350d20f7faa22469b560deca54b919ede6c32f09802fc",
+      "stdout": "Verified 188 pieces, 100 garbage rows, seed 62128",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-3c6e49c1-None-False-62120.json",
+      "seed": 62120,
+      "pieces": 210,
+      "returncode": 0,
+      "sha256": "0fe8c80536bd34a27299c065a24ee5db6f5e4c0f30189307b3c875def7feda1a",
+      "stdout": "Verified 210 pieces, 100 garbage rows, seed 62120",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-dbe004cd-None-False-62113.json",
+      "seed": 62113,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "4ef60ecca985bfe59e723192ca1fb322b115c9b8a6f44448e106a9e41c2fab82",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 62113",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-3c6e49c1-None-False-62105.json",
+      "seed": 62105,
+      "pieces": 212,
+      "returncode": 0,
+      "sha256": "399ba6e9028a23a194999b484c3f4b0f51d27a6c56523ae28ac05569fb25efea",
+      "stdout": "Verified 212 pieces, 100 garbage rows, seed 62105",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-3c6e49c1-None-False-62103.json",
+      "seed": 62103,
+      "pieces": 188,
+      "returncode": 0,
+      "sha256": "525a471834e7fc39d91584746b674266c3de79d5f7b383d16b26d7cd1ab055d7",
+      "stdout": "Verified 188 pieces, 100 garbage rows, seed 62103",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-dbe004cd-None-False-62115.json",
+      "seed": 62115,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "08ae5b1493c6a00374201f79f073ad4bca929f3584be2d2473a70162a6a7edf2",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 62115",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-dbe004cd-None-False-62111.json",
+      "seed": 62111,
+      "pieces": 192,
+      "returncode": 0,
+      "sha256": "5015b7bb7518ea0b6875d1a44905916f101fc3b081f8bd9a8e5b1e3fd8029af1",
+      "stdout": "Verified 192 pieces, 100 garbage rows, seed 62111",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-dbe004cd-None-False-62105.json",
+      "seed": 62105,
+      "pieces": 191,
+      "returncode": 0,
+      "sha256": "a01453f77753a943770fb2f6563fa24fcfa1e08bfedfcd12c277935103a50e8b",
+      "stdout": "Verified 191 pieces, 100 garbage rows, seed 62105",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-3c6e49c1-None-False-62109.json",
+      "seed": 62109,
+      "pieces": 206,
+      "returncode": 0,
+      "sha256": "40fa127c15c82e82ef616bc14850dbb9275b66a16470304a12fedc58e05333e9",
+      "stdout": "Verified 206 pieces, 100 garbage rows, seed 62109",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-dbe004cd-None-False-62127.json",
+      "seed": 62127,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "d3b4aa1cc67ecc429328c5eabec66f78af68e5e384ff10cbf4bcf4a2410a92a9",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 62127",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-dbe004cd-None-False-62115.json",
+      "seed": 62115,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "a26057e50662266b7e332bfbe45d5704eadfb90379d14443f7c0fd7ba4815e7c",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 62115",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-3c6e49c1-None-False-62104.json",
+      "seed": 62104,
+      "pieces": 193,
+      "returncode": 0,
+      "sha256": "3c0e511853c9d0aaab147322ec251734bd07c1f5a33f3d40d5421ddac4599c38",
+      "stdout": "Verified 193 pieces, 100 garbage rows, seed 62104",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-3c6e49c1-None-False-62123.json",
+      "seed": 62123,
+      "pieces": 204,
+      "returncode": 0,
+      "sha256": "5e4276e6d6707c23655da67ab34776a45b91e1367a0733b3dfa9005302c17517",
+      "stdout": "Verified 204 pieces, 100 garbage rows, seed 62123",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-3c6e49c1-None-False-62107.json",
+      "seed": 62107,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "bd99cf0e98518baab56da069da2ab75a4cd71ea208893a185f805f39e45ee011",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 62107",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-dbe004cd-None-False-62109.json",
+      "seed": 62109,
+      "pieces": 204,
+      "returncode": 0,
+      "sha256": "888307a45feeeac6c880fdcfccc94a6feb448d74ff0528760da9ff5382cd36f2",
+      "stdout": "Verified 204 pieces, 100 garbage rows, seed 62109",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-dbe004cd-None-False-62126.json",
+      "seed": 62126,
+      "pieces": 202,
+      "returncode": 0,
+      "sha256": "4675519ad7c7efc61fc3adf531f950294ff6118df5b36f053f9b95662fcecc7a",
+      "stdout": "Verified 202 pieces, 100 garbage rows, seed 62126",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-dbe004cd-None-False-62106.json",
+      "seed": 62106,
+      "pieces": 193,
+      "returncode": 0,
+      "sha256": "61a9e7926abf7f861b2353732aa2e70e8acbe1aa033181ba69e299b21204f26d",
+      "stdout": "Verified 193 pieces, 100 garbage rows, seed 62106",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-3c6e49c1-None-False-62108.json",
+      "seed": 62108,
+      "pieces": 193,
+      "returncode": 0,
+      "sha256": "9bbba2a0e0c505ae4c094dbfcea2d7d79c46555827bb55c8174048d6c86287ab",
+      "stdout": "Verified 193 pieces, 100 garbage rows, seed 62108",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-3c6e49c1-None-False-62103.json",
+      "seed": 62103,
+      "pieces": 202,
+      "returncode": 0,
+      "sha256": "e352dde715f5fa714f44d5c174454087e8b7b09b07f00ddc7ff8e16faab07409",
+      "stdout": "Verified 202 pieces, 100 garbage rows, seed 62103",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-dbe004cd-None-False-62124.json",
+      "seed": 62124,
+      "pieces": 215,
+      "returncode": 0,
+      "sha256": "36e104043b3bbc4cfbcfed4a2ca7800f7b6052baac7fa839affd063344cb73fe",
+      "stdout": "Verified 215 pieces, 100 garbage rows, seed 62124",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-dbe004cd-None-False-62107.json",
+      "seed": 62107,
+      "pieces": 209,
+      "returncode": 0,
+      "sha256": "b62a24d645174a96fa4fd18860dcd3a66947c06ef5330ec0981b5a48b5824a43",
+      "stdout": "Verified 209 pieces, 100 garbage rows, seed 62107",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-dbe004cd-None-False-62102.json",
+      "seed": 62102,
+      "pieces": 199,
+      "returncode": 0,
+      "sha256": "075f5d204303b65478503e2f1241081acbe944168c600033fb148c32f59dbf39",
+      "stdout": "Verified 199 pieces, 100 garbage rows, seed 62102",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-dbe004cd-None-False-62105.json",
+      "seed": 62105,
+      "pieces": 199,
+      "returncode": 0,
+      "sha256": "ba07a5a1fd90031dc596211da69df1184b47900a7d5ea312458bc0e8eca4a63d",
+      "stdout": "Verified 199 pieces, 100 garbage rows, seed 62105",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-3c6e49c1-None-False-62118.json",
+      "seed": 62118,
+      "pieces": 189,
+      "returncode": 0,
+      "sha256": "416f11e49063cf102427e23750f228e5ea9832f7c06bc4ea3d7ee18af8b8fde2",
+      "stdout": "Verified 189 pieces, 100 garbage rows, seed 62118",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-3c6e49c1-None-False-62101.json",
+      "seed": 62101,
+      "pieces": 202,
+      "returncode": 0,
+      "sha256": "7d68727b88c794f8e7d86d47085a13467d134fd9d15502743a9c84b86d245d75",
+      "stdout": "Verified 202 pieces, 100 garbage rows, seed 62101",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-dbe004cd-None-False-62120.json",
+      "seed": 62120,
+      "pieces": 206,
+      "returncode": 0,
+      "sha256": "a7be943f1cb3f2bc0aa2902fc6eb546f98ffafcf81e4a698ec8046c7fc7be511",
+      "stdout": "Verified 206 pieces, 100 garbage rows, seed 62120",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-dbe004cd-None-False-62118.json",
+      "seed": 62118,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "d214c5a6581eec5d24c983df90b63c2dea9f2550679eefa9dbaf9a6bda18eb25",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 62118",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-3c6e49c1-None-False-62125.json",
+      "seed": 62125,
+      "pieces": 205,
+      "returncode": 0,
+      "sha256": "1cce3cdb950c366c0178cc55928c29396ce769c47c722fb36604b701913243e2",
+      "stdout": "Verified 205 pieces, 100 garbage rows, seed 62125",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-3c6e49c1-None-False-62107.json",
+      "seed": 62107,
+      "pieces": 204,
+      "returncode": 0,
+      "sha256": "6c50b2ce46ad2d9ab0a3a691ac723b1c01ca8d90b6ae21666c33e4b7798c5480",
+      "stdout": "Verified 204 pieces, 100 garbage rows, seed 62107",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-3c6e49c1-None-False-62129.json",
+      "seed": 62129,
+      "pieces": 205,
+      "returncode": 0,
+      "sha256": "42b94ea3feb5f0304d53b4bb6b5162db92bceed9b56afd2d790ed7d8fc1e5d75",
+      "stdout": "Verified 205 pieces, 100 garbage rows, seed 62129",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-3c6e49c1-None-False-62119.json",
+      "seed": 62119,
+      "pieces": 199,
+      "returncode": 0,
+      "sha256": "96bbdea717b2afe7583925820a04165eacb341c1e0189fc420d4b6413728bb39",
+      "stdout": "Verified 199 pieces, 100 garbage rows, seed 62119",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-dbe004cd-None-False-62125.json",
+      "seed": 62125,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "18ee31f67ec834cc0874a89be907883598021ef8833562b883cdd7f0bfaf4b11",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 62125",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-dbe004cd-None-False-62116.json",
+      "seed": 62116,
+      "pieces": 213,
+      "returncode": 0,
+      "sha256": "8b8467857005a0b5577b10535e443271894998ddfa06454f92cc0f9c1abdd7ab",
+      "stdout": "Verified 213 pieces, 100 garbage rows, seed 62116",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-3c6e49c1-None-False-62124.json",
+      "seed": 62124,
+      "pieces": 210,
+      "returncode": 0,
+      "sha256": "368ebed279e5b336858d7536f993e80ac276d74e10e6dad5a18492a0467e17c0",
+      "stdout": "Verified 210 pieces, 100 garbage rows, seed 62124",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-3c6e49c1-None-False-62123.json",
+      "seed": 62123,
+      "pieces": 190,
+      "returncode": 0,
+      "sha256": "9a664a5721f4302ff58f86d96e1426c18a5f5caa00e1397044673a68dc817e00",
+      "stdout": "Verified 190 pieces, 100 garbage rows, seed 62123",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-3c6e49c1-None-False-62111.json",
+      "seed": 62111,
+      "pieces": 194,
+      "returncode": 0,
+      "sha256": "b86750b2e4d2c51f1d81ce271bddfe4a868e6e1e14e2b9e3abacc001faf21329",
+      "stdout": "Verified 194 pieces, 100 garbage rows, seed 62111",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-dbe004cd-None-False-62119.json",
+      "seed": 62119,
+      "pieces": 211,
+      "returncode": 0,
+      "sha256": "4e1b3f85492a0a8989be7ff55a061817a0be8b537530ebeb20d9a5cc878c3c28",
+      "stdout": "Verified 211 pieces, 100 garbage rows, seed 62119",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-dbe004cd-None-False-62110.json",
+      "seed": 62110,
+      "pieces": 215,
+      "returncode": 0,
+      "sha256": "6b2523e3529252087b25ce2d4641fbf0ad0f929f40a3ee4db773ba06c630505a",
+      "stdout": "Verified 215 pieces, 100 garbage rows, seed 62110",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-dbe004cd-None-False-62117.json",
+      "seed": 62117,
+      "pieces": 208,
+      "returncode": 0,
+      "sha256": "f35b73d7b434f9b2bd4a2e947687367a0712bb43b6241842cc1fbb2df00e5106",
+      "stdout": "Verified 208 pieces, 100 garbage rows, seed 62117",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-3c6e49c1-None-False-62129.json",
+      "seed": 62129,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "2a133cd3419c1707b6f4ca158dfb602bd96b6d635678f28eb5c4331221a8b886",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 62129",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-3c6e49c1-None-False-62100.json",
+      "seed": 62100,
+      "pieces": 194,
+      "returncode": 0,
+      "sha256": "f0a1ad4e756a7347c3309117a37625899328e537efbc01266fc766066866552a",
+      "stdout": "Verified 194 pieces, 100 garbage rows, seed 62100",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-3c6e49c1-None-False-62121.json",
+      "seed": 62121,
+      "pieces": 204,
+      "returncode": 0,
+      "sha256": "be32d46d285fd642c8cd13127d14de0f0b8ecc2ad311f3d23da203a9d166a779",
+      "stdout": "Verified 204 pieces, 100 garbage rows, seed 62121",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-dbe004cd-None-False-62108.json",
+      "seed": 62108,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "9f58c37db1406793840413191e99506289e7601870f1b32f79fbe653c13223b3",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 62108",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-3c6e49c1-None-False-62127.json",
+      "seed": 62127,
+      "pieces": 190,
+      "returncode": 0,
+      "sha256": "c443c109da93be56932354a1f057a830c80fc0651635a1531b94644cec3d7bba",
+      "stdout": "Verified 190 pieces, 100 garbage rows, seed 62127",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-3c6e49c1-None-False-62122.json",
+      "seed": 62122,
+      "pieces": 193,
+      "returncode": 0,
+      "sha256": "2b145e7a909ad162f7bac38a39988c3673affbe4ce13788c5145adab6f967431",
+      "stdout": "Verified 193 pieces, 100 garbage rows, seed 62122",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-dbe004cd-None-False-62120.json",
+      "seed": 62120,
+      "pieces": 220,
+      "returncode": 0,
+      "sha256": "4235d1568f01c94e5bd99f0152ee888f9b8f271de10e0531bc7337c932917dd6",
+      "stdout": "Verified 220 pieces, 100 garbage rows, seed 62120",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-3c6e49c1-None-False-62116.json",
+      "seed": 62116,
+      "pieces": 203,
+      "returncode": 0,
+      "sha256": "d264b835c6a01476affeb873961f07858f442e49ce7d5b20d0bd32b93552f60b",
+      "stdout": "Verified 203 pieces, 100 garbage rows, seed 62116",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-3c6e49c1-None-False-62121.json",
+      "seed": 62121,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "6a4b380aba8fe4a15e769e9723e788692f0622f5629512f346a605c6b255a5d5",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 62121",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-3c6e49c1-None-False-62104.json",
+      "seed": 62104,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "e3a0438fd90ad2472b040aec54cf0e5fffe00bb00e77713d9428dfe0234f06d2",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 62104",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-dbe004cd-None-False-62111.json",
+      "seed": 62111,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "2c3e4bfbcd1270f2a091ff11d291255835033ca8c79ee5e230f89217297b93fc",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 62111",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-3c6e49c1-None-False-62108.json",
+      "seed": 62108,
+      "pieces": 202,
+      "returncode": 0,
+      "sha256": "8b78ab333761ac5d1519cb9ab7d86457e6d5a1531fc62b44afe26a8a3987025f",
+      "stdout": "Verified 202 pieces, 100 garbage rows, seed 62108",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-3c6e49c1-None-False-62101.json",
+      "seed": 62101,
+      "pieces": 210,
+      "returncode": 0,
+      "sha256": "4096845c9541112debd47645a4ce933fe68a4726d52ed353dd37ac0520d98069",
+      "stdout": "Verified 210 pieces, 100 garbage rows, seed 62101",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-dbe004cd-None-False-62116.json",
+      "seed": 62116,
+      "pieces": 209,
+      "returncode": 0,
+      "sha256": "3157b2626f1e183b2ede0dd4dd4da271576f9234125dc861f118f567dea36acd",
+      "stdout": "Verified 209 pieces, 100 garbage rows, seed 62116",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-3c6e49c1-None-False-62102.json",
+      "seed": 62102,
+      "pieces": 202,
+      "returncode": 0,
+      "sha256": "0ac24292f32c36d0b340402e6555139141d20eb6fb63b0227b1f8b0ba4984b48",
+      "stdout": "Verified 202 pieces, 100 garbage rows, seed 62102",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-3c6e49c1-None-False-62125.json",
+      "seed": 62125,
+      "pieces": 192,
+      "returncode": 0,
+      "sha256": "5f8d782af5c0354983cf91b22d9ff6dfc15fe0023ffaa74e390067c5c997b649",
+      "stdout": "Verified 192 pieces, 100 garbage rows, seed 62125",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-dbe004cd-None-False-62102.json",
+      "seed": 62102,
+      "pieces": 209,
+      "returncode": 0,
+      "sha256": "cf6c86d1e053648caaf0ca44428e15e24e2e079601886756c75ae910fec9d175",
+      "stdout": "Verified 209 pieces, 100 garbage rows, seed 62102",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-3c6e49c1-None-False-62130.json",
+      "seed": 62130,
+      "pieces": 193,
+      "returncode": 0,
+      "sha256": "5058774cb644b93cc9cf6fb6c32ab852ac20926101fb3bd3d2c6dce1708db18a",
+      "stdout": "Verified 193 pieces, 100 garbage rows, seed 62130",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-3c6e49c1-None-False-62117.json",
+      "seed": 62117,
+      "pieces": 196,
+      "returncode": 0,
+      "sha256": "3b577dd422314a6c625e6f00c40ba7f7f6fc8d33ce7c122d5c24edf78ec94a69",
+      "stdout": "Verified 196 pieces, 100 garbage rows, seed 62117",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-dbe004cd-None-False-62103.json",
+      "seed": 62103,
+      "pieces": 190,
+      "returncode": 0,
+      "sha256": "7fd91a89f6e91ff292e5908baa1c3c574dbe131b8e041d1677f64b1f3d1369b0",
+      "stdout": "Verified 190 pieces, 100 garbage rows, seed 62103",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-3c6e49c1-None-False-62126.json",
+      "seed": 62126,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "a9acce7f353bd3c552f5064aa8e2d1f3bf11f1331bd8b31d106005e7cc5e6544",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 62126",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-3c6e49c1-None-False-62114.json",
+      "seed": 62114,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "2be74a775b931af7d2c21d2fa8860e714f03487ec2ef5647971cf68387db49f2",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 62114",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-dbe004cd-None-False-62130.json",
+      "seed": 62130,
+      "pieces": 199,
+      "returncode": 0,
+      "sha256": "75d3a432c7ba2115ae15373ffbf3cbb53acae259ca5a401f8c526d3f8fe85eff",
+      "stdout": "Verified 199 pieces, 100 garbage rows, seed 62130",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-3c6e49c1-None-False-62131.json",
+      "seed": 62131,
+      "pieces": 199,
+      "returncode": 0,
+      "sha256": "cc4adc361be05977cd7acd39e989ae15d53f3d0faeb173edd53b66d03dc31c82",
+      "stdout": "Verified 199 pieces, 100 garbage rows, seed 62131",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-3c6e49c1-None-False-62115.json",
+      "seed": 62115,
+      "pieces": 185,
+      "returncode": 0,
+      "sha256": "7ffabae44d045c6f31d974a2358e02f4cdf11f8d85c249797d080f72ebe3ab6c",
+      "stdout": "Verified 185 pieces, 100 garbage rows, seed 62115",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-3c6e49c1-None-False-62126.json",
+      "seed": 62126,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "5ac1cf13ec36f0773712ca63358706723f9450cd6325c34f2256b671e7cbc6fe",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 62126",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-3c6e49c1-None-False-62105.json",
+      "seed": 62105,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "1a45a494865576ef1ef19e5f150c960941229ef1dabce926df306ffb86eb0392",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 62105",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-3c6e49c1-None-False-62131.json",
+      "seed": 62131,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "c885a2f4e9d5679d55ccd32f2736f942e664176400fdb257ed14eb2160f41d04",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 62131",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-3c6e49c1-None-False-62115.json",
+      "seed": 62115,
+      "pieces": 196,
+      "returncode": 0,
+      "sha256": "9d7c718fd1869906fe55427ba097620db8cbd28e5e491e9e7c14ebf22682a2cb",
+      "stdout": "Verified 196 pieces, 100 garbage rows, seed 62115",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-dbe004cd-None-False-62106.json",
+      "seed": 62106,
+      "pieces": 203,
+      "returncode": 0,
+      "sha256": "5180d9af28de3c0d274d5b32c71e2e7c6db26c304225f67792502c810f6c7e39",
+      "stdout": "Verified 203 pieces, 100 garbage rows, seed 62106",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-dbe004cd-None-False-62118.json",
+      "seed": 62118,
+      "pieces": 201,
+      "returncode": 0,
+      "sha256": "8011b496e10a50ca0e8a5921fed5ab44002b9b0a93ad3608464e75d071a88a01",
+      "stdout": "Verified 201 pieces, 100 garbage rows, seed 62118",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-3c6e49c1-None-False-62112.json",
+      "seed": 62112,
+      "pieces": 190,
+      "returncode": 0,
+      "sha256": "70dae65b0a98a826903066e50aa50225dc95f9d974efce596f0384c619cc8fff",
+      "stdout": "Verified 190 pieces, 100 garbage rows, seed 62112",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-3c6e49c1-None-False-62113.json",
+      "seed": 62113,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "b51ffaf1d648a7ee042e9e80c2ec0d22d2cf1690c0fe38554f890db33d63eec3",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 62113",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-dbe004cd-None-False-62128.json",
+      "seed": 62128,
+      "pieces": 202,
+      "returncode": 0,
+      "sha256": "c1e0e26bc69d074eb4c6a739d6519c196ecfb70e0b06c9319d7dd233b3f401d8",
+      "stdout": "Verified 202 pieces, 100 garbage rows, seed 62128",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-dbe004cd-None-False-62122.json",
+      "seed": 62122,
+      "pieces": 203,
+      "returncode": 0,
+      "sha256": "bc4478d15a0a7d4ed7088980fb3a7032a563cc43f026a1fcbc2cc984bee2bd83",
+      "stdout": "Verified 203 pieces, 100 garbage rows, seed 62122",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-dbe004cd-None-False-62131.json",
+      "seed": 62131,
+      "pieces": 199,
+      "returncode": 0,
+      "sha256": "f7b5c772ab44ad1203e7a14fba14dec78847b87ce6a6f894b5f72675539d2e8a",
+      "stdout": "Verified 199 pieces, 100 garbage rows, seed 62131",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-3c6e49c1-None-False-62110.json",
+      "seed": 62110,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "7a749e4a3c272d30c34370ad91929109405279e677f7d4e7fd7c84b2faa81cd8",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 62110",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-dbe004cd-None-False-62126.json",
+      "seed": 62126,
+      "pieces": 213,
+      "returncode": 0,
+      "sha256": "a6edcdb6f96f85c65a83b1652d99e8fa476cd0e98ddf0c2dcfaaf4166627d837",
+      "stdout": "Verified 213 pieces, 100 garbage rows, seed 62126",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-3c6e49c1-None-False-62124.json",
+      "seed": 62124,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "698af839c5b97e8e14cd3e730ed696f5a5672b03e505792bf52075dba956458e",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 62124",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-dbe004cd-None-False-62108.json",
+      "seed": 62108,
+      "pieces": 203,
+      "returncode": 0,
+      "sha256": "d8429bdb1279ebfce0806b91e2057dbcc1eb32c1170fc4c9f0ebaab02df5d85d",
+      "stdout": "Verified 203 pieces, 100 garbage rows, seed 62108",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-dbe004cd-None-False-62125.json",
+      "seed": 62125,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "b6b76d963119bf52c4bff13df03b6476a6b674a819c5a8c59ec9fbdc56c184a4",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 62125",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-3c6e49c1-None-False-62127.json",
+      "seed": 62127,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "6069f75e2420b082aa53e3512c103227e7b835a952de829da6c92c297d06c801",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 62127",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-dbe004cd-None-False-62129.json",
+      "seed": 62129,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "a7b479c539f3a4146ab946eaf6202935a901c82e378cb5ca60548af93bce7b4b",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 62129",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-3c6e49c1-None-False-62114.json",
+      "seed": 62114,
+      "pieces": 185,
+      "returncode": 0,
+      "sha256": "57c85906c7352b5ca2797b8483afab645c3616ed61a30901463eea8cc531f012",
+      "stdout": "Verified 185 pieces, 100 garbage rows, seed 62114",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-3c6e49c1-None-False-62128.json",
+      "seed": 62128,
+      "pieces": 203,
+      "returncode": 0,
+      "sha256": "26d4f0a2124774ce9fe77ae8cd3087a71fd51e3baa494073ae2a4c6548d79616",
+      "stdout": "Verified 203 pieces, 100 garbage rows, seed 62128",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-dbe004cd-None-False-62100.json",
+      "seed": 62100,
+      "pieces": 203,
+      "returncode": 0,
+      "sha256": "9d26852004563b01d12eaff01369d6251a4ee6f711477e1a62876048b4c1f18b",
+      "stdout": "Verified 203 pieces, 100 garbage rows, seed 62100",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-3c6e49c1-None-False-62112.json",
+      "seed": 62112,
+      "pieces": 202,
+      "returncode": 0,
+      "sha256": "440b25e486b3622dae4229bec3293831b81dfe4faac27b2968b44c89b9e58886",
+      "stdout": "Verified 202 pieces, 100 garbage rows, seed 62112",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-dbe004cd-None-False-62103.json",
+      "seed": 62103,
+      "pieces": 206,
+      "returncode": 0,
+      "sha256": "5b17ac7c714523ce825871403739646a69a8d160a4fa87f3c94482db92ef9f5b",
+      "stdout": "Verified 206 pieces, 100 garbage rows, seed 62103",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-dbe004cd-None-False-62122.json",
+      "seed": 62122,
+      "pieces": 188,
+      "returncode": 0,
+      "sha256": "22cbcbf0779f9956c921c972444f886b171eacd3b9defa55893d12a7e574ce25",
+      "stdout": "Verified 188 pieces, 100 garbage rows, seed 62122",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-dbe004cd-None-False-62129.json",
+      "seed": 62129,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "0e62f2e7e77b07efc4696f78317b6bae4e9b6d2a7f7239f123a197cd53187bdc",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 62129",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-3c6e49c1-None-False-62130.json",
+      "seed": 62130,
+      "pieces": 208,
+      "returncode": 0,
+      "sha256": "d98d7f07e98858c2be356024acaed24c9f2a2348beaa844f3235ce200e7c4a91",
+      "stdout": "Verified 208 pieces, 100 garbage rows, seed 62130",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-dbe004cd-None-False-62127.json",
+      "seed": 62127,
+      "pieces": 185,
+      "returncode": 0,
+      "sha256": "c23bd7c16d11b8698bc52e10366ee2fef2d4405426a655618f72258a18d58d6f",
+      "stdout": "Verified 185 pieces, 100 garbage rows, seed 62127",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-dbe004cd-None-False-62121.json",
+      "seed": 62121,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "ca160fdc83fd8e940b7d337fdb3f44199544cefaa1b0526847eba126536d7379",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 62121",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-dbe004cd-None-False-62124.json",
+      "seed": 62124,
+      "pieces": 218,
+      "returncode": 0,
+      "sha256": "e820150d85e837bc30ed98c4841bf86cd623d9a06c4496fdb80b81dc21d42ebd",
+      "stdout": "Verified 218 pieces, 100 garbage rows, seed 62124",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-dbe004cd-None-False-62130.json",
+      "seed": 62130,
+      "pieces": 215,
+      "returncode": 0,
+      "sha256": "7ce60d0aebbf912824afcae66a66681b1058441b8d756c2220db3b46f1c13c71",
+      "stdout": "Verified 215 pieces, 100 garbage rows, seed 62130",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-dbe004cd-None-False-62100.json",
+      "seed": 62100,
+      "pieces": 217,
+      "returncode": 0,
+      "sha256": "515b09d90b2d954a76f65aa5235b5f1a684178b39a43cde720d90014fba91cd9",
+      "stdout": "Verified 217 pieces, 100 garbage rows, seed 62100",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-3c6e49c1-None-False-62111.json",
+      "seed": 62111,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "01407ec1ac8c6caeadae8efe61e95dc6a374128e3a9a86f2112f7fc55a6a4c6b",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 62111",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-dbe004cd-None-False-62112.json",
+      "seed": 62112,
+      "pieces": 209,
+      "returncode": 0,
+      "sha256": "f259e1da50bf5e1d1d33f4e683422ef44a89bc5239c3b045f751d09438b9eabf",
+      "stdout": "Verified 209 pieces, 100 garbage rows, seed 62112",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-3c6e49c1-None-False-62113.json",
+      "seed": 62113,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "e000835a1f9a8b32c3638d3d9aef34990b7c72f596886836cad235c979f2e02f",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 62113",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-3c6e49c1-None-False-62102.json",
+      "seed": 62102,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "52f8bdfe6e752679504746a60789d072ac0196d022154bbfe7083c45cbfaf4f6",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 62102",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-dbe004cd-None-False-62107.json",
+      "seed": 62107,
+      "pieces": 194,
+      "returncode": 0,
+      "sha256": "30fb94e5a673673cb28a1e755db7e2021772b8ed33427345ff7dbeb591d17d47",
+      "stdout": "Verified 194 pieces, 100 garbage rows, seed 62107",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-dbe004cd-None-False-62114.json",
+      "seed": 62114,
+      "pieces": 194,
+      "returncode": 0,
+      "sha256": "ed5496c3b884a2566c51725cea4b3ca51c51d29a3fa13cc5a9ef21957e122b9e",
+      "stdout": "Verified 194 pieces, 100 garbage rows, seed 62114",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-3c6e49c1-None-False-62117.json",
+      "seed": 62117,
+      "pieces": 205,
+      "returncode": 0,
+      "sha256": "e8d7e4a95acab13a36e25ad3709c97dbd58423126a7c7827ed596cbce074ed0c",
+      "stdout": "Verified 205 pieces, 100 garbage rows, seed 62117",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-3c6e49c1-None-False-62109.json",
+      "seed": 62109,
+      "pieces": 191,
+      "returncode": 0,
+      "sha256": "786b95e43dc9ca9f1867b669fa940ecbc28eff012abdc591e0a12459db0507c6",
+      "stdout": "Verified 191 pieces, 100 garbage rows, seed 62109",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-fast-824eca4f-3c6e49c1-None-False-62128.json",
+      "seed": 62128,
+      "pieces": 199,
+      "returncode": 0,
+      "sha256": "30e2d29c3fbd438b16872f26b8d6b6b5e7f5bb9e1a2dd4c82726ea3ff924c113",
+      "stdout": "Verified 199 pieces, 100 garbage rows, seed 62128",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-validation.jsonl",
+      "trace": "research/results/s-direct-validation-learned-direct-b8d302ac-3c6e49c1-None-False-62120.json",
+      "seed": 62120,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "d01cc78bef94833fdf7c6bcb1d8d275fcfa1693c61cb13121e81faffb3ab9802",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 62120",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-static-parity.jsonl",
+      "trace": "research/results/s-direct-static-parity-learned-direct-b8d302ac-dbe004cd-None-False-74000.json",
+      "seed": 74000,
+      "pieces": 187,
+      "returncode": 0,
+      "sha256": "1d18e97c5ee812a2dc54edecb4cb18431cbb3cb893c7abbd63e9803b5a1366aa",
+      "stdout": "Verified 187 pieces, 100 garbage rows, seed 74000",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-static-parity.jsonl",
+      "trace": "research/results/s-direct-static-parity-learned-direct-b8d302ac-dbe004cd-None-False-74008.json",
+      "seed": 74008,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "bd30e7de2bdafa23830ef0f84fd78b3581ae139bb15573b8aac4a312f42bdc94",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 74008",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s-direct-static-parity.jsonl",
+      "trace": "research/results/s-direct-static-parity-learned-direct-b8d302ac-dbe004cd-None-False-74003.json",
+      "seed": 74003,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "fb8968589b1924c8e28acd34a75b085a52d972b98101c8720c8e81d8ef9db278",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 74003",
+      "stderr": ""
+    }
+  ]
+}

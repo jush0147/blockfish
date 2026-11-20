@@ -1,0 +1,11 @@
+   Compiling blockfish v0.1.0 (/workspace/blockfish/blockfish-engine)
+warning: unused variable: `score`
+  --> blockfish-engine/src/ai/robust_backup.rs:24:13
+   |
+24 |         let score = if self.0[0].3 {
+   |             ^^^^^ help: if this is intentional, prefix it with an underscore: `_score`
+   |
+   = note: `#[warn(unused_variables)]` on by default
+
+warning: `blockfish` (lib) generated 1 warning (run `cargo fix --lib -p blockfish` to apply 1 suggestion)
+    Finished release [optimized] target(s) in 4.30s

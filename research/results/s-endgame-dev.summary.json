@@ -1,0 +1,123 @@
+{
+  "groups": {
+    "learned-endgame-placebo:50/5,10,10,10:None": {
+      "total": 12,
+      "complete": 12,
+      "seeds": [
+        62000,
+        62001,
+        62002,
+        62003,
+        62004,
+        62005,
+        62006,
+        62007,
+        62008,
+        62009,
+        62010,
+        62011
+      ],
+      "binary_sha256": [
+        "2aab1a3aded92a20865a084e9fc446a56c2fdd545d594c667c55c872fbe4fd6b"
+      ],
+      "mean_pieces": 196.91666666666666,
+      "min_pieces": 183,
+      "cpu_records": 12,
+      "mean_cpu_seconds": 16.734927250000002
+    },
+    "learned-endgame:50/5,10,10,10:None": {
+      "total": 12,
+      "complete": 12,
+      "seeds": [
+        62000,
+        62001,
+        62002,
+        62003,
+        62004,
+        62005,
+        62006,
+        62007,
+        62008,
+        62009,
+        62010,
+        62011
+      ],
+      "binary_sha256": [
+        "40cfcf65a2c74afd5678d9557c5d47e49e8a27d972d91706af9a6240dfa9468c"
+      ],
+      "mean_pieces": 196.91666666666666,
+      "min_pieces": 183,
+      "cpu_records": 12,
+      "mean_cpu_seconds": 16.560036083333333
+    },
+    "learned-fast:50/5,10,10,10:None": {
+      "total": 12,
+      "complete": 12,
+      "seeds": [
+        62000,
+        62001,
+        62002,
+        62003,
+        62004,
+        62005,
+        62006,
+        62007,
+        62008,
+        62009,
+        62010,
+        62011
+      ],
+      "binary_sha256": [
+        "824eca4f6675630f072c062e3ec72e6a8aa3d1ba935c147b64960bda1c98c2c3"
+      ],
+      "mean_pieces": 196.91666666666666,
+      "min_pieces": 183,
+      "cpu_records": 12,
+      "mean_cpu_seconds": 17.2198995
+    }
+  },
+  "pairs": [
+    {
+      "a": "learned-endgame-placebo:50/5,10,10,10:None",
+      "b": "learned-endgame:50/5,10,10,10:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": 0,
+      "bootstrap95": [
+        0.0,
+        0.0
+      ],
+      "b_wins": 0,
+      "ties": 12,
+      "b_losses": 0
+    },
+    {
+      "a": "learned-endgame-placebo:50/5,10,10,10:None",
+      "b": "learned-fast:50/5,10,10,10:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": 0,
+      "bootstrap95": [
+        0.0,
+        0.0
+      ],
+      "b_wins": 0,
+      "ties": 12,
+      "b_losses": 0
+    },
+    {
+      "a": "learned-endgame:50/5,10,10,10:None",
+      "b": "learned-fast:50/5,10,10,10:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": 0,
+      "bootstrap95": [
+        0.0,
+        0.0
+      ],
+      "b_wins": 0,
+      "ties": 12,
+      "b_losses": 0
+    }
+  ]
+}

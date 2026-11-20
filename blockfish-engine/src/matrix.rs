@@ -58,10 +58,57 @@ impl BasicMatrix {
         self.cols
     }
 
+    /// Empty cells with occupied neighbors on both sides, including side walls.
+    #[cfg(feature = "bit-eval")]
+    pub(crate) fn narrow_gaps(&self, row: u16) -> u16 {
+        let mask = (1u32 << self.cols) - 1;
+        let occupied = self.data[row as usize] as u32 | (1u32 << self.cols);
+        ((!occupied & ((occupied << 1) | 1) & (occupied >> 1)) & mask) as u16
+    }
+
+    #[cfg(feature = "flood-eval")]
+    pub(crate) fn vacant_bits(&self, row: u16) -> u16 {
+        !self.data[row as usize]
+    }
+
     /// Returns the number of (occupied) rows.
     #[inline(always)]
     pub fn rows(&self) -> u16 {
         self.data.len() as u16
+    }
+
+    #[cfg(any(feature = "endgame-solver", feature = "reveal-boundary"))]
+    pub(crate) fn full_rows_below(&self, rows: u16) -> u16 {
+        self.data
+            .iter()
+            .take(rows as usize)
+            .filter(|&&r| r == u16::MAX)
+            .count() as u16
+    }
+
+    #[cfg(feature = "endgame-solver")]
+    pub(crate) fn empty_cells_below(&self, rows: u16) -> usize {
+        self.data
+            .iter()
+            .take(rows as usize)
+            .map(|&r| (!r).count_ones() as usize)
+            .sum()
+    }
+
+    #[cfg(feature = "endgame-color-bound")]
+    pub(crate) fn single_hole_columns(&self, rows: u16) -> Option<Vec<u16>> {
+        self.data
+            .iter()
+            .take(rows as usize)
+            .map(|&row| {
+                let holes = !row;
+                if holes.count_ones() == 1 {
+                    Some(holes.trailing_zeros() as u16)
+                } else {
+                    None
+                }
+            })
+            .collect()
     }
 
     /// Ensure that row `i` is present by appending empty rows to the top of the matrix.

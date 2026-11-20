@@ -1,0 +1,128 @@
+   Compiling blockfish v0.1.0 (/workspace/blockfish/blockfish-engine)
+warning: struct `Search` is never constructed
+  --> blockfish-engine/src/ai/b_star.rs:50:12
+   |
+50 | pub struct Search<'s> {
+   |            ^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: variant `RemoveMove` is never constructed
+   --> blockfish-engine/src/ai/b_star.rs:169:5
+    |
+147 | pub enum Step {
+    |          ---- variant in this enum
+...
+169 |     RemoveMove(MoveId),
+    |     ^^^^^^^^^^
+    |
+    = note: `Step` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: multiple associated items are never used
+   --> blockfish-engine/src/ai/b_star.rs:226:12
+    |
+176 | impl<'s> Search<'s> {
+    | ------------------- associated items in this implementation
+...
+226 |     pub fn new(shape_table: &'s ShapeTable, params: Parameters) -> Self {
+    |            ^^^
+...
+259 |     pub fn start(&mut self, root_state: State) {
+    |            ^^^^^
+...
+290 |     pub fn node_count(&self) -> usize {
+    |            ^^^^^^^^^^
+...
+297 |     pub fn budget_used(&self) -> usize {
+    |            ^^^^^^^^^^^
+...
+333 |     pub fn generated_nodes(&self) -> usize {
+    |            ^^^^^^^^^^^^^^^
+...
+367 |     pub fn step(&mut self) -> Result<Step, SearchTerminated> {
+    |            ^^^^
+...
+446 |     fn push(&mut self, node: Node) {
+    |        ^^^^
+...
+487 |     fn pop(&mut self) -> Result<(), SearchTerminated> {
+    |        ^^^
+...
+521 |     fn select(&mut self) {
+    |        ^^^^^^
+...
+535 |     fn back_up(&mut self, node: Node) -> (i64, Vec<usize>, Option<MoveId>) {
+    |        ^^^^^^^
+
+warning: function `default_level` is never used
+   --> blockfish-engine/src/ai/b_star.rs:574:4
+    |
+574 | fn default_level() -> BinaryHeap<Node> {
+    |    ^^^^^^^^^^^^^
+
+warning: `blockfish` (lib) generated 4 warnings
+    Finished release [optimized] target(s) in 2.47s
+   Compiling blockfish v0.1.0 (/workspace/blockfish/blockfish-engine)
+warning: struct `Search` is never constructed
+  --> blockfish-engine/src/ai/b_star.rs:50:12
+   |
+50 | pub struct Search<'s> {
+   |            ^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: variant `RemoveMove` is never constructed
+   --> blockfish-engine/src/ai/b_star.rs:169:5
+    |
+147 | pub enum Step {
+    |          ---- variant in this enum
+...
+169 |     RemoveMove(MoveId),
+    |     ^^^^^^^^^^
+    |
+    = note: `Step` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: multiple associated items are never used
+   --> blockfish-engine/src/ai/b_star.rs:226:12
+    |
+176 | impl<'s> Search<'s> {
+    | ------------------- associated items in this implementation
+...
+226 |     pub fn new(shape_table: &'s ShapeTable, params: Parameters) -> Self {
+    |            ^^^
+...
+259 |     pub fn start(&mut self, root_state: State) {
+    |            ^^^^^
+...
+290 |     pub fn node_count(&self) -> usize {
+    |            ^^^^^^^^^^
+...
+297 |     pub fn budget_used(&self) -> usize {
+    |            ^^^^^^^^^^^
+...
+333 |     pub fn generated_nodes(&self) -> usize {
+    |            ^^^^^^^^^^^^^^^
+...
+367 |     pub fn step(&mut self) -> Result<Step, SearchTerminated> {
+    |            ^^^^
+...
+446 |     fn push(&mut self, node: Node) {
+    |        ^^^^
+...
+487 |     fn pop(&mut self) -> Result<(), SearchTerminated> {
+    |        ^^^
+...
+521 |     fn select(&mut self) {
+    |        ^^^^^^
+...
+535 |     fn back_up(&mut self, node: Node) -> (i64, Vec<usize>, Option<MoveId>) {
+    |        ^^^^^^^
+
+warning: function `default_level` is never used
+   --> blockfish-engine/src/ai/b_star.rs:574:4
+    |
+574 | fn default_level() -> BinaryHeap<Node> {
+    |    ^^^^^^^^^^^^^
+
+warning: `blockfish` (lib) generated 4 warnings
+    Finished release [optimized] target(s) in 2.38s

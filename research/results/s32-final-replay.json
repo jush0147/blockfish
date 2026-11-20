@@ -1,0 +1,1288 @@
+{
+  "verifier": "research/bin/learned-fast",
+  "verifier_sha256": "824eca4f6675630f072c062e3ec72e6a8aa3d1ba935c147b64960bda1c98c2c3",
+  "total": 128,
+  "passed": 128,
+  "records": [
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77308.json",
+      "seed": 77308,
+      "pieces": 188,
+      "returncode": 0,
+      "sha256": "ca0712b24d01630fb53a87e577b4f22da4e0da721ca4e4282d01295a1516605d",
+      "stdout": "Verified 188 pieces, 100 garbage rows, seed 77308",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77346.json",
+      "seed": 77346,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "29f8d371a4b7695584b15255dca26c30d45f468cd66fec85865e2de9df3a325f",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 77346",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77302.json",
+      "seed": 77302,
+      "pieces": 204,
+      "returncode": 0,
+      "sha256": "052f4560b8493bc760aa895d9838698656e10862b35d2125f559cd47231af1b3",
+      "stdout": "Verified 204 pieces, 100 garbage rows, seed 77302",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77313.json",
+      "seed": 77313,
+      "pieces": 201,
+      "returncode": 0,
+      "sha256": "adbe5e0f6df877cfb2bcdb766781bef55b383231c28e16dd425fbc77e8d16cfb",
+      "stdout": "Verified 201 pieces, 100 garbage rows, seed 77313",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77302.json",
+      "seed": 77302,
+      "pieces": 192,
+      "returncode": 0,
+      "sha256": "1207b925de2a0629d82432605368fda16907c4683b660c0f89a308856cd4215c",
+      "stdout": "Verified 192 pieces, 100 garbage rows, seed 77302",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77334.json",
+      "seed": 77334,
+      "pieces": 187,
+      "returncode": 0,
+      "sha256": "12e46f6d452fc89fd7f24b75abd2c29248566856663b2d173ad97989712b70b7",
+      "stdout": "Verified 187 pieces, 100 garbage rows, seed 77334",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77339.json",
+      "seed": 77339,
+      "pieces": 193,
+      "returncode": 0,
+      "sha256": "6dc5df60356846cdcfa8fd3b11c0f00c16e49d566bbcf69d132833d0a4937842",
+      "stdout": "Verified 193 pieces, 100 garbage rows, seed 77339",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77328.json",
+      "seed": 77328,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "3ad48584679a023e8d4509fe57af57e2a550b0460a8006cc9da26194698a7f41",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 77328",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77318.json",
+      "seed": 77318,
+      "pieces": 188,
+      "returncode": 0,
+      "sha256": "43e99be250ccce9ccc841406344d75360c2d92867bc7eb44ca71587c3306eb86",
+      "stdout": "Verified 188 pieces, 100 garbage rows, seed 77318",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77333.json",
+      "seed": 77333,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "5821496a1edfbd0be4413dfdd33c0a4e5ad5a6dc1989b6ffb9211dcffa7c781a",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 77333",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77342.json",
+      "seed": 77342,
+      "pieces": 180,
+      "returncode": 0,
+      "sha256": "443e6d84393616ca2332a3126cc30926bdbc7a786361d1a1da349eb5fea66343",
+      "stdout": "Verified 180 pieces, 100 garbage rows, seed 77342",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77324.json",
+      "seed": 77324,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "931b81c1e3d7106cbb3fd39bbbd238b8a0c5f657eab67f1bf3e05d6afe982f60",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 77324",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77301.json",
+      "seed": 77301,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "4cbde03b0dfa852dc755ac35cb7aaa2a9ea8f2d0471448bf596a668b232c8661",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 77301",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77337.json",
+      "seed": 77337,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "fb46cc3e12d5fdbfbf41bbd4835ef4eff02f267a92944507c76a129c64f3e844",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 77337",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77320.json",
+      "seed": 77320,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "0dc273688e7844983d2bad0863cecae8960ed07a8f0aca870e73ea38dc07bf95",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 77320",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77313.json",
+      "seed": 77313,
+      "pieces": 205,
+      "returncode": 0,
+      "sha256": "3d2bfd8680369aa3111a52d951a5be8948f7b9708d1f726fd18e6437071a8850",
+      "stdout": "Verified 205 pieces, 100 garbage rows, seed 77313",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77308.json",
+      "seed": 77308,
+      "pieces": 190,
+      "returncode": 0,
+      "sha256": "ab26ba40eea3d3c52b3ec5997d6bee61c56797fdea15ecbc3f7a1303b295b2d5",
+      "stdout": "Verified 190 pieces, 100 garbage rows, seed 77308",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77321.json",
+      "seed": 77321,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "e55d8fdfde7c7ffd3f87f5f42ebd5a3aa0481eb696380e76ece6429489f936cd",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 77321",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77362.json",
+      "seed": 77362,
+      "pieces": 199,
+      "returncode": 0,
+      "sha256": "1c3107b00e0a670ce065da7d4caabcfa652ff09b038ae4ec9466cbe7f98d1805",
+      "stdout": "Verified 199 pieces, 100 garbage rows, seed 77362",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77345.json",
+      "seed": 77345,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "4744330f7ce16fd245580f10bd0599a710e0bfc67c824de2bbc18804144cb5ff",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 77345",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77346.json",
+      "seed": 77346,
+      "pieces": 189,
+      "returncode": 0,
+      "sha256": "c082ad4319161ff2f8cd336f82ad64d421e0ef6389bd126ac1c7d57797169b91",
+      "stdout": "Verified 189 pieces, 100 garbage rows, seed 77346",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77326.json",
+      "seed": 77326,
+      "pieces": 201,
+      "returncode": 0,
+      "sha256": "3f6834d6123986f7335a129584e00e764c94529b9534fcce321c1a95909507a8",
+      "stdout": "Verified 201 pieces, 100 garbage rows, seed 77326",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77341.json",
+      "seed": 77341,
+      "pieces": 194,
+      "returncode": 0,
+      "sha256": "655add1b7ed57d54a99961c3452ca4545e1634d8b3837fd3453ba995f8e0b516",
+      "stdout": "Verified 194 pieces, 100 garbage rows, seed 77341",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77311.json",
+      "seed": 77311,
+      "pieces": 202,
+      "returncode": 0,
+      "sha256": "305f705ef2d7b1012e799be14837f85d1696d3d5da2f5ec05f7dc211994bc984",
+      "stdout": "Verified 202 pieces, 100 garbage rows, seed 77311",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77307.json",
+      "seed": 77307,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "6b6eb240994640e0c69ff5eb4940b39e7ac21bfa2cfa658d0b66230c533de17d",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 77307",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77338.json",
+      "seed": 77338,
+      "pieces": 193,
+      "returncode": 0,
+      "sha256": "1251387ba635b49a990b717d8bc0b8331efae2095fc0fb3b81d3de2dbe5ac6b6",
+      "stdout": "Verified 193 pieces, 100 garbage rows, seed 77338",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77356.json",
+      "seed": 77356,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "9e799e97f9b454edb206587191e1814421876eb5ae50077557ac689198810222",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 77356",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77319.json",
+      "seed": 77319,
+      "pieces": 196,
+      "returncode": 0,
+      "sha256": "4ff90ad2d43a44e8f6451b3b16eec0dc5fd0ebbf2925cad57aab87af64298edd",
+      "stdout": "Verified 196 pieces, 100 garbage rows, seed 77319",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77326.json",
+      "seed": 77326,
+      "pieces": 199,
+      "returncode": 0,
+      "sha256": "2c244969e5cd6b488d03ffb83a64290b6eb811ea97c736aed72b96464cddc5e8",
+      "stdout": "Verified 199 pieces, 100 garbage rows, seed 77326",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77309.json",
+      "seed": 77309,
+      "pieces": 191,
+      "returncode": 0,
+      "sha256": "45daace6368b2ec84afbd67112cabbe649597a3e2eb4a9ee3a8f6f1f7ea04ee6",
+      "stdout": "Verified 191 pieces, 100 garbage rows, seed 77309",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77330.json",
+      "seed": 77330,
+      "pieces": 196,
+      "returncode": 0,
+      "sha256": "6b7eed1b721b867b8b967efd3943ef75732decb88300e69edc83087b4aaa1065",
+      "stdout": "Verified 196 pieces, 100 garbage rows, seed 77330",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77322.json",
+      "seed": 77322,
+      "pieces": 201,
+      "returncode": 0,
+      "sha256": "37c60a4c7ecdfddbe4aa2540f442808c0f904037775901bfa76da57d290ddd4f",
+      "stdout": "Verified 201 pieces, 100 garbage rows, seed 77322",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77310.json",
+      "seed": 77310,
+      "pieces": 193,
+      "returncode": 0,
+      "sha256": "04003618ce19d5ac6bd598ff00cb98e5e3eb3e6bec72edafd28669ff65d00f92",
+      "stdout": "Verified 193 pieces, 100 garbage rows, seed 77310",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77347.json",
+      "seed": 77347,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "b79af284e51f35816d849c4f2b9f2e31800e0c809ff10504ebc1100a812f49d3",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 77347",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77315.json",
+      "seed": 77315,
+      "pieces": 196,
+      "returncode": 0,
+      "sha256": "80dbc41598bf307b35b6ec28c15f82ff82df1f2c834dbfd5fe81167445cdc6de",
+      "stdout": "Verified 196 pieces, 100 garbage rows, seed 77315",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77354.json",
+      "seed": 77354,
+      "pieces": 191,
+      "returncode": 0,
+      "sha256": "5940a51338f31278ea84f92623e96e86941f826418cb1442b527661a7067aefd",
+      "stdout": "Verified 191 pieces, 100 garbage rows, seed 77354",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77330.json",
+      "seed": 77330,
+      "pieces": 196,
+      "returncode": 0,
+      "sha256": "6f9dcbee67c84b79d31e03e9fa81c8b5051c0da9be4e21dcd85bb59a047a1492",
+      "stdout": "Verified 196 pieces, 100 garbage rows, seed 77330",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77307.json",
+      "seed": 77307,
+      "pieces": 194,
+      "returncode": 0,
+      "sha256": "1ac4dbd91d34977a1db5b276aecbccc9ffa38278173fc4474b433e0334a10ad0",
+      "stdout": "Verified 194 pieces, 100 garbage rows, seed 77307",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77317.json",
+      "seed": 77317,
+      "pieces": 202,
+      "returncode": 0,
+      "sha256": "12bcb53f26edf88881cf81d370cfeafc716e2309186f7c647c0d73dcb609f65f",
+      "stdout": "Verified 202 pieces, 100 garbage rows, seed 77317",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77318.json",
+      "seed": 77318,
+      "pieces": 181,
+      "returncode": 0,
+      "sha256": "e6fa61aaaa46021ba36543bd665d60fec3a094cfc11ac4a1318cc28e88cba2c5",
+      "stdout": "Verified 181 pieces, 100 garbage rows, seed 77318",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77352.json",
+      "seed": 77352,
+      "pieces": 190,
+      "returncode": 0,
+      "sha256": "5a3ac3c65b2092f621c34ef7cf887cd7d7970ce01aa66953f263ed0db2d37a93",
+      "stdout": "Verified 190 pieces, 100 garbage rows, seed 77352",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77312.json",
+      "seed": 77312,
+      "pieces": 191,
+      "returncode": 0,
+      "sha256": "ec72fa7051ce05dd1eb0ee470caedaa5442c2193ae1f6185634dc8073a5ea924",
+      "stdout": "Verified 191 pieces, 100 garbage rows, seed 77312",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77303.json",
+      "seed": 77303,
+      "pieces": 185,
+      "returncode": 0,
+      "sha256": "3de1e63eacc1b137fd8a24e596d3cde841f184749253ee01a984ca48834f6d0a",
+      "stdout": "Verified 185 pieces, 100 garbage rows, seed 77303",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77337.json",
+      "seed": 77337,
+      "pieces": 203,
+      "returncode": 0,
+      "sha256": "1b9eaaf53174c76af76224117be87156ce0720f26b21f1a85dc58f80c78f92e2",
+      "stdout": "Verified 203 pieces, 100 garbage rows, seed 77337",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77314.json",
+      "seed": 77314,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "c7eef7686ae616093d3d1cbf73af86a8045f12a69426f9a2c08139b9ec861ac7",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 77314",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77348.json",
+      "seed": 77348,
+      "pieces": 208,
+      "returncode": 0,
+      "sha256": "5ab7b6c9e4ee6dbf597772da0ed296f2ec9ad92968a6b6e488752b8a4dfebfa2",
+      "stdout": "Verified 208 pieces, 100 garbage rows, seed 77348",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77351.json",
+      "seed": 77351,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "dd23054bbe6677470d9a75c0b749a8c42efe5efcd00ba7ef71b5d5dbba9cb9a0",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 77351",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77304.json",
+      "seed": 77304,
+      "pieces": 193,
+      "returncode": 0,
+      "sha256": "b8200c70c89c90c4af34d13ef5a706ad5fde4103ca632c5fdf1cd559ae79c329",
+      "stdout": "Verified 193 pieces, 100 garbage rows, seed 77304",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77315.json",
+      "seed": 77315,
+      "pieces": 192,
+      "returncode": 0,
+      "sha256": "64b3ec02f2ab5f5b2c2af7b86d58d5850858f410f0312fc36cc5258d1f9de9b4",
+      "stdout": "Verified 192 pieces, 100 garbage rows, seed 77315",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77310.json",
+      "seed": 77310,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "4308f0c7398a2c43af8243e4fe7dbc1e13de08e7b915adc0d40865c0b9bd2ca7",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 77310",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77359.json",
+      "seed": 77359,
+      "pieces": 186,
+      "returncode": 0,
+      "sha256": "69289630aba7b80be7870ce4f76133ed6653a33b46fc25477c014efa162db37c",
+      "stdout": "Verified 186 pieces, 100 garbage rows, seed 77359",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77340.json",
+      "seed": 77340,
+      "pieces": 209,
+      "returncode": 0,
+      "sha256": "7f433691fb02c0b520ce76bd75dde5ebdd6c75050f55359f72ab406a2c9023c4",
+      "stdout": "Verified 209 pieces, 100 garbage rows, seed 77340",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77336.json",
+      "seed": 77336,
+      "pieces": 193,
+      "returncode": 0,
+      "sha256": "35c2b2d0d3fea174f41fb438cea1c44b1ad5aa97a4c0055176ef3fd8c9cc91f9",
+      "stdout": "Verified 193 pieces, 100 garbage rows, seed 77336",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77339.json",
+      "seed": 77339,
+      "pieces": 190,
+      "returncode": 0,
+      "sha256": "0d0120e76eb1095a44c664e8b93a5179da967b07c55e604ec8da7a3ac5f101ae",
+      "stdout": "Verified 190 pieces, 100 garbage rows, seed 77339",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77349.json",
+      "seed": 77349,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "9e641c95996598b9e3de46ad34eec072cc6581957ad4c7f801f17a5f13228805",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 77349",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77347.json",
+      "seed": 77347,
+      "pieces": 190,
+      "returncode": 0,
+      "sha256": "897f814dc26d9ef714737d3fe2d7c543a6e4cfeb248061d691936e667d60408e",
+      "stdout": "Verified 190 pieces, 100 garbage rows, seed 77347",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77350.json",
+      "seed": 77350,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "f483ab4e99ec34be487da307e7d66df6a71182aedea0812025e587fde7b4f819",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 77350",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77323.json",
+      "seed": 77323,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "5d4e029b7c3df017a440bb1631cafdc5e8b3ff0de698295b1f4c4d689abbf336",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 77323",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77332.json",
+      "seed": 77332,
+      "pieces": 187,
+      "returncode": 0,
+      "sha256": "c68d2cace5de3287c28f09ead889b441a75f0d4f656c10f54e40e8398cfcce4f",
+      "stdout": "Verified 187 pieces, 100 garbage rows, seed 77332",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77359.json",
+      "seed": 77359,
+      "pieces": 193,
+      "returncode": 0,
+      "sha256": "cfaa992e923cf03ea3b9919c3c94dc0eeddfeaccad54301cf27b551cac435f31",
+      "stdout": "Verified 193 pieces, 100 garbage rows, seed 77359",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77301.json",
+      "seed": 77301,
+      "pieces": 193,
+      "returncode": 0,
+      "sha256": "185dcd30794a3e361c18c696a9395b56a6d4e5f277a731a321f355a7e1369f4e",
+      "stdout": "Verified 193 pieces, 100 garbage rows, seed 77301",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77338.json",
+      "seed": 77338,
+      "pieces": 205,
+      "returncode": 0,
+      "sha256": "7b91e057385a5d69821a26281b12d3844c7bade1af96ba5153777b787a352250",
+      "stdout": "Verified 205 pieces, 100 garbage rows, seed 77338",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77320.json",
+      "seed": 77320,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "b356bb9a0f93a304e685ebd8eeb6bb5a397f7b8bb47135b32622d101db8ec503",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 77320",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77343.json",
+      "seed": 77343,
+      "pieces": 206,
+      "returncode": 0,
+      "sha256": "205de528bfddf8e682c79487534dfc1534c120b43aa432a466c7f425729d39db",
+      "stdout": "Verified 206 pieces, 100 garbage rows, seed 77343",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77334.json",
+      "seed": 77334,
+      "pieces": 184,
+      "returncode": 0,
+      "sha256": "98b760d0903c2e3180185e0fb8837a16439ad22f53b293c956559280585253ec",
+      "stdout": "Verified 184 pieces, 100 garbage rows, seed 77334",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77345.json",
+      "seed": 77345,
+      "pieces": 192,
+      "returncode": 0,
+      "sha256": "0bba59a5eb8f5ce98d1282291af0d2858a218523f205f50fdcd8158869eb868f",
+      "stdout": "Verified 192 pieces, 100 garbage rows, seed 77345",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77355.json",
+      "seed": 77355,
+      "pieces": 205,
+      "returncode": 0,
+      "sha256": "963ac35cf80344ca46a5af39438d16d678b7a6a79037b5e8aa31b5ac7de21432",
+      "stdout": "Verified 205 pieces, 100 garbage rows, seed 77355",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77333.json",
+      "seed": 77333,
+      "pieces": 205,
+      "returncode": 0,
+      "sha256": "87add8b99a1bf1b8528b01fb27924c764047863131155fb0d1700c783d63c66c",
+      "stdout": "Verified 205 pieces, 100 garbage rows, seed 77333",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77316.json",
+      "seed": 77316,
+      "pieces": 189,
+      "returncode": 0,
+      "sha256": "e90b8be14852a4be393fdf427ef8255f6f1fff975998fb99bdec23017e82e31e",
+      "stdout": "Verified 189 pieces, 100 garbage rows, seed 77316",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77343.json",
+      "seed": 77343,
+      "pieces": 201,
+      "returncode": 0,
+      "sha256": "242e46230896c0546aa3eceff95be9ba3cf8e908a11f34745b0049e40f86c287",
+      "stdout": "Verified 201 pieces, 100 garbage rows, seed 77343",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77309.json",
+      "seed": 77309,
+      "pieces": 199,
+      "returncode": 0,
+      "sha256": "dd968fbd1871c489338c71db68d7d8a3c6186e84be0abcad044558e3ca854f1e",
+      "stdout": "Verified 199 pieces, 100 garbage rows, seed 77309",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77340.json",
+      "seed": 77340,
+      "pieces": 199,
+      "returncode": 0,
+      "sha256": "02a4bf49ef91b9988cadc86645db0529eab23de7e76bc61985d9bf2a4ef3c759",
+      "stdout": "Verified 199 pieces, 100 garbage rows, seed 77340",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77317.json",
+      "seed": 77317,
+      "pieces": 192,
+      "returncode": 0,
+      "sha256": "8fd9295ff14f17cb90a2684b59ff0530ab4f8b1032385897a351e60fe4dbcb78",
+      "stdout": "Verified 192 pieces, 100 garbage rows, seed 77317",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77322.json",
+      "seed": 77322,
+      "pieces": 192,
+      "returncode": 0,
+      "sha256": "0c7b9197bd50c90825e5d41b603a73cc55dd8db95784abfecfbb3a4eea0269f0",
+      "stdout": "Verified 192 pieces, 100 garbage rows, seed 77322",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77303.json",
+      "seed": 77303,
+      "pieces": 208,
+      "returncode": 0,
+      "sha256": "5c19e5ee835f480ebb9577f3a6da64b6906a637049c1812ddb08b3759fd5025b",
+      "stdout": "Verified 208 pieces, 100 garbage rows, seed 77303",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77305.json",
+      "seed": 77305,
+      "pieces": 194,
+      "returncode": 0,
+      "sha256": "f1b33b3b9e435db1f0f8a0a26312e3fc6995046caccea1867d9eb1c5eef19f64",
+      "stdout": "Verified 194 pieces, 100 garbage rows, seed 77305",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77351.json",
+      "seed": 77351,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "448241c2dcd78bf884407c5f7ded9a7bab6960d807ea442bdba47119150aaa86",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 77351",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77332.json",
+      "seed": 77332,
+      "pieces": 191,
+      "returncode": 0,
+      "sha256": "978c6c22b04d9af3922fc9530dfa5df1dcd94d52425ee685edaab787a9830100",
+      "stdout": "Verified 191 pieces, 100 garbage rows, seed 77332",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77361.json",
+      "seed": 77361,
+      "pieces": 194,
+      "returncode": 0,
+      "sha256": "3eee2546e0f3cad1a31d2290b261d4fa55045244859b471baf3fe56bf2e4d20b",
+      "stdout": "Verified 194 pieces, 100 garbage rows, seed 77361",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77335.json",
+      "seed": 77335,
+      "pieces": 190,
+      "returncode": 0,
+      "sha256": "efef0c1bd14768f9eb03041ac778d0c3f3864f17ef5b2bb0d6e5176b2a0be07d",
+      "stdout": "Verified 190 pieces, 100 garbage rows, seed 77335",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77304.json",
+      "seed": 77304,
+      "pieces": 194,
+      "returncode": 0,
+      "sha256": "40e3db981d1bea580c5d357baab60753e50e63158da5b283f05e050c2259bccf",
+      "stdout": "Verified 194 pieces, 100 garbage rows, seed 77304",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77353.json",
+      "seed": 77353,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "2a5b0ad2f2e438dba31d75ce6753faeab17cd8f945c594853aafbf20d58a6fea",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 77353",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77329.json",
+      "seed": 77329,
+      "pieces": 185,
+      "returncode": 0,
+      "sha256": "24f6aabd4163015533e87df87f211d15ca2c6aee07e3a04ff02c6f09b7f5a410",
+      "stdout": "Verified 185 pieces, 100 garbage rows, seed 77329",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77363.json",
+      "seed": 77363,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "9b31f43571d9f66be8214a4d5cdb5deaec88042f9d17d359e38d3476e55abc3b",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 77363",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77306.json",
+      "seed": 77306,
+      "pieces": 203,
+      "returncode": 0,
+      "sha256": "05b670503db31752b764fa918518afb03e469aefb02bfe7985a6a0f13e0078de",
+      "stdout": "Verified 203 pieces, 100 garbage rows, seed 77306",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77331.json",
+      "seed": 77331,
+      "pieces": 188,
+      "returncode": 0,
+      "sha256": "2b7875ca242984d4869fc539a20db03fb82ec8866bae964ecbdb14b862c63966",
+      "stdout": "Verified 188 pieces, 100 garbage rows, seed 77331",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77353.json",
+      "seed": 77353,
+      "pieces": 201,
+      "returncode": 0,
+      "sha256": "5e1c4fd37262ba6676d0090cff117354cb55e13fa3a649f91559e128fe8e0308",
+      "stdout": "Verified 201 pieces, 100 garbage rows, seed 77353",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77360.json",
+      "seed": 77360,
+      "pieces": 207,
+      "returncode": 0,
+      "sha256": "8925612acd91e26ccb9e9e1fd0c5deec28807f3ce223383cbcc69bd5c929993e",
+      "stdout": "Verified 207 pieces, 100 garbage rows, seed 77360",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77311.json",
+      "seed": 77311,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "e9b5b7d71a034ccadca1caf76aeed515ed9ada6a352450826cde4af6efb4febd",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 77311",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77363.json",
+      "seed": 77363,
+      "pieces": 192,
+      "returncode": 0,
+      "sha256": "fdd87632493e06c187fee057296959cd86aef67a1fc55e0820624f04d35e4285",
+      "stdout": "Verified 192 pieces, 100 garbage rows, seed 77363",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77331.json",
+      "seed": 77331,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "1e2e63c549b2c3d83960187a02466b8af7faaa002373918929986c939033e7b7",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 77331",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77325.json",
+      "seed": 77325,
+      "pieces": 199,
+      "returncode": 0,
+      "sha256": "40affc8cedaae54bc79c0fe3316b36e4f24d2cb6fb7a6e0757499be888f8a816",
+      "stdout": "Verified 199 pieces, 100 garbage rows, seed 77325",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77327.json",
+      "seed": 77327,
+      "pieces": 201,
+      "returncode": 0,
+      "sha256": "d5514471b9ba24734a9bc24d4b1832a83be9ff52085e78999a36984912e3af72",
+      "stdout": "Verified 201 pieces, 100 garbage rows, seed 77327",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77312.json",
+      "seed": 77312,
+      "pieces": 190,
+      "returncode": 0,
+      "sha256": "3ec96ce5791d49185b4f0595d9b9d49363cbf6988291fa6f150beb3ce40dac58",
+      "stdout": "Verified 190 pieces, 100 garbage rows, seed 77312",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77321.json",
+      "seed": 77321,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "0ee9a60d2521d6c7542d2db53e75c404cc4066e2f0c8ac75d27c66d9bf3cb467",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 77321",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77336.json",
+      "seed": 77336,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "f4f594be07f5e65fe09bbcc84ec6d5101b453abc9dd8c9229bbdd5c4f18aaf05",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 77336",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77355.json",
+      "seed": 77355,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "1aebe7e49c4f64f4ec5d8fb87151ce645f5315644287f61864fb7aa2cfcca4fd",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 77355",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77349.json",
+      "seed": 77349,
+      "pieces": 205,
+      "returncode": 0,
+      "sha256": "b1b4a2875f44dab59ac088f1d99b4b4032fef738669a5cd7ac0e0317f2317bf5",
+      "stdout": "Verified 205 pieces, 100 garbage rows, seed 77349",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77356.json",
+      "seed": 77356,
+      "pieces": 189,
+      "returncode": 0,
+      "sha256": "4f68579b9d5d86dbc784c917d9f25f07326208074a21e20c8b37974a8378d777",
+      "stdout": "Verified 189 pieces, 100 garbage rows, seed 77356",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77344.json",
+      "seed": 77344,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "c5110f9799e3b44ce44431f399e53c6b49c710731d52fba781cc57b0f7df6613",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 77344",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77352.json",
+      "seed": 77352,
+      "pieces": 192,
+      "returncode": 0,
+      "sha256": "ec6c34f52cc4c9a3b74649e50d4b6c06da031158d3046fff148d0c4450e72a96",
+      "stdout": "Verified 192 pieces, 100 garbage rows, seed 77352",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77362.json",
+      "seed": 77362,
+      "pieces": 203,
+      "returncode": 0,
+      "sha256": "56b0f82dbbada836a0ba979de43170ea4a3a99cce62b83491cc64e89efd706d9",
+      "stdout": "Verified 203 pieces, 100 garbage rows, seed 77362",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77316.json",
+      "seed": 77316,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "13cdfe061403c5fe43020376ea65d86e36339b259b5cc990b95cb25ca375ed6f",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 77316",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77357.json",
+      "seed": 77357,
+      "pieces": 193,
+      "returncode": 0,
+      "sha256": "eea7819f3dc6eba6622c74053948b7446bfb918dd6318a0c4b2d6c451c3e549f",
+      "stdout": "Verified 193 pieces, 100 garbage rows, seed 77357",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77329.json",
+      "seed": 77329,
+      "pieces": 199,
+      "returncode": 0,
+      "sha256": "228bed4886285a01ba691ba4769aaeacb9b041fa8d6319ff399a8dfccf1f54d8",
+      "stdout": "Verified 199 pieces, 100 garbage rows, seed 77329",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77350.json",
+      "seed": 77350,
+      "pieces": 190,
+      "returncode": 0,
+      "sha256": "8a584e2c2500084cc695e6b167111c144a679d123f9d9ec2c9d68b42860e1d14",
+      "stdout": "Verified 190 pieces, 100 garbage rows, seed 77350",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77325.json",
+      "seed": 77325,
+      "pieces": 193,
+      "returncode": 0,
+      "sha256": "200e97ea6833dc60a5460a9009cf5fb8265fc4ad8789f4757db3166240d224c9",
+      "stdout": "Verified 193 pieces, 100 garbage rows, seed 77325",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77358.json",
+      "seed": 77358,
+      "pieces": 190,
+      "returncode": 0,
+      "sha256": "d971af0cd147bb01f5e6e28acd6442584c2d6adfde8795873d312129641283cb",
+      "stdout": "Verified 190 pieces, 100 garbage rows, seed 77358",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77361.json",
+      "seed": 77361,
+      "pieces": 183,
+      "returncode": 0,
+      "sha256": "df98f1d2919856c22864e580f56dc2da9b3dbd0deae826cce69f089fa1bc8f97",
+      "stdout": "Verified 183 pieces, 100 garbage rows, seed 77361",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77323.json",
+      "seed": 77323,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "882df7bc25e4e214b22ffa7013d889634fe882135b865945344fa193264defbd",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 77323",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77300.json",
+      "seed": 77300,
+      "pieces": 190,
+      "returncode": 0,
+      "sha256": "2667055b522473186ea08691e5e64eecca1a9108aba0535db3919c85a3330b27",
+      "stdout": "Verified 190 pieces, 100 garbage rows, seed 77300",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77306.json",
+      "seed": 77306,
+      "pieces": 181,
+      "returncode": 0,
+      "sha256": "97e7e88750614f44f5121c11482b7639344d04eb4722acf73481239492345a2a",
+      "stdout": "Verified 181 pieces, 100 garbage rows, seed 77306",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77354.json",
+      "seed": 77354,
+      "pieces": 180,
+      "returncode": 0,
+      "sha256": "882030748d27776a72094a4a98fd6b4d9ac0f3348fe3154c869ebaa29e8fa954",
+      "stdout": "Verified 180 pieces, 100 garbage rows, seed 77354",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77344.json",
+      "seed": 77344,
+      "pieces": 208,
+      "returncode": 0,
+      "sha256": "13d8950c3d45bd6434727930ae5d060d6464b39a6d38909a58d8d87e204c7555",
+      "stdout": "Verified 208 pieces, 100 garbage rows, seed 77344",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77358.json",
+      "seed": 77358,
+      "pieces": 194,
+      "returncode": 0,
+      "sha256": "dd9c76777442bcf58fbad20b92039da95a201a90a660a67aec6ca6048689c557",
+      "stdout": "Verified 194 pieces, 100 garbage rows, seed 77358",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77305.json",
+      "seed": 77305,
+      "pieces": 191,
+      "returncode": 0,
+      "sha256": "73c2cc3a875ed6f8806f11734e553eacc180203c20ebb12cb966a786b0480c11",
+      "stdout": "Verified 191 pieces, 100 garbage rows, seed 77305",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77327.json",
+      "seed": 77327,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "176e52c208dabfd598854e0d247e8f935e04542e26b019ae9e7334047fd2f556",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 77327",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77342.json",
+      "seed": 77342,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "75a733a9b1c61768dbf3d968fa6482cf857dc8da6972734e4018e700441be624",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 77342",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77360.json",
+      "seed": 77360,
+      "pieces": 190,
+      "returncode": 0,
+      "sha256": "59162af7dfa12738b6d9ce960e5f66e319a3ccfdd76cf4d88e7356452b806011",
+      "stdout": "Verified 190 pieces, 100 garbage rows, seed 77360",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77348.json",
+      "seed": 77348,
+      "pieces": 203,
+      "returncode": 0,
+      "sha256": "58e5a3eb75daa90c5cf27b5b8db58ddb8ba175cf9b643a62e7fbc0987cf0b2aa",
+      "stdout": "Verified 203 pieces, 100 garbage rows, seed 77348",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77300.json",
+      "seed": 77300,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "034388112ed5845c0f691a71ca813586a7813351d61a85652ee7d52e762bd17a",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 77300",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77335.json",
+      "seed": 77335,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "113da415507ba702c6f489243445d02f8205c54cc488be6471c5a355f5f32bfc",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 77335",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77324.json",
+      "seed": 77324,
+      "pieces": 201,
+      "returncode": 0,
+      "sha256": "e3e2824fb5aaa06f0da4e60e9b9b40dc0044f9e8ae77afdb7bf2bd74c9f50d86",
+      "stdout": "Verified 201 pieces, 100 garbage rows, seed 77324",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77319.json",
+      "seed": 77319,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "771c4dd59e2f7ab6c8c9787be887065ec31e6d8405fd0853b600f8d13346cb1c",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 77319",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77357.json",
+      "seed": 77357,
+      "pieces": 186,
+      "returncode": 0,
+      "sha256": "d75a11b39fb4820e64e9aba62076e0bb5acddf094abb8002da5fd407d303ab74",
+      "stdout": "Verified 186 pieces, 100 garbage rows, seed 77357",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-robust-dig-geometry-c0c91076-3c6e49c1-None-False-77314.json",
+      "seed": 77314,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "6a576dc78bd3354d1ebc0975b5e9f6980a5df5e6f4b95b64ae5ca0e45c87374d",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 77314",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77341.json",
+      "seed": 77341,
+      "pieces": 191,
+      "returncode": 0,
+      "sha256": "0ddcfa14d6c8de3bfc805ad611b3a1f17c05149a3e98606286b8feff68186ce7",
+      "stdout": "Verified 191 pieces, 100 garbage rows, seed 77341",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s32-final-complete.jsonl",
+      "trace": "research/results/s32-final-learned-robust-c9516ea2-3c6e49c1-None-False-77328.json",
+      "seed": 77328,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "e7fb522695ce1eb27f47df5b448a345b0da3f44ba657668ca5de9db16dd1c5f7",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 77328",
+      "stderr": ""
+    }
+  ]
+}

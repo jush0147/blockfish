@@ -1,0 +1,17 @@
+[
+  {
+    "seed": 76000,
+    "identical_inputs": true,
+    "identical_clears": true
+  },
+  {
+    "seed": 76002,
+    "identical_inputs": true,
+    "identical_clears": true
+  },
+  {
+    "seed": 76001,
+    "identical_inputs": true,
+    "identical_clears": true
+  }
+]

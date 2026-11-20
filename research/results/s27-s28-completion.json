@@ -1,0 +1,11 @@
+{
+  "actual_games": 43,
+  "actual_completed": 43,
+  "actual_replayed": 43,
+  "actual_cpu_seconds": 882.882487,
+  "conditional_full_paths": 64,
+  "conditional_full_completed": 64,
+  "conditional_short_paths": 64,
+  "conditional_cpu_seconds": 507.88818,
+  "note": "Conditional branches share8source states; not independent policy evaluation games. Frozen robust preserved, no validation/final opened."
+}

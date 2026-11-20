@@ -1,0 +1,16 @@
+{
+  "promoted": false,
+  "files": {
+    "research/checkpoints/s34-source.tar.gz": "eb14cb6ca31217ece6b2ee80c402a56d44c63f83bfb8f8ab90cddbc58c3c3c0a",
+    "research/results/s34-replay-audit.json": "805a6b895e617c5e31a48c0e8ff42e2a7db8495f442a50860b3d7e2f3a9913a0",
+    "research/results/s34-probe.json": "a619cd368add4a5d9b878c9e8ce2b0b8bd62a1f7901387ea8ec4f914a0158580",
+    "research/results/s34-build.log": "65853251d1ad4acacf800f073f0268aa459ecfd77edaed61612d4680b376b481",
+    "research/results/s34-probe-usage.json": "f9edd4b4a3b9d0ff5588e008834cb2e78ca234f344fb764006e2d41ba4ed00c0",
+    "research/results/s34-tests.log": "8baf159cd3cf24d79d828310f9ea9f309ab3a5a86c7c61f7a21ed72583bd2be2",
+    "research/results/s34-source-replays.jsonl": "859571d160db2c9843cb851e1957d3a1e9b83c8259dd386583090068b300cac9",
+    "research/results/s34-probe-build.log": "77f425434df2c868271974db378c28287f581ef80afb8b77ba539ab6740c4bca",
+    "research/bin/robust-mirror": "dc104366475f385ea8e72a6214e114ba81a230c785b1dcd91c10d9d76c9df076",
+    "research/bin/s34-mirror-probe": "2c4d1e87d80570f108ad3fbd8d69e7568e9e2c2ee517ef737299b5a4a0d6e7df",
+    "research/bin/learned-robust": "c9516ea2d6c77029a2de192627c541002fb3f2046ab681bf1410a70f3205aa50"
+  }
+}

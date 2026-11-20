@@ -1,0 +1,41 @@
+{
+  "games": 2,
+  "passed": 2,
+  "records": [
+    {
+      "binary": "world-rollout-placebo",
+      "seed": 76000,
+      "decisions": 210,
+      "paths": 812,
+      "trace_sha256": "90622d7226b2f43dfe4e2db825b437af7a1125b6e44651a8934097c273cdbaaa"
+    },
+    {
+      "binary": "world-rollout",
+      "seed": 76000,
+      "decisions": 214,
+      "paths": 830,
+      "trace_sha256": "68be61c88f593a965e8d38abfd4b72e21c78ded2a446f852e742f8632e023428"
+    }
+  ],
+  "means": {
+    "world-rollout-placebo": {
+      "reranked": 0,
+      "base_nodes": 37500,
+      "rollout_nodes": 12391.257142857143,
+      "base_roots": 4.719047619047619,
+      "truncated": 0,
+      "topout": 0,
+      "locks": 3.977832512315271
+    },
+    "world-rollout": {
+      "reranked": 0.16822429906542055,
+      "base_nodes": 37500,
+      "rollout_nodes": 12373.44859813084,
+      "base_roots": 4.953271028037383,
+      "truncated": 0,
+      "topout": 0,
+      "locks": 3.9734939759036143
+    }
+  },
+  "note": "Rust audit replays actual public observations and all hypothetical paths; Python independently recomputes public JSON FNV hash. No fresh quality evidence from these correctness checks."
+}

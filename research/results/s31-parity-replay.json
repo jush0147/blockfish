@@ -1,0 +1,38 @@
+{
+  "verifier": "research/bin/learned-fast",
+  "verifier_sha256": "824eca4f6675630f072c062e3ec72e6a8aa3d1ba935c147b64960bda1c98c2c3",
+  "total": 3,
+  "passed": 3,
+  "records": [
+    {
+      "source": "research/results/s31-observer-parity.jsonl",
+      "trace": "research/results/s31-observer-parity-robust-plan-observer-8adf4d7e-3c6e49c1-None-False-76002.json",
+      "seed": 76002,
+      "pieces": 189,
+      "returncode": 0,
+      "sha256": "349d159094213fe26c8fd3131ae2d61bba22c5ad6c4bac7368c0402ef8c2a776",
+      "stdout": "Verified 189 pieces, 100 garbage rows, seed 76002",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-observer-parity.jsonl",
+      "trace": "research/results/s31-observer-parity-robust-plan-observer-8adf4d7e-3c6e49c1-None-False-76001.json",
+      "seed": 76001,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "6f6f7d4eebc79a535f9c462844702e587f5080e1f4d83c85f1485e040a6bc7f6",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 76001",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s31-observer-parity.jsonl",
+      "trace": "research/results/s31-observer-parity-robust-plan-observer-8adf4d7e-3c6e49c1-None-False-76000.json",
+      "seed": 76000,
+      "pieces": 214,
+      "returncode": 0,
+      "sha256": "8523d37f7aa7715730ad896096dfbf41e0309ea8c6b17f4c77e7ccb524cf3f76",
+      "stdout": "Verified 214 pieces, 100 garbage rows, seed 76000",
+      "stderr": ""
+    }
+  ]
+}

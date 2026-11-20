@@ -1,0 +1,20 @@
+{
+  "cohort_and_budget_audit": "passed",
+  "promote": true,
+  "decision_rule": "No worse completion and fresh final paired95% candidate-minus-control upper bound below zero; otherwise do not promote.",
+  "paired_result": {
+    "a": "learned-fast:50/5,10,10,10:None",
+    "b": "learned-robust:50/5,10,10,10:None",
+    "paired_seeds": 64,
+    "completed_pairs": 64,
+    "delta_b_minus_a": -2.234375,
+    "bootstrap95": [
+      -4.4375,
+      -0.125
+    ],
+    "b_wins": 39,
+    "ties": 2,
+    "b_losses": 23
+  },
+  "total_cpu_seconds": 2162.636332
+}

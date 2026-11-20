@@ -1,0 +1,55 @@
+{
+  "seeds": [
+    20000,
+    20099
+  ],
+  "config": "50/5,10,10,10",
+  "move_ms": 50,
+  "variants": {
+    "quality-baseline": {
+      "total": 100,
+      "complete": 100,
+      "sha256": [
+        "450ca508b12a3de08c7eca8ed74168b156bfbc81d5a3a58ef393a3571acf7c7c"
+      ],
+      "mean_pieces": 202.96,
+      "median_pieces": 203.0,
+      "minimum": 187,
+      "p95": 216,
+      "mean_cpu_seconds": 9.99524069,
+      "mean_wall_seconds": 10.244772353940006,
+      "cpu_seconds_per_piece": 0.04924734277690185,
+      "peak_rss_mib": 26.3984375,
+      "mean_generated_per_piece": 30258.744728025227,
+      "mean_worker_ms": 50.14665017254631
+    },
+    "learned-fast": {
+      "total": 100,
+      "complete": 100,
+      "sha256": [
+        "824eca4f6675630f072c062e3ec72e6a8aa3d1ba935c147b64960bda1c98c2c3"
+      ],
+      "mean_pieces": 198.4,
+      "median_pieces": 198.0,
+      "minimum": 184,
+      "p95": 210,
+      "mean_cpu_seconds": 9.79057808,
+      "mean_wall_seconds": 10.017116396439995,
+      "cpu_seconds_per_piece": 0.04934767177419355,
+      "peak_rss_mib": 26.80078125,
+      "mean_generated_per_piece": 29967.61446572581,
+      "mean_worker_ms": 50.150166663558466
+    }
+  },
+  "paired": {
+    "n": 100,
+    "mean_delta": -4.56,
+    "bootstrap95": [
+      -6.58,
+      -2.55
+    ],
+    "wins": 64,
+    "ties": 6,
+    "losses": 30
+  }
+}

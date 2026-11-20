@@ -1,0 +1,70 @@
+{
+  "groups": {
+    "learned-direct:50/5,10,10,10:None": {
+      "total": 12,
+      "complete": 12,
+      "seeds": [
+        62000,
+        62001,
+        62002,
+        62003,
+        62004,
+        62005,
+        62006,
+        62007,
+        62008,
+        62009,
+        62010,
+        62011
+      ],
+      "binary_sha256": [
+        "b8d302ac0bff1530e8f36af7f26357d525f8b590ca9887da0005dab433d17c98"
+      ],
+      "mean_pieces": 198.5,
+      "min_pieces": 188,
+      "cpu_records": 12,
+      "mean_cpu_seconds": 17.144197166666668
+    },
+    "learned-fast:50/5,10,10,10:None": {
+      "total": 12,
+      "complete": 12,
+      "seeds": [
+        62000,
+        62001,
+        62002,
+        62003,
+        62004,
+        62005,
+        62006,
+        62007,
+        62008,
+        62009,
+        62010,
+        62011
+      ],
+      "binary_sha256": [
+        "824eca4f6675630f072c062e3ec72e6a8aa3d1ba935c147b64960bda1c98c2c3"
+      ],
+      "mean_pieces": 196.91666666666666,
+      "min_pieces": 183,
+      "cpu_records": 12,
+      "mean_cpu_seconds": 17.2198995
+    }
+  },
+  "pairs": [
+    {
+      "a": "learned-direct:50/5,10,10,10:None",
+      "b": "learned-fast:50/5,10,10,10:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": -1.5833333333333333,
+      "bootstrap95": [
+        -7.833333333333333,
+        3.75
+      ],
+      "b_wins": 5,
+      "ties": 2,
+      "b_losses": 5
+    }
+  ]
+}

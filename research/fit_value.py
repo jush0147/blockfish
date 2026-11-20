@@ -1,0 +1,97 @@
+#!/usr/bin/env python3
+"""Fit a monotone residual-cost value function using training trajectories only.
+
+The target subtracts the average cost of still-unseen garbage from actual future
+piece count. No future data are model inputs. Games, not rows, define the split.
+"""
+import json
+import pathlib
+import argparse
+import numpy as np
+from scipy.optimize import nnls
+
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+FEATURES = ['bias','height','piece_estimate','i_dependencies','aggregate_height',
+            'bumpiness','holes','hole_depth','covered_rows','row_transitions',
+            'column_transitions','wells','height_spread','piece_estimate_squared']
+
+def main():
+    p = argparse.ArgumentParser()
+    p.add_argument('--data', default='research/results/value-data.jsonl')
+    p.add_argument('--report', default='research/results/value-fit.json')
+    p.add_argument('--weights-out', default='blockfish-engine/src/ai/learned_weights.rs')
+    p.add_argument('--seed-start', type=int, default=3000)
+    p.add_argument('--bootstrap-fit', help='frozen value fit for n-step training targets')
+    p.add_argument('--horizon', type=int, default=16)
+    args = p.parse_args()
+    records = [json.loads(x) for x in (ROOT/args.data).read_text().splitlines()]
+    assert len(records) == 160, 'Wait for the complete predefined data collection.'
+    assert all(r['status']=='complete' for r in records), 'Handle failed games explicitly before fitting.'
+    start = args.seed_start
+    assert len({r['seed'] for r in records}) == 160, 'Duplicate game seeds.'
+    train_games = [r for r in records if start <= r['seed'] < start+128]
+    validate_games = [r for r in records if start+128 <= r['seed'] < start+160]
+    assert len(train_games)==128 and len(validate_games)==32
+    price = np.mean([r['pieces']/100 for r in train_games])
+    bootstrap = (np.array(json.loads((ROOT/args.bootstrap_fit).read_text())['selected']['weights'])
+                 if args.bootstrap_fit else None)
+    assert args.horizon > 0
+
+    def dataset(games, train=False):
+        xs, ys, ws = [], [], []
+        for r in games:
+            trace = json.loads((ROOT/r['trace']).read_text())
+            assert len(trace['samples']) == r['pieces'], 'Missing per-placement features.'
+            rows = [(i,s) for i,s in enumerate(trace['samples'])
+                    if 100-s['cleared']-s['visible_garbage'] >= 20]
+            assert rows, 'No eligible midgame samples.'
+            for i,s in rows:
+                unseen = 100-s['cleared']-s['visible_garbage']
+                target = r['pieces']-i-price*unseen
+                if train and bootstrap is not None:
+                    j = i + args.horizon
+                    if j < r['pieces']:
+                        successor = trace['samples'][j]
+                        next_unseen = 100-successor['cleared']-successor['visible_garbage']
+                        target = (j-i + max(0,np.array(successor['features'])@bootstrap)
+                                  + price*(next_unseen-unseen))
+                xs.append(s['features']); ys.append(target)
+                ws.append(1/len(rows))
+        return np.array(xs), np.array(ys), np.array(ws)
+
+    x,y,w = dataset(train_games, train=True)
+    vx,vy,vw = dataset(validate_games)
+    mean = np.average(x[:,1:], axis=0, weights=w)
+    scale = np.sqrt(np.average((x[:,1:]-mean)**2, axis=0, weights=w))
+    scale = np.maximum(scale, 1e-8)
+    ymean = np.average(y, weights=w)
+    z = (x[:,1:]-mean)/scale
+    models = []
+    for ridge in [0.001,0.01,0.1,1.0,10.0,100.0]:
+        design = np.vstack([z*np.sqrt(w)[:,None], np.eye(z.shape[1])*np.sqrt(ridge)])
+        target = np.r_[(y-ymean)*np.sqrt(w), np.zeros(z.shape[1])]
+        beta,_ = nnls(design,target)
+        raw = beta/scale
+        weights = np.r_[ymean-mean@raw, raw]
+        mse = np.average((np.maximum(0,vx@weights)-vy)**2,weights=vw)
+        models.append(dict(ridge=ridge, validation_mse=float(mse), weights=weights.tolist()))
+    best = min(models,key=lambda m:m['validation_mse'])
+    original = np.array([0,.5,1,1]+[0]*10)
+    report = dict(training_seeds=[start,start+127], validation_seeds=[start+128,start+159],
+                  source_data=args.data,
+                  bootstrap_fit=args.bootstrap_fit,
+                  bootstrap_horizon=args.horizon if bootstrap is not None else None,
+                  policy_sha256=sorted({r['sha256'] for r in records}),
+                  policy_configs=sorted({r['config'] for r in records}),
+                  training_samples=len(x), validation_samples=len(vx), garbage_price=float(price),
+                  features=FEATURES, models=models, selected=best,
+                  original_validation_mse=float(np.average((vx@original-vy)**2,weights=vw)))
+    (ROOT/args.report).write_text(json.dumps(report,indent=2)+'\n')
+    values = ', '.join(format(v,'.17e') for v in best['weights'])
+    (ROOT/args.weights_out).write_text(
+        f'// Generated by research/fit_value.py from seeds {start}..{start+159} only.\n'
+        'const WEIGHTS: [f64; 14] = ['+values+'];\n')
+    print(json.dumps(report,indent=2))
+
+if __name__ == '__main__':
+    main()

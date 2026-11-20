@@ -1,0 +1,18 @@
+{
+  "races": 419,
+  "distinct_seeds": 220,
+  "cpu_hours": 3.096629691111111,
+  "min_pieces": 178,
+  "source_files": [
+    "r1-budget-response",
+    "r2-policy-data",
+    "r2-policy-screen",
+    "r3-terminal-screen",
+    "r5-td-screen",
+    "r7-td-validation",
+    "r8-race-goal-screen",
+    "r-compat",
+    "r6-high-budget-final",
+    "r6-budget-reference"
+  ]
+}

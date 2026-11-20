@@ -1,0 +1,9 @@
+{
+  "passed": 3,
+  "seeds": [
+    76400,
+    76402,
+    76401
+  ],
+  "inputs_and_clears_equal": true
+}

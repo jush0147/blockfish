@@ -1,0 +1,68 @@
+{
+  "verifier": "research/bin/learned-fast",
+  "verifier_sha256": "824eca4f6675630f072c062e3ec72e6a8aa3d1ba935c147b64960bda1c98c2c3",
+  "total": 6,
+  "passed": 6,
+  "records": [
+    {
+      "source": "research/results/s23-parity.jsonl",
+      "trace": "research/results/s23-parity-robust-hold-order-6c2d3a7b-3c6e49c1-None-False-76000.json",
+      "seed": 76000,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "e6ff2f0a4aba1903b6b07ad82facca7b95679a9dac696853b35c4cff85be64cd",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 76000",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s23-parity.jsonl",
+      "trace": "research/results/s23-parity-robust-hold-cached-03a71c8e-3c6e49c1-None-False-76002.json",
+      "seed": 76002,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "aa836dab0dad0cb5425214f250c8c538e684cd3296586abefae3e334ee5dec3a",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 76002",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s23-parity.jsonl",
+      "trace": "research/results/s23-parity-robust-hold-order-6c2d3a7b-3c6e49c1-None-False-76002.json",
+      "seed": 76002,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "8e80486f790fa22ce3ff13434b4de8de03260a3ec94c6cb0a756af9c2eb9b850",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 76002",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s23-parity.jsonl",
+      "trace": "research/results/s23-parity-robust-hold-cached-03a71c8e-3c6e49c1-None-False-76000.json",
+      "seed": 76000,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "e4e309ae1e2eefdae98c3f1e07241b3c27d6a8e5ace6e81c597042345d925b63",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 76000",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s23-parity.jsonl",
+      "trace": "research/results/s23-parity-robust-hold-cached-03a71c8e-3c6e49c1-None-False-76001.json",
+      "seed": 76001,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "0ab4805e039060104657b1e24e509506abbb6d0085c9693385b63a56f35f23b6",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 76001",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s23-parity.jsonl",
+      "trace": "research/results/s23-parity-robust-hold-order-6c2d3a7b-3c6e49c1-None-False-76001.json",
+      "seed": 76001,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "f17330fb1afa5071bb424764da679f991a0f832373c49485d9637efcc6152cfa",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 76001",
+      "stderr": ""
+    }
+  ]
+}

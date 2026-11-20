@@ -1,0 +1,28 @@
+{
+  "new_races": 601,
+  "completed": 601,
+  "replayed": 601,
+  "distinct_seed_ids": 336,
+  "total_cpu_seconds": 8033.862064,
+  "sources": [
+    "s20-data",
+    "s21-data",
+    "s20-source-parity",
+    "s21-dev",
+    "s22-dev",
+    "s22-validation",
+    "s22-final",
+    "s23-parity"
+  ],
+  "audits": [
+    "s20-data-audit",
+    "s21-data-audit",
+    "s21-dev-audit",
+    "s22-dev-audit",
+    "s22-validation-audit",
+    "s22-final-audit",
+    "s23-replay-audit"
+  ],
+  "note": "Development seed IDs reused from earlier rounds;601 races are not601 independent seeds. Source training/prediction cohorts are not policy evaluation cohorts.",
+  "outcome": "S20 predictive gate failed;S21 development failed;S22 final failed;S23 exact cost optimization only. Preserve cheese-robust. Conditional200k follow-up not run."
+}

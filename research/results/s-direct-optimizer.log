@@ -1,0 +1,55 @@
+{"weights_sha256": "8ae0f75ccc06737b61ee7d9544902e6762ebbd27d6e5cab31672d8dc1ab38568", "failures": 0, "mean_pieces": 205.71875, "cpu_seconds": 55.331528}
+{"weights_sha256": "7c41731246f2bb3378346aae311f3348bec4cef7fe1e5522f28942ed2f3205e7", "failures": 0, "mean_pieces": 202.6875, "cpu_seconds": 51.915924}
+{"weights_sha256": "8939a93b0304fed1d8e160c300f5e5726ba2ac227e4e6def7105c878594cbfa3", "failures": 0, "mean_pieces": 205.25, "cpu_seconds": 55.942347}
+{"weights_sha256": "648e5ccfd34bf3849a5e5cfbb8147d4858eb27c19d2c231ff14db9527f5f8077", "failures": 0, "mean_pieces": 204.5, "cpu_seconds": 53.16742}
+{"weights_sha256": "1730201129e59c033e9fc9376f3c39e5ebcb6445ca9e316cabb096b4e1aa5dcf", "failures": 0, "mean_pieces": 199.53125, "cpu_seconds": 50.074965}
+{"weights_sha256": "458ab1a3233d01b243d80217e18322b3b839569e78ee2a3b97ea5ce101bd0db7", "failures": 0, "mean_pieces": 205.75, "cpu_seconds": 53.261933}
+{"weights_sha256": "e244b846b053e2bc34c078f22b2d50a1361a937045acdabdce533075bf55c886", "failures": 0, "mean_pieces": 202.96875, "cpu_seconds": 51.699461}
+{"weights_sha256": "b6b18038a2a442ce5a549ae0281c30d93202eb34cb29f76a9021de3a0de05c79", "failures": 0, "mean_pieces": 203.625, "cpu_seconds": 52.154207}
+{"weights_sha256": "95d344614b8621412d7c90837518c7d35afd90803486df72c2ebe40f304a7940", "failures": 0, "mean_pieces": 201.78125, "cpu_seconds": 52.366911}
+GENERATION 0 SELECTED 199.53125
+{"weights_sha256": "3a0b36a25b1c6bad314617443e8e02a0a9a634bb5392f59b5492c2caf187b3e1", "failures": 0, "mean_pieces": 201.46875, "cpu_seconds": 50.681142}
+{"weights_sha256": "ee60052373333e9dd53e8ce7c1e047d8f8358ac7a191152212b7763aeebca7e3", "failures": 0, "mean_pieces": 202.71875, "cpu_seconds": 51.132631}
+{"weights_sha256": "d1ad490af247f5a61c2fca3d0bd310cf00412cdcf7f709e01587c5332e79a2a1", "failures": 0, "mean_pieces": 202.5, "cpu_seconds": 50.272712}
+{"weights_sha256": "31f381349b69dee1c8a07234c6440f45b4495b4d510146a8f3281192b5f65f4c", "failures": 0, "mean_pieces": 201.625, "cpu_seconds": 50.512328000000004}
+{"weights_sha256": "726b299eb454ebf7bcf4bc77a35152ec1ee11c313d40a45b5f47cb933b101e4d", "failures": 0, "mean_pieces": 200.90625, "cpu_seconds": 50.518988}
+{"weights_sha256": "3d174a184b5846f3fc86e72a96e2187ef11ded06622024806f7c3775d0595d93", "failures": 0, "mean_pieces": 204.875, "cpu_seconds": 51.470944}
+{"weights_sha256": "00f5e0788d2a693811aa7f6a273e9760948d7c69d00c9f21fe7cb9956ca2a360", "failures": 0, "mean_pieces": 198.1875, "cpu_seconds": 49.44571}
+{"weights_sha256": "2284ab2ab0751c65af719bfd421d3c56fe2d1f34ad9ec46a3ffbcd22dd5419f2", "failures": 0, "mean_pieces": 202.3125, "cpu_seconds": 52.062124}
+GENERATION 1 SELECTED 198.1875
+{"weights_sha256": "4a6282047a8f616c3f211db4481efd48315353289ab4321b39efe220db96983f", "failures": 0, "mean_pieces": 199.53125, "cpu_seconds": 53.394041}
+{"weights_sha256": "3b0e22ea7648e7573c3a26aac79239bfba9ab05f057b615d862420f97d659aa6", "failures": 0, "mean_pieces": 204.0625, "cpu_seconds": 53.52509}
+{"weights_sha256": "4c15298916ec20e19268f70865f470aeba5a1d6f707b015cdf4ca6bc1157865c", "failures": 0, "mean_pieces": 200.15625, "cpu_seconds": 50.912956}
+{"weights_sha256": "11e33b846f07763a5aabcc7227ca4d981498a082d31ab07bf2bbc5198d3dc0b6", "failures": 0, "mean_pieces": 204.875, "cpu_seconds": 51.297243}
+{"weights_sha256": "61b02bb80e731a7f592100e99774faf082a7fbd720d035b9b013171d3ae2cc86", "failures": 0, "mean_pieces": 201.5625, "cpu_seconds": 50.351487}
+{"weights_sha256": "28d661bb4a01ea95b63632068055c86543faefd6fb2b098c5fbea8d6a033d5ba", "failures": 0, "mean_pieces": 203.09375, "cpu_seconds": 52.274312}
+{"weights_sha256": "89a2b5cae1bed69c1d0b38e9cc57053736d4f0620857fab232f0919f404a4e2b", "failures": 0, "mean_pieces": 203.6875, "cpu_seconds": 51.383215}
+{"weights_sha256": "7d366bee29326ce45a473d7cba38d99ba6941821c78a22a07900c410794d31f9", "failures": 0, "mean_pieces": 200.0625, "cpu_seconds": 50.192374}
+GENERATION 2 SELECTED 198.1875
+{"weights_sha256": "f1cdcf47b908800f5f4c3077b96f01bb7bf8e1cfdc97f8211456da2eca75cfe3", "failures": 0, "mean_pieces": 203.40625, "cpu_seconds": 51.414752}
+{"weights_sha256": "cd197bb0a9cbebe7e4accea69259cae3c748868f7b96f32af4a2b39c922be71a", "failures": 0, "mean_pieces": 202.125, "cpu_seconds": 51.382532}
+{"weights_sha256": "59befe60bf0b9332248f9100b7cb465990550eb643033f26b8085bbfbe0ce542", "failures": 0, "mean_pieces": 201.40625, "cpu_seconds": 51.450771}
+{"weights_sha256": "edad68c82ccca5796d53e43493a7a30af02a0bf51f535dc1f377bf773bcd1529", "failures": 0, "mean_pieces": 201.1875, "cpu_seconds": 50.383361}
+{"weights_sha256": "a9b186527f61693d895349d5f6acff823c8bb4530da6eed218f1a850ca85c959", "failures": 0, "mean_pieces": 203.8125, "cpu_seconds": 52.013101}
+{"weights_sha256": "044b210ad0e049ecbcf9dc73926c3e10ef17282c79bc0c11191f60e27dc4195c", "failures": 0, "mean_pieces": 199.84375, "cpu_seconds": 50.73898}
+{"weights_sha256": "fe80f8e130095b82ca3e2b97caff9628e3ef968667bdf975a1aa7295bf7e5b28", "failures": 0, "mean_pieces": 201.21875, "cpu_seconds": 50.787095}
+{"weights_sha256": "acab0bd46c6c0e60cbdf652deb5b691a2db59d8fcf12d740f2940934b1bc123c", "failures": 0, "mean_pieces": 201.03125, "cpu_seconds": 50.980021}
+GENERATION 3 SELECTED 198.1875
+{"weights_sha256": "b8a4048771ec527b85c62039191496a3c90060b9491702ec70ecc3d17b75226d", "failures": 0, "mean_pieces": 201.21875, "cpu_seconds": 50.517537}
+{"weights_sha256": "5f7cb6b949584b220b86d6b2881a9ca87afe21fa533906745adb0eeb6b2b421f", "failures": 0, "mean_pieces": 204.09375, "cpu_seconds": 50.633918}
+{"weights_sha256": "b1ea2f6aaeb5503cf667ef433f14d5d69b85e732970c827836b9d645861a92e7", "failures": 0, "mean_pieces": 200.96875, "cpu_seconds": 50.959881}
+{"weights_sha256": "b6283a0110d7e440e3840409f47d537f5c8d184f682b2632fec4f3e225e058b9", "failures": 0, "mean_pieces": 201.96875, "cpu_seconds": 50.689676}
+{"weights_sha256": "2ec9d5d37a17110d7f3f15ddb52ebc8a101774cca3ddffcba94efa270410e43d", "failures": 0, "mean_pieces": 201.0625, "cpu_seconds": 50.725349}
+{"weights_sha256": "13e8873ae96580fec0e8cad5c0228eb0acdb7737e9c62db8fc1e335dad5d3347", "failures": 0, "mean_pieces": 201.375, "cpu_seconds": 52.722305999999996}
+{"weights_sha256": "e13c23c0d8f000339a98578bab6b0eba833f79cc11a0da0a101a69bce160f519", "failures": 0, "mean_pieces": 201.46875, "cpu_seconds": 50.759682}
+{"weights_sha256": "695e2c36880faadcba790316e8a4545de141cc2c87822e11a7d134be7b1f69b8", "failures": 0, "mean_pieces": 202.625, "cpu_seconds": 51.194148999999996}
+GENERATION 4 SELECTED 198.1875
+{"weights_sha256": "6fe210cb3c3d95c9973950ec08ccc90778c90b5c19b9bbf915446b5ef20ff711", "failures": 0, "mean_pieces": 199.65625, "cpu_seconds": 49.402096}
+{"weights_sha256": "62dfffc32ac6569197c373b74efe4a04daedfe967f00a3d182e147395d527df2", "failures": 0, "mean_pieces": 200.59375, "cpu_seconds": 50.06321}
+{"weights_sha256": "01fea25b25cabac7b0ded17b9c977f3c1eba408c5088a9df793b199813056370", "failures": 0, "mean_pieces": 204.125, "cpu_seconds": 51.868816}
+{"weights_sha256": "5c24cce0af6e38df4f05bf4939e39abb49dfed60fa6ea956aa2555ac35cde9b6", "failures": 0, "mean_pieces": 201.5625, "cpu_seconds": 50.953849}
+{"weights_sha256": "2ab51031b664ed6564b480b1e28ebcdc36508532f8ea4a5a609092d2e1a1908d", "failures": 0, "mean_pieces": 201.0625, "cpu_seconds": 49.883918}
+{"weights_sha256": "27f525675991b1499b27191d81bcbf6924cac21cc0f0f6f2280d40ffaa83212b", "failures": 0, "mean_pieces": 202.1875, "cpu_seconds": 51.173737}
+{"weights_sha256": "248be8643cad9650d045e2cb04cb8aeb49c5e990bc71c04df616dfa3cc521d77", "failures": 0, "mean_pieces": 201.65625, "cpu_seconds": 51.889221}
+{"weights_sha256": "b724dd841441b512298114e48bb69ee00741f2402f820b0dffa8b6c768cb0ba6", "failures": 0, "mean_pieces": 202, "cpu_seconds": 51.37595}
+GENERATION 5 SELECTED 198.1875

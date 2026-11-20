@@ -1,0 +1,32 @@
+{
+  "advance_to_final": false,
+  "rule": "No worse completion and lower mean than both controls; validation is selection, not promotion.",
+  "scores": {
+    "learned-fast": {
+      "complete": 48,
+      "mean_pieces": 198.875
+    },
+    "learned-robust": {
+      "complete": 48,
+      "mean_pieces": 197.75
+    },
+    "robust-hierarchy": {
+      "complete": 48,
+      "mean_pieces": 198.1875
+    }
+  },
+  "checks": {
+    "learned-fast": {
+      "completion_no_worse": true,
+      "mean_lower": true
+    },
+    "learned-robust": {
+      "completion_no_worse": true,
+      "mean_lower": false
+    }
+  },
+  "final_seeds_if_advanced": [
+    75200,
+    75263
+  ]
+}

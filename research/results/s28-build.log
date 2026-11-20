@@ -1,0 +1,86 @@
+   Compiling blockfish v0.1.0 (/workspace/blockfish/blockfish-engine)
+warning: variant `RemoveMove` is never constructed
+   --> blockfish-engine/src/ai/b_star.rs:169:5
+    |
+147 | pub enum Step {
+    |          ---- variant in this enum
+...
+169 |     RemoveMove(MoveId),
+    |     ^^^^^^^^^^
+    |
+    = note: `Step` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+    = note: `#[warn(dead_code)]` on by default
+
+warning: `blockfish` (lib) generated 1 warning
+warning: constant `PRICE` is never used
+ --> blockfish-engine/src/bin/world_rollout/mod.rs:7:7
+  |
+7 | const PRICE: f64 = 2.083984375; // Frozen original training garbage price.
+  |       ^^^^^
+  |
+  = note: `#[warn(dead_code)]` on by default
+
+warning: constant `WORLDS` is never used
+ --> blockfish-engine/src/bin/world_rollout/mod.rs:8:7
+  |
+8 | const WORLDS: usize = 2;
+  |       ^^^^^^
+
+warning: constant `HORIZON` is never used
+ --> blockfish-engine/src/bin/world_rollout/mod.rs:9:7
+  |
+9 | const HORIZON: usize = 4;
+  |       ^^^^^^^
+
+warning: function `snapshot` is never used
+  --> blockfish-engine/src/bin/world_rollout/mod.rs:18:4
+   |
+18 | fn snapshot(obs: &PublicObservation) -> Snapshot {
+   |    ^^^^^^^^
+
+warning: method `generated` is never used
+  --> blockfish-engine/src/bin/world_rollout/mod.rs:65:12
+   |
+64 | impl Decision {
+   | ------------- method in this implementation
+65 |     pub fn generated(&self) -> usize { self.base_nodes+self.rollout_nodes+self.state_nodes }
+   |            ^^^^^^^^^
+
+warning: function `cost` is never used
+  --> blockfish-engine/src/bin/world_rollout/mod.rs:67:4
+   |
+67 | fn cost(game:&Stacker, cleared:usize, locks:usize, config:&Config) -> f64 {
+   |    ^^^^
+
+warning: function `plan` is never used
+  --> blockfish-engine/src/bin/world_rollout/mod.rs:75:8
+   |
+75 | pub fn plan(ai:&mut AI, obs:PublicObservation, cleared:usize,
+   |        ^^^^
+
+warning: function `audit` is never used
+   --> blockfish-engine/src/bin/world_rollout/mod.rs:140:8
+    |
+140 | pub fn audit(path:&std::path::Path) -> Result<usize,Box<dyn std::error::Error>> {
+    |        ^^^^^
+
+warning: multiple fields are never read
+   --> blockfish-engine/src/bin/world_rollout/mod.rs:142:19
+    |
+142 |     struct Saved {world_events:Vec<Decision>,garbage_min:usize,garbage_max:usize,ai_config:String,
+    |            -----  ^^^^^^^^^^^^               ^^^^^^^^^^^       ^^^^^^^^^^^       ^^^^^^^^^
+    |            |
+    |            fields in this struct
+143 |         seed:u64,inputs:Vec<Vec<Input>>,ds:Vec<usize>,search:Vec<SavedSearch>}
+    |         ^^^^     ^^^^^^                 ^^            ^^^^^^
+
+warning: field `generated_nodes` is never read
+   --> blockfish-engine/src/bin/world_rollout/mod.rs:145:25
+    |
+145 |     struct SavedSearch {generated_nodes:usize}
+    |            -----------  ^^^^^^^^^^^^^^^
+    |            |
+    |            field in this struct
+
+warning: `blockfish` (bin "blockfish-public-labels") generated 10 warnings
+    Finished release [optimized] target(s) in 3.26s

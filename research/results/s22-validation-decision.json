@@ -1,0 +1,55 @@
+{
+  "gate": "mean",
+  "passed": true,
+  "lock": "research/results/s22-validation-lock.json",
+  "scores": {
+    "robust-hold-order": {
+      "complete": 48,
+      "mean_pieces": 196.6875
+    },
+    "learned-robust": {
+      "complete": 48,
+      "mean_pieces": 197.83333333333334
+    },
+    "learned-fast": {
+      "complete": 48,
+      "mean_pieces": 198.35416666666666
+    }
+  },
+  "candidate_minus_controls": {
+    "learned-robust": {
+      "paired_seeds": 48,
+      "completed_pairs": 48,
+      "delta_b_minus_a": -1.1458333333333333,
+      "bootstrap95": [
+        -3.5208333333333335,
+        1.4375
+      ],
+      "b_wins": 24,
+      "ties": 4,
+      "b_losses": 20
+    },
+    "learned-fast": {
+      "paired_seeds": 48,
+      "completed_pairs": 48,
+      "delta_b_minus_a": -1.6666666666666667,
+      "bootstrap95": [
+        -4.375,
+        1.125
+      ],
+      "b_wins": 29,
+      "ties": 3,
+      "b_losses": 16
+    }
+  },
+  "checks": {
+    "learned-robust": {
+      "completion_no_worse": true,
+      "mean_lower": true
+    },
+    "learned-fast": {
+      "completion_no_worse": true,
+      "mean_lower": true
+    }
+  }
+}

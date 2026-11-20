@@ -1,0 +1,328 @@
+{
+  "verifier": "research/bin/learned-fast",
+  "verifier_sha256": "824eca4f6675630f072c062e3ec72e6a8aa3d1ba935c147b64960bda1c98c2c3",
+  "total": 32,
+  "passed": 32,
+  "records": [
+    {
+      "source": "research/results/s21-dev.jsonl",
+      "trace": "research/results/s21-dev-robust-hold-context-b7a9eaf9-3c6e49c1-None-False-76031.json",
+      "seed": 76031,
+      "pieces": 190,
+      "returncode": 0,
+      "sha256": "f1907db4cf622f60a8f1ad9cf054bd1fcf33c0013d799d53539db84ef0de9e30",
+      "stdout": "Verified 190 pieces, 100 garbage rows, seed 76031",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s21-dev.jsonl",
+      "trace": "research/results/s21-dev-robust-hold-context-b7a9eaf9-3c6e49c1-None-False-76008.json",
+      "seed": 76008,
+      "pieces": 191,
+      "returncode": 0,
+      "sha256": "7e60bd36e3ed4450dece579046af06a071d3027ec202fc3a5b43f2ceb4387e30",
+      "stdout": "Verified 191 pieces, 100 garbage rows, seed 76008",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s21-dev.jsonl",
+      "trace": "research/results/s21-dev-robust-hold-context-b7a9eaf9-3c6e49c1-None-False-76016.json",
+      "seed": 76016,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "c0f24a4984a1c9d98b26244b5978fc43db6affd79ee080aa7cd853d00d21a042",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 76016",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s21-dev.jsonl",
+      "trace": "research/results/s21-dev-robust-hold-context-b7a9eaf9-3c6e49c1-None-False-76030.json",
+      "seed": 76030,
+      "pieces": 201,
+      "returncode": 0,
+      "sha256": "4474a5fecc444405aebc0430c860e6faa6e72a36c2fd1f4915129d3c65287154",
+      "stdout": "Verified 201 pieces, 100 garbage rows, seed 76030",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s21-dev.jsonl",
+      "trace": "research/results/s21-dev-robust-hold-context-b7a9eaf9-3c6e49c1-None-False-76023.json",
+      "seed": 76023,
+      "pieces": 185,
+      "returncode": 0,
+      "sha256": "9a3c5760df625fcb5bd3750d5d0bafa77019119ac0d87e92ec5c83dbc41a7855",
+      "stdout": "Verified 185 pieces, 100 garbage rows, seed 76023",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s21-dev.jsonl",
+      "trace": "research/results/s21-dev-robust-hold-context-b7a9eaf9-3c6e49c1-None-False-76018.json",
+      "seed": 76018,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "c8bd6b619cfbc6bfbfaf835b65a9a4518005cd47a4af835916f1efe36eeed8ec",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 76018",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s21-dev.jsonl",
+      "trace": "research/results/s21-dev-robust-hold-context-b7a9eaf9-3c6e49c1-None-False-76015.json",
+      "seed": 76015,
+      "pieces": 199,
+      "returncode": 0,
+      "sha256": "ba84d4e67b6b1f2a28fda51407765cb7b82ccb6240b40e8b6b003dfcbf15006a",
+      "stdout": "Verified 199 pieces, 100 garbage rows, seed 76015",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s21-dev.jsonl",
+      "trace": "research/results/s21-dev-robust-hold-context-b7a9eaf9-3c6e49c1-None-False-76019.json",
+      "seed": 76019,
+      "pieces": 201,
+      "returncode": 0,
+      "sha256": "7c83fce7e95030121d32f7cae004850e3904b7825ebf6b81bc1fa737fbc57b7a",
+      "stdout": "Verified 201 pieces, 100 garbage rows, seed 76019",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s21-dev.jsonl",
+      "trace": "research/results/s21-dev-robust-hold-context-b7a9eaf9-3c6e49c1-None-False-76005.json",
+      "seed": 76005,
+      "pieces": 191,
+      "returncode": 0,
+      "sha256": "b7885e9cc93fc6ff6b6ed092ced119be3ffb0a836c90897609f52ba82c80162e",
+      "stdout": "Verified 191 pieces, 100 garbage rows, seed 76005",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s21-dev.jsonl",
+      "trace": "research/results/s21-dev-robust-hold-context-b7a9eaf9-3c6e49c1-None-False-76004.json",
+      "seed": 76004,
+      "pieces": 194,
+      "returncode": 0,
+      "sha256": "f32fec406307a9ebdb4c2c47581cddcb5860967c8039de535d170d922c0676fb",
+      "stdout": "Verified 194 pieces, 100 garbage rows, seed 76004",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s21-dev.jsonl",
+      "trace": "research/results/s21-dev-robust-hold-context-b7a9eaf9-3c6e49c1-None-False-76029.json",
+      "seed": 76029,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "43280bbedee12e7de17b3c29dd2608f135468f3f853d02700499099a7255bce2",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 76029",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s21-dev.jsonl",
+      "trace": "research/results/s21-dev-robust-hold-context-b7a9eaf9-3c6e49c1-None-False-76001.json",
+      "seed": 76001,
+      "pieces": 211,
+      "returncode": 0,
+      "sha256": "0ec321fb4138434e155c8cc351c09c789a142f1281de249c8f0e1ae2ab3b640d",
+      "stdout": "Verified 211 pieces, 100 garbage rows, seed 76001",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s21-dev.jsonl",
+      "trace": "research/results/s21-dev-robust-hold-context-b7a9eaf9-3c6e49c1-None-False-76006.json",
+      "seed": 76006,
+      "pieces": 193,
+      "returncode": 0,
+      "sha256": "d5c9e70a11961657577c14aa79bb37cd67a25cf20a08403d9621a55dd235683f",
+      "stdout": "Verified 193 pieces, 100 garbage rows, seed 76006",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s21-dev.jsonl",
+      "trace": "research/results/s21-dev-robust-hold-context-b7a9eaf9-3c6e49c1-None-False-76026.json",
+      "seed": 76026,
+      "pieces": 212,
+      "returncode": 0,
+      "sha256": "c8ce2f9fdc7b15d8ac5535df9f36a180b8a5d198bef936b0b54158b509d441ea",
+      "stdout": "Verified 212 pieces, 100 garbage rows, seed 76026",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s21-dev.jsonl",
+      "trace": "research/results/s21-dev-robust-hold-context-b7a9eaf9-3c6e49c1-None-False-76010.json",
+      "seed": 76010,
+      "pieces": 205,
+      "returncode": 0,
+      "sha256": "ce1b0dcdcc29a375f7a5f37bb549fcdfefbd5741efdc7770f17b468fa3e7f853",
+      "stdout": "Verified 205 pieces, 100 garbage rows, seed 76010",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s21-dev.jsonl",
+      "trace": "research/results/s21-dev-robust-hold-context-b7a9eaf9-3c6e49c1-None-False-76027.json",
+      "seed": 76027,
+      "pieces": 207,
+      "returncode": 0,
+      "sha256": "09db75d3b0cf1f14303d824aea7ed26c2372bceb639989da947d682f535e6f7d",
+      "stdout": "Verified 207 pieces, 100 garbage rows, seed 76027",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s21-dev.jsonl",
+      "trace": "research/results/s21-dev-robust-hold-context-b7a9eaf9-3c6e49c1-None-False-76011.json",
+      "seed": 76011,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "7ece825f422ad384067295928fc9b6a9444ab139fab6706ab5a684c8e897e431",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 76011",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s21-dev.jsonl",
+      "trace": "research/results/s21-dev-robust-hold-context-b7a9eaf9-3c6e49c1-None-False-76024.json",
+      "seed": 76024,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "e0156d2268ba617a35c1b0dca0b794e96df8aa0e1bab06b67da1b760113a3f9b",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 76024",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s21-dev.jsonl",
+      "trace": "research/results/s21-dev-robust-hold-context-b7a9eaf9-3c6e49c1-None-False-76022.json",
+      "seed": 76022,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "3a85d9935289d4e24d117eb0d06fa1246a926356406a70137d2f9b099e64e3f1",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 76022",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s21-dev.jsonl",
+      "trace": "research/results/s21-dev-robust-hold-context-b7a9eaf9-3c6e49c1-None-False-76003.json",
+      "seed": 76003,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "6de5bb2ad9b45a918d8ba27d6c25eaaa8a9132963003489fd655c9b10fbdea4d",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 76003",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s21-dev.jsonl",
+      "trace": "research/results/s21-dev-robust-hold-context-b7a9eaf9-3c6e49c1-None-False-76021.json",
+      "seed": 76021,
+      "pieces": 186,
+      "returncode": 0,
+      "sha256": "0eb915f6098bf2cc51b0e2f0cd00eff3b1326bb80b4a6af8c864096e8e2c5d3b",
+      "stdout": "Verified 186 pieces, 100 garbage rows, seed 76021",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s21-dev.jsonl",
+      "trace": "research/results/s21-dev-robust-hold-context-b7a9eaf9-3c6e49c1-None-False-76013.json",
+      "seed": 76013,
+      "pieces": 203,
+      "returncode": 0,
+      "sha256": "abd4c08aac54521d6f27849be06a698cdbe9beb5cc3c54034176333c40e054ca",
+      "stdout": "Verified 203 pieces, 100 garbage rows, seed 76013",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s21-dev.jsonl",
+      "trace": "research/results/s21-dev-robust-hold-context-b7a9eaf9-3c6e49c1-None-False-76002.json",
+      "seed": 76002,
+      "pieces": 216,
+      "returncode": 0,
+      "sha256": "e2229fb772a17f6a9ee84ef7bd033cb5baea7db43b6c6dec41223670a4c653e0",
+      "stdout": "Verified 216 pieces, 100 garbage rows, seed 76002",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s21-dev.jsonl",
+      "trace": "research/results/s21-dev-robust-hold-context-b7a9eaf9-3c6e49c1-None-False-76025.json",
+      "seed": 76025,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "7aca01436b312a65c794678b6767b6609688039cb8cf878e1f7b8fb5aff28a8e",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 76025",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s21-dev.jsonl",
+      "trace": "research/results/s21-dev-robust-hold-context-b7a9eaf9-3c6e49c1-None-False-76017.json",
+      "seed": 76017,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "e860e47a8caf08d4f927c6417ad4612daa1b3ad7a9bb48e5357a898e97195294",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 76017",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s21-dev.jsonl",
+      "trace": "research/results/s21-dev-robust-hold-context-b7a9eaf9-3c6e49c1-None-False-76000.json",
+      "seed": 76000,
+      "pieces": 208,
+      "returncode": 0,
+      "sha256": "8610d23498411434a4c4d26909b005071ec5c4241eaf18686b1cb2c9ef67eaa4",
+      "stdout": "Verified 208 pieces, 100 garbage rows, seed 76000",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s21-dev.jsonl",
+      "trace": "research/results/s21-dev-robust-hold-context-b7a9eaf9-3c6e49c1-None-False-76012.json",
+      "seed": 76012,
+      "pieces": 206,
+      "returncode": 0,
+      "sha256": "11dd790b5c55a32c95c47d200dfa1c80513b9b289a595e61af83594c38663aa7",
+      "stdout": "Verified 206 pieces, 100 garbage rows, seed 76012",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s21-dev.jsonl",
+      "trace": "research/results/s21-dev-robust-hold-context-b7a9eaf9-3c6e49c1-None-False-76009.json",
+      "seed": 76009,
+      "pieces": 199,
+      "returncode": 0,
+      "sha256": "dcedd6268a2382dc3414d3b91452a47d291219b6ddfdfe7e888964d896d5b80e",
+      "stdout": "Verified 199 pieces, 100 garbage rows, seed 76009",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s21-dev.jsonl",
+      "trace": "research/results/s21-dev-robust-hold-context-b7a9eaf9-3c6e49c1-None-False-76028.json",
+      "seed": 76028,
+      "pieces": 192,
+      "returncode": 0,
+      "sha256": "dd6e9c2b98fe0a11f11f28a1e7c3197a63446b1fce66830c007f68c0ec622def",
+      "stdout": "Verified 192 pieces, 100 garbage rows, seed 76028",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s21-dev.jsonl",
+      "trace": "research/results/s21-dev-robust-hold-context-b7a9eaf9-3c6e49c1-None-False-76007.json",
+      "seed": 76007,
+      "pieces": 189,
+      "returncode": 0,
+      "sha256": "8f1740869910dd89eb65e4b6e2d758246eaaafb82bfab41b64612d19b93aef77",
+      "stdout": "Verified 189 pieces, 100 garbage rows, seed 76007",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s21-dev.jsonl",
+      "trace": "research/results/s21-dev-robust-hold-context-b7a9eaf9-3c6e49c1-None-False-76020.json",
+      "seed": 76020,
+      "pieces": 187,
+      "returncode": 0,
+      "sha256": "31f478c14954335c685f821ddff80905f5af9185368e3d3a607d63c6109e5381",
+      "stdout": "Verified 187 pieces, 100 garbage rows, seed 76020",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s21-dev.jsonl",
+      "trace": "research/results/s21-dev-robust-hold-context-b7a9eaf9-3c6e49c1-None-False-76014.json",
+      "seed": 76014,
+      "pieces": 202,
+      "returncode": 0,
+      "sha256": "fa55605b6afea24c5b3f17b399501f7a317d3b2821c2e99f5dfcc93d9dce5de7",
+      "stdout": "Verified 202 pieces, 100 garbage rows, seed 76014",
+      "stderr": ""
+    }
+  ]
+}

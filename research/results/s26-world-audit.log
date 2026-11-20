@@ -1,0 +1,37 @@
+{
+  "games": 64,
+  "passed": 64,
+  "means": {
+    "world-rollout-placebo": {
+      "reranked": 0,
+      "base_nodes": 37500,
+      "rollout_nodes": 12378.327656890571,
+      "base_roots": 4.727373068432671,
+      "has_two_candidates": 0.945443077893409,
+      "world_preference_disagreement": 0.07655103402268179,
+      "sample_delta_spread": 0.2614395273932622,
+      "absolute_mean_margin": 1.1498938745622083,
+      "within_candidate_world_cost_spread": 0.16535788189941641,
+      "truncated": 0,
+      "topout": 0,
+      "replenished": 0.676122548224996,
+      "locks": 3.9748743718592965
+    },
+    "world-rollout": {
+      "reranked": 0.17830034231284417,
+      "base_nodes": 37500,
+      "rollout_nodes": 12380.292603065933,
+      "base_roots": 4.830183062955797,
+      "has_two_candidates": 0.9525226968298854,
+      "world_preference_disagreement": 0.06734375,
+      "sample_delta_spread": 0.2542514038085937,
+      "absolute_mean_margin": 1.1541893615722658,
+      "within_candidate_world_cost_spread": 0.15467669148753715,
+      "truncated": 0,
+      "topout": 0,
+      "replenished": 0.6842366033996493,
+      "locks": 3.9756841222654167
+    }
+  },
+  "note": "Rust audit replays actual public observations and all hypothetical paths; Python independently recomputes public JSON FNV hash. No fresh quality evidence from these correctness checks."
+}

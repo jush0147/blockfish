@@ -1,0 +1,271 @@
+{
+  "groups": {
+    "learned-covered:50/5,10,10,10:None": {
+      "total": 12,
+      "complete": 12,
+      "seeds": [
+        62000,
+        62001,
+        62002,
+        62003,
+        62004,
+        62005,
+        62006,
+        62007,
+        62008,
+        62009,
+        62010,
+        62011
+      ],
+      "binary_sha256": [
+        "035a82a16f0529326e261fa554106f0d18b246dc847047ea59575c5c7cb4e524"
+      ],
+      "mean_pieces": 197.66666666666666,
+      "min_pieces": 177,
+      "cpu_records": 12,
+      "mean_cpu_seconds": 16.433898583333335
+    },
+    "learned-fast:50/5,10,10,10:None": {
+      "total": 12,
+      "complete": 12,
+      "seeds": [
+        62000,
+        62001,
+        62002,
+        62003,
+        62004,
+        62005,
+        62006,
+        62007,
+        62008,
+        62009,
+        62010,
+        62011
+      ],
+      "binary_sha256": [
+        "824eca4f6675630f072c062e3ec72e6a8aa3d1ba935c147b64960bda1c98c2c3"
+      ],
+      "mean_pieces": 196.91666666666666,
+      "min_pieces": 183,
+      "cpu_records": 12,
+      "mean_cpu_seconds": 17.2198995
+    },
+    "learned-rank-blend:50/5,10,10,10:None": {
+      "total": 12,
+      "complete": 12,
+      "seeds": [
+        62000,
+        62001,
+        62002,
+        62003,
+        62004,
+        62005,
+        62006,
+        62007,
+        62008,
+        62009,
+        62010,
+        62011
+      ],
+      "binary_sha256": [
+        "f68e1c76da9149002a069bbef93707329d3fbae2a94c7f11de9fcee23a335a2c"
+      ],
+      "mean_pieces": 200.41666666666666,
+      "min_pieces": 191,
+      "cpu_records": 12,
+      "mean_cpu_seconds": 16.461429416666668
+    },
+    "learned-rank:50/5,10,10,10:None": {
+      "total": 12,
+      "complete": 12,
+      "seeds": [
+        62000,
+        62001,
+        62002,
+        62003,
+        62004,
+        62005,
+        62006,
+        62007,
+        62008,
+        62009,
+        62010,
+        62011
+      ],
+      "binary_sha256": [
+        "a375ec0554730e8ff5f5ec9bf4e40112e6c3ff69c99b62ff376b497efc1b3dd7"
+      ],
+      "mean_pieces": 214.25,
+      "min_pieces": 202,
+      "cpu_records": 12,
+      "mean_cpu_seconds": 18.6413
+    },
+    "learned-root-complete:50/5,10,10,10:None": {
+      "total": 12,
+      "complete": 12,
+      "seeds": [
+        62000,
+        62001,
+        62002,
+        62003,
+        62004,
+        62005,
+        62006,
+        62007,
+        62008,
+        62009,
+        62010,
+        62011
+      ],
+      "binary_sha256": [
+        "0fdbdd037e41cb62e34422345b64a4bcc2ab94adfb70866721e14b854cdc4715"
+      ],
+      "mean_pieces": 201.66666666666666,
+      "min_pieces": 191,
+      "cpu_records": 12,
+      "mean_cpu_seconds": 18.3740875
+    }
+  },
+  "pairs": [
+    {
+      "a": "learned-covered:50/5,10,10,10:None",
+      "b": "learned-fast:50/5,10,10,10:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": -0.75,
+      "bootstrap95": [
+        -4.666666666666667,
+        2.6666666666666665
+      ],
+      "b_wins": 5,
+      "ties": 1,
+      "b_losses": 6
+    },
+    {
+      "a": "learned-covered:50/5,10,10,10:None",
+      "b": "learned-rank-blend:50/5,10,10,10:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": 2.75,
+      "bootstrap95": [
+        -2.6666666666666665,
+        8.666666666666666
+      ],
+      "b_wins": 4,
+      "ties": 1,
+      "b_losses": 7
+    },
+    {
+      "a": "learned-covered:50/5,10,10,10:None",
+      "b": "learned-rank:50/5,10,10,10:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": 16.583333333333332,
+      "bootstrap95": [
+        11.0,
+        22.583333333333332
+      ],
+      "b_wins": 1,
+      "ties": 0,
+      "b_losses": 11
+    },
+    {
+      "a": "learned-covered:50/5,10,10,10:None",
+      "b": "learned-root-complete:50/5,10,10,10:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": 4,
+      "bootstrap95": [
+        -2.1666666666666665,
+        9.833333333333334
+      ],
+      "b_wins": 2,
+      "ties": 0,
+      "b_losses": 10
+    },
+    {
+      "a": "learned-fast:50/5,10,10,10:None",
+      "b": "learned-rank-blend:50/5,10,10,10:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": 3.5,
+      "bootstrap95": [
+        -0.5833333333333334,
+        8.166666666666666
+      ],
+      "b_wins": 4,
+      "ties": 1,
+      "b_losses": 7
+    },
+    {
+      "a": "learned-fast:50/5,10,10,10:None",
+      "b": "learned-rank:50/5,10,10,10:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": 17.333333333333332,
+      "bootstrap95": [
+        11.666666666666666,
+        22.583333333333332
+      ],
+      "b_wins": 1,
+      "ties": 0,
+      "b_losses": 11
+    },
+    {
+      "a": "learned-fast:50/5,10,10,10:None",
+      "b": "learned-root-complete:50/5,10,10,10:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": 4.75,
+      "bootstrap95": [
+        -0.9166666666666666,
+        10.166666666666666
+      ],
+      "b_wins": 4,
+      "ties": 0,
+      "b_losses": 8
+    },
+    {
+      "a": "learned-rank-blend:50/5,10,10,10:None",
+      "b": "learned-rank:50/5,10,10,10:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": 13.833333333333334,
+      "bootstrap95": [
+        8.083333333333334,
+        19.666666666666668
+      ],
+      "b_wins": 1,
+      "ties": 1,
+      "b_losses": 10
+    },
+    {
+      "a": "learned-rank-blend:50/5,10,10,10:None",
+      "b": "learned-root-complete:50/5,10,10,10:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": 1.25,
+      "bootstrap95": [
+        -2.5,
+        5.0
+      ],
+      "b_wins": 4,
+      "ties": 2,
+      "b_losses": 6
+    },
+    {
+      "a": "learned-rank:50/5,10,10,10:None",
+      "b": "learned-root-complete:50/5,10,10,10:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": -12.583333333333334,
+      "bootstrap95": [
+        -18.75,
+        -6.666666666666667
+      ],
+      "b_wins": 11,
+      "ties": 0,
+      "b_losses": 1
+    }
+  ]
+}

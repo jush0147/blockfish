@@ -1,0 +1,55 @@
+{
+  "gate": "mean",
+  "passed": true,
+  "lock": "research/results/s22-dev-lock.json",
+  "scores": {
+    "robust-hold-order": {
+      "complete": 32,
+      "mean_pieces": 195.96875
+    },
+    "learned-robust": {
+      "complete": 32,
+      "mean_pieces": 197.1875
+    },
+    "robust-hold-context": {
+      "complete": 32,
+      "mean_pieces": 198.15625
+    }
+  },
+  "candidate_minus_controls": {
+    "learned-robust": {
+      "paired_seeds": 32,
+      "completed_pairs": 32,
+      "delta_b_minus_a": -1.21875,
+      "bootstrap95": [
+        -4.125,
+        1.90625
+      ],
+      "b_wins": 21,
+      "ties": 2,
+      "b_losses": 9
+    },
+    "robust-hold-context": {
+      "paired_seeds": 32,
+      "completed_pairs": 32,
+      "delta_b_minus_a": -2.1875,
+      "bootstrap95": [
+        -4.78125,
+        0.4375
+      ],
+      "b_wins": 20,
+      "ties": 2,
+      "b_losses": 10
+    }
+  },
+  "checks": {
+    "learned-robust": {
+      "completion_no_worse": true,
+      "mean_lower": true
+    },
+    "robust-hold-context": {
+      "completion_no_worse": true,
+      "mean_lower": true
+    }
+  }
+}

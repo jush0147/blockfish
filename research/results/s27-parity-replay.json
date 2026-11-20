@@ -1,0 +1,38 @@
+{
+  "verifier": "research/bin/learned-fast",
+  "verifier_sha256": "824eca4f6675630f072c062e3ec72e6a8aa3d1ba935c147b64960bda1c98c2c3",
+  "total": 3,
+  "passed": 3,
+  "records": [
+    {
+      "source": "research/results/s27-observer-parity.jsonl",
+      "trace": "research/results/s27-observer-parity-robust-dag-observer-08060f11-3c6e49c1-None-False-76002.json",
+      "seed": 76002,
+      "pieces": 189,
+      "returncode": 0,
+      "sha256": "0ad317133917002d0349926551818aeea812e9e9c53b983118e9658704334b42",
+      "stdout": "Verified 189 pieces, 100 garbage rows, seed 76002",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s27-observer-parity.jsonl",
+      "trace": "research/results/s27-observer-parity-robust-dag-observer-08060f11-3c6e49c1-None-False-76001.json",
+      "seed": 76001,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "cbbd1c02bac2d7960668f1b604ea3d3d7426fa54f06c623bd4a0e26b681fe370",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 76001",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s27-observer-parity.jsonl",
+      "trace": "research/results/s27-observer-parity-robust-dag-observer-08060f11-3c6e49c1-None-False-76000.json",
+      "seed": 76000,
+      "pieces": 214,
+      "returncode": 0,
+      "sha256": "2aeda8e27cb041eab98569dcd5b333420c76e971a6224174c583900fd6c111b0",
+      "stdout": "Verified 214 pieces, 100 garbage rows, seed 76000",
+      "stderr": ""
+    }
+  ]
+}

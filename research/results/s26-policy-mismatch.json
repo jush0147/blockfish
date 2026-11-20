@@ -1,0 +1,237 @@
+{
+  "records": [
+    {
+      "different_inputs": 28,
+      "different_outcomes": 28,
+      "examined": 382,
+      "matched_public_states": 114,
+      "seed": 76804
+    },
+    {
+      "different_inputs": 29,
+      "different_outcomes": 29,
+      "examined": 408,
+      "matched_public_states": 128,
+      "seed": 76803
+    },
+    {
+      "different_inputs": 32,
+      "different_outcomes": 32,
+      "examined": 390,
+      "matched_public_states": 120,
+      "seed": 76816
+    },
+    {
+      "different_inputs": 29,
+      "different_outcomes": 29,
+      "examined": 400,
+      "matched_public_states": 124,
+      "seed": 76806
+    },
+    {
+      "different_inputs": 25,
+      "different_outcomes": 25,
+      "examined": 374,
+      "matched_public_states": 113,
+      "seed": 76824
+    },
+    {
+      "different_inputs": 29,
+      "different_outcomes": 29,
+      "examined": 394,
+      "matched_public_states": 118,
+      "seed": 76822
+    },
+    {
+      "different_inputs": 23,
+      "different_outcomes": 23,
+      "examined": 382,
+      "matched_public_states": 95,
+      "seed": 76805
+    },
+    {
+      "different_inputs": 23,
+      "different_outcomes": 23,
+      "examined": 384,
+      "matched_public_states": 118,
+      "seed": 76800
+    },
+    {
+      "different_inputs": 36,
+      "different_outcomes": 36,
+      "examined": 406,
+      "matched_public_states": 134,
+      "seed": 76808
+    },
+    {
+      "different_inputs": 33,
+      "different_outcomes": 33,
+      "examined": 392,
+      "matched_public_states": 121,
+      "seed": 76819
+    },
+    {
+      "different_inputs": 35,
+      "different_outcomes": 35,
+      "examined": 402,
+      "matched_public_states": 127,
+      "seed": 76830
+    },
+    {
+      "different_inputs": 18,
+      "different_outcomes": 18,
+      "examined": 378,
+      "matched_public_states": 111,
+      "seed": 76801
+    },
+    {
+      "different_inputs": 38,
+      "different_outcomes": 38,
+      "examined": 398,
+      "matched_public_states": 105,
+      "seed": 76827
+    },
+    {
+      "different_inputs": 22,
+      "different_outcomes": 22,
+      "examined": 394,
+      "matched_public_states": 106,
+      "seed": 76807
+    },
+    {
+      "different_inputs": 36,
+      "different_outcomes": 36,
+      "examined": 412,
+      "matched_public_states": 133,
+      "seed": 76818
+    },
+    {
+      "different_inputs": 22,
+      "different_outcomes": 22,
+      "examined": 356,
+      "matched_public_states": 95,
+      "seed": 76815
+    },
+    {
+      "different_inputs": 35,
+      "different_outcomes": 35,
+      "examined": 400,
+      "matched_public_states": 129,
+      "seed": 76831
+    },
+    {
+      "different_inputs": 53,
+      "different_outcomes": 53,
+      "examined": 418,
+      "matched_public_states": 111,
+      "seed": 76821
+    },
+    {
+      "different_inputs": 45,
+      "different_outcomes": 45,
+      "examined": 398,
+      "matched_public_states": 121,
+      "seed": 76810
+    },
+    {
+      "different_inputs": 30,
+      "different_outcomes": 30,
+      "examined": 390,
+      "matched_public_states": 117,
+      "seed": 76823
+    },
+    {
+      "different_inputs": 23,
+      "different_outcomes": 23,
+      "examined": 384,
+      "matched_public_states": 119,
+      "seed": 76825
+    },
+    {
+      "different_inputs": 28,
+      "different_outcomes": 28,
+      "examined": 394,
+      "matched_public_states": 129,
+      "seed": 76814
+    },
+    {
+      "different_inputs": 29,
+      "different_outcomes": 29,
+      "examined": 408,
+      "matched_public_states": 115,
+      "seed": 76812
+    },
+    {
+      "different_inputs": 22,
+      "different_outcomes": 22,
+      "examined": 398,
+      "matched_public_states": 107,
+      "seed": 76826
+    },
+    {
+      "different_inputs": 13,
+      "different_outcomes": 13,
+      "examined": 402,
+      "matched_public_states": 105,
+      "seed": 76811
+    },
+    {
+      "different_inputs": 29,
+      "different_outcomes": 29,
+      "examined": 402,
+      "matched_public_states": 136,
+      "seed": 76829
+    },
+    {
+      "different_inputs": 23,
+      "different_outcomes": 23,
+      "examined": 398,
+      "matched_public_states": 123,
+      "seed": 76802
+    },
+    {
+      "different_inputs": 33,
+      "different_outcomes": 33,
+      "examined": 400,
+      "matched_public_states": 113,
+      "seed": 76813
+    },
+    {
+      "different_inputs": 40,
+      "different_outcomes": 40,
+      "examined": 400,
+      "matched_public_states": 113,
+      "seed": 76817
+    },
+    {
+      "different_inputs": 27,
+      "different_outcomes": 27,
+      "examined": 400,
+      "matched_public_states": 111,
+      "seed": 76809
+    },
+    {
+      "different_inputs": 22,
+      "different_outcomes": 22,
+      "examined": 392,
+      "matched_public_states": 113,
+      "seed": 76828
+    },
+    {
+      "different_inputs": 28,
+      "different_outcomes": 28,
+      "examined": 384,
+      "matched_public_states": 108,
+      "seed": 76820
+    }
+  ],
+  "totals": {
+    "examined": 12620,
+    "matched_public_states": 3732,
+    "different_inputs": 938,
+    "different_outcomes": 938
+  },
+  "binary_sha256": "03479e03c7aa50b470fc356aa40752b4cdb7a376d4dfcfa69c41ff98ad705647",
+  "outcome_mismatch_fraction": 0.25133976420150056,
+  "note": "Post-hoc diagnostic, only first follow-up after original base action; sampled states must exactly match actual next board/current/preview/Hold. Outcomes normalize alternative input paths. Samples are not independent games. Mismatch does not prove which action is better or that more rollout budget would improve 100L."
+}

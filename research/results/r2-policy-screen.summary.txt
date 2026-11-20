@@ -1,0 +1,10 @@
+global-blend:50/5,10,10,10:None 12 / 12 mean 198.91666666666666 CPU None
+learned-blend:50/5,10,10,10:None 12 / 12 mean 201.66666666666666 CPU None
+learned-policy2:50/5,10,10,10:None 12 / 12 mean 198.5 CPU 17.085655166666665
+learned:50/5,10,10,10:None 12 / 12 mean 198.08333333333334 CPU None
+{"a": "global-blend:50/5,10,10,10:None", "b": "learned-blend:50/5,10,10,10:None", "paired_seeds": 12, "completed_pairs": 12, "delta_b_minus_a": 2.75, "bootstrap95": [-1.75, 7.166666666666667], "b_wins": 4, "ties": 1, "b_losses": 7}
+{"a": "global-blend:50/5,10,10,10:None", "b": "learned-policy2:50/5,10,10,10:None", "paired_seeds": 12, "completed_pairs": 12, "delta_b_minus_a": -0.4166666666666667, "bootstrap95": [-4.583333333333333, 3.5], "b_wins": 6, "ties": 0, "b_losses": 6}
+{"a": "global-blend:50/5,10,10,10:None", "b": "learned:50/5,10,10,10:None", "paired_seeds": 12, "completed_pairs": 12, "delta_b_minus_a": -0.8333333333333334, "bootstrap95": [-6.083333333333333, 4.083333333333333], "b_wins": 5, "ties": 0, "b_losses": 7}
+{"a": "learned-blend:50/5,10,10,10:None", "b": "learned-policy2:50/5,10,10,10:None", "paired_seeds": 12, "completed_pairs": 12, "delta_b_minus_a": -3.1666666666666665, "bootstrap95": [-6.916666666666667, 0.5833333333333334], "b_wins": 7, "ties": 0, "b_losses": 5}
+{"a": "learned-blend:50/5,10,10,10:None", "b": "learned:50/5,10,10,10:None", "paired_seeds": 12, "completed_pairs": 12, "delta_b_minus_a": -3.5833333333333335, "bootstrap95": [-6.916666666666667, -0.08333333333333333], "b_wins": 8, "ties": 1, "b_losses": 3}
+{"a": "learned-policy2:50/5,10,10,10:None", "b": "learned:50/5,10,10,10:None", "paired_seeds": 12, "completed_pairs": 12, "delta_b_minus_a": -0.4166666666666667, "bootstrap95": [-4.75, 3.1666666666666665], "b_wins": 6, "ties": 0, "b_losses": 6}

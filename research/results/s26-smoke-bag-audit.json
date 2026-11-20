@@ -1,0 +1,26 @@
+{
+  "games": 2,
+  "passed": 2,
+  "records": [
+    {
+      "binary": "research/bin/world-rollout-placebo",
+      "seed": 76000,
+      "decisions": 210,
+      "inferences_from_public_history": 31,
+      "reveal_confirmed": 30,
+      "final_prediction_logically_checked": true,
+      "placebo_matches_frozen": null
+    },
+    {
+      "binary": "research/bin/world-rollout",
+      "seed": 76000,
+      "decisions": 214,
+      "inferences_from_public_history": 31,
+      "reveal_confirmed": 31,
+      "final_prediction_logically_checked": false,
+      "placebo_matches_frozen": null
+    }
+  ],
+  "skipped_non_observer": [],
+  "note": "Public-history audit; only final-decision predictions lack a subsequent saved reveal."
+}

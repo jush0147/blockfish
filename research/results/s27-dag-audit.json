@@ -1,0 +1,236 @@
+{
+  "passed": 32,
+  "records": [
+    {
+      "binary": "robust-dag",
+      "seed": 76831,
+      "mean_duplicates": 438.15343915343914,
+      "mean_unique_expanded": 1510.936507936508,
+      "mean_sequences": 626.4973544973545
+    },
+    {
+      "binary": "robust-dag",
+      "seed": 76816,
+      "mean_duplicates": 418.7897435897436,
+      "mean_unique_expanded": 1522.0820512820512,
+      "mean_sequences": 658.7076923076924
+    },
+    {
+      "binary": "robust-dag",
+      "seed": 76830,
+      "mean_duplicates": 443.7886597938144,
+      "mean_unique_expanded": 1535.1030927835052,
+      "mean_sequences": 639.5618556701031
+    },
+    {
+      "binary": "robust-dag",
+      "seed": 76808,
+      "mean_duplicates": 427.320197044335,
+      "mean_unique_expanded": 1497.2857142857142,
+      "mean_sequences": 608.3349753694581
+    },
+    {
+      "binary": "robust-dag",
+      "seed": 76815,
+      "mean_duplicates": 418.79396984924625,
+      "mean_unique_expanded": 1503.5477386934674,
+      "mean_sequences": 622.2562814070352
+    },
+    {
+      "binary": "robust-dag",
+      "seed": 76823,
+      "mean_duplicates": 417.2110552763819,
+      "mean_unique_expanded": 1523.6231155778894,
+      "mean_sequences": 648.5929648241206
+    },
+    {
+      "binary": "robust-dag",
+      "seed": 76818,
+      "mean_duplicates": 411.5194174757282,
+      "mean_unique_expanded": 1494.0728155339805,
+      "mean_sequences": 589.1019417475728
+    },
+    {
+      "binary": "robust-dag",
+      "seed": 76819,
+      "mean_duplicates": 427.33502538071065,
+      "mean_unique_expanded": 1517.9238578680204,
+      "mean_sequences": 666.1624365482234
+    },
+    {
+      "binary": "robust-dag",
+      "seed": 76805,
+      "mean_duplicates": 426.01020408163265,
+      "mean_unique_expanded": 1500.0969387755101,
+      "mean_sequences": 636.234693877551
+    },
+    {
+      "binary": "robust-dag",
+      "seed": 76804,
+      "mean_duplicates": 444.5238095238095,
+      "mean_unique_expanded": 1528.6984126984128,
+      "mean_sequences": 660.8888888888889
+    },
+    {
+      "binary": "robust-dag",
+      "seed": 76829,
+      "mean_duplicates": 421.61170212765956,
+      "mean_unique_expanded": 1510.0106382978724,
+      "mean_sequences": 634.9574468085107
+    },
+    {
+      "binary": "robust-dag",
+      "seed": 76801,
+      "mean_duplicates": 416.28205128205127,
+      "mean_unique_expanded": 1536.8461538461538,
+      "mean_sequences": 655.4051282051282
+    },
+    {
+      "binary": "robust-dag",
+      "seed": 76826,
+      "mean_duplicates": 421.2315789473684,
+      "mean_unique_expanded": 1509.8315789473684,
+      "mean_sequences": 653.1
+    },
+    {
+      "binary": "robust-dag",
+      "seed": 76810,
+      "mean_duplicates": 422.6082474226804,
+      "mean_unique_expanded": 1537.4123711340205,
+      "mean_sequences": 660.6030927835052
+    },
+    {
+      "binary": "robust-dag",
+      "seed": 76806,
+      "mean_duplicates": 410.32323232323233,
+      "mean_unique_expanded": 1518.0959595959596,
+      "mean_sequences": 664.030303030303
+    },
+    {
+      "binary": "robust-dag",
+      "seed": 76827,
+      "mean_duplicates": 447.14507772020727,
+      "mean_unique_expanded": 1532.3160621761658,
+      "mean_sequences": 654.6943005181347
+    },
+    {
+      "binary": "robust-dag",
+      "seed": 76811,
+      "mean_duplicates": 430.885,
+      "mean_unique_expanded": 1507.81,
+      "mean_sequences": 599.87
+    },
+    {
+      "binary": "robust-dag",
+      "seed": 76803,
+      "mean_duplicates": 440.8263157894737,
+      "mean_unique_expanded": 1539.8315789473684,
+      "mean_sequences": 668.521052631579
+    },
+    {
+      "binary": "robust-dag",
+      "seed": 76824,
+      "mean_duplicates": 408.305,
+      "mean_unique_expanded": 1498.675,
+      "mean_sequences": 584.72
+    },
+    {
+      "binary": "robust-dag",
+      "seed": 76822,
+      "mean_duplicates": 416.9903381642512,
+      "mean_unique_expanded": 1501.5217391304348,
+      "mean_sequences": 615.4347826086956
+    },
+    {
+      "binary": "robust-dag",
+      "seed": 76802,
+      "mean_duplicates": 417.0427807486631,
+      "mean_unique_expanded": 1517.6470588235295,
+      "mean_sequences": 676.475935828877
+    },
+    {
+      "binary": "robust-dag",
+      "seed": 76821,
+      "mean_duplicates": 400.85074626865674,
+      "mean_unique_expanded": 1481.3283582089553,
+      "mean_sequences": 623.4029850746268
+    },
+    {
+      "binary": "robust-dag",
+      "seed": 76813,
+      "mean_duplicates": 407.45226130653265,
+      "mean_unique_expanded": 1502.9547738693468,
+      "mean_sequences": 654.2562814070352
+    },
+    {
+      "binary": "robust-dag",
+      "seed": 76825,
+      "mean_duplicates": 428.49038461538464,
+      "mean_unique_expanded": 1522.7596153846155,
+      "mean_sequences": 591.5769230769231
+    },
+    {
+      "binary": "robust-dag",
+      "seed": 76800,
+      "mean_duplicates": 434.4145077720207,
+      "mean_unique_expanded": 1535.4041450777202,
+      "mean_sequences": 650.160621761658
+    },
+    {
+      "binary": "robust-dag",
+      "seed": 76817,
+      "mean_duplicates": 430.36224489795916,
+      "mean_unique_expanded": 1492.7091836734694,
+      "mean_sequences": 627.8928571428571
+    },
+    {
+      "binary": "robust-dag",
+      "seed": 76812,
+      "mean_duplicates": 422.68367346938777,
+      "mean_unique_expanded": 1516.2244897959183,
+      "mean_sequences": 636.8418367346939
+    },
+    {
+      "binary": "robust-dag",
+      "seed": 76809,
+      "mean_duplicates": 412.44776119402985,
+      "mean_unique_expanded": 1493.084577114428,
+      "mean_sequences": 602.2985074626865
+    },
+    {
+      "binary": "robust-dag",
+      "seed": 76828,
+      "mean_duplicates": 442.46268656716416,
+      "mean_unique_expanded": 1525.2039800995026,
+      "mean_sequences": 630.726368159204
+    },
+    {
+      "binary": "robust-dag",
+      "seed": 76807,
+      "mean_duplicates": 424.5960591133005,
+      "mean_unique_expanded": 1531.8817733990147,
+      "mean_sequences": 681.1379310344828
+    },
+    {
+      "binary": "robust-dag",
+      "seed": 76814,
+      "mean_duplicates": 427.53554502369667,
+      "mean_unique_expanded": 1506.4265402843603,
+      "mean_sequences": 610.1327014218009
+    },
+    {
+      "binary": "robust-dag",
+      "seed": 76820,
+      "mean_duplicates": 425.1333333333333,
+      "mean_unique_expanded": 1535.0615384615385,
+      "mean_sequences": 689.6
+    }
+  ],
+  "means": {
+    "robust-dag": {
+      "mean_duplicates": 424.4726890392467,
+      "mean_unique_expanded": 1515.2002300532126,
+      "mean_sequences": 638.193066900897
+    }
+  }
+}

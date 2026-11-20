@@ -4,6 +4,9 @@ version = "0.1.0"
 authors = ["iitalics <iitalics@gmail.com>"]
 edition = "2018"
 
+[features]
+public-world = []
+
 [dependencies]
 rand = "0.7"
 rand_pcg = "0.2"

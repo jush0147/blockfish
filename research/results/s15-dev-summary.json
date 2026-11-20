@@ -1,0 +1,123 @@
+{
+  "groups": {
+    "learned-robust:50/5,10,10,10:None": {
+      "total": 12,
+      "complete": 12,
+      "seeds": [
+        62000,
+        62001,
+        62002,
+        62003,
+        62004,
+        62005,
+        62006,
+        62007,
+        62008,
+        62009,
+        62010,
+        62011
+      ],
+      "binary_sha256": [
+        "c9516ea2d6c77029a2de192627c541002fb3f2046ab681bf1410a70f3205aa50"
+      ],
+      "mean_pieces": 195.33333333333334,
+      "min_pieces": 188,
+      "cpu_records": 12,
+      "mean_cpu_seconds": 16.039148666666666
+    },
+    "robust-tail-hold-placebo:50/5,10,10,10:None": {
+      "total": 12,
+      "complete": 12,
+      "seeds": [
+        62000,
+        62001,
+        62002,
+        62003,
+        62004,
+        62005,
+        62006,
+        62007,
+        62008,
+        62009,
+        62010,
+        62011
+      ],
+      "binary_sha256": [
+        "a3645d811e553241a50e7c2b20e028ceb1d588f9d727fc234e71d82194958aa6"
+      ],
+      "mean_pieces": 208.33333333333334,
+      "min_pieces": 198,
+      "cpu_records": 12,
+      "mean_cpu_seconds": 10.036780416666666
+    },
+    "robust-tail-hold:50/5,10,10,10:None": {
+      "total": 12,
+      "complete": 12,
+      "seeds": [
+        62000,
+        62001,
+        62002,
+        62003,
+        62004,
+        62005,
+        62006,
+        62007,
+        62008,
+        62009,
+        62010,
+        62011
+      ],
+      "binary_sha256": [
+        "09872aa588ef0655e21edd5cebb87445dd35d9411845b7fa80f0b8cc042e2517"
+      ],
+      "mean_pieces": 202,
+      "min_pieces": 192,
+      "cpu_records": 12,
+      "mean_cpu_seconds": 9.588892083333333
+    }
+  },
+  "pairs": [
+    {
+      "a": "learned-robust:50/5,10,10,10:None",
+      "b": "robust-tail-hold-placebo:50/5,10,10,10:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": 13,
+      "bootstrap95": [
+        7.5,
+        18.0
+      ],
+      "b_wins": 2,
+      "ties": 0,
+      "b_losses": 10
+    },
+    {
+      "a": "learned-robust:50/5,10,10,10:None",
+      "b": "robust-tail-hold:50/5,10,10,10:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": 6.666666666666667,
+      "bootstrap95": [
+        3.5,
+        9.583333333333334
+      ],
+      "b_wins": 1,
+      "ties": 0,
+      "b_losses": 11
+    },
+    {
+      "a": "robust-tail-hold-placebo:50/5,10,10,10:None",
+      "b": "robust-tail-hold:50/5,10,10,10:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": -6.333333333333333,
+      "bootstrap95": [
+        -11.25,
+        -1.0
+      ],
+      "b_wins": 9,
+      "ties": 0,
+      "b_losses": 3
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "seeds": [
+    76000,
+    76001,
+    76002,
+    76003,
+    76004,
+    76005,
+    76006,
+    76007,
+    76008,
+    76009,
+    76010,
+    76011,
+    76012,
+    76013,
+    76014,
+    76015,
+    76016,
+    76017,
+    76018,
+    76019,
+    76020,
+    76021,
+    76022,
+    76023,
+    76024,
+    76025,
+    76026,
+    76027,
+    76028,
+    76029,
+    76030,
+    76031
+  ],
+  "config": "50/5,10,10,10",
+  "generated_node_cap": 50000,
+  "garbage_min": 4,
+  "garbage_max": 9,
+  "candidate": "robust-hold-order",
+  "controls": [
+    "learned-robust",
+    "robust-hold-context"
+  ],
+  "binaries": {
+    "robust-hold-order": "6c2d3a7b1881418e8443bbeb50fd9a1e3fe6cba82eb00c667babcd4252d96b8c",
+    "learned-robust": "c9516ea2d6c77029a2de192627c541002fb3f2046ab681bf1410a70f3205aa50",
+    "robust-hold-context": "b7a9eaf93413f50c0595494ecd30d8e21339e424ff52a17cf6a1c55a5db4165e"
+  },
+  "weights_sha256": "4efc3489eacfd0dd3437866a18972563ca7d7451628a22d92f0c415adc000d79"
+}

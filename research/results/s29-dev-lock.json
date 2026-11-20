@@ -1,0 +1,50 @@
+{
+  "seeds": [
+    77000,
+    77001,
+    77002,
+    77003,
+    77004,
+    77005,
+    77006,
+    77007,
+    77008,
+    77009,
+    77010,
+    77011,
+    77012,
+    77013,
+    77014,
+    77015,
+    77016,
+    77017,
+    77018,
+    77019,
+    77020,
+    77021,
+    77022,
+    77023,
+    77024,
+    77025,
+    77026,
+    77027,
+    77028,
+    77029,
+    77030,
+    77031
+  ],
+  "config": "50/5,10,10,10",
+  "generated_node_cap": 50000,
+  "garbage_min": 4,
+  "garbage_max": 9,
+  "candidate": "robust-global-regret",
+  "controls": [
+    "robust-global-f",
+    "learned-robust"
+  ],
+  "binaries": {
+    "robust-global-regret": "f5176604ba24e355bd95d08b40de90940081aac34459b1a705b93e9ea778303f",
+    "robust-global-f": "4404766ecded4c6e982d0eaa10c57131ec70ee2d68f0b107b4e7cf3af2d0dedf",
+    "learned-robust": "c9516ea2d6c77029a2de192627c541002fb3f2046ab681bf1410a70f3205aa50"
+  }
+}

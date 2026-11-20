@@ -8,15 +8,92 @@ use crate::{
 /// A game state: matrix plus queue/hold.
 ///
 /// Represention should prioritize efficiently taking pieces from the queue/hold slot.
-#[derive(Clone)]
+#[derive(Clone, Eq, PartialEq, Hash)]
 pub struct State {
+    #[cfg(feature="reveal-boundary")]
+    reveal: Option<(u16,u16,u16)>,
+    #[cfg(feature="reveal-boundary")]
+    needs_reveal: bool,
     matrix: BasicMatrix,
     queue_rev: Vec<Color>,
     has_held: bool,
     reached_goal: bool,
+    final_goal: bool,
+    #[cfg(feature = "endgame-solver")]
+    goal_rows: Option<u16>,
 }
 
 impl State {
+    #[cfg(feature = "hold-context")]
+    pub(super) fn held_color(&self) -> Option<Color> {
+        if self.has_held { self.next().1 } else { None }
+    }
+    #[cfg(feature = "endgame-queue-bound")]
+    pub fn useful_piece_bound(
+        &self,
+        required: usize,
+        memo: &mut std::collections::HashMap<(Vec<Color>, bool, usize), usize>,
+    ) -> usize {
+        fn visit(
+            queue: &[Color],
+            held: bool,
+            required: usize,
+            memo: &mut std::collections::HashMap<(Vec<Color>, bool, usize), usize>,
+        ) -> usize {
+            if required == 0 {
+                return 0;
+            }
+            let key = (queue.to_vec(), held, required);
+            if let Some(&cost) = memo.get(&key) {
+                return cost;
+            }
+            let mut best = usize::MAX / 4;
+            for hold in [false, true] {
+                let pos = if held == hold { 1 } else { 2 };
+                if queue.len() < pos {
+                    continue;
+                }
+                let mut next = queue.to_vec();
+                let color = next.remove(queue.len() - pos);
+                let remaining = required.saturating_sub((color.as_char() != 'O') as usize);
+                best = best.min(1 + visit(&next, held || hold, remaining, memo));
+            }
+            memo.insert(key, best);
+            best
+        }
+        visit(&self.queue_rev, self.has_held, required, memo)
+    }
+    #[cfg(feature = "endgame-solver")]
+    pub fn with_goal_rows(mut self, rows: u16) -> Self {
+        assert!(rows <= self.matrix.rows());
+        self.goal_rows = Some(rows);
+        self.reached_goal = rows == 0;
+        self
+    }
+
+    #[cfg(feature = "endgame-solver")]
+    pub fn goal_lower_bound(&self) -> usize {
+        (self
+            .matrix
+            .empty_cells_below(self.goal_rows.expect("endgame state"))
+            + 3)
+            / 4
+    }
+
+    #[cfg(feature = "endgame-color-bound")]
+    pub fn goal_hole_pattern(&self) -> Option<Vec<u16>> {
+        self.matrix
+            .single_hole_columns(self.goal_rows.expect("endgame state"))
+    }
+    pub fn with_final_goal(mut self, final_goal: bool) -> Self {
+        self.final_goal = final_goal;
+        self
+    }
+
+    pub fn goal_is_final(&self) -> bool {
+        self.final_goal
+    }
+
     pub fn matrix(&self) -> &BasicMatrix {
         &self.matrix
     }
@@ -25,8 +102,18 @@ impl State {
         self.reached_goal
     }
 
+    #[cfg(feature="reveal-boundary")]
+    pub fn until_reveal(mut self, visible:u16, minimum:u16, maximum:u16, unseen:bool) -> Self {
+        self.final_goal = !unseen;
+        self.reveal = unseen.then_some((visible,minimum.min(maximum),maximum));
+        self
+    }
     pub fn is_terminal(&self) -> bool {
-        self.reached_goal || self.queue_rev.is_empty()
+        #[cfg(feature="reveal-boundary")]
+        if self.needs_reveal {return true;}
+        self.reached_goal
+            || self.queue_rev.is_empty()
+            || (cfg!(feature = "preserve-hold") && self.has_held && self.queue_rev.len() == 1)
     }
 
     /// Returns the next available piece colors, as pair `(next_piece, hold_piece)`.
@@ -72,6 +159,22 @@ impl State {
     /// Applies the given placement to this state, modifying the queue and matrix.
     pub fn place(&mut self, pl: &Place) {
         pl.shape.blit_to(&mut self.matrix, pl.tf);
+        #[cfg(feature = "endgame-solver")]
+        if let Some(rows) = self.goal_rows {
+            let remaining = rows - self.matrix.full_rows_below(rows);
+            self.goal_rows = Some(remaining);
+            self.matrix.sift_rows();
+            self.reached_goal = remaining == 0;
+            self.pop(pl.did_hold);
+            return;
+        }
+        #[cfg(feature="reveal-boundary")]
+        if let Some((visible, minimum, maximum)) = self.reveal {
+            let remaining = visible - self.matrix.full_rows_below(visible);
+            let any_clear = self.matrix.full_rows_below(self.matrix.rows()) > 0;
+            self.needs_reveal = remaining < if any_clear { minimum } else { maximum };
+            self.reveal = Some((remaining,minimum,maximum));
+        }
         self.reached_goal |= self.matrix.sift_rows();
         self.pop(pl.did_hold);
     }
@@ -103,10 +206,17 @@ impl From<Snapshot> for State {
             queue_rev.push(hold_color);
         }
         Self {
+            #[cfg(feature="reveal-boundary")]
+            reveal:None,
+            #[cfg(feature="reveal-boundary")]
+            needs_reveal:false,
             matrix,
             queue_rev,
             has_held,
             reached_goal: false,
+            final_goal: true,
+            #[cfg(feature = "endgame-solver")]
+            goal_rows: None,
         }
     }
 }
@@ -184,5 +294,40 @@ mod test {
         }
         .into();
         assert_eq!(s.next(), (None, Some(Color::n('O'))));
+    }
+}
+
+#[cfg(all(test,feature="reveal-boundary"))]
+mod reveal_tests {
+    use super::*;
+    use crate::shape::srs;
+
+    // A four-cell gap admits a horizontal I clear and other nonclearing placements.
+    #[test]
+    fn clearing_and_nonclearing_locks_use_different_refill_heights() {
+        let mut board = BasicMatrix::with_cols(10);
+        for r in 0..5 {
+            for c in 0..10 {
+                if (r==4 && c>=4) || (r<4 && c!=r) {board.set((r,c));}
+            }
+        }
+        let snapshot=Snapshot {matrix:board,hold:None,queue:"IOTLSZ".chars().map(Color::n).collect()};
+        let initial=State::from(snapshot).until_reveal(5,4,9,true);
+        let shapes=srs();
+        let mut finder=PlaceFinder::new(&shapes);
+        let mut observed=[false;2];
+        for p in initial.placements(&mut finder) {
+            let mut child=initial.clone();
+            child.place(&p);
+            let remaining=child.reveal.unwrap().0;
+            if remaining==4 {
+                assert!(!child.needs_reveal);
+                observed[0]=true;
+            } else if remaining==5 {
+                assert!(child.needs_reveal && child.is_terminal());
+                observed[1]=true;
+            }
+        }
+        assert_eq!(observed,[true,true]);
     }
 }

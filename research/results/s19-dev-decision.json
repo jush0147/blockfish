@@ -1,0 +1,35 @@
+{
+  "gate": "mean",
+  "passed": false,
+  "lock": "research/results/s19-dev-lock.json",
+  "scores": {
+    "robust-preserve-hold": {
+      "complete": 32,
+      "mean_pieces": 200.8125
+    },
+    "learned-robust": {
+      "complete": 32,
+      "mean_pieces": 197.1875
+    }
+  },
+  "candidate_minus_controls": {
+    "learned-robust": {
+      "paired_seeds": 32,
+      "completed_pairs": 32,
+      "delta_b_minus_a": 3.625,
+      "bootstrap95": [
+        0.75,
+        6.5
+      ],
+      "b_wins": 10,
+      "ties": 5,
+      "b_losses": 17
+    }
+  },
+  "checks": {
+    "learned-robust": {
+      "completion_no_worse": true,
+      "mean_lower": false
+    }
+  }
+}

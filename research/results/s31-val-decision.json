@@ -1,0 +1,55 @@
+{
+  "gate": "mean",
+  "passed": true,
+  "lock": "research/results/s31-val-lock.json",
+  "scores": {
+    "robust-plan-reuse": {
+      "complete": 48,
+      "mean_pieces": 195.27083333333334
+    },
+    "learned-robust": {
+      "complete": 48,
+      "mean_pieces": 195.3125
+    },
+    "learned-fast": {
+      "complete": 48,
+      "mean_pieces": 196.58333333333334
+    }
+  },
+  "candidate_minus_controls": {
+    "learned-robust": {
+      "paired_seeds": 48,
+      "completed_pairs": 48,
+      "delta_b_minus_a": -0.041666666666666664,
+      "bootstrap95": [
+        -1.3333333333333333,
+        1.1666666666666667
+      ],
+      "b_wins": 11,
+      "ties": 22,
+      "b_losses": 15
+    },
+    "learned-fast": {
+      "paired_seeds": 48,
+      "completed_pairs": 48,
+      "delta_b_minus_a": -1.3125,
+      "bootstrap95": [
+        -3.8541666666666665,
+        1.1458333333333333
+      ],
+      "b_wins": 23,
+      "ties": 4,
+      "b_losses": 21
+    }
+  },
+  "checks": {
+    "learned-robust": {
+      "completion_no_worse": true,
+      "mean_lower": true
+    },
+    "learned-fast": {
+      "completion_no_worse": true,
+      "mean_lower": true
+    }
+  }
+}

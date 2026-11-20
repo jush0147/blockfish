@@ -1,0 +1,648 @@
+{
+  "verifier": "research/bin/learned-fast",
+  "verifier_sha256": "824eca4f6675630f072c062e3ec72e6a8aa3d1ba935c147b64960bda1c98c2c3",
+  "total": 64,
+  "passed": 64,
+  "records": [
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-placebo-382af21e-3c6e49c1-None-False-76804.json",
+      "seed": 76804,
+      "pieces": 192,
+      "returncode": 0,
+      "sha256": "a2e7be8bcc7a0f3021796ba2c92281ee7baa86f336abf8d6241e931275d891e2",
+      "stdout": "Verified 192 pieces, 100 garbage rows, seed 76804",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-f51a21c9-3c6e49c1-None-False-76809.json",
+      "seed": 76809,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "63a36ea98a785744dc37af33847fd65a171a81832fb2d2972928277aa15ee5a0",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 76809",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-placebo-382af21e-3c6e49c1-None-False-76803.json",
+      "seed": 76803,
+      "pieces": 205,
+      "returncode": 0,
+      "sha256": "b226ab082f0764829720416a522f8cd327af809c43996dae1188a2afcf454e00",
+      "stdout": "Verified 205 pieces, 100 garbage rows, seed 76803",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-f51a21c9-3c6e49c1-None-False-76827.json",
+      "seed": 76827,
+      "pieces": 207,
+      "returncode": 0,
+      "sha256": "474ef3626219ed8c24989da1c6ec07a5d7593df594757bf5828d4ee74582fdc3",
+      "stdout": "Verified 207 pieces, 100 garbage rows, seed 76827",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-f51a21c9-3c6e49c1-None-False-76804.json",
+      "seed": 76804,
+      "pieces": 203,
+      "returncode": 0,
+      "sha256": "68fa829a13cff796b5927f0e065c9d6fd97b96f840fdb1863f3abef8ffec59ca",
+      "stdout": "Verified 203 pieces, 100 garbage rows, seed 76804",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-placebo-382af21e-3c6e49c1-None-False-76816.json",
+      "seed": 76816,
+      "pieces": 196,
+      "returncode": 0,
+      "sha256": "ac3d2626d2c4349933749284f8f3dd0baa8ccda34d1712c36bebe0960c9fb73f",
+      "stdout": "Verified 196 pieces, 100 garbage rows, seed 76816",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-placebo-382af21e-3c6e49c1-None-False-76806.json",
+      "seed": 76806,
+      "pieces": 201,
+      "returncode": 0,
+      "sha256": "e37293ad3af2742dec2ae68fec842dd867b42a56b75f6fd056676caf4239733d",
+      "stdout": "Verified 201 pieces, 100 garbage rows, seed 76806",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-f51a21c9-3c6e49c1-None-False-76802.json",
+      "seed": 76802,
+      "pieces": 206,
+      "returncode": 0,
+      "sha256": "5cb79f2a307fa63e9f1e754fb08592cdbef702c48530700acefd8983002a91a6",
+      "stdout": "Verified 206 pieces, 100 garbage rows, seed 76802",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-placebo-382af21e-3c6e49c1-None-False-76824.json",
+      "seed": 76824,
+      "pieces": 188,
+      "returncode": 0,
+      "sha256": "041723751cd32453321c4e686b2f7ba9452fb19be7db395d6414f5f76db2e862",
+      "stdout": "Verified 188 pieces, 100 garbage rows, seed 76824",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-f51a21c9-3c6e49c1-None-False-76831.json",
+      "seed": 76831,
+      "pieces": 199,
+      "returncode": 0,
+      "sha256": "2e390f3513dfddb92d7c807a931de8826e8d4064d1ada3ea585b84cecbe2d518",
+      "stdout": "Verified 199 pieces, 100 garbage rows, seed 76831",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-placebo-382af21e-3c6e49c1-None-False-76822.json",
+      "seed": 76822,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "62c2f0e6e2b5ea6e7991bdcdbcdd6179f12a73a3e8cf5a16dc5306eb90b377ab",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 76822",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-placebo-382af21e-3c6e49c1-None-False-76805.json",
+      "seed": 76805,
+      "pieces": 192,
+      "returncode": 0,
+      "sha256": "cc4279d201e3df34a2b7bc6600e6e9744d68c06c4b91e7f4989b4ecf4ff554bc",
+      "stdout": "Verified 192 pieces, 100 garbage rows, seed 76805",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-placebo-382af21e-3c6e49c1-None-False-76800.json",
+      "seed": 76800,
+      "pieces": 193,
+      "returncode": 0,
+      "sha256": "530e9d1a1128f2cfd778567027978a813c42b09cfae4b99a61e876d424b2751b",
+      "stdout": "Verified 193 pieces, 100 garbage rows, seed 76800",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-f51a21c9-3c6e49c1-None-False-76805.json",
+      "seed": 76805,
+      "pieces": 222,
+      "returncode": 0,
+      "sha256": "5d9d58c4757a5ac3b2c478f66122d92a57865db5b1194608175421342b8a963a",
+      "stdout": "Verified 222 pieces, 100 garbage rows, seed 76805",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-f51a21c9-3c6e49c1-None-False-76820.json",
+      "seed": 76820,
+      "pieces": 213,
+      "returncode": 0,
+      "sha256": "dc2d40bccca2328dab1ded2a1e382b1d88b728654aed3a74d8f889f0b8b8741f",
+      "stdout": "Verified 213 pieces, 100 garbage rows, seed 76820",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-placebo-382af21e-3c6e49c1-None-False-76808.json",
+      "seed": 76808,
+      "pieces": 204,
+      "returncode": 0,
+      "sha256": "20e596f2471ad3ad186a3f4ff5a47e74fe8167961e47cdf7c30f256b9ae9e1bb",
+      "stdout": "Verified 204 pieces, 100 garbage rows, seed 76808",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-f51a21c9-3c6e49c1-None-False-76816.json",
+      "seed": 76816,
+      "pieces": 218,
+      "returncode": 0,
+      "sha256": "e62e96b4240683155476ea3bfae9023a1d0d33a269b59dda868a14152f5055f2",
+      "stdout": "Verified 218 pieces, 100 garbage rows, seed 76816",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-placebo-382af21e-3c6e49c1-None-False-76819.json",
+      "seed": 76819,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "23cba3149af16167246d5c2cd4e06b0ceb737effddbb7fb5693c33b6a15aa0e1",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 76819",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-f51a21c9-3c6e49c1-None-False-76815.json",
+      "seed": 76815,
+      "pieces": 214,
+      "returncode": 0,
+      "sha256": "d1978bff2f55ca367005466a3148a8ae1f93f537fa625c803e5df922abf0e328",
+      "stdout": "Verified 214 pieces, 100 garbage rows, seed 76815",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-f51a21c9-3c6e49c1-None-False-76801.json",
+      "seed": 76801,
+      "pieces": 212,
+      "returncode": 0,
+      "sha256": "28a01151e1cf6730e672ac5b3cd1ecdca4485ed75abbf8b3c08d07d2ac56517a",
+      "stdout": "Verified 212 pieces, 100 garbage rows, seed 76801",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-placebo-382af21e-3c6e49c1-None-False-76830.json",
+      "seed": 76830,
+      "pieces": 202,
+      "returncode": 0,
+      "sha256": "fcd45e47612ec794544a1e05174dab169f558064bbfe21fbe4c3d4e8dd5f0721",
+      "stdout": "Verified 202 pieces, 100 garbage rows, seed 76830",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-placebo-382af21e-3c6e49c1-None-False-76801.json",
+      "seed": 76801,
+      "pieces": 190,
+      "returncode": 0,
+      "sha256": "2bb975f873334bf5a7f0dd589849aa91261270f05a9ffefa64b17813a520bbed",
+      "stdout": "Verified 190 pieces, 100 garbage rows, seed 76801",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-placebo-382af21e-3c6e49c1-None-False-76827.json",
+      "seed": 76827,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "ad4304b3d278cd8be29ca726c418d60b0dcac7a7cdb442f073fc82407bf33f4a",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 76827",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-placebo-382af21e-3c6e49c1-None-False-76807.json",
+      "seed": 76807,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "419119f9fe5d2b017f842950071773bfb6135528b3a16e24786a13f2d9eb427f",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 76807",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-f51a21c9-3c6e49c1-None-False-76811.json",
+      "seed": 76811,
+      "pieces": 214,
+      "returncode": 0,
+      "sha256": "a8bb97e0768f72fd6fbb055d6f2ad27415a2d32d03f20e127c318e66bd7e3444",
+      "stdout": "Verified 214 pieces, 100 garbage rows, seed 76811",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-f51a21c9-3c6e49c1-None-False-76817.json",
+      "seed": 76817,
+      "pieces": 223,
+      "returncode": 0,
+      "sha256": "018c205453ed7d451592ae67e357359e3bb21354b22ccd9935d1ce33ca00ff1b",
+      "stdout": "Verified 223 pieces, 100 garbage rows, seed 76817",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-f51a21c9-3c6e49c1-None-False-76813.json",
+      "seed": 76813,
+      "pieces": 213,
+      "returncode": 0,
+      "sha256": "ec13d44502717ca557d2edb06342ca560f98a551e27f245c5a5154c9e3758f8e",
+      "stdout": "Verified 213 pieces, 100 garbage rows, seed 76813",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-f51a21c9-3c6e49c1-None-False-76829.json",
+      "seed": 76829,
+      "pieces": 212,
+      "returncode": 0,
+      "sha256": "376fd289431cab7dcbefb13c9d47578db0921e2fd199a4aab3385ad0b95427f3",
+      "stdout": "Verified 212 pieces, 100 garbage rows, seed 76829",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-placebo-382af21e-3c6e49c1-None-False-76818.json",
+      "seed": 76818,
+      "pieces": 207,
+      "returncode": 0,
+      "sha256": "42cdca9bee70f000f0c505608b84b7e7ef96aafe5a460e45929dd5577ab98a70",
+      "stdout": "Verified 207 pieces, 100 garbage rows, seed 76818",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-placebo-382af21e-3c6e49c1-None-False-76815.json",
+      "seed": 76815,
+      "pieces": 179,
+      "returncode": 0,
+      "sha256": "09cfc410fff40fb7d4cace963bca3a680fb6f9ca8e19cf77b1b7592356fd1a07",
+      "stdout": "Verified 179 pieces, 100 garbage rows, seed 76815",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-placebo-382af21e-3c6e49c1-None-False-76831.json",
+      "seed": 76831,
+      "pieces": 201,
+      "returncode": 0,
+      "sha256": "b954a4eb727c95d8e0d28c03e91c66bda3ce9fe4647514d2db498519f8b5f277",
+      "stdout": "Verified 201 pieces, 100 garbage rows, seed 76831",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-f51a21c9-3c6e49c1-None-False-76810.json",
+      "seed": 76810,
+      "pieces": 208,
+      "returncode": 0,
+      "sha256": "8704ccd2bd8766c9d83fe5dcef297398fba6f20222248ee0d1721e1ab6da5286",
+      "stdout": "Verified 208 pieces, 100 garbage rows, seed 76810",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-placebo-382af21e-3c6e49c1-None-False-76821.json",
+      "seed": 76821,
+      "pieces": 210,
+      "returncode": 0,
+      "sha256": "f6b8ddb3e28d350e603aec9b26ed6ad96254159739a2565fbf57d009665e845c",
+      "stdout": "Verified 210 pieces, 100 garbage rows, seed 76821",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-f51a21c9-3c6e49c1-None-False-76818.json",
+      "seed": 76818,
+      "pieces": 214,
+      "returncode": 0,
+      "sha256": "d7739ccebe88935505fea37a6f3452f9af74cbdc5fd087f4cbe4e1a2667895c4",
+      "stdout": "Verified 214 pieces, 100 garbage rows, seed 76818",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-f51a21c9-3c6e49c1-None-False-76806.json",
+      "seed": 76806,
+      "pieces": 212,
+      "returncode": 0,
+      "sha256": "b492af82c5408373a082f4c5f85cb68494213673f9587fc0deeec3d1bc31e14c",
+      "stdout": "Verified 212 pieces, 100 garbage rows, seed 76806",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-placebo-382af21e-3c6e49c1-None-False-76810.json",
+      "seed": 76810,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "2cefe23e8bb3277067c1573fa0e27508d79d07aa130dda54cb8ccf331958239c",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 76810",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-placebo-382af21e-3c6e49c1-None-False-76823.json",
+      "seed": 76823,
+      "pieces": 196,
+      "returncode": 0,
+      "sha256": "65e2f4f04303af875389d2a6e16685c112ab35df41981b028d032e7fae416936",
+      "stdout": "Verified 196 pieces, 100 garbage rows, seed 76823",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-f51a21c9-3c6e49c1-None-False-76825.json",
+      "seed": 76825,
+      "pieces": 205,
+      "returncode": 0,
+      "sha256": "31ad3cc281e5b3d40a4c76d45ae96ae50a8fd303e7657b10fa5836219344bea5",
+      "stdout": "Verified 205 pieces, 100 garbage rows, seed 76825",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-f51a21c9-3c6e49c1-None-False-76819.json",
+      "seed": 76819,
+      "pieces": 217,
+      "returncode": 0,
+      "sha256": "0949d37aa22e8839968e723a23627f5283944e925ac708de8d1732f439ab0f99",
+      "stdout": "Verified 217 pieces, 100 garbage rows, seed 76819",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-f51a21c9-3c6e49c1-None-False-76823.json",
+      "seed": 76823,
+      "pieces": 208,
+      "returncode": 0,
+      "sha256": "b748660125c7c8c46fdf7a72bbdb9c7de862e21e66acf37adc3085c47b4ef421",
+      "stdout": "Verified 208 pieces, 100 garbage rows, seed 76823",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-placebo-382af21e-3c6e49c1-None-False-76825.json",
+      "seed": 76825,
+      "pieces": 193,
+      "returncode": 0,
+      "sha256": "fd864d4911c24ad8578be5a9888fa015454215c4c82f950e7de5af4179a66465",
+      "stdout": "Verified 193 pieces, 100 garbage rows, seed 76825",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-placebo-382af21e-3c6e49c1-None-False-76814.json",
+      "seed": 76814,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "79522826dc53b1db7d96398df5bcaae7c7f18e1713480fb853fa12a66515e907",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 76814",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-f51a21c9-3c6e49c1-None-False-76808.json",
+      "seed": 76808,
+      "pieces": 210,
+      "returncode": 0,
+      "sha256": "f0d29df0a54006af2b78a96ccf1ea42538ef6e1c867206d36fdde11c9c488679",
+      "stdout": "Verified 210 pieces, 100 garbage rows, seed 76808",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-placebo-382af21e-3c6e49c1-None-False-76812.json",
+      "seed": 76812,
+      "pieces": 205,
+      "returncode": 0,
+      "sha256": "df5f6d41f48417c53381b23c320ac069e43126754a29cfc68330d059d38ce56e",
+      "stdout": "Verified 205 pieces, 100 garbage rows, seed 76812",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-placebo-382af21e-3c6e49c1-None-False-76826.json",
+      "seed": 76826,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "7203bdce872f5948eefc4c92dc4c79d755061165a1e552250217df046bd2ae1b",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 76826",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-placebo-382af21e-3c6e49c1-None-False-76811.json",
+      "seed": 76811,
+      "pieces": 202,
+      "returncode": 0,
+      "sha256": "c09eef17183982eb888bc3ac1dfa8ae81141203712187d0433738a1104f727f6",
+      "stdout": "Verified 202 pieces, 100 garbage rows, seed 76811",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-placebo-382af21e-3c6e49c1-None-False-76829.json",
+      "seed": 76829,
+      "pieces": 202,
+      "returncode": 0,
+      "sha256": "67c209c8b4f07efe6c4614d13a9a8d097911e76222629f8efc8fbdedad8ebb8d",
+      "stdout": "Verified 202 pieces, 100 garbage rows, seed 76829",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-f51a21c9-3c6e49c1-None-False-76828.json",
+      "seed": 76828,
+      "pieces": 208,
+      "returncode": 0,
+      "sha256": "597d7ffe72a6a0506597f315e948a92e234e31c18c3d316eb144e36c8581380a",
+      "stdout": "Verified 208 pieces, 100 garbage rows, seed 76828",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-f51a21c9-3c6e49c1-None-False-76803.json",
+      "seed": 76803,
+      "pieces": 210,
+      "returncode": 0,
+      "sha256": "8052963fa43d0f8aece923877132471da793376d8187d975ad1101483b466f61",
+      "stdout": "Verified 210 pieces, 100 garbage rows, seed 76803",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-f51a21c9-3c6e49c1-None-False-76826.json",
+      "seed": 76826,
+      "pieces": 208,
+      "returncode": 0,
+      "sha256": "c1a5955baf7ce32d5395640b6e4cddb13930532edda1e040e54c5019b26582e2",
+      "stdout": "Verified 208 pieces, 100 garbage rows, seed 76826",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-f51a21c9-3c6e49c1-None-False-76822.json",
+      "seed": 76822,
+      "pieces": 216,
+      "returncode": 0,
+      "sha256": "252d621e9669dcd4fafd32c77d3118886a9feecce72b7b6649bed198ac4d4684",
+      "stdout": "Verified 216 pieces, 100 garbage rows, seed 76822",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-placebo-382af21e-3c6e49c1-None-False-76802.json",
+      "seed": 76802,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "1dd6a32461892a9bcc86fb51e1751c1c0af885045f8d09a22c1d14708b1e8c2c",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 76802",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-placebo-382af21e-3c6e49c1-None-False-76813.json",
+      "seed": 76813,
+      "pieces": 201,
+      "returncode": 0,
+      "sha256": "21a483ce83cf034d6d100a10fe9fc4a40a9310ed3a158086975e835212b9bd9e",
+      "stdout": "Verified 201 pieces, 100 garbage rows, seed 76813",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-f51a21c9-3c6e49c1-None-False-76824.json",
+      "seed": 76824,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "80e9493fd2655bdaa7dea88e103a7206aa5ed57bc85116782369f931e0146dc8",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 76824",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-f51a21c9-3c6e49c1-None-False-76821.json",
+      "seed": 76821,
+      "pieces": 205,
+      "returncode": 0,
+      "sha256": "4a1a35197b842064100ed7914df6bb09aeda12c1673df5542a9469e9900e0494",
+      "stdout": "Verified 205 pieces, 100 garbage rows, seed 76821",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-f51a21c9-3c6e49c1-None-False-76830.json",
+      "seed": 76830,
+      "pieces": 220,
+      "returncode": 0,
+      "sha256": "27836c5d894faf86a2e83bc14c6ea41fbc3d0dd049ea62819ebb19e9674e300d",
+      "stdout": "Verified 220 pieces, 100 garbage rows, seed 76830",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-f51a21c9-3c6e49c1-None-False-76800.json",
+      "seed": 76800,
+      "pieces": 193,
+      "returncode": 0,
+      "sha256": "950818d187babbf98916b06174177d9d5bbbedeb1abeca27a5c4f844d1a27ec8",
+      "stdout": "Verified 193 pieces, 100 garbage rows, seed 76800",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-placebo-382af21e-3c6e49c1-None-False-76817.json",
+      "seed": 76817,
+      "pieces": 201,
+      "returncode": 0,
+      "sha256": "7200a165f87a8a3461c7762b6261fce0dd118dad3e960ab0fe2b0adc915e2554",
+      "stdout": "Verified 201 pieces, 100 garbage rows, seed 76817",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-f51a21c9-3c6e49c1-None-False-76812.json",
+      "seed": 76812,
+      "pieces": 215,
+      "returncode": 0,
+      "sha256": "45ba3579fb3711245338796f4190693b7394f62e83566d8c34140a62331a7225",
+      "stdout": "Verified 215 pieces, 100 garbage rows, seed 76812",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-placebo-382af21e-3c6e49c1-None-False-76809.json",
+      "seed": 76809,
+      "pieces": 201,
+      "returncode": 0,
+      "sha256": "0edbb8f1af2906aedd9d82ca2bb66a8c516d3ea6c2171b173908460c99889838",
+      "stdout": "Verified 201 pieces, 100 garbage rows, seed 76809",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-placebo-382af21e-3c6e49c1-None-False-76828.json",
+      "seed": 76828,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "659a26e921d32d4258ef355251e3375ffc1b9966ca2ed2276be4290351bc8186",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 76828",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-f51a21c9-3c6e49c1-None-False-76807.json",
+      "seed": 76807,
+      "pieces": 209,
+      "returncode": 0,
+      "sha256": "b675d18090cc4d563a01855f5c3504f626db368736a2e87c84be6fd8e7509134",
+      "stdout": "Verified 209 pieces, 100 garbage rows, seed 76807",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-f51a21c9-3c6e49c1-None-False-76814.json",
+      "seed": 76814,
+      "pieces": 212,
+      "returncode": 0,
+      "sha256": "8456ccbc61ce8d6a2b2ce7d771667c0429784d831b9c5827a51ae8d2e32fb008",
+      "stdout": "Verified 212 pieces, 100 garbage rows, seed 76814",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-dev.jsonl",
+      "trace": "research/results/s26-dev-world-rollout-placebo-382af21e-3c6e49c1-None-False-76820.json",
+      "seed": 76820,
+      "pieces": 193,
+      "returncode": 0,
+      "sha256": "5c4fe186316ea3d742f11b9a4e073d0e0a261379412a00fc7c5dfcce9e88b3ff",
+      "stdout": "Verified 193 pieces, 100 garbage rows, seed 76820",
+      "stderr": ""
+    }
+  ]
+}

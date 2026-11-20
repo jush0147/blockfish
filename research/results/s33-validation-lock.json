@@ -1,0 +1,40 @@
+{
+  "seeds": [
+    77400,
+    77401,
+    77402,
+    77403,
+    77404,
+    77405,
+    77406,
+    77407,
+    77408,
+    77409,
+    77410,
+    77411,
+    77412,
+    77413,
+    77414,
+    77415,
+    77416,
+    77417,
+    77418,
+    77419,
+    77420,
+    77421,
+    77422,
+    77423
+  ],
+  "config": "50/5,10,10,10",
+  "generated_node_cap": 50000,
+  "garbage_min": 4,
+  "garbage_max": 9,
+  "candidate": "robust-reveal-boundary",
+  "controls": [
+    "learned-robust"
+  ],
+  "binaries": {
+    "robust-reveal-boundary": "f4da09c5baafb56cb113bbd27218e96a864bd89ac1c9c3f796e009ec4ecbe184",
+    "learned-robust": "c9516ea2d6c77029a2de192627c541002fb3f2046ab681bf1410a70f3205aa50"
+  }
+}

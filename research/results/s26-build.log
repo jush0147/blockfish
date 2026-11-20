@@ -1,0 +1,71 @@
+   Compiling blockfish v0.1.0 (/workspace/blockfish/blockfish-engine)
+   Compiling block-stacker v0.1.0 (/workspace/blockfish/block-stacker)
+warning: variant `RemoveMove` is never constructed
+   --> blockfish-engine/src/ai/b_star.rs:163:5
+    |
+141 | pub enum Step {
+    |          ---- variant in this enum
+...
+163 |     RemoveMove(MoveId),
+    |     ^^^^^^^^^^
+    |
+    = note: `Step` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+    = note: `#[warn(dead_code)]` on by default
+
+warning: `blockfish` (lib) generated 1 warning
+warning: unreachable statement
+   --> blockfish-engine/src/bin/race.rs:266:9
+    |
+264 |         return self.world_inputs();
+    |         -------------------------- any code following this expression is unreachable
+265 |         #[cfg(not(feature = "endgame-solver"))]
+266 |         let (endgame_nodes, endgame_seconds) = (0, 0.0);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unreachable statement
+    |
+    = note: `#[warn(unreachable_code)]` on by default
+
+warning: unused variable: `snapshot`
+   --> blockfish-engine/src/bin/race.rs:243:13
+    |
+243 |         let snapshot = {
+    |             ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_snapshot`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: `blockfish` (bin "blockfish-race") generated 2 warnings (run `cargo fix --bin "blockfish-race"` to apply 1 suggestion)
+    Finished release [optimized] target(s) in 3.88s
+   Compiling blockfish v0.1.0 (/workspace/blockfish/blockfish-engine)
+warning: variant `RemoveMove` is never constructed
+   --> blockfish-engine/src/ai/b_star.rs:163:5
+    |
+141 | pub enum Step {
+    |          ---- variant in this enum
+...
+163 |     RemoveMove(MoveId),
+    |     ^^^^^^^^^^
+    |
+    = note: `Step` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+    = note: `#[warn(dead_code)]` on by default
+
+warning: `blockfish` (lib) generated 1 warning
+warning: unreachable statement
+   --> blockfish-engine/src/bin/race.rs:266:9
+    |
+264 |         return self.world_inputs();
+    |         -------------------------- any code following this expression is unreachable
+265 |         #[cfg(not(feature = "endgame-solver"))]
+266 |         let (endgame_nodes, endgame_seconds) = (0, 0.0);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unreachable statement
+    |
+    = note: `#[warn(unreachable_code)]` on by default
+
+warning: unused variable: `snapshot`
+   --> blockfish-engine/src/bin/race.rs:243:13
+    |
+243 |         let snapshot = {
+    |             ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_snapshot`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: `blockfish` (bin "blockfish-race") generated 2 warnings (run `cargo fix --bin "blockfish-race"` to apply 1 suggestion)
+    Finished release [optimized] target(s) in 3.34s

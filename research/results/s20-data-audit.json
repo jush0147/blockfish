@@ -1,0 +1,1608 @@
+{
+  "verifier": "research/bin/learned-fast",
+  "verifier_sha256": "824eca4f6675630f072c062e3ec72e6a8aa3d1ba935c147b64960bda1c98c2c3",
+  "total": 160,
+  "passed": 160,
+  "records": [
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76558.json",
+      "seed": 76558,
+      "pieces": 189,
+      "returncode": 0,
+      "sha256": "1e5f32388e584bc8d7f12bdaec21150e3ad3f0b39fcbaaa8c876c400bc58de54",
+      "stdout": "Verified 189 pieces, 100 garbage rows, seed 76558",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76520.json",
+      "seed": 76520,
+      "pieces": 196,
+      "returncode": 0,
+      "sha256": "5edc8762ce041f2e763d908ccb3d4aedd5d42cd1547133a8585470715d799de8",
+      "stdout": "Verified 196 pieces, 100 garbage rows, seed 76520",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76436.json",
+      "seed": 76436,
+      "pieces": 207,
+      "returncode": 0,
+      "sha256": "db0cc9e34edcb11b6bfab269fa5d79ae0c9fd1e2eefc54e993590211c8a14f2a",
+      "stdout": "Verified 207 pieces, 100 garbage rows, seed 76436",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76462.json",
+      "seed": 76462,
+      "pieces": 218,
+      "returncode": 0,
+      "sha256": "b9e665d3ec9967e135d0fa71d0a8a2f5474a5cb6482b1ff1fed3fcc79abf9435",
+      "stdout": "Verified 218 pieces, 100 garbage rows, seed 76462",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76468.json",
+      "seed": 76468,
+      "pieces": 182,
+      "returncode": 0,
+      "sha256": "b5ea75718f84c0d4b3038d28338431f9e9534dbf3cb12a33990c55c479faac72",
+      "stdout": "Verified 182 pieces, 100 garbage rows, seed 76468",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76475.json",
+      "seed": 76475,
+      "pieces": 210,
+      "returncode": 0,
+      "sha256": "60c05daab64f706bb02fff47466b55112321a38a7efc5a6d1c481580a9638a80",
+      "stdout": "Verified 210 pieces, 100 garbage rows, seed 76475",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76489.json",
+      "seed": 76489,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "9341aeb65c722842b86dabb006c708475b2b9c5b7530350cff747e3802606932",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 76489",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76444.json",
+      "seed": 76444,
+      "pieces": 202,
+      "returncode": 0,
+      "sha256": "3a93c4229d803f894c7863afbbc8126d42bad5cdf948825739862d7a21b0f292",
+      "stdout": "Verified 202 pieces, 100 garbage rows, seed 76444",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76428.json",
+      "seed": 76428,
+      "pieces": 201,
+      "returncode": 0,
+      "sha256": "651432d54f5aa75eb4c28c233c9c773ed048d43f0600258522800d1d8af3455f",
+      "stdout": "Verified 201 pieces, 100 garbage rows, seed 76428",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76487.json",
+      "seed": 76487,
+      "pieces": 192,
+      "returncode": 0,
+      "sha256": "0c03f26d8d2f8c3560d72c810d47389a34c60523c9188c38800d55df28d068f6",
+      "stdout": "Verified 192 pieces, 100 garbage rows, seed 76487",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76452.json",
+      "seed": 76452,
+      "pieces": 190,
+      "returncode": 0,
+      "sha256": "631a979ac81b2367d2328999a3c0566f25a75fdb4bb57e46e26f18ced7478778",
+      "stdout": "Verified 190 pieces, 100 garbage rows, seed 76452",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76504.json",
+      "seed": 76504,
+      "pieces": 212,
+      "returncode": 0,
+      "sha256": "0bfe2ce439237b4d5fec08e02ee31bb5cf03dd46c798014ad362109a43014012",
+      "stdout": "Verified 212 pieces, 100 garbage rows, seed 76504",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76456.json",
+      "seed": 76456,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "3b22836dc019f94c3a7760fc30bf095d118e01a36745410f0718c8c987863059",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 76456",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76513.json",
+      "seed": 76513,
+      "pieces": 204,
+      "returncode": 0,
+      "sha256": "a3da74328db8e8952fae5808505586625891d448941c143aeb81a7fe4f349e99",
+      "stdout": "Verified 204 pieces, 100 garbage rows, seed 76513",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76484.json",
+      "seed": 76484,
+      "pieces": 207,
+      "returncode": 0,
+      "sha256": "b1ff648a3ec9063144011f47000774b5530d7fd8f6efe92290e7baf406ee1134",
+      "stdout": "Verified 207 pieces, 100 garbage rows, seed 76484",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76479.json",
+      "seed": 76479,
+      "pieces": 212,
+      "returncode": 0,
+      "sha256": "fc9c53a03087fe486dbcefcf671511a2cf8b87ffb3be028f8354ccfb88f3cbbe",
+      "stdout": "Verified 212 pieces, 100 garbage rows, seed 76479",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76443.json",
+      "seed": 76443,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "2540a201d5062d78c692c6719dc780deb256b7b6d5c5cbbdf5f5cdd51eb06c05",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 76443",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76402.json",
+      "seed": 76402,
+      "pieces": 204,
+      "returncode": 0,
+      "sha256": "1fa81c73d6d7ed80cc4b93a5ba42a2c74a4d9d7ff2c01227a1a97e5a40e18535",
+      "stdout": "Verified 204 pieces, 100 garbage rows, seed 76402",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76536.json",
+      "seed": 76536,
+      "pieces": 210,
+      "returncode": 0,
+      "sha256": "8eca8b674081c04e21dafda0c259348e9f5b73c5131383ec5519cdec4277ae1a",
+      "stdout": "Verified 210 pieces, 100 garbage rows, seed 76536",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76490.json",
+      "seed": 76490,
+      "pieces": 206,
+      "returncode": 0,
+      "sha256": "7350b64fc6dc9fb415212511c9f893c427068b1076696f6726a4513aab2858fe",
+      "stdout": "Verified 206 pieces, 100 garbage rows, seed 76490",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76486.json",
+      "seed": 76486,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "b4c7fd7dbd62dd8cffafc861ecede145a7175a986c6caf43fb80aed3d3cc1cd2",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 76486",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76530.json",
+      "seed": 76530,
+      "pieces": 205,
+      "returncode": 0,
+      "sha256": "fe4473f1f7e4154eb0d1e3b96dfa9aa5304c84952fb178d4af5d7460d9cdfa65",
+      "stdout": "Verified 205 pieces, 100 garbage rows, seed 76530",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76496.json",
+      "seed": 76496,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "799c40d4affc3dda89420a51d8a219c531031ca6c3b676da926fb6fab5dcde4f",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 76496",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76542.json",
+      "seed": 76542,
+      "pieces": 211,
+      "returncode": 0,
+      "sha256": "bc16d906658ceda55ef091e19b2760b153bf4b8f51f94cd2650f41227964f834",
+      "stdout": "Verified 211 pieces, 100 garbage rows, seed 76542",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76532.json",
+      "seed": 76532,
+      "pieces": 207,
+      "returncode": 0,
+      "sha256": "800e036f9be4e89905c9b29257a85fac6118f55f989110b7652f0c8d91fa0fd8",
+      "stdout": "Verified 207 pieces, 100 garbage rows, seed 76532",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76430.json",
+      "seed": 76430,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "081f54a744449db7655d0435c6d69d7206ee3c1831b85a73fee9c00ad88f817f",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 76430",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76433.json",
+      "seed": 76433,
+      "pieces": 208,
+      "returncode": 0,
+      "sha256": "e88e6cf02728330763b6d6e34d207f69b07ca41a57ef0a4407f25eb3df0d2e8a",
+      "stdout": "Verified 208 pieces, 100 garbage rows, seed 76433",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76407.json",
+      "seed": 76407,
+      "pieces": 207,
+      "returncode": 0,
+      "sha256": "f7f25b704fd3f0db3ed85a845cd6161824fe0e593f6d74c8a35980c7a70ea706",
+      "stdout": "Verified 207 pieces, 100 garbage rows, seed 76407",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76425.json",
+      "seed": 76425,
+      "pieces": 208,
+      "returncode": 0,
+      "sha256": "9d1fd148d7425c72c3843c27e44a971847f17ece2450107909d73751a86aaced",
+      "stdout": "Verified 208 pieces, 100 garbage rows, seed 76425",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76423.json",
+      "seed": 76423,
+      "pieces": 202,
+      "returncode": 0,
+      "sha256": "ed3e4edb78140ee033055d3d727c68c214d0909aebf33936cee805fde10f4847",
+      "stdout": "Verified 202 pieces, 100 garbage rows, seed 76423",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76477.json",
+      "seed": 76477,
+      "pieces": 199,
+      "returncode": 0,
+      "sha256": "89f8bcab95d3880c090fe2faa73b5bafa21c4635391434eba14634d6ecec6c74",
+      "stdout": "Verified 199 pieces, 100 garbage rows, seed 76477",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76523.json",
+      "seed": 76523,
+      "pieces": 210,
+      "returncode": 0,
+      "sha256": "b228319033c9b17d1b84587492c720a71ddb1a348370277e0931a56a51a2d892",
+      "stdout": "Verified 210 pieces, 100 garbage rows, seed 76523",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76453.json",
+      "seed": 76453,
+      "pieces": 190,
+      "returncode": 0,
+      "sha256": "b8bc52fe152443b04434abbd39aecb133b5ae9c0040e948d7daf2c227e6c5f3d",
+      "stdout": "Verified 190 pieces, 100 garbage rows, seed 76453",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76454.json",
+      "seed": 76454,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "6e2da18cee3855d99c10e39a59654cf379d204730db6dffa437331be61cda157",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 76454",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76460.json",
+      "seed": 76460,
+      "pieces": 205,
+      "returncode": 0,
+      "sha256": "4bce95233ad22f927c31a43075efa41e0f74991646bd5a869c43280dbae655be",
+      "stdout": "Verified 205 pieces, 100 garbage rows, seed 76460",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76422.json",
+      "seed": 76422,
+      "pieces": 207,
+      "returncode": 0,
+      "sha256": "df457e7a5baec570a3f751abe3ad1a868bbbc2c8749362cf18440593b996b152",
+      "stdout": "Verified 207 pieces, 100 garbage rows, seed 76422",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76415.json",
+      "seed": 76415,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "b0d2327b6d1b636d7d6c81e7f004d8e9add2f4a96c6fb38cf08a01f3e7ec9768",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 76415",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76438.json",
+      "seed": 76438,
+      "pieces": 206,
+      "returncode": 0,
+      "sha256": "f0f1726d4168747c7162a3682ca78505222327ccb39aaef943fea656baf6f83a",
+      "stdout": "Verified 206 pieces, 100 garbage rows, seed 76438",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76499.json",
+      "seed": 76499,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "fb82116845b201af4f4104e524f5892250505ea10a35027f776193fe1e9fe329",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 76499",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76464.json",
+      "seed": 76464,
+      "pieces": 206,
+      "returncode": 0,
+      "sha256": "c0dc995cb40b4c55194e08138afdec66d912333b7584bc03a4300182b6d73e1e",
+      "stdout": "Verified 206 pieces, 100 garbage rows, seed 76464",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76404.json",
+      "seed": 76404,
+      "pieces": 204,
+      "returncode": 0,
+      "sha256": "004e8fa878882323308945d60bbe36fa0200e72c503a54c36bbc3d92dd36cbed",
+      "stdout": "Verified 204 pieces, 100 garbage rows, seed 76404",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76426.json",
+      "seed": 76426,
+      "pieces": 190,
+      "returncode": 0,
+      "sha256": "51e80ab650790e830b35ad658927bee5dcfe64219cbb7c0b1b2ac90883c4bd31",
+      "stdout": "Verified 190 pieces, 100 garbage rows, seed 76426",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76455.json",
+      "seed": 76455,
+      "pieces": 210,
+      "returncode": 0,
+      "sha256": "bb214aa8cdd7cc4b25c9c4ef401bda04d52efe0825b45e364d350c52c4d9b95f",
+      "stdout": "Verified 210 pieces, 100 garbage rows, seed 76455",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76518.json",
+      "seed": 76518,
+      "pieces": 187,
+      "returncode": 0,
+      "sha256": "6182fa635d9f1bce835e46693b1fbbdab6433c54c84739af4abefd779e542e66",
+      "stdout": "Verified 187 pieces, 100 garbage rows, seed 76518",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76545.json",
+      "seed": 76545,
+      "pieces": 201,
+      "returncode": 0,
+      "sha256": "21a16e6c438df2d3b4dc99340b3989f5b4827f4b2c216be68157e1416357ee9b",
+      "stdout": "Verified 201 pieces, 100 garbage rows, seed 76545",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76516.json",
+      "seed": 76516,
+      "pieces": 205,
+      "returncode": 0,
+      "sha256": "9ee051a752052669ebfaf2912379b4c13ed848820f5d50dce7b2628830221ca2",
+      "stdout": "Verified 205 pieces, 100 garbage rows, seed 76516",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76492.json",
+      "seed": 76492,
+      "pieces": 190,
+      "returncode": 0,
+      "sha256": "c107fe2b9c774ff45fa22bf8d33b473abf5b8efdb1f23b61703c3de1cd83f760",
+      "stdout": "Verified 190 pieces, 100 garbage rows, seed 76492",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76552.json",
+      "seed": 76552,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "f8a176ed1acd0104ae21c26368adc2227489ee45b0e88899eaa1bcc3e884e884",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 76552",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76494.json",
+      "seed": 76494,
+      "pieces": 201,
+      "returncode": 0,
+      "sha256": "1983ed4b5ecb7cfb44d2dd51ea2f7196354d9e5f0d569385b1e431483997fcc8",
+      "stdout": "Verified 201 pieces, 100 garbage rows, seed 76494",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76478.json",
+      "seed": 76478,
+      "pieces": 202,
+      "returncode": 0,
+      "sha256": "1950e1290214690673540a9a045e18c7388fe50b628f19b307637e3ae854a3e5",
+      "stdout": "Verified 202 pieces, 100 garbage rows, seed 76478",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76441.json",
+      "seed": 76441,
+      "pieces": 201,
+      "returncode": 0,
+      "sha256": "dcd9b4e92c700b7f4a5d692bd2a1349d7f075c540f2f7b88c3fa8f9fea7171a2",
+      "stdout": "Verified 201 pieces, 100 garbage rows, seed 76441",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76559.json",
+      "seed": 76559,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "41860716c75d9c1302c261a291e6c417282ca360f89f43e3cb49b17dce82bd60",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 76559",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76555.json",
+      "seed": 76555,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "3cb14ac354d3e5faf79661d2a1dd2cd5337e2cd6af2ef0a608ba4cecfe649381",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 76555",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76434.json",
+      "seed": 76434,
+      "pieces": 199,
+      "returncode": 0,
+      "sha256": "a807404c37a9a4d19e1d082c23dc55aa9fdf6d0566d681028855c7f066b2067a",
+      "stdout": "Verified 199 pieces, 100 garbage rows, seed 76434",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76497.json",
+      "seed": 76497,
+      "pieces": 201,
+      "returncode": 0,
+      "sha256": "0762a8cba55c4acd1e074a11076ac519dae69b164c19eeb6415efae86a4dd694",
+      "stdout": "Verified 201 pieces, 100 garbage rows, seed 76497",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76537.json",
+      "seed": 76537,
+      "pieces": 202,
+      "returncode": 0,
+      "sha256": "efa74553005470fd80ada4595dd2dc8c66a8ad0eb9c8c5e95737b4d2275d9dc6",
+      "stdout": "Verified 202 pieces, 100 garbage rows, seed 76537",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76418.json",
+      "seed": 76418,
+      "pieces": 196,
+      "returncode": 0,
+      "sha256": "f10f357428e99c84b8a49e44682be04331645d345276b2ef615b0e6e36b5f6d3",
+      "stdout": "Verified 196 pieces, 100 garbage rows, seed 76418",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76437.json",
+      "seed": 76437,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "d470814ec9f6c98a1c476882e37ea1e59b5052c7391cf27ea3a7f7b365c07b82",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 76437",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76472.json",
+      "seed": 76472,
+      "pieces": 193,
+      "returncode": 0,
+      "sha256": "fbd40a6a4b911bf7125b9ec93bf1211af3976841518513985fee7be2ac67d897",
+      "stdout": "Verified 193 pieces, 100 garbage rows, seed 76472",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76506.json",
+      "seed": 76506,
+      "pieces": 212,
+      "returncode": 0,
+      "sha256": "8d57473958d7e18efd37c6a457e5bc6395e005c977d74cdfa1257f406ef4fb4e",
+      "stdout": "Verified 212 pieces, 100 garbage rows, seed 76506",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76550.json",
+      "seed": 76550,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "19c81dc80d5494d74dbc4cc2f53b3aa1cac204b904e56b73139cf5ac6234fc03",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 76550",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76429.json",
+      "seed": 76429,
+      "pieces": 208,
+      "returncode": 0,
+      "sha256": "cff1fdb738906941f54a88bab269d563d2e145b8d36269d598c1f6a20267c1ce",
+      "stdout": "Verified 208 pieces, 100 garbage rows, seed 76429",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76417.json",
+      "seed": 76417,
+      "pieces": 203,
+      "returncode": 0,
+      "sha256": "fa83c15a69da591199a21c6fe6d8de7faf48f44e62ee832bc557f3ce674a60e4",
+      "stdout": "Verified 203 pieces, 100 garbage rows, seed 76417",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76511.json",
+      "seed": 76511,
+      "pieces": 202,
+      "returncode": 0,
+      "sha256": "1df426828748b7bbd6f24f416b0434e26d2ba9691769c43e7509aaa81c6f2495",
+      "stdout": "Verified 202 pieces, 100 garbage rows, seed 76511",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76528.json",
+      "seed": 76528,
+      "pieces": 216,
+      "returncode": 0,
+      "sha256": "ac615a67f41d5d5d9e11a5a141fabe08d2b59f91e442250de73af17e24e9c4eb",
+      "stdout": "Verified 216 pieces, 100 garbage rows, seed 76528",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76408.json",
+      "seed": 76408,
+      "pieces": 207,
+      "returncode": 0,
+      "sha256": "46dc5bad723baef05eaf069de2ce38fdc0afda1d1513edd78441f1b9f51d7b39",
+      "stdout": "Verified 207 pieces, 100 garbage rows, seed 76408",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76446.json",
+      "seed": 76446,
+      "pieces": 208,
+      "returncode": 0,
+      "sha256": "bef8563294e628edc09095501d1cc25e02fc418b613175d04b450c737dfe9d0c",
+      "stdout": "Verified 208 pieces, 100 garbage rows, seed 76446",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76480.json",
+      "seed": 76480,
+      "pieces": 205,
+      "returncode": 0,
+      "sha256": "6d50c2adc4522e11986300f50ba7e70fc99c96bfd8cad0dc3320e567e95c5995",
+      "stdout": "Verified 205 pieces, 100 garbage rows, seed 76480",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76440.json",
+      "seed": 76440,
+      "pieces": 206,
+      "returncode": 0,
+      "sha256": "0b61fb0b418baa1819fa3bf6e8375fe14fbd49d86dbefaf8a495a3a23fd5dc0f",
+      "stdout": "Verified 206 pieces, 100 garbage rows, seed 76440",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76461.json",
+      "seed": 76461,
+      "pieces": 214,
+      "returncode": 0,
+      "sha256": "f6ca169d631a74e30148bda966b1eb3e6d214b10415fd3c620c48c0e3be8d7c8",
+      "stdout": "Verified 214 pieces, 100 garbage rows, seed 76461",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76473.json",
+      "seed": 76473,
+      "pieces": 203,
+      "returncode": 0,
+      "sha256": "f50a21f65b717d4c1c409fbf464998b000ff591f3d72b66a7da73dfdc897f565",
+      "stdout": "Verified 203 pieces, 100 garbage rows, seed 76473",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76493.json",
+      "seed": 76493,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "69237e0ad3f7d4d2ff9671365f06f39fcade0d723df3caa7f1e5bc6b5f70b665",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 76493",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76469.json",
+      "seed": 76469,
+      "pieces": 215,
+      "returncode": 0,
+      "sha256": "9d071534e6350bd378dd275d0dfc15945dffccc9abac6638d831df9cb4b7df69",
+      "stdout": "Verified 215 pieces, 100 garbage rows, seed 76469",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76431.json",
+      "seed": 76431,
+      "pieces": 203,
+      "returncode": 0,
+      "sha256": "e6458d007126563d496db31f7a6da0faa4877049deceba2ed6e7b918d41d50b2",
+      "stdout": "Verified 203 pieces, 100 garbage rows, seed 76431",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76522.json",
+      "seed": 76522,
+      "pieces": 189,
+      "returncode": 0,
+      "sha256": "3b97141390150d932efb46e70956ce1ed4134f7b4e8f1252a63f757cc44a4c31",
+      "stdout": "Verified 189 pieces, 100 garbage rows, seed 76522",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76474.json",
+      "seed": 76474,
+      "pieces": 207,
+      "returncode": 0,
+      "sha256": "1b230520406a41bd249011c545546b5264b2d84fff1142b5c26c293cb57e3d55",
+      "stdout": "Verified 207 pieces, 100 garbage rows, seed 76474",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76448.json",
+      "seed": 76448,
+      "pieces": 203,
+      "returncode": 0,
+      "sha256": "f3252871f8e24d5c458678a05d212277dcf032e7b859ba5c03a7ceb38d177136",
+      "stdout": "Verified 203 pieces, 100 garbage rows, seed 76448",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76524.json",
+      "seed": 76524,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "c99b5bb787dcf5fbd26b068ff2148c3970852b42856afaec0d18cb0ef6541a4c",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 76524",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76414.json",
+      "seed": 76414,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "e22abfcc25c8055f1ff983fcae2adb3a243266080c1fc8a00d0b28cbad0853d6",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 76414",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76509.json",
+      "seed": 76509,
+      "pieces": 208,
+      "returncode": 0,
+      "sha256": "f1348e6d41a2c23ee1d558ee0a0bcc4f418b046308594f675bd051b24e9cab52",
+      "stdout": "Verified 208 pieces, 100 garbage rows, seed 76509",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76459.json",
+      "seed": 76459,
+      "pieces": 220,
+      "returncode": 0,
+      "sha256": "016524af2cfe2f059fb064de38f636a923d5e78f4d7872194b5ad52579df0f33",
+      "stdout": "Verified 220 pieces, 100 garbage rows, seed 76459",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76554.json",
+      "seed": 76554,
+      "pieces": 194,
+      "returncode": 0,
+      "sha256": "35d668b71cfe0bdd02cc66f9926bdd3fa0d52c58559aea3b5cc9c8f4586f6c2d",
+      "stdout": "Verified 194 pieces, 100 garbage rows, seed 76554",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76416.json",
+      "seed": 76416,
+      "pieces": 203,
+      "returncode": 0,
+      "sha256": "9de88d0806250211229bc7455954f7b2625733171ebe81d8f0e903a2dbfc1054",
+      "stdout": "Verified 203 pieces, 100 garbage rows, seed 76416",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76442.json",
+      "seed": 76442,
+      "pieces": 196,
+      "returncode": 0,
+      "sha256": "d1af1e3caca4d1bcdfdf802296a3a54db24ed5a819c1e5feac3c3f2677946f7f",
+      "stdout": "Verified 196 pieces, 100 garbage rows, seed 76442",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76517.json",
+      "seed": 76517,
+      "pieces": 194,
+      "returncode": 0,
+      "sha256": "a641e2676f27dbc6d1cf1ce0b198ffaf84b58e6b505a8329e8b4f19acbc59812",
+      "stdout": "Verified 194 pieces, 100 garbage rows, seed 76517",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76439.json",
+      "seed": 76439,
+      "pieces": 199,
+      "returncode": 0,
+      "sha256": "6069b7c7765874c80cfb0f9658f81e6294ec20e5f19b47a473ad3bbd59351a41",
+      "stdout": "Verified 199 pieces, 100 garbage rows, seed 76439",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76529.json",
+      "seed": 76529,
+      "pieces": 206,
+      "returncode": 0,
+      "sha256": "83cc923c80d2560aaec2cce1fe66fe6f3b9c15bbe4151d2f51b3f810ba3290af",
+      "stdout": "Verified 206 pieces, 100 garbage rows, seed 76529",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76412.json",
+      "seed": 76412,
+      "pieces": 212,
+      "returncode": 0,
+      "sha256": "46a93b1a5a2db0b95f7e4534a5dea46cd980cb964a79b6b4457ce2a54d781faa",
+      "stdout": "Verified 212 pieces, 100 garbage rows, seed 76412",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76531.json",
+      "seed": 76531,
+      "pieces": 210,
+      "returncode": 0,
+      "sha256": "9fd283ab7e09a2bfb8b9f069843b141162a3ebb4a068f5dd5c9492e0a1631495",
+      "stdout": "Verified 210 pieces, 100 garbage rows, seed 76531",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76470.json",
+      "seed": 76470,
+      "pieces": 212,
+      "returncode": 0,
+      "sha256": "61b148088bf64cf0b4b4fa7691993c6554975c89626e521163f2863d46961b03",
+      "stdout": "Verified 212 pieces, 100 garbage rows, seed 76470",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76514.json",
+      "seed": 76514,
+      "pieces": 205,
+      "returncode": 0,
+      "sha256": "68f7fb774aa768836febf1e6dd0702453eca24e180f880c76ca77b306007a029",
+      "stdout": "Verified 205 pieces, 100 garbage rows, seed 76514",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76538.json",
+      "seed": 76538,
+      "pieces": 204,
+      "returncode": 0,
+      "sha256": "a2f22e6463a9d85f9a991d8aeace94b7b6f48d90a46b48819325305ba8f5587b",
+      "stdout": "Verified 204 pieces, 100 garbage rows, seed 76538",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76405.json",
+      "seed": 76405,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "a8442c29c3a47dbb78bf0d08f0a68fd87a121b219cc932c91ec1f42c595330d2",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 76405",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76548.json",
+      "seed": 76548,
+      "pieces": 201,
+      "returncode": 0,
+      "sha256": "2964712281601ed0000a8f4e000530d754512a7a3f248960d3257d7488bd0688",
+      "stdout": "Verified 201 pieces, 100 garbage rows, seed 76548",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76507.json",
+      "seed": 76507,
+      "pieces": 193,
+      "returncode": 0,
+      "sha256": "0b81d205e6c2877b60474b909c18a4f0b365fc7d13c7b3e4c3c3e63a1c56c1b2",
+      "stdout": "Verified 193 pieces, 100 garbage rows, seed 76507",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76535.json",
+      "seed": 76535,
+      "pieces": 207,
+      "returncode": 0,
+      "sha256": "55dbc95a2556f0f6b6a81c7a538795583c7022ef94083b57feb9cec13f08bc8c",
+      "stdout": "Verified 207 pieces, 100 garbage rows, seed 76535",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76413.json",
+      "seed": 76413,
+      "pieces": 201,
+      "returncode": 0,
+      "sha256": "742778b995b78f45db582433351fa9c2cf16d5aad9307dd6b5c4c9169aaf2611",
+      "stdout": "Verified 201 pieces, 100 garbage rows, seed 76413",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76533.json",
+      "seed": 76533,
+      "pieces": 212,
+      "returncode": 0,
+      "sha256": "72735daa0a54aa9a8b04397c501945ed6463e6119cdb6f721901f9bc42b1d762",
+      "stdout": "Verified 212 pieces, 100 garbage rows, seed 76533",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76450.json",
+      "seed": 76450,
+      "pieces": 193,
+      "returncode": 0,
+      "sha256": "537a19b1dd4348b65bb88ae01fe122614eeeae080fd702f41c31380975c9c833",
+      "stdout": "Verified 193 pieces, 100 garbage rows, seed 76450",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76466.json",
+      "seed": 76466,
+      "pieces": 202,
+      "returncode": 0,
+      "sha256": "8d661d88887cc9e08897bce9472197342a6a5a34feab78319a5bc8660d8c79f2",
+      "stdout": "Verified 202 pieces, 100 garbage rows, seed 76466",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76432.json",
+      "seed": 76432,
+      "pieces": 209,
+      "returncode": 0,
+      "sha256": "839996f02ed719154389c96813e045d600627d259077e4a8718f00667ba15ca5",
+      "stdout": "Verified 209 pieces, 100 garbage rows, seed 76432",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76419.json",
+      "seed": 76419,
+      "pieces": 190,
+      "returncode": 0,
+      "sha256": "f51e9df525401d5a17c169a023b3b257f8342eff4a0363b1d6eed5f03581c913",
+      "stdout": "Verified 190 pieces, 100 garbage rows, seed 76419",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76401.json",
+      "seed": 76401,
+      "pieces": 205,
+      "returncode": 0,
+      "sha256": "6e70788c9ad8311c7ddfeab63506fc8341abb148230f9b5128919a27d288a505",
+      "stdout": "Verified 205 pieces, 100 garbage rows, seed 76401",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76521.json",
+      "seed": 76521,
+      "pieces": 202,
+      "returncode": 0,
+      "sha256": "9a8395a56d368fad11f2b619e755ce0b99ac0ff99e165954dccabb9090360a59",
+      "stdout": "Verified 202 pieces, 100 garbage rows, seed 76521",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76406.json",
+      "seed": 76406,
+      "pieces": 196,
+      "returncode": 0,
+      "sha256": "2c409f6ec623acdc507ee153ca626661cae66422f45a35cc282631d28a05502b",
+      "stdout": "Verified 196 pieces, 100 garbage rows, seed 76406",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76435.json",
+      "seed": 76435,
+      "pieces": 217,
+      "returncode": 0,
+      "sha256": "4232cf007182b5ef024078cc08692d8cee7926e75c0105548343c85b0ea3823a",
+      "stdout": "Verified 217 pieces, 100 garbage rows, seed 76435",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76445.json",
+      "seed": 76445,
+      "pieces": 215,
+      "returncode": 0,
+      "sha256": "52516ce0f01c1911754b12111bbaa3f87b6ac38b54cbf278f813e41289f08868",
+      "stdout": "Verified 215 pieces, 100 garbage rows, seed 76445",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76534.json",
+      "seed": 76534,
+      "pieces": 191,
+      "returncode": 0,
+      "sha256": "6010c7232d9384dfc279cfd7ad1fde991fcd6364e3e178c7b873ad7086bc408c",
+      "stdout": "Verified 191 pieces, 100 garbage rows, seed 76534",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76501.json",
+      "seed": 76501,
+      "pieces": 209,
+      "returncode": 0,
+      "sha256": "72356be189384a522262a470d59a91efe865a8002cc56adc1414f04b886b73c9",
+      "stdout": "Verified 209 pieces, 100 garbage rows, seed 76501",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76488.json",
+      "seed": 76488,
+      "pieces": 210,
+      "returncode": 0,
+      "sha256": "7a4a28c2dafcff2847319f4149a086a3fae1d9ac93d505527cd25d4fc441c8ea",
+      "stdout": "Verified 210 pieces, 100 garbage rows, seed 76488",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76411.json",
+      "seed": 76411,
+      "pieces": 204,
+      "returncode": 0,
+      "sha256": "3fd8c4a68b613e777c507c85e92ebcb4b95975ef6964b1f403ff1b3643112090",
+      "stdout": "Verified 204 pieces, 100 garbage rows, seed 76411",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76481.json",
+      "seed": 76481,
+      "pieces": 225,
+      "returncode": 0,
+      "sha256": "369c7aef0b975dff72b4cab4add279c5cee4c48b2b996279c93e149310de8e94",
+      "stdout": "Verified 225 pieces, 100 garbage rows, seed 76481",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76543.json",
+      "seed": 76543,
+      "pieces": 208,
+      "returncode": 0,
+      "sha256": "8925beed5d4ca31f186b3e5e0e89f352cfc2f7c69e6d921c66cd1d5edce8b567",
+      "stdout": "Verified 208 pieces, 100 garbage rows, seed 76543",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76410.json",
+      "seed": 76410,
+      "pieces": 212,
+      "returncode": 0,
+      "sha256": "a08cb2d646a894134086c836b4cad36d8e21dab1fc36cd87f65a3c618cd546ba",
+      "stdout": "Verified 212 pieces, 100 garbage rows, seed 76410",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76465.json",
+      "seed": 76465,
+      "pieces": 201,
+      "returncode": 0,
+      "sha256": "1e79f719f0bce46b0acd459ef0ab0c0e35458a715865533efa36d0491eb907f8",
+      "stdout": "Verified 201 pieces, 100 garbage rows, seed 76465",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76482.json",
+      "seed": 76482,
+      "pieces": 192,
+      "returncode": 0,
+      "sha256": "0610d0a517eb33a5474e898848a954d310d483107d3d4bba7b83b51adaf0a424",
+      "stdout": "Verified 192 pieces, 100 garbage rows, seed 76482",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76449.json",
+      "seed": 76449,
+      "pieces": 193,
+      "returncode": 0,
+      "sha256": "22e519fd857ec1dbdef272154881ac01f4cc3a864a8d2894cf0e1d988abe5a38",
+      "stdout": "Verified 193 pieces, 100 garbage rows, seed 76449",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76512.json",
+      "seed": 76512,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "379faec19f4f1436af9e6dbe782a0da77116acb9390d1de7330e55fa176dafb9",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 76512",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76544.json",
+      "seed": 76544,
+      "pieces": 189,
+      "returncode": 0,
+      "sha256": "ca54650d403041d6ffee6f7f15c3ece2265237bfc43c7d340adefb91beaf6a96",
+      "stdout": "Verified 189 pieces, 100 garbage rows, seed 76544",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76471.json",
+      "seed": 76471,
+      "pieces": 193,
+      "returncode": 0,
+      "sha256": "99c872550fb9c76883615634e5cff302202a9e75d11698d7cee23fc6ac12dc96",
+      "stdout": "Verified 193 pieces, 100 garbage rows, seed 76471",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76409.json",
+      "seed": 76409,
+      "pieces": 197,
+      "returncode": 0,
+      "sha256": "8c7c71c3837e8bd2de15765457ac54b202fdbdeffa71db21d222b0e983f11ac7",
+      "stdout": "Verified 197 pieces, 100 garbage rows, seed 76409",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76526.json",
+      "seed": 76526,
+      "pieces": 193,
+      "returncode": 0,
+      "sha256": "fee3a152a6954e20df5514d51634a3d589ad089e9576b40059c374e0b231cbcb",
+      "stdout": "Verified 193 pieces, 100 garbage rows, seed 76526",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76463.json",
+      "seed": 76463,
+      "pieces": 205,
+      "returncode": 0,
+      "sha256": "508988677f8653d2aa6e4e87ae553920d7220f003140e7dd398195562bb1bd83",
+      "stdout": "Verified 205 pieces, 100 garbage rows, seed 76463",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76491.json",
+      "seed": 76491,
+      "pieces": 215,
+      "returncode": 0,
+      "sha256": "51e8952bb47174fedaac825dc4e39e6c831a3f08d1a15a25e486364c43246588",
+      "stdout": "Verified 215 pieces, 100 garbage rows, seed 76491",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76458.json",
+      "seed": 76458,
+      "pieces": 212,
+      "returncode": 0,
+      "sha256": "e6b49de35bed912f67ec6e608bc6a02914c210e148c1340d5c0eca40ff2f6363",
+      "stdout": "Verified 212 pieces, 100 garbage rows, seed 76458",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76557.json",
+      "seed": 76557,
+      "pieces": 192,
+      "returncode": 0,
+      "sha256": "78e38bb5e7fbe404225754670cc14d0267a2689b4eef493be17d75825afb8b00",
+      "stdout": "Verified 192 pieces, 100 garbage rows, seed 76557",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76505.json",
+      "seed": 76505,
+      "pieces": 193,
+      "returncode": 0,
+      "sha256": "830a1af825467d405e76336501022c7d56431852cd13250bbf3060f645602088",
+      "stdout": "Verified 193 pieces, 100 garbage rows, seed 76505",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76424.json",
+      "seed": 76424,
+      "pieces": 189,
+      "returncode": 0,
+      "sha256": "5236e65f9f2798d423da3d513b9be5b5c0e1a1cf604007771ede9199f26d414c",
+      "stdout": "Verified 189 pieces, 100 garbage rows, seed 76424",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76527.json",
+      "seed": 76527,
+      "pieces": 193,
+      "returncode": 0,
+      "sha256": "b3a07828e3de6afff36f64f0706d9b62794a7d2b208b9f28a04584534bd91c77",
+      "stdout": "Verified 193 pieces, 100 garbage rows, seed 76527",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76502.json",
+      "seed": 76502,
+      "pieces": 214,
+      "returncode": 0,
+      "sha256": "bfb7d1c0e21f662428b07891bf44347976e711dc48a4768f2ba4d8451ef1b515",
+      "stdout": "Verified 214 pieces, 100 garbage rows, seed 76502",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76553.json",
+      "seed": 76553,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "7aa7222d0fc2b03c29279eff7451833c6126ee658995126c729ef23f897fec62",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 76553",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76447.json",
+      "seed": 76447,
+      "pieces": 202,
+      "returncode": 0,
+      "sha256": "a369e0a4027a72efa75a03b77ab050cedf49f53f9b9772ef704ca0b23e5135ac",
+      "stdout": "Verified 202 pieces, 100 garbage rows, seed 76447",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76525.json",
+      "seed": 76525,
+      "pieces": 199,
+      "returncode": 0,
+      "sha256": "f3fba6deceadcf04c04debd1020cc2ef328caf4e0482c2fb14784b03de8afc09",
+      "stdout": "Verified 199 pieces, 100 garbage rows, seed 76525",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76500.json",
+      "seed": 76500,
+      "pieces": 201,
+      "returncode": 0,
+      "sha256": "fafcc2365df0858c06683bd5ab01b6928e7f5ac678bcad455d32c9ebf35d743c",
+      "stdout": "Verified 201 pieces, 100 garbage rows, seed 76500",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76510.json",
+      "seed": 76510,
+      "pieces": 208,
+      "returncode": 0,
+      "sha256": "d4ced272836500f9a7b5f08807356627aabf16f63af628f0f1300c54f5c5c9ac",
+      "stdout": "Verified 208 pieces, 100 garbage rows, seed 76510",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76451.json",
+      "seed": 76451,
+      "pieces": 198,
+      "returncode": 0,
+      "sha256": "c81e827fe1155be0b1a33368deded5b568fb3db8a39892b31f8ad246f2623378",
+      "stdout": "Verified 198 pieces, 100 garbage rows, seed 76451",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76485.json",
+      "seed": 76485,
+      "pieces": 215,
+      "returncode": 0,
+      "sha256": "b034cd7be84204dbca733b907ac270e859b20a41764b08ab23b4a2a60925a35f",
+      "stdout": "Verified 215 pieces, 100 garbage rows, seed 76485",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76539.json",
+      "seed": 76539,
+      "pieces": 193,
+      "returncode": 0,
+      "sha256": "3aa4bcb5a75d8b7387541fa5691d85101392c32286e6f3ffe741be34ba15067f",
+      "stdout": "Verified 193 pieces, 100 garbage rows, seed 76539",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76549.json",
+      "seed": 76549,
+      "pieces": 205,
+      "returncode": 0,
+      "sha256": "19719076e3a96e035c349787917f41b933aaf87307972a6a7867e4791cdf64aa",
+      "stdout": "Verified 205 pieces, 100 garbage rows, seed 76549",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76547.json",
+      "seed": 76547,
+      "pieces": 213,
+      "returncode": 0,
+      "sha256": "95394f1da36cc3a351fc94ee1a56d7f1cfd56bfe451410b6165300d3e33ea63b",
+      "stdout": "Verified 213 pieces, 100 garbage rows, seed 76547",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76546.json",
+      "seed": 76546,
+      "pieces": 204,
+      "returncode": 0,
+      "sha256": "e72481b6f9420de9da665ac76e8dbe5dfc4033fc5297aa81679a25c6628b9544",
+      "stdout": "Verified 204 pieces, 100 garbage rows, seed 76546",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76467.json",
+      "seed": 76467,
+      "pieces": 207,
+      "returncode": 0,
+      "sha256": "0c24c9cc576b6cb21af0b71069865dfd93b9d76588e9a0e7cde4054051bf6203",
+      "stdout": "Verified 207 pieces, 100 garbage rows, seed 76467",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76519.json",
+      "seed": 76519,
+      "pieces": 203,
+      "returncode": 0,
+      "sha256": "b683aa8a11466599a0147893019113ae9a4dcab34754d5e1671d1a33b1196b19",
+      "stdout": "Verified 203 pieces, 100 garbage rows, seed 76519",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76421.json",
+      "seed": 76421,
+      "pieces": 205,
+      "returncode": 0,
+      "sha256": "fea0304139d47163087ad8c51cafbe2ab3542708ca435dd49e1097708fda0386",
+      "stdout": "Verified 205 pieces, 100 garbage rows, seed 76421",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76503.json",
+      "seed": 76503,
+      "pieces": 201,
+      "returncode": 0,
+      "sha256": "c7e5c1f32e2e3169b3d0b0d8dc42c765005cdf5957757c6ac923d92439a04743",
+      "stdout": "Verified 201 pieces, 100 garbage rows, seed 76503",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76556.json",
+      "seed": 76556,
+      "pieces": 214,
+      "returncode": 0,
+      "sha256": "30e96c24773014086067d003770754bf83ae25388450c9eab54a3b135413b6fd",
+      "stdout": "Verified 214 pieces, 100 garbage rows, seed 76556",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76400.json",
+      "seed": 76400,
+      "pieces": 205,
+      "returncode": 0,
+      "sha256": "1823034a865f533339dc0c5ccd9884be453f65782711e549be3518680d26d8d7",
+      "stdout": "Verified 205 pieces, 100 garbage rows, seed 76400",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76495.json",
+      "seed": 76495,
+      "pieces": 215,
+      "returncode": 0,
+      "sha256": "4007647338ae2dbd8a166a95f11901b119228a7f5e46c2535868d2b80d01981d",
+      "stdout": "Verified 215 pieces, 100 garbage rows, seed 76495",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76427.json",
+      "seed": 76427,
+      "pieces": 205,
+      "returncode": 0,
+      "sha256": "41c7ee170f43719ff7cf4f8b75b78aa99b7848dc733f6cf2591a7b364d50b5c3",
+      "stdout": "Verified 205 pieces, 100 garbage rows, seed 76427",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76420.json",
+      "seed": 76420,
+      "pieces": 201,
+      "returncode": 0,
+      "sha256": "8e0f3099a55014d84a80a737f3e5733400fb413c4dbc8e2259552381ef287252",
+      "stdout": "Verified 201 pieces, 100 garbage rows, seed 76420",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76551.json",
+      "seed": 76551,
+      "pieces": 209,
+      "returncode": 0,
+      "sha256": "3b2865cdcc18edd56bd6c138733b35d5f8b2a3568a750e1e6ce34840b22ff0d9",
+      "stdout": "Verified 209 pieces, 100 garbage rows, seed 76551",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76508.json",
+      "seed": 76508,
+      "pieces": 212,
+      "returncode": 0,
+      "sha256": "01bf331ae35ae30210cb6102c234237472d380ce1911d598f451d182ae468a80",
+      "stdout": "Verified 212 pieces, 100 garbage rows, seed 76508",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76540.json",
+      "seed": 76540,
+      "pieces": 210,
+      "returncode": 0,
+      "sha256": "ea4df3c26aa22f324d42162d92e86669609c004ddf71ade1034af7d5fbe0139d",
+      "stdout": "Verified 210 pieces, 100 garbage rows, seed 76540",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76403.json",
+      "seed": 76403,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "027fbce13cf1cfef69593860824ff9d2a1d3c614c7026439fc3ac2f33a558d75",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 76403",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76541.json",
+      "seed": 76541,
+      "pieces": 206,
+      "returncode": 0,
+      "sha256": "e3a83e7608c73afe6c7eb6ea5e6b9b0f89a94ef94ade2a4ba10c4b68978d2995",
+      "stdout": "Verified 206 pieces, 100 garbage rows, seed 76541",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76498.json",
+      "seed": 76498,
+      "pieces": 210,
+      "returncode": 0,
+      "sha256": "21f05376d03e44af4591d903ec3137686264254edcd4f6276ed02df094231858",
+      "stdout": "Verified 210 pieces, 100 garbage rows, seed 76498",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76476.json",
+      "seed": 76476,
+      "pieces": 203,
+      "returncode": 0,
+      "sha256": "8e1ccc823b8645b7cc63043dac881390f8182dbb2fc4b9fd77de683281bcb110",
+      "stdout": "Verified 203 pieces, 100 garbage rows, seed 76476",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76457.json",
+      "seed": 76457,
+      "pieces": 205,
+      "returncode": 0,
+      "sha256": "189a0f214bc9cea40624f27a94f594fca66f0f9be0b8f8d25d74f4e3d0ed99cd",
+      "stdout": "Verified 205 pieces, 100 garbage rows, seed 76457",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76515.json",
+      "seed": 76515,
+      "pieces": 207,
+      "returncode": 0,
+      "sha256": "827d734116722e5538860f762e1fc392db72d8a5abb731cdc088a2bf04fa4be8",
+      "stdout": "Verified 207 pieces, 100 garbage rows, seed 76515",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s20-data.jsonl",
+      "trace": "research/results/s20-data-context-source-f9b30055-dbe004cd-None-True-76483.json",
+      "seed": 76483,
+      "pieces": 210,
+      "returncode": 0,
+      "sha256": "3e5fa4baa2a20730267cb4de5199b6e590470c668349816d28e8aa8b360b391c",
+      "stdout": "Verified 210 pieces, 100 garbage rows, seed 76483",
+      "stderr": ""
+    }
+  ]
+}

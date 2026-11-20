@@ -1,0 +1,158 @@
+{
+  "verifier": "research/bin/learned-fast",
+  "verifier_sha256": "824eca4f6675630f072c062e3ec72e6a8aa3d1ba935c147b64960bda1c98c2c3",
+  "total": 15,
+  "passed": 15,
+  "records": [
+    {
+      "source": "research/results/s12-dev.jsonl",
+      "trace": "research/results/s12-dev-learned-robust-covered-dc0f7b2e-3c6e49c1-None-False-62001.json",
+      "seed": 62001,
+      "pieces": 188,
+      "returncode": 0,
+      "sha256": "fc72a9cb931e9f626ec4465eb2a3d79e1c9343cbdef166ed95aa073126b34b46",
+      "stdout": "Verified 188 pieces, 100 garbage rows, seed 62001",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s12-dev.jsonl",
+      "trace": "research/results/s12-dev-learned-robust-covered-dc0f7b2e-3c6e49c1-None-False-62009.json",
+      "seed": 62009,
+      "pieces": 193,
+      "returncode": 0,
+      "sha256": "19d4da9f89368fdbed9df370c18fa65dcd408c0cf0a6ca93cea92e0263624742",
+      "stdout": "Verified 193 pieces, 100 garbage rows, seed 62009",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s12-dev.jsonl",
+      "trace": "research/results/s12-dev-learned-robust-covered-dc0f7b2e-3c6e49c1-None-False-62011.json",
+      "seed": 62011,
+      "pieces": 202,
+      "returncode": 0,
+      "sha256": "07f26171cff98e3c5541f5132d157af6e17bfc1bccb0ff6d76bcaa055fc28ba9",
+      "stdout": "Verified 202 pieces, 100 garbage rows, seed 62011",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s12-dev.jsonl",
+      "trace": "research/results/s12-dev-learned-robust-covered-dc0f7b2e-3c6e49c1-None-False-62002.json",
+      "seed": 62002,
+      "pieces": 209,
+      "returncode": 0,
+      "sha256": "c92b77c5dc94a9f8a4582f5a59baa90d6d54442ac478b5e28df6d45dfca0b96e",
+      "stdout": "Verified 209 pieces, 100 garbage rows, seed 62002",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s12-dev.jsonl",
+      "trace": "research/results/s12-dev-learned-robust-covered-dc0f7b2e-3c6e49c1-None-False-62010.json",
+      "seed": 62010,
+      "pieces": 200,
+      "returncode": 0,
+      "sha256": "0e776ee662babab3e8f3649f74cfea44246520867f7fc0e9b837bd0e10f3e2b8",
+      "stdout": "Verified 200 pieces, 100 garbage rows, seed 62010",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s12-dev.jsonl",
+      "trace": "research/results/s12-dev-learned-robust-covered-dc0f7b2e-3c6e49c1-None-False-62000.json",
+      "seed": 62000,
+      "pieces": 199,
+      "returncode": 0,
+      "sha256": "1fe6241f081e9b1cfa6092c5b45541480c4aafc16a9bb1b0c43e4fabd142de07",
+      "stdout": "Verified 199 pieces, 100 garbage rows, seed 62000",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s12-dev.jsonl",
+      "trace": "research/results/s12-dev-learned-robust-covered-dc0f7b2e-3c6e49c1-None-False-62008.json",
+      "seed": 62008,
+      "pieces": 199,
+      "returncode": 0,
+      "sha256": "8b6ca5237f07adbdcb93ab2dd7f38577cdb96adcb32fe4a586b44155132074c4",
+      "stdout": "Verified 199 pieces, 100 garbage rows, seed 62008",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s12-dev.jsonl",
+      "trace": "research/results/s12-dev-learned-robust-covered-dc0f7b2e-3c6e49c1-None-False-62006.json",
+      "seed": 62006,
+      "pieces": 195,
+      "returncode": 0,
+      "sha256": "fb1d9ba5c243cada63d8333033791fb1f2f59ff5a7e645bc4363303a8645457b",
+      "stdout": "Verified 195 pieces, 100 garbage rows, seed 62006",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s12-dev.jsonl",
+      "trace": "research/results/s12-dev-learned-robust-covered-dc0f7b2e-3c6e49c1-None-False-62004.json",
+      "seed": 62004,
+      "pieces": 190,
+      "returncode": 0,
+      "sha256": "6a5e2f59d38905e5374ed3521464f7b092d6d1e6ff843333cb48bf40692d5686",
+      "stdout": "Verified 190 pieces, 100 garbage rows, seed 62004",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s12-dev.jsonl",
+      "trace": "research/results/s12-dev-learned-robust-covered-dc0f7b2e-3c6e49c1-None-False-62003.json",
+      "seed": 62003,
+      "pieces": 205,
+      "returncode": 0,
+      "sha256": "fb9f0d16fc4b33bb527aaa72e93cfc2a6d2520cc3c4484c451a49c28611799e8",
+      "stdout": "Verified 205 pieces, 100 garbage rows, seed 62003",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s12-dev.jsonl",
+      "trace": "research/results/s12-dev-learned-robust-covered-dc0f7b2e-3c6e49c1-None-False-62005.json",
+      "seed": 62005,
+      "pieces": 188,
+      "returncode": 0,
+      "sha256": "469ab8f399a84903a6211e32e56e63a7537520b33baad5253c78c517f77b7c65",
+      "stdout": "Verified 188 pieces, 100 garbage rows, seed 62005",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s12-dev.jsonl",
+      "trace": "research/results/s12-dev-learned-robust-covered-dc0f7b2e-3c6e49c1-None-False-62007.json",
+      "seed": 62007,
+      "pieces": 196,
+      "returncode": 0,
+      "sha256": "a352605600205e49c43f0402c7ce1584214ec29e3d346307ff0becc57a796e33",
+      "stdout": "Verified 196 pieces, 100 garbage rows, seed 62007",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s11-profile-parity.jsonl",
+      "trace": "research/results/s11-profile-parity-cheese-robust-6ba038f8-3c6e49c1-None-False-62000.json",
+      "seed": 62000,
+      "pieces": 191,
+      "returncode": 0,
+      "sha256": "fcf37722b3cd5ece7761969ba773cba1291aace774d833067ebf075906889082",
+      "stdout": "Verified 191 pieces, 100 garbage rows, seed 62000",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s11-profile-parity.jsonl",
+      "trace": "research/results/s11-profile-parity-cheese-robust-6ba038f8-3c6e49c1-None-False-62008.json",
+      "seed": 62008,
+      "pieces": 199,
+      "returncode": 0,
+      "sha256": "78b8063c2c931cba8327be86ce016a1818cbc99eaf43c36e2e733135791f1576",
+      "stdout": "Verified 199 pieces, 100 garbage rows, seed 62008",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s11-profile-parity.jsonl",
+      "trace": "research/results/s11-profile-parity-cheese-robust-6ba038f8-3c6e49c1-None-False-62003.json",
+      "seed": 62003,
+      "pieces": 196,
+      "returncode": 0,
+      "sha256": "e2848d7a09a5fe0ce87b5c671ee96159d25c1500bee6e0aebb878b63f0cdc0eb",
+      "stdout": "Verified 196 pieces, 100 garbage rows, seed 62003",
+      "stderr": ""
+    }
+  ]
+}

@@ -1,0 +1,283 @@
+{
+  "groups": {
+    "learned-direct:5/5,10,10,10:None": {
+      "total": 32,
+      "complete": 32,
+      "seeds": [
+        62100,
+        62101,
+        62102,
+        62103,
+        62104,
+        62105,
+        62106,
+        62107,
+        62108,
+        62109,
+        62110,
+        62111,
+        62112,
+        62113,
+        62114,
+        62115,
+        62116,
+        62117,
+        62118,
+        62119,
+        62120,
+        62121,
+        62122,
+        62123,
+        62124,
+        62125,
+        62126,
+        62127,
+        62128,
+        62129,
+        62130,
+        62131
+      ],
+      "binary_sha256": [
+        "b8d302ac0bff1530e8f36af7f26357d525f8b590ca9887da0005dab433d17c98"
+      ],
+      "mean_pieces": 203.75,
+      "min_pieces": 185,
+      "cpu_records": 32,
+      "mean_cpu_seconds": 1.6833254687499999
+    },
+    "learned-direct:50/5,10,10,10:None": {
+      "total": 32,
+      "complete": 32,
+      "seeds": [
+        62100,
+        62101,
+        62102,
+        62103,
+        62104,
+        62105,
+        62106,
+        62107,
+        62108,
+        62109,
+        62110,
+        62111,
+        62112,
+        62113,
+        62114,
+        62115,
+        62116,
+        62117,
+        62118,
+        62119,
+        62120,
+        62121,
+        62122,
+        62123,
+        62124,
+        62125,
+        62126,
+        62127,
+        62128,
+        62129,
+        62130,
+        62131
+      ],
+      "binary_sha256": [
+        "b8d302ac0bff1530e8f36af7f26357d525f8b590ca9887da0005dab433d17c98"
+      ],
+      "mean_pieces": 198.4375,
+      "min_pieces": 185,
+      "cpu_records": 32,
+      "mean_cpu_seconds": 16.994195375
+    },
+    "learned-fast:5/5,10,10,10:None": {
+      "total": 32,
+      "complete": 32,
+      "seeds": [
+        62100,
+        62101,
+        62102,
+        62103,
+        62104,
+        62105,
+        62106,
+        62107,
+        62108,
+        62109,
+        62110,
+        62111,
+        62112,
+        62113,
+        62114,
+        62115,
+        62116,
+        62117,
+        62118,
+        62119,
+        62120,
+        62121,
+        62122,
+        62123,
+        62124,
+        62125,
+        62126,
+        62127,
+        62128,
+        62129,
+        62130,
+        62131
+      ],
+      "binary_sha256": [
+        "824eca4f6675630f072c062e3ec72e6a8aa3d1ba935c147b64960bda1c98c2c3"
+      ],
+      "mean_pieces": 201.53125,
+      "min_pieces": 188,
+      "cpu_records": 32,
+      "mean_cpu_seconds": 1.6303833125
+    },
+    "learned-fast:50/5,10,10,10:None": {
+      "total": 32,
+      "complete": 32,
+      "seeds": [
+        62100,
+        62101,
+        62102,
+        62103,
+        62104,
+        62105,
+        62106,
+        62107,
+        62108,
+        62109,
+        62110,
+        62111,
+        62112,
+        62113,
+        62114,
+        62115,
+        62116,
+        62117,
+        62118,
+        62119,
+        62120,
+        62121,
+        62122,
+        62123,
+        62124,
+        62125,
+        62126,
+        62127,
+        62128,
+        62129,
+        62130,
+        62131
+      ],
+      "binary_sha256": [
+        "824eca4f6675630f072c062e3ec72e6a8aa3d1ba935c147b64960bda1c98c2c3"
+      ],
+      "mean_pieces": 198.84375,
+      "min_pieces": 188,
+      "cpu_records": 32,
+      "mean_cpu_seconds": 16.92101021875
+    }
+  },
+  "pairs": [
+    {
+      "a": "learned-direct:5/5,10,10,10:None",
+      "b": "learned-direct:50/5,10,10,10:None",
+      "paired_seeds": 32,
+      "completed_pairs": 32,
+      "delta_b_minus_a": -5.3125,
+      "bootstrap95": [
+        -7.625,
+        -3.09375
+      ],
+      "b_wins": 24,
+      "ties": 0,
+      "b_losses": 8
+    },
+    {
+      "a": "learned-direct:5/5,10,10,10:None",
+      "b": "learned-fast:5/5,10,10,10:None",
+      "paired_seeds": 32,
+      "completed_pairs": 32,
+      "delta_b_minus_a": -2.21875,
+      "bootstrap95": [
+        -5.28125,
+        0.84375
+      ],
+      "b_wins": 16,
+      "ties": 2,
+      "b_losses": 14
+    },
+    {
+      "a": "learned-direct:5/5,10,10,10:None",
+      "b": "learned-fast:50/5,10,10,10:None",
+      "paired_seeds": 32,
+      "completed_pairs": 32,
+      "delta_b_minus_a": -4.90625,
+      "bootstrap95": [
+        -8.625,
+        -1.25
+      ],
+      "b_wins": 17,
+      "ties": 2,
+      "b_losses": 13
+    },
+    {
+      "a": "learned-direct:50/5,10,10,10:None",
+      "b": "learned-fast:5/5,10,10,10:None",
+      "paired_seeds": 32,
+      "completed_pairs": 32,
+      "delta_b_minus_a": 3.09375,
+      "bootstrap95": [
+        0.125,
+        6.03125
+      ],
+      "b_wins": 12,
+      "ties": 1,
+      "b_losses": 19
+    },
+    {
+      "a": "learned-direct:50/5,10,10,10:None",
+      "b": "learned-fast:50/5,10,10,10:None",
+      "paired_seeds": 32,
+      "completed_pairs": 32,
+      "delta_b_minus_a": 0.40625,
+      "bootstrap95": [
+        -2.84375,
+        3.65625
+      ],
+      "b_wins": 19,
+      "ties": 1,
+      "b_losses": 12
+    },
+    {
+      "a": "learned-fast:5/5,10,10,10:None",
+      "b": "learned-fast:50/5,10,10,10:None",
+      "paired_seeds": 32,
+      "completed_pairs": 32,
+      "delta_b_minus_a": -2.6875,
+      "bootstrap95": [
+        -5.875,
+        0.4375
+      ],
+      "b_wins": 16,
+      "ties": 3,
+      "b_losses": 13
+    }
+  ],
+  "budget_interaction": {
+    "definition": "(learned-direct-learned-fast) at 50k minus 5k; positive means advantage shrinks",
+    "paired_seeds": 32,
+    "completed_pairs": 32,
+    "delta_b_minus_a": -2.625,
+    "bootstrap95": [
+      -6.34375,
+      0.90625
+    ],
+    "b_wins": 18,
+    "ties": 0,
+    "b_losses": 14
+  }
+}

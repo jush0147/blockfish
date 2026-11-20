@@ -11,3 +11,5 @@ pub type CellColor = char;
 
 pub use ruleset::Ruleset;
 pub use stacker::{Config, Stacker};
+#[cfg(feature = "public-world")]
+pub use stacker::{PublicObservation, GarbageConfig};

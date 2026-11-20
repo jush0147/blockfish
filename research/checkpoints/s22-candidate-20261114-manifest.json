@@ -1,0 +1,17 @@
+{
+  "status": "candidate only; independent full-game validation pending",
+  "best_preserved": "cheese-robust / S11 checkpoint",
+  "source_files": 132,
+  "files": {
+    "research/checkpoints/s22-candidate-20261114-source.tar.gz": "5fd7cff23332800464939bad1e27e0e24a4b86723b776855c410b89af99ec16a",
+    "research/bin/context-source": "f9b30055b17acd5b1b9a8c97455dff2fe9589ca7d290969a820bbb6261bb629e",
+    "research/bin/robust-hold-context": "b7a9eaf93413f50c0595494ecd30d8e21339e424ff52a17cf6a1c55a5db4165e",
+    "research/bin/robust-hold-order": "6c2d3a7b1881418e8443bbeb50fd9a1e3fe6cba82eb00c667babcd4252d96b8c",
+    "blockfish-engine/src/ai/hold_weights.rs": "4efc3489eacfd0dd3437866a18972563ca7d7451628a22d92f0c415adc000d79",
+    "research/results/s20-data.jsonl": "a253d3f78ecfa1559186291ba7f6db238d53337e18f2ebaf8cf0bd81353e193c",
+    "research/results/s21-data.jsonl": "afdcefbad795f3489a0e1ee85720d445cfe41c74a970a55d354939953e1a2f27",
+    "research/results/s20-hold-fit.json": "340dc20cadade041fd0aaa8a55291f4bbdc39c62e6c0d61c8cce1b0455f8bbda",
+    "research/results/s21-hold-fit.json": "bb47301ec1c521ae3a7d4186d0b7a9a22bf59e8ec448f58d1282db5aa60ea5be",
+    "research/results/s22-validation-lock.json": "655663a323c7800ed3b6da92ff4aacf848d29e10a6e26ff9ae84498952602973"
+  }
+}

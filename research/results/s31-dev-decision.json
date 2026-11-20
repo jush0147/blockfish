@@ -1,0 +1,55 @@
+{
+  "gate": "mean",
+  "passed": true,
+  "lock": "research/results/s31-dev-lock.json",
+  "scores": {
+    "robust-plan-reuse": {
+      "complete": 32,
+      "mean_pieces": 194.125
+    },
+    "robust-plan-observer": {
+      "complete": 32,
+      "mean_pieces": 194.75
+    },
+    "learned-robust": {
+      "complete": 32,
+      "mean_pieces": 194.75
+    }
+  },
+  "candidate_minus_controls": {
+    "robust-plan-observer": {
+      "paired_seeds": 32,
+      "completed_pairs": 32,
+      "delta_b_minus_a": -0.625,
+      "bootstrap95": [
+        -2.09375,
+        0.8125
+      ],
+      "b_wins": 10,
+      "ties": 18,
+      "b_losses": 4
+    },
+    "learned-robust": {
+      "paired_seeds": 32,
+      "completed_pairs": 32,
+      "delta_b_minus_a": -0.625,
+      "bootstrap95": [
+        -2.09375,
+        0.8125
+      ],
+      "b_wins": 10,
+      "ties": 18,
+      "b_losses": 4
+    }
+  },
+  "checks": {
+    "robust-plan-observer": {
+      "completion_no_worse": true,
+      "mean_lower": true
+    },
+    "learned-robust": {
+      "completion_no_worse": true,
+      "mean_lower": true
+    }
+  }
+}

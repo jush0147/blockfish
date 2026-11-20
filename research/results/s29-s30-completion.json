@@ -1,0 +1,14 @@
+{
+  "attempts": 96,
+  "complete": 92,
+  "failed": 4,
+  "completed_replay_passed": 92,
+  "unreplayed_failed_attempts": 4,
+  "unique_seed_ids": 32,
+  "total_cpu_seconds": 1644.949169,
+  "frozen_best": "cheese-robust",
+  "promoted": false,
+  "validation_opened": false,
+  "final_opened": false,
+  "note": "96attempts are3profiles on32paireddevelopmentseeds. Failed rows never dropped. No changes to candidate code or budgets after results."
+}

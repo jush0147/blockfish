@@ -1,4 +1,5 @@
 use crate::{config::Parameters, matrix::BasicMatrix};
+#[cfg(any(test, not(feature = "flood-eval")))]
 use red_union_find::UF;
 use std::ops::Range;
 
@@ -38,6 +39,40 @@ pub fn eval(matrix: &BasicMatrix) -> Eval {
     }
 }
 
+pub(super) fn search_score(matrix: &BasicMatrix, params: &Parameters) -> i64 {
+    let evaluation = eval(matrix);
+    let score = evaluation.score(params);
+    #[cfg(feature = "learned-value")]
+    {
+        let learned = super::value_features::learned_score(matrix, &evaluation);
+        if cfg!(feature = "learned-blend") {
+            (score + learned) / 2
+        } else {
+            learned
+        }
+    }
+    #[cfg(all(not(feature = "learned-value"), feature = "surface-cost"))]
+    {
+        let heights: Vec<_> = (0..matrix.cols())
+            .map(|j| matrix.col_height(j) as i64)
+            .collect();
+        score + 2 * heights.windows(2).map(|h| (h[1] - h[0]).abs()).sum::<i64>()
+    }
+    #[cfg(all(not(feature = "learned-value"), not(feature = "surface-cost")))]
+    {
+        score
+    }
+}
+
+#[cfg(feature = "hold-credit")]
+pub(super) fn hold_credit(matrix: &BasicMatrix, params: &Parameters) -> i64 {
+    if i_dependencies(matrix, 0..matrix.rows()).next().is_some() {
+        params.i_dependency_factor
+    } else {
+        0
+    }
+}
+
 /// Mystery's residue-based minimum piece estimate algorithm.
 fn piece_estimate(mut matrix: BasicMatrix) -> u16 {
     let mut pieces = 0;
@@ -53,7 +88,12 @@ fn piece_estimate(mut matrix: BasicMatrix) -> u16 {
         matrix.remove_rows(rows);
 
         depth += 1;
-        pieces += pieces_to_fill.saturating_sub(depth);
+        let discount = if cfg!(feature = "shallow-discount") {
+            (depth + 1) / 2
+        } else {
+            depth
+        };
+        pieces += pieces_to_fill.saturating_sub(discount);
         pieces += 1;
     }
 
@@ -61,6 +101,7 @@ fn piece_estimate(mut matrix: BasicMatrix) -> u16 {
 }
 
 /// Returns the area of each disjoint contiguous negative space in the given matrix.
+#[cfg(not(feature = "flood-eval"))]
 fn negative_spaces<'a>(
     matrix: &'a BasicMatrix,
     row_range: Range<u16>,
@@ -68,7 +109,44 @@ fn negative_spaces<'a>(
     gaps_contiguous_areas(row_range.map(move |i| matrix.gaps(i)))
 }
 
+#[cfg(feature = "flood-eval")]
+fn negative_spaces(matrix: &BasicMatrix, row_range: Range<u16>) -> impl Iterator<Item = u16> {
+    let mut vacant: Vec<u16> = row_range.map(|r| matrix.vacant_bits(r)).collect();
+    let mut areas = Vec::new();
+    let mut pending = Vec::new();
+    for start in 0..vacant.len() {
+        while vacant[start] != 0 {
+            pending.push((start, 1u16 << vacant[start].trailing_zeros()));
+            let mut area = 0;
+            while let Some((row, incoming)) = pending.pop() {
+                let mut fill = incoming & vacant[row];
+                if fill == 0 {
+                    continue;
+                }
+                loop {
+                    let expanded = (fill | (fill << 1) | (fill >> 1)) & vacant[row];
+                    if expanded == fill {
+                        break;
+                    }
+                    fill = expanded;
+                }
+                vacant[row] &= !fill;
+                area += fill.count_ones() as u16;
+                if row > 0 && vacant[row - 1] & fill != 0 {
+                    pending.push((row - 1, fill));
+                }
+                if row + 1 < vacant.len() && vacant[row + 1] & fill != 0 {
+                    pending.push((row + 1, fill));
+                }
+            }
+            areas.push(area);
+        }
+    }
+    areas.into_iter()
+}
+
 /// Returns the columns containing I dependencies.
+#[cfg(not(feature = "bit-eval"))]
 fn i_dependencies<'a>(
     matrix: &'a BasicMatrix,
     row_range: Range<u16>,
@@ -92,6 +170,21 @@ fn i_dependencies<'a>(
     })
 }
 
+#[cfg(feature = "bit-eval")]
+fn i_dependencies<'a>(
+    matrix: &'a BasicMatrix,
+    row_range: Range<u16>,
+) -> impl Iterator<Item = u16> + 'a {
+    let (mut previous, mut pair, mut found) = (0u16, 0u16, 0u16);
+    for row in row_range {
+        let gaps = matrix.narrow_gaps(row);
+        found |= pair & gaps;
+        pair = previous & gaps;
+        previous = gaps;
+    }
+    (0..matrix.cols()).filter(move |&col| found & (1 << col) != 0)
+}
+
 /// Returns the size of each contiguous area given by the overlapping, neighboring ranges
 /// in `iter`.
 ///
@@ -100,6 +193,7 @@ fn i_dependencies<'a>(
 /// If `iter` is `[[0..5, 7..10], [0..4], [2..3]]` returns `[10, 3]`. `10` is given by the
 /// set of intervals `{0..5,0..4,2..3}` which all overlap; `3` is given by the last
 /// interval `7..10`.
+#[cfg(any(test, not(feature = "flood-eval")))]
 fn gaps_contiguous_areas<I>(iter: I) -> impl Iterator<Item = u16> + 'static
 where
     I: IntoIterator,
@@ -139,6 +233,7 @@ where
 
 /// Given `xs` and `ys` both ordered lists of non-overlapping ranges, returns every pair
 /// of indices `(i, j)` such that `xs[i]` intersects with `ys[j]`.
+#[cfg(any(test, not(feature = "flood-eval")))]
 fn intersecting_ranges<'a, T: Ord>(
     xs: &'a [Range<T>],
     ys: &'a [Range<T>],
@@ -216,6 +311,52 @@ fn covered_hole(mat: &BasicMatrix, buf: &mut ResidueBuf) -> Option<(u16, Range<u
 mod test {
     use super::*;
     use crate::basic_matrix;
+
+    #[cfg(feature = "bit-eval")]
+    #[test]
+    fn bit_evaluation_matches_reference_on_random_matrices() {
+        let mut rng = 173u64;
+        for case in 0..5000 {
+            // Upstream row masks reserve a sentinel bit: widths 1..15.
+            let cols = 1 + case % 15;
+            let rows = 1 + case % 32;
+            let mut matrix = BasicMatrix::with_cols(cols);
+            for _ in 0..rows {
+                rng = rng.wrapping_mul(6364136223846793005).wrapping_add(1);
+                matrix.push_row((0..cols).map(|c| rng & (1 << (c + 24)) != 0));
+            }
+            let range = (case % rows)..rows;
+            let expected: Vec<_> = (0..cols)
+                .filter(|&j| {
+                    let mut run = 0;
+                    range.clone().any(|i| {
+                        if !matrix.get((i, j))
+                            && (j == 0 || matrix.get((i, j - 1)))
+                            && (j + 1 == cols || matrix.get((i, j + 1)))
+                        {
+                            run += 1;
+                        } else {
+                            run = 0;
+                        }
+                        run >= 3
+                    })
+                })
+                .collect();
+            assert_eq!(
+                i_dependencies(&matrix, range.clone()).collect::<Vec<_>>(),
+                expected
+            );
+            #[cfg(feature = "flood-eval")]
+            {
+                let mut expected: Vec<_> =
+                    gaps_contiguous_areas(range.clone().map(|i| matrix.gaps(i))).collect();
+                let mut actual: Vec<_> = negative_spaces(&matrix, range).collect();
+                expected.sort_unstable();
+                actual.sort_unstable();
+                assert_eq!(actual, expected, "case {}", case);
+            }
+        }
+    }
 
     #[test]
     fn test_intersecting_ranges() {

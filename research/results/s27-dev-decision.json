@@ -1,0 +1,35 @@
+{
+  "gate": "mean",
+  "passed": false,
+  "lock": "research/results/s27-dev-lock.json",
+  "scores": {
+    "robust-dag": {
+      "complete": 32,
+      "mean_pieces": 197.28125
+    },
+    "learned-robust": {
+      "complete": 32,
+      "mean_pieces": 196.21875
+    }
+  },
+  "candidate_minus_controls": {
+    "learned-robust": {
+      "paired_seeds": 32,
+      "completed_pairs": 32,
+      "delta_b_minus_a": 1.0625,
+      "bootstrap95": [
+        -1.71875,
+        3.8125
+      ],
+      "b_wins": 14,
+      "ties": 4,
+      "b_losses": 14
+    }
+  },
+  "checks": {
+    "learned-robust": {
+      "completion_no_worse": true,
+      "mean_lower": false
+    }
+  }
+}

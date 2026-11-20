@@ -1,0 +1,48 @@
+   Compiling blockfish v0.1.0 (/workspace/blockfish/blockfish-engine)
+warning: unreachable expression
+  --> blockfish-engine/src/ai/eval.rs:58:5
+   |
+48 |           return if cfg!(feature = "learned-blend") { (score + learned) / 2 } else { learned };
+   |           ------------------------------------------------------------------------------------ any code following this expression is unreachable
+...
+58 | /     {
+59 | |         score
+60 | |     }
+   | |_____^ unreachable expression
+   |
+   = note: `#[warn(unreachable_code)]` on by default
+
+warning: `blockfish` (lib) generated 1 warning
+    Finished release [optimized] target(s) in 10.31s
+   Compiling blockfish v0.1.0 (/workspace/blockfish/blockfish-engine)
+warning: unreachable expression
+  --> blockfish-engine/src/ai/eval.rs:58:5
+   |
+48 |           return if cfg!(feature = "learned-blend") { (score + learned) / 2 } else { learned };
+   |           ------------------------------------------------------------------------------------ any code following this expression is unreachable
+...
+58 | /     {
+59 | |         score
+60 | |     }
+   | |_____^ unreachable expression
+   |
+   = note: `#[warn(unreachable_code)]` on by default
+
+warning: `blockfish` (lib) generated 1 warning
+    Finished release [optimized] target(s) in 9.91s
+   Compiling blockfish v0.1.0 (/workspace/blockfish/blockfish-engine)
+warning: unreachable expression
+  --> blockfish-engine/src/ai/eval.rs:58:5
+   |
+48 |           return if cfg!(feature = "learned-blend") { (score + learned) / 2 } else { learned };
+   |           ------------------------------------------------------------------------------------ any code following this expression is unreachable
+...
+58 | /     {
+59 | |         score
+60 | |     }
+   | |_____^ unreachable expression
+   |
+   = note: `#[warn(unreachable_code)]` on by default
+
+warning: `blockfish` (lib) generated 1 warning
+    Finished release [optimized] target(s) in 9.47s

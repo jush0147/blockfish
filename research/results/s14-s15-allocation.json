@@ -1,0 +1,42 @@
+{
+  "learned-robust": {
+    "games": 12,
+    "mean_pieces": 195.33333333333334,
+    "mean_cpu_seconds": 16.039148666666666,
+    "mean_sequences_per_placement": 772.7064846416382,
+    "mean_frontier": 47659.76919795222,
+    "max_generated_per_placement": 50000
+  },
+  "robust-tail-placebo": {
+    "games": 12,
+    "mean_pieces": 197.75,
+    "mean_cpu_seconds": 10.30370275,
+    "mean_sequences_per_placement": 203.4188790560472,
+    "mean_frontier": 16409.868942267174,
+    "max_generated_per_placement": 50000
+  },
+  "robust-tail": {
+    "games": 12,
+    "mean_pieces": 199.91666666666666,
+    "mean_cpu_seconds": 10.443352083333332,
+    "mean_sequences_per_placement": 201.76448520216758,
+    "mean_frontier": 16265.766986244269,
+    "max_generated_per_placement": 50000
+  },
+  "robust-tail-hold": {
+    "games": 12,
+    "mean_pieces": 202,
+    "mean_cpu_seconds": 9.588892083333333,
+    "mean_sequences_per_placement": 142.28877887788778,
+    "mean_frontier": 10081.247112211222,
+    "max_generated_per_placement": 50000
+  },
+  "robust-tail-hold-placebo": {
+    "games": 12,
+    "mean_pieces": 208.33333333333334,
+    "mean_cpu_seconds": 10.036780416666666,
+    "mean_sequences_per_placement": 139.7512,
+    "mean_frontier": 10417.6452,
+    "max_generated_per_placement": 50000
+  }
+}

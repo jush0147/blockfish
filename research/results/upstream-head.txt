@@ -1,0 +1,3 @@
+2026-11-08
+git ls-remote https://github.com/blockfish/blockfish.git HEAD
+739953f9331b7648f269fc52cff5aae330108ccd HEAD

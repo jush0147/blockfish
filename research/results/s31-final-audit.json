@@ -1,0 +1,591 @@
+{
+  "records": [
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75440,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7512437810945274,
+      "mean_followed": 4.373134328358209
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75455,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7922705314009661,
+      "mean_followed": 4.632850241545894
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75463,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7938144329896907,
+      "mean_followed": 4.608247422680412
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75445,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7853881278538812,
+      "mean_followed": 4.602739726027397
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75431,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7947368421052632,
+      "mean_followed": 4.647368421052631
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75430,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7839195979899497,
+      "mean_followed": 4.577889447236181
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75437,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7626262626262627,
+      "mean_followed": 4.44949494949495
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75412,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7936507936507936,
+      "mean_followed": 4.613756613756614
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75449,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7881773399014779,
+      "mean_followed": 4.610837438423645
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75420,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7712765957446809,
+      "mean_followed": 4.51063829787234
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75426,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.77,
+      "mean_followed": 4.485
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75429,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7947368421052632,
+      "mean_followed": 4.663157894736842
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75422,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7658536585365854,
+      "mean_followed": 4.487804878048781
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75451,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.78,
+      "mean_followed": 4.575
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75441,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.772020725388601,
+      "mean_followed": 4.538860103626943
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75442,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.782608695652174,
+      "mean_followed": 4.548913043478261
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75406,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7813953488372093,
+      "mean_followed": 4.586046511627907
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75454,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7772277227722773,
+      "mean_followed": 4.544554455445544
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75411,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7948717948717948,
+      "mean_followed": 4.656410256410257
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75450,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.774869109947644,
+      "mean_followed": 4.539267015706806
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75405,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7704918032786885,
+      "mean_followed": 4.48087431693989
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75462,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.8148148148148148,
+      "mean_followed": 4.761904761904762
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75433,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7927461139896373,
+      "mean_followed": 4.616580310880829
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75404,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.77,
+      "mean_followed": 4.51
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75402,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.783068783068783,
+      "mean_followed": 4.555555555555555
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75425,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7931034482758621,
+      "mean_followed": 4.640394088669951
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75424,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7910447761194029,
+      "mean_followed": 4.606965174129353
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75432,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.788659793814433,
+      "mean_followed": 4.61340206185567
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75415,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7677725118483413,
+      "mean_followed": 4.497630331753554
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75410,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7842105263157895,
+      "mean_followed": 4.573684210526316
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75427,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.788659793814433,
+      "mean_followed": 4.597938144329897
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75403,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7918781725888325,
+      "mean_followed": 4.644670050761421
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75446,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7868852459016393,
+      "mean_followed": 4.601092896174864
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75444,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7875647668393783,
+      "mean_followed": 4.606217616580311
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75428,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7684729064039408,
+      "mean_followed": 4.502463054187192
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75443,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.8118811881188119,
+      "mean_followed": 4.747524752475248
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75435,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.788659793814433,
+      "mean_followed": 4.597938144329897
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75423,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.8041237113402062,
+      "mean_followed": 4.690721649484536
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75438,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7842105263157895,
+      "mean_followed": 4.578947368421052
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75416,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7799043062200957,
+      "mean_followed": 4.559808612440191
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75453,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7644230769230769,
+      "mean_followed": 4.456730769230769
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75421,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.8010204081632653,
+      "mean_followed": 4.6938775510204085
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75414,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7881773399014779,
+      "mean_followed": 4.5763546798029555
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75413,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7969543147208121,
+      "mean_followed": 4.649746192893401
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75418,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7948717948717948,
+      "mean_followed": 4.661538461538462
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75458,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7990196078431373,
+      "mean_followed": 4.681372549019608
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75452,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7575757575757576,
+      "mean_followed": 4.414141414141414
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75439,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.764102564102564,
+      "mean_followed": 4.456410256410257
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75408,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.803030303030303,
+      "mean_followed": 4.696969696969697
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75434,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7783251231527094,
+      "mean_followed": 4.561576354679803
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75417,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.79,
+      "mean_followed": 4.59
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75448,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.8097560975609757,
+      "mean_followed": 4.717073170731707
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75459,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7708333333333334,
+      "mean_followed": 4.479166666666667
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75456,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.782608695652174,
+      "mean_followed": 4.584541062801932
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75460,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7970297029702971,
+      "mean_followed": 4.6683168316831685
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75407,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.8059701492537313,
+      "mean_followed": 4.731343283582089
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75461,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.765,
+      "mean_followed": 4.445
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75400,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.8040201005025126,
+      "mean_followed": 4.723618090452261
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75409,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.732620320855615,
+      "mean_followed": 4.25668449197861
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75436,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7692307692307693,
+      "mean_followed": 4.487179487179487
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75457,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.805,
+      "mean_followed": 4.715
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75401,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.8232323232323232,
+      "mean_followed": 4.838383838383838
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75447,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.8,
+      "mean_followed": 4.673684210526316
+    },
+    {
+      "binary": "robust-plan-reuse",
+      "seed": 75419,
+      "status": "complete",
+      "fallbacks": 0,
+      "observer_parity": null,
+      "eligible_fraction": 0.7712765957446809,
+      "mean_followed": 4.457446808510638
+    }
+  ],
+  "groups": {
+    "robust-plan-reuse": {
+      "attempts": 64,
+      "complete": 64,
+      "fallbacks": 0,
+      "parity_passes": 0,
+      "eligible_fraction": 0.7848893682027135,
+      "mean_followed": 4.585194375236463
+    }
+  },
+  "note": "Metadata audit and observer full-history equivalence; hint fractions descriptive only. Fallback uses an already charged legal root child, not an invented completed sequence."
+}

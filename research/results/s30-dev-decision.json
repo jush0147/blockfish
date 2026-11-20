@@ -1,0 +1,55 @@
+{
+  "gate": "mean",
+  "passed": false,
+  "lock": "research/results/s30-dev-lock.json",
+  "scores": {
+    "robust-global-regret": {
+      "complete": 32,
+      "mean_pieces": 201.65625
+    },
+    "robust-global-f": {
+      "complete": 28,
+      "mean_pieces": 196.07142857142858
+    },
+    "learned-robust": {
+      "complete": 32,
+      "mean_pieces": 196.15625
+    }
+  },
+  "candidate_minus_controls": {
+    "robust-global-regret": {
+      "paired_seeds": 32,
+      "completed_pairs": 28,
+      "delta_b_minus_a": -6.357142857142857,
+      "bootstrap95": [
+        -9.285714285714286,
+        -3.4285714285714284
+      ],
+      "b_wins": 19,
+      "ties": 3,
+      "b_losses": 6
+    },
+    "learned-robust": {
+      "paired_seeds": 32,
+      "completed_pairs": 28,
+      "delta_b_minus_a": 0.25,
+      "bootstrap95": [
+        -2.5714285714285716,
+        2.857142857142857
+      ],
+      "b_wins": 12,
+      "ties": 1,
+      "b_losses": 15
+    }
+  },
+  "checks": {
+    "robust-global-regret": {
+      "completion_no_worse": false,
+      "mean_lower": true
+    },
+    "learned-robust": {
+      "completion_no_worse": false,
+      "mean_lower": true
+    }
+  }
+}

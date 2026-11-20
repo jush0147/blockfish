@@ -1,0 +1,21 @@
+{
+  "new_games": 165,
+  "complete": 165,
+  "replay_passed": 165,
+  "unique_seed_ids": 35,
+  "cpu_seconds": 2767.110916,
+  "inputs": [
+    "s24-dev.jsonl",
+    "s24-control-parity.jsonl",
+    "s25-dev.jsonl",
+    "s26-dev.jsonl",
+    "s26-smoke.jsonl"
+  ],
+  "audits": [
+    "s24-replay-audit.json",
+    "s25-replay-audit.json",
+    "s26-replay-audit.json",
+    "s26-smoke-replay-audit.json"
+  ],
+  "note": "Development seeds reused across profiles; not165 independent samples. No new validation/final cohort opened. Frozen best unchanged."
+}

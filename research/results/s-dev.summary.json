@@ -1,0 +1,366 @@
+{
+  "groups": {
+    "learned-beam:50/5,10,10,10:None": {
+      "total": 12,
+      "complete": 12,
+      "seeds": [
+        62000,
+        62001,
+        62002,
+        62003,
+        62004,
+        62005,
+        62006,
+        62007,
+        62008,
+        62009,
+        62010,
+        62011
+      ],
+      "binary_sha256": [
+        "962e01a50a7184a8155d8284a4648d30ae2c70417565a67af49a5b606e8b2b8d"
+      ],
+      "mean_pieces": 200.41666666666666,
+      "min_pieces": 192,
+      "cpu_records": 12,
+      "mean_cpu_seconds": 19.990560833333333
+    },
+    "learned-eager-hold:50/5,10,10,10:None": {
+      "total": 12,
+      "complete": 12,
+      "seeds": [
+        62000,
+        62001,
+        62002,
+        62003,
+        62004,
+        62005,
+        62006,
+        62007,
+        62008,
+        62009,
+        62010,
+        62011
+      ],
+      "binary_sha256": [
+        "9e2351cf15ecb454e367693dbc2470cb5bcd3c4305b4b07d03c29ed97d5c5f12"
+      ],
+      "mean_pieces": 203.91666666666666,
+      "min_pieces": 194,
+      "cpu_records": 12,
+      "mean_cpu_seconds": 25.63168025
+    },
+    "learned-eager:50/5,10,10,10:None": {
+      "total": 12,
+      "complete": 12,
+      "seeds": [
+        62000,
+        62001,
+        62002,
+        62003,
+        62004,
+        62005,
+        62006,
+        62007,
+        62008,
+        62009,
+        62010,
+        62011
+      ],
+      "binary_sha256": [
+        "dbf63da222c6080ef05c509438fee19549f8b2c13640093c9113c6847e34b32a"
+      ],
+      "mean_pieces": 196.41666666666666,
+      "min_pieces": 183,
+      "cpu_records": 12,
+      "mean_cpu_seconds": 21.6092635
+    },
+    "learned-fast:50/5,10,10,10:None": {
+      "total": 12,
+      "complete": 12,
+      "seeds": [
+        62000,
+        62001,
+        62002,
+        62003,
+        62004,
+        62005,
+        62006,
+        62007,
+        62008,
+        62009,
+        62010,
+        62011
+      ],
+      "binary_sha256": [
+        "824eca4f6675630f072c062e3ec72e6a8aa3d1ba935c147b64960bda1c98c2c3"
+      ],
+      "mean_pieces": 196.91666666666666,
+      "min_pieces": 183,
+      "cpu_records": 12,
+      "mean_cpu_seconds": 17.2198995
+    },
+    "learned-fast:50/5,10,10,20:None": {
+      "total": 12,
+      "complete": 12,
+      "seeds": [
+        62000,
+        62001,
+        62002,
+        62003,
+        62004,
+        62005,
+        62006,
+        62007,
+        62008,
+        62009,
+        62010,
+        62011
+      ],
+      "binary_sha256": [
+        "824eca4f6675630f072c062e3ec72e6a8aa3d1ba935c147b64960bda1c98c2c3"
+      ],
+      "mean_pieces": 198.25,
+      "min_pieces": 179,
+      "cpu_records": 12,
+      "mean_cpu_seconds": 17.990732416666667
+    },
+    "learned-fast:50/5,10,10,5:None": {
+      "total": 12,
+      "complete": 12,
+      "seeds": [
+        62000,
+        62001,
+        62002,
+        62003,
+        62004,
+        62005,
+        62006,
+        62007,
+        62008,
+        62009,
+        62010,
+        62011
+      ],
+      "binary_sha256": [
+        "824eca4f6675630f072c062e3ec72e6a8aa3d1ba935c147b64960bda1c98c2c3"
+      ],
+      "mean_pieces": 205.25,
+      "min_pieces": 193,
+      "cpu_records": 12,
+      "mean_cpu_seconds": 18.876029916666667
+    }
+  },
+  "pairs": [
+    {
+      "a": "learned-beam:50/5,10,10,10:None",
+      "b": "learned-eager-hold:50/5,10,10,10:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": 3.5,
+      "bootstrap95": [
+        -1.3333333333333333,
+        8.25
+      ],
+      "b_wins": 4,
+      "ties": 0,
+      "b_losses": 8
+    },
+    {
+      "a": "learned-beam:50/5,10,10,10:None",
+      "b": "learned-eager:50/5,10,10,10:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": -4,
+      "bootstrap95": [
+        -9.583333333333334,
+        1.4166666666666667
+      ],
+      "b_wins": 6,
+      "ties": 1,
+      "b_losses": 5
+    },
+    {
+      "a": "learned-beam:50/5,10,10,10:None",
+      "b": "learned-fast:50/5,10,10,10:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": -3.5,
+      "bootstrap95": [
+        -8.75,
+        1.5833333333333333
+      ],
+      "b_wins": 6,
+      "ties": 1,
+      "b_losses": 5
+    },
+    {
+      "a": "learned-beam:50/5,10,10,10:None",
+      "b": "learned-fast:50/5,10,10,20:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": -2.1666666666666665,
+      "bootstrap95": [
+        -7.666666666666667,
+        3.1666666666666665
+      ],
+      "b_wins": 7,
+      "ties": 1,
+      "b_losses": 4
+    },
+    {
+      "a": "learned-beam:50/5,10,10,10:None",
+      "b": "learned-fast:50/5,10,10,5:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": 4.833333333333333,
+      "bootstrap95": [
+        -0.25,
+        9.833333333333334
+      ],
+      "b_wins": 3,
+      "ties": 0,
+      "b_losses": 9
+    },
+    {
+      "a": "learned-eager-hold:50/5,10,10,10:None",
+      "b": "learned-eager:50/5,10,10,10:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": -7.5,
+      "bootstrap95": [
+        -13.25,
+        -1.8333333333333333
+      ],
+      "b_wins": 9,
+      "ties": 0,
+      "b_losses": 3
+    },
+    {
+      "a": "learned-eager-hold:50/5,10,10,10:None",
+      "b": "learned-fast:50/5,10,10,10:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": -7,
+      "bootstrap95": [
+        -12.25,
+        -1.6666666666666667
+      ],
+      "b_wins": 9,
+      "ties": 0,
+      "b_losses": 3
+    },
+    {
+      "a": "learned-eager-hold:50/5,10,10,10:None",
+      "b": "learned-fast:50/5,10,10,20:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": -5.666666666666667,
+      "bootstrap95": [
+        -11.75,
+        0.4166666666666667
+      ],
+      "b_wins": 9,
+      "ties": 0,
+      "b_losses": 3
+    },
+    {
+      "a": "learned-eager-hold:50/5,10,10,10:None",
+      "b": "learned-fast:50/5,10,10,5:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": 1.3333333333333333,
+      "bootstrap95": [
+        -2.75,
+        5.166666666666667
+      ],
+      "b_wins": 4,
+      "ties": 1,
+      "b_losses": 7
+    },
+    {
+      "a": "learned-eager:50/5,10,10,10:None",
+      "b": "learned-fast:50/5,10,10,10:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": 0.5,
+      "bootstrap95": [
+        0.0,
+        1.5
+      ],
+      "b_wins": 0,
+      "ties": 11,
+      "b_losses": 1
+    },
+    {
+      "a": "learned-eager:50/5,10,10,10:None",
+      "b": "learned-fast:50/5,10,10,20:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": 1.8333333333333333,
+      "bootstrap95": [
+        -3.5833333333333335,
+        7.333333333333333
+      ],
+      "b_wins": 6,
+      "ties": 0,
+      "b_losses": 6
+    },
+    {
+      "a": "learned-eager:50/5,10,10,10:None",
+      "b": "learned-fast:50/5,10,10,5:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": 8.833333333333334,
+      "bootstrap95": [
+        2.6666666666666665,
+        14.75
+      ],
+      "b_wins": 3,
+      "ties": 1,
+      "b_losses": 8
+    },
+    {
+      "a": "learned-fast:50/5,10,10,10:None",
+      "b": "learned-fast:50/5,10,10,20:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": 1.3333333333333333,
+      "bootstrap95": [
+        -3.9166666666666665,
+        6.75
+      ],
+      "b_wins": 6,
+      "ties": 0,
+      "b_losses": 6
+    },
+    {
+      "a": "learned-fast:50/5,10,10,10:None",
+      "b": "learned-fast:50/5,10,10,5:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": 8.333333333333334,
+      "bootstrap95": [
+        2.25,
+        14.083333333333334
+      ],
+      "b_wins": 3,
+      "ties": 1,
+      "b_losses": 8
+    },
+    {
+      "a": "learned-fast:50/5,10,10,20:None",
+      "b": "learned-fast:50/5,10,10,5:None",
+      "paired_seeds": 12,
+      "completed_pairs": 12,
+      "delta_b_minus_a": 7,
+      "bootstrap95": [
+        -0.3333333333333333,
+        14.0
+      ],
+      "b_wins": 3,
+      "ties": 0,
+      "b_losses": 9
+    }
+  ]
+}

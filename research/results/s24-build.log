@@ -1,0 +1,32 @@
+   Compiling blockfish v0.1.0 (/workspace/blockfish/blockfish-engine)
+warning: methods `start` and `budget_used` are never used
+   --> blockfish-engine/src/ai/b_star.rs:195:12
+    |
+157 | impl<'s> Search<'s> {
+    | ------------------- methods in this implementation
+...
+195 |     pub fn start(&mut self, root_state: State) {
+    |            ^^^^^
+...
+229 |     pub fn budget_used(&self) -> usize {
+    |            ^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` on by default
+
+warning: `blockfish` (lib) generated 1 warning
+    Finished release [optimized] target(s) in 2.56s
+   Compiling blockfish v0.1.0 (/workspace/blockfish/blockfish-engine)
+warning: variant `RemoveMove` is never constructed
+   --> blockfish-engine/src/ai/b_star.rs:150:5
+    |
+128 | pub enum Step {
+    |          ---- variant in this enum
+...
+150 |     RemoveMove(MoveId),
+    |     ^^^^^^^^^^
+    |
+    = note: `Step` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+    = note: `#[warn(dead_code)]` on by default
+
+warning: `blockfish` (lib) generated 1 warning
+    Finished release [optimized] target(s) in 2.38s

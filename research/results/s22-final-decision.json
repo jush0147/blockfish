@@ -1,0 +1,59 @@
+{
+  "gate": "ci",
+  "passed": false,
+  "lock": "research/results/s22-final-lock.json",
+  "scores": {
+    "robust-hold-order": {
+      "complete": 64,
+      "mean_pieces": 196.546875
+    },
+    "learned-robust": {
+      "complete": 64,
+      "mean_pieces": 196.21875
+    },
+    "learned-fast": {
+      "complete": 64,
+      "mean_pieces": 198.671875
+    }
+  },
+  "candidate_minus_controls": {
+    "learned-robust": {
+      "paired_seeds": 64,
+      "completed_pairs": 64,
+      "delta_b_minus_a": 0.328125,
+      "bootstrap95": [
+        -1.515625,
+        2.15625
+      ],
+      "b_wins": 27,
+      "ties": 6,
+      "b_losses": 31
+    },
+    "learned-fast": {
+      "paired_seeds": 64,
+      "completed_pairs": 64,
+      "delta_b_minus_a": -2.125,
+      "bootstrap95": [
+        -4.25,
+        0.0
+      ],
+      "b_wins": 35,
+      "ties": 2,
+      "b_losses": 27
+    }
+  },
+  "checks": {
+    "learned-robust": {
+      "completion_no_worse": true,
+      "mean_lower": false,
+      "complete_paired_cohort": true,
+      "negative_95_interval": false
+    },
+    "learned-fast": {
+      "completion_no_worse": true,
+      "mean_lower": true,
+      "complete_paired_cohort": true,
+      "negative_95_interval": false
+    }
+  }
+}

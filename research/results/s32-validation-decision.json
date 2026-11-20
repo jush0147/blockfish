@@ -1,0 +1,35 @@
+{
+  "gate": "mean",
+  "passed": true,
+  "lock": "research/results/s32-validation-lock.json",
+  "scores": {
+    "robust-dig-geometry": {
+      "complete": 24,
+      "mean_pieces": 195
+    },
+    "learned-robust": {
+      "complete": 24,
+      "mean_pieces": 196.54166666666666
+    }
+  },
+  "candidate_minus_controls": {
+    "learned-robust": {
+      "paired_seeds": 24,
+      "completed_pairs": 24,
+      "delta_b_minus_a": -1.5416666666666667,
+      "bootstrap95": [
+        -5.166666666666667,
+        2.1666666666666665
+      ],
+      "b_wins": 14,
+      "ties": 3,
+      "b_losses": 7
+    }
+  },
+  "checks": {
+    "learned-robust": {
+      "completion_no_worse": true,
+      "mean_lower": true
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "learned-fast:50/5,10,10,10": {
+    "mean_completed_sequences_per_move": 788.1821643922565,
+    "mean_generated_nodes": 50000,
+    "mean_frontier_nodes": 47635.44430339575
+  },
+  "quality-baseline:200/5,10,10,10": {
+    "mean_completed_sequences_per_move": 2793.406279434851,
+    "mean_generated_nodes": 200000,
+    "mean_frontier_nodes": 190974.18398744112
+  },
+  "learned-fast:200/5,10,10,10": {
+    "mean_completed_sequences_per_move": 3811.8883928571427,
+    "mean_generated_nodes": 200000,
+    "mean_frontier_nodes": 189610.2579719388
+  },
+  "quality-baseline:50/5,10,10,10": {
+    "mean_completed_sequences_per_move": 578.3333333333334,
+    "mean_generated_nodes": 50000,
+    "mean_frontier_nodes": 47920.66449004975
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "verifier": "research/bin/learned-fast",
+  "verifier_sha256": "824eca4f6675630f072c062e3ec72e6a8aa3d1ba935c147b64960bda1c98c2c3",
+  "total": 2,
+  "passed": 2,
+  "records": [
+    {
+      "source": "research/results/s26-smoke.jsonl",
+      "trace": "research/results/s26-smoke-world-rollout-placebo-382af21e-3c6e49c1-None-False-76000.json",
+      "seed": 76000,
+      "pieces": 210,
+      "returncode": 0,
+      "sha256": "90622d7226b2f43dfe4e2db825b437af7a1125b6e44651a8934097c273cdbaaa",
+      "stdout": "Verified 210 pieces, 100 garbage rows, seed 76000",
+      "stderr": ""
+    },
+    {
+      "source": "research/results/s26-smoke.jsonl",
+      "trace": "research/results/s26-smoke-world-rollout-f51a21c9-3c6e49c1-None-False-76000.json",
+      "seed": 76000,
+      "pieces": 214,
+      "returncode": 0,
+      "sha256": "68be61c88f593a965e8d38abfd4b72e21c78ded2a446f852e742f8632e023428",
+      "stdout": "Verified 214 pieces, 100 garbage rows, seed 76000",
+      "stderr": ""
+    }
+  ]
+}
