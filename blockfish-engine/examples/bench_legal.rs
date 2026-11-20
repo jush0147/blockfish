@@ -639,7 +639,7 @@ fn main() {
             .nth(3)
             .unwrap_or_else(|| "sp_rpimc_sim_w8_h9".to_string());
         let mut sm_val = SpatialValueModel::load_from_file(&model_path).expect("load spatial model");
-        if cfg_name.contains("_lin") && !cfg_name.contains("_linfast") {
+        if (cfg_name.contains("_lin") && !cfg_name.contains("_linfast")) || cfg_name.contains("_nomlp") {
             sm_val.b3 = 0.0;
             sm_val.w3 = [0.0; blockfish::ai::spatial_val::SPATIAL_H2];
             sm_val.prepare_fast();
@@ -681,6 +681,118 @@ fn main() {
             c.root_pimc_margin = 500;
         }
         eval_seeds(&cfg_name, &seeds5, &c);
+        return;
+    }
+
+    if mode == "wg5_lin_sweep" {
+        let model_path = std::env::args()
+            .nth(2)
+            .unwrap_or_else(|| "models/spatial_wg5_ep0.txt".to_string());
+        let which = std::env::args().nth(3).unwrap_or_else(|| "all".to_string());
+        let n_seeds: usize = std::env::args()
+            .nth(4)
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(5);
+        let seeds: Vec<u64> = (101..(101 + n_seeds as u64)).collect();
+        let mut sm_val = SpatialValueModel::load_from_file(&model_path).expect("load spatial model");
+        sm_val.b3 = 0.0;
+        sm_val.w3 = [0.0; blockfish::ai::spatial_val::SPATIAL_H2];
+        sm_val.prepare_fast();
+        let sm = Arc::new(sm_val);
+        println!(
+            "=== Legal wg5_lin_sweep ({}, which={}, n_seeds={}) ===",
+            model_path, which, n_seeds
+        );
+
+        let mut c_base = make_spatial_cfg(sm.clone());
+        c_base.rollout_top_k = 0;
+        c_base.bag_det_extend = true;
+        c_base.endgame_solver = true;
+        c_base.simulate_cheese_spawn = true;
+        c_base.spatial_rerank_only = true;
+        c_base.spatial_no_pe_internal = true;
+        c_base.root_pimc_worlds = 8;
+        c_base.root_pimc_horizon = 8;
+        c_base.root_pimc_roots = 8;
+        c_base.root_pimc_width = 24;
+        c_base.root_pimc_margin = 350;
+        c_base.root_pimc_weight_pct = 100;
+        c_base.root_pimc_steady_g4 = false;
+
+        if which == "all" || which == "base" {
+            eval_seeds("lin_nope_w8_h8_r8", &seeds, &c_base);
+        }
+
+        let mut c_deep = c_base.clone();
+        c_deep.beam_width = 80;
+        c_deep.max_per_root = 16;
+        c_deep.root_pimc_prescreen_worlds = 3;
+        c_deep.root_pimc_roots = 32;
+        c_deep.root_pimc_fine_roots = 10;
+        c_deep.root_pimc_worlds = 12;
+        c_deep.root_pimc_horizon = 11;
+        c_deep.root_pimc_width = 28;
+        c_deep.root_pimc_margin = 500;
+        if which == "all" || which == "deep" {
+            eval_seeds("lin_nope_pre3_w12_h11_b28", &seeds, &c_deep);
+        }
+
+        let mut c_ds3 = c_deep.clone();
+        c_ds3.root_pimc_ds_target = 3;
+        c_ds3.root_pimc_width = 24;
+        if which == "all" || which == "ds3" {
+            eval_seeds("lin_nope_ds3_w12_b24", &seeds, &c_ds3);
+        }
+
+        let mut c_ds4 = c_ds3.clone();
+        c_ds4.root_pimc_ds_target = 4;
+        c_ds4.root_pimc_horizon = 12;
+        if which == "all" || which == "ds4" {
+            eval_seeds("lin_nope_ds4_w12_b24", &seeds, &c_ds4);
+        }
+
+        let mut c_ds4_nds60 = c_ds4.clone();
+        c_ds4_nds60.nds_pen = 60;
+        if which == "all" || which == "nds" {
+            eval_seeds("lin_nope_ds4_nds60", &seeds, &c_ds4_nds60);
+        }
+
+        let mut c_ds4_big = c_ds4.clone();
+        c_ds4_big.root_pimc_prescreen_worlds = 4;
+        c_ds4_big.root_pimc_roots = 40;
+        c_ds4_big.root_pimc_fine_roots = 12;
+        c_ds4_big.root_pimc_worlds = 16;
+        c_ds4_big.root_pimc_width = 32;
+        c_ds4_big.root_pimc_margin = 600;
+        if which == "all" || which == "big" {
+            eval_seeds("lin_nope_ds4_w16_b32", &seeds, &c_ds4_big);
+        }
+
+        if which == "all" || which == "wg1_ref" {
+            let sm_wg1 = Arc::new(
+                SpatialValueModel::load_from_file("models/spatial_wg1.txt")
+                    .expect("load spatial_wg1"),
+            );
+            let mut c_wg1 = make_spatial_cfg(sm_wg1.clone());
+            c_wg1.rollout_top_k = 0;
+            c_wg1.bag_det_extend = true;
+            c_wg1.endgame_solver = true;
+            c_wg1.simulate_cheese_spawn = true;
+            c_wg1.spatial_rerank_only = true;
+            c_wg1.spatial_no_pe_internal = true;
+            c_wg1.root_pimc_worlds = 8;
+            c_wg1.root_pimc_horizon = 8;
+            c_wg1.root_pimc_roots = 8;
+            c_wg1.root_pimc_width = 24;
+            c_wg1.root_pimc_margin = 350;
+            c_wg1.root_pimc_weight_pct = 100;
+            c_wg1.root_pimc_steady_g4 = false;
+            eval_seeds("wg1_ref_linfast_nope_w8_h8", &seeds, &c_wg1);
+
+            let mut c_wg1_ds4 = c_ds4.clone();
+            c_wg1_ds4.spatial_model = Some(sm_wg1);
+            eval_seeds("wg1_ref_ds4_w12_b24", &seeds, &c_wg1_ds4);
+        }
         return;
     }
 
