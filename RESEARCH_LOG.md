@@ -117,7 +117,11 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
       - `bc_h8_w16_b32` (no CVaR): `191.20` (`cov=33.2`, `cov_nxt=20.0%`)
       - `bc_h8_w16_b32_cvar25`: **`186.60 [177..192]`** (**`-4.6` pcs**, `cov=29.0`, `end=3.4`, **seed 103 hit `177`!**)
       - **`bc_h9_w16_b32_cvar30`**: **`186.00 [182..195]`** (**`-5.2` pcs**, `nds=63.20`, `nar=7.4`, `wide=26.2`, `cov_nxt=16.4%`, 3/5 seeds `<= 183`!)
-  - **Next**: Hybrid Known-Prefix Beam (`h=5/6`) + **Non-Clairvoyant 1-ply Rollout PIMC (`root_pimc_nc_steps=10..12`)** + full `bc2_mlp` with `cvar30/40`.
+  - **Round NC-1 (Actions Run #17) & BC-2 `spatial_probe`**:
+    - `spatial_probe`: **`bc2` full MLP hit `OR_p6 = 199.40 [195..208]`** (first time `OR_p6 < 200`, `mlp = -0.01..-0.46`, zero hoarding!), beating `bc2_lin` (`200.00`) and `h2nog0` (`204.20`).
+    - Non-Clairvoyant 1-ply rollout (`nc_h5_nc10 = 245.60`, `nc_h6_nc12 = 250.60`, `mlp_h6_nc12 = 254.00`): negative result — 1-ply greedy rollout is too weak and adds noise (`avg_c = 15.9`), confirming `b=32` in-world beam + CVaR (`186.00`) is strictly superior.
+    - `bc2` MLP + CVaR: `mlp_h9_w16_b32_cvar40 = 188.20 [180..196]`, `cvar30 = 188.40` (`nar=5.6`).
+  - **Next (ES-2 + CVaR-Pro)**: Run Direct Legal ES-2 (`opt_legal`) starting from `models/spatial_bc2_lin.txt` (`186.00`) + scale CVaR-Pro (`h9/h10, w=20, b=36/40, cvar35/40`).
 
 ---
 
