@@ -819,6 +819,63 @@ fn main() {
             c_h9_cvar.root_pimc_cvar_pct = 30;
             eval_seeds("bc_h9_w16_b32_cvar30", &seeds, &c_h9_cvar);
         }
+        if which == "nc_pimc" {
+            let mut c_nc = c_base.clone();
+            c_nc.beam_width = 80;
+            c_nc.max_per_root = 16;
+            c_nc.root_pimc_prescreen_worlds = 3;
+            c_nc.root_pimc_roots = 32;
+            c_nc.root_pimc_fine_roots = 10;
+            c_nc.root_pimc_worlds = 16;
+            c_nc.root_pimc_horizon = 5;
+            c_nc.root_pimc_width = 24;
+            c_nc.root_pimc_margin = 500;
+            c_nc.root_pimc_nc_steps = 10;
+            c_nc.root_pimc_cvar_pct = 25;
+            eval_seeds("nc_h5_nc10_w16_cvar25", &seeds, &c_nc);
+
+            let mut c_nc2 = c_nc.clone();
+            c_nc2.root_pimc_horizon = 6;
+            c_nc2.root_pimc_nc_steps = 12;
+            c_nc2.root_pimc_cvar_pct = 30;
+            eval_seeds("nc_h6_nc12_w16_cvar30", &seeds, &c_nc2);
+        }
+        if which == "nc_pimc_mlp" {
+            let sm_full = Arc::new(
+                SpatialValueModel::load_from_file(&model_path).expect("load full spatial model"),
+            );
+            let mut c_mlp = make_spatial_cfg(sm_full);
+            c_mlp.rollout_top_k = 0;
+            c_mlp.beam_width = 80;
+            c_mlp.max_per_root = 16;
+            c_mlp.bag_det_extend = true;
+            c_mlp.endgame_solver = true;
+            c_mlp.simulate_cheese_spawn = true;
+            c_mlp.spatial_rerank_only = true;
+            c_mlp.spatial_no_pe_internal = true;
+            c_mlp.root_pimc_prescreen_worlds = 3;
+            c_mlp.root_pimc_roots = 32;
+            c_mlp.root_pimc_fine_roots = 10;
+            c_mlp.root_pimc_worlds = 16;
+            c_mlp.root_pimc_horizon = 9;
+            c_mlp.root_pimc_width = 32;
+            c_mlp.root_pimc_margin = 500;
+            c_mlp.root_pimc_weight_pct = 100;
+            c_mlp.root_pimc_steady_g4 = false;
+            c_mlp.root_pimc_cvar_pct = 30;
+            eval_seeds("mlp_h9_w16_b32_cvar30", &seeds, &c_mlp);
+
+            let mut c_mlp_c40 = c_mlp.clone();
+            c_mlp_c40.root_pimc_cvar_pct = 40;
+            eval_seeds("mlp_h9_w16_b32_cvar40", &seeds, &c_mlp_c40);
+
+            let mut c_mlp_nc = c_mlp.clone();
+            c_mlp_nc.root_pimc_horizon = 6;
+            c_mlp_nc.root_pimc_width = 24;
+            c_mlp_nc.root_pimc_nc_steps = 12;
+            c_mlp_nc.root_pimc_cvar_pct = 30;
+            eval_seeds("mlp_h6_nc12_w16_cvar30", &seeds, &c_mlp_nc);
+        }
         return;
     }
 

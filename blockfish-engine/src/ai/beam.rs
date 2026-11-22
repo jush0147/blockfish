@@ -184,6 +184,7 @@ pub struct BeamConfig {
     pub spatial_fast_ew_internal: bool,
     pub spatial_no_pe_internal: bool,
     pub root_pimc_ds_target: usize,
+    pub root_pimc_nc_steps: usize,
     pub nds_pen: i64,
     pub stage1_weights: Option<EvalWeights>,
 }
@@ -236,6 +237,7 @@ impl Default for BeamConfig {
             spatial_fast_ew_internal: false,
             spatial_no_pe_internal: false,
             root_pimc_ds_target: 0,
+            root_pimc_nc_steps: 0,
             nds_pen: 0,
             stage1_weights: None,
         }
@@ -1165,7 +1167,7 @@ impl BeamSearcher {
                 } else {
                     0
                 };
-                let need_q_len = (q_len + h.max(ds_q_need) + 3).min(64);
+                let need_q_len = (q_len + h.max(ds_q_need) + cfg.root_pimc_nc_steps + 3).min(64);
                 let mut world_qs = [[0u8; 64]; 24];
                 let mut world_bags = [[0x7Fu8; 64]; 24];
                 let mut world_holes = [[0u16; 48]; 24];
@@ -3598,6 +3600,139 @@ impl BeamSearcher {
         }
         if self.pimc_beam.is_empty() {
             return (5_000_000, evals);
+        }
+
+        if allow_rollout && cfg.root_pimc_nc_steps > 0 {
+            let check_k = self.pimc_beam.len().min(2);
+            let nc_steps = cfg.root_pimc_nc_steps.min(24);
+            let wq_len = world_q.len();
+            let mut best_nc = i64::MAX;
+            for li in 0..check_k {
+                let leaf = self.pimc_beam[li];
+                let mut b = leaf.board;
+                let mut held = leaf.held;
+                let mut qc = leaf.q_cursor as usize;
+                let mut rem = leaf.rem_garbage;
+                let mut nds = leaf.nds_used;
+                let mut ng = leaf.no_g_moves;
+                let mut steps_done = 0usize;
+                let mut won_sc: Option<i64> = None;
+                let mut topped = false;
+
+                for _ in 0..nc_steps {
+                    if rem == 0 {
+                        won_sc = Some(-15_000_000 + ((horizon + 1 + steps_done) as i64) * 100 + (b.rows as i64) * 5);
+                        break;
+                    }
+                    let (c_nh, c_h) = if held.is_some() {
+                        (if qc < wq_len { Some(world_q[qc]) } else { None }, held)
+                    } else {
+                        (
+                            if qc < wq_len { Some(world_q[qc]) } else { None },
+                            if qc + 1 < wq_len { Some(world_q[qc + 1]) } else { None },
+                        )
+                    };
+                    if c_nh.is_none() && c_h.is_none() {
+                        break;
+                    }
+                    self.pgen
+                        .generate_for_state(&self.fst, &b, c_nh, c_h, &mut self.tmp_places);
+                    if self.tmp_places.is_empty() {
+                        topped = true;
+                        break;
+                    }
+
+                    let mut best_step_sc = i64::MAX;
+                    let mut best_next: Option<(FastBoard, Option<u8>, usize, u16, u16, u8)> = None;
+                    let ng_next = ng.saturating_add(u8::from(b.garbage_rows == 0 && rem > 0));
+                    let ng_bonus = cfg.no_g_credit * (ng_next as i64);
+
+                    for &fp in &self.tmp_places {
+                        let mut b2 = b;
+                        let o = &self.fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
+                        let (lines, ds, _) = b2.place_and_sift(o, fp.norm_i, fp.norm_j);
+                        let rem2 = rem.saturating_sub(ds as u16);
+                        let nds2 = nds.saturating_add(lines.saturating_sub(ds) as u16);
+                        if rem2 == 0 && b2.rows < 20 {
+                            let wsc = -15_000_000 + ((horizon + 2 + steps_done) as i64) * 100 + (b2.rows as i64) * 5;
+                            if wsc < best_step_sc {
+                                best_step_sc = wsc;
+                                best_next = Some((b2, held, qc, 0, nds2, ng_next));
+                            }
+                            continue;
+                        }
+                        if !Self::spawn_cheese_from_stream(
+                            &mut b2,
+                            rem2,
+                            lines,
+                            cfg.root_pimc_steady_g4,
+                            unspawned_0,
+                            world_holes,
+                        ) {
+                            continue;
+                        }
+                        let (new_held, next_qc) = if held.is_some() {
+                            if fp.did_hold {
+                                (c_nh, if c_nh.is_some() { (qc + 1).min(wq_len) } else { qc })
+                            } else {
+                                (held, (qc + 1).min(wq_len))
+                            }
+                        } else if fp.did_hold {
+                            (c_nh, (qc + 2).min(wq_len))
+                        } else {
+                            (None, (qc + 1).min(wq_len))
+                        };
+                        let in_h2 = Self::hand_piece(new_held, next_qc, world_q);
+                        // Non-clairvoyant: only observe current hand + next 5 pieces window (not full world_q)
+                        let win_end = (next_qc + 5).min(wq_len);
+                        let av2 = Self::avail_mask_from_q(new_held, next_qc, &world_q[..win_end], end_bag);
+                        let sc = (nds2 as i64) * cfg.nds_pen
+                            + Self::eval_state(&b2, rem2, in_h2, av2, cfg)
+                            - ng_bonus;
+                        evals += 1;
+                        if sc < best_step_sc {
+                            best_step_sc = sc;
+                            best_next = Some((b2, new_held, next_qc, rem2, nds2, ng_next));
+                        }
+                    }
+
+                    if let Some((nb, nh, nqc, nrem, nnds, nng)) = best_next {
+                        b = nb;
+                        held = nh;
+                        qc = nqc;
+                        rem = nrem;
+                        nds = nnds;
+                        ng = nng;
+                        steps_done += 1;
+                        if rem == 0 {
+                            won_sc = Some(-15_000_000 + ((horizon + 1 + steps_done) as i64) * 100 + (b.rows as i64) * 5);
+                            break;
+                        }
+                    } else {
+                        topped = true;
+                        break;
+                    }
+                }
+
+                let l_sc = if let Some(wsc) = won_sc {
+                    wsc
+                } else if topped {
+                    5_000_000 - (steps_done as i64) * 1000
+                } else {
+                    let hc = Self::hand_piece(held, qc, world_q);
+                    let win_end = (qc + 5).min(wq_len);
+                    let av = Self::avail_mask_from_q(held, qc, &world_q[..win_end], end_bag);
+                    evals += 1;
+                    (steps_done as i64) * 100
+                        + (nds as i64) * cfg.nds_pen
+                        + Self::eval_leaf_state(&b, rem, hc, av, cfg)
+                        - cfg.no_g_credit * (ng as i64)
+                };
+                if l_sc < best_nc {
+                    best_nc = l_sc;
+                }
+            }
+            return (best_nc, evals);
         }
 
         if allow_rollout && cfg.rollout_top_k > 0 {

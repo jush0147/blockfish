@@ -110,7 +110,14 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
     - `sp_rpimc_linfast_nope_w8_h9` (`bc1_lin`): **`189.20 [182..195]`** (`cov=26.4`, `147.3s`).
     - `lin_nope_pre3_w12_h11_b28` (`bc1_lin`): **`189.00 [183..203]`** (`wide=23.8`, 4/5 seeds `<= 190`, but `cov` rose to `33.4` due to `h=11` Strategy Fusion).
     - **`LEGAL_pimc_w8_bc_mlp`: `191.60 [188..195]`** (0 top-out — completely eliminated WG-4/WG-5 MLP cell-hoarding!).
-  - **Next (BC-2)**: Add on-policy **Legal BC-DAgger** (40 Legal `p=5` games queried with local 10-row `WG_ds` oracle on messy/covered states) + stronger MLP regularization (`wd_mlp=0.015`) + Strategy-Fusion-free `h=7/8` wide-world & CVaR PIMC sweep (`bc_cvar`).
+  - **Round BC-2 (`models/spatial_bc2_lin.txt`, `models/spatial_bc2.txt`, Actions Run #16 — NEW ALL-TIME LEGAL RECORD `186.00`)**:
+    - 120 clean `WG_ds` + 40 Legal BC-DAgger games (`3,476` recovery decisions, `1,079,664` legal moves, `wd_mlp=0.015`):
+    - **BC-DAgger cured MLP off-policy overfitting**: on plain `p=5` beam (`LEGAL_b120`), **`bc2_mlp` (`198.20 [191..203]`) beat `bc2_lin` (`201.20`) by `-3.0` pcs** (first time plain `p=5` beam broke `< 200`!), and `sp_rpimc_sim_w8_h9` improved from `192.20` (`bc1_mlp`) → `188.75` (4/5 seeds before 90m cutoff).
+    - **CVaR Anti-Strategy-Fusion breakthrough (`bc_cvar` on `bc2_lin`)**:
+      - `bc_h8_w16_b32` (no CVaR): `191.20` (`cov=33.2`, `cov_nxt=20.0%`)
+      - `bc_h8_w16_b32_cvar25`: **`186.60 [177..192]`** (**`-4.6` pcs**, `cov=29.0`, `end=3.4`, **seed 103 hit `177`!**)
+      - **`bc_h9_w16_b32_cvar30`**: **`186.00 [182..195]`** (**`-5.2` pcs**, `nds=63.20`, `nar=7.4`, `wide=26.2`, `cov_nxt=16.4%`, 3/5 seeds `<= 183`!)
+  - **Next**: Hybrid Known-Prefix Beam (`h=5/6`) + **Non-Clairvoyant 1-ply Rollout PIMC (`root_pimc_nc_steps=10..12`)** + full `bc2_mlp` with `cvar30/40`.
 
 ---
 
