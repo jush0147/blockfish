@@ -614,6 +614,400 @@ fn solve_and_extract_decisions(seed: u64, wg_beam: usize, is_val: bool) -> Optio
     Some((total_pcs, decisions))
 }
 
+fn has_h1_cover(b: &FastBoard) -> bool {
+    let g = b.garbage_rows as usize;
+    if g == 0 || (b.rows as usize) <= g {
+        return false;
+    }
+    let hole_mask = (!b.data[g - 1]) & 0x3FF;
+    if hole_mask == 0 {
+        return false;
+    }
+    for r in g..(b.rows as usize) {
+        if (b.data[r] & hole_mask) != 0 {
+            return true;
+        }
+    }
+    false
+}
+
+fn solve_local_wg_ds_first_move(
+    fst: &FastShapeTable,
+    pgen: &mut FastPlaceGen,
+    tmp_places: &mut Vec<FastPlace>,
+    b0: &FastBoard,
+    held0: Option<u8>,
+    qc0: usize,
+    rem_g0: u16,
+    ed: &ExactSeedData,
+    teacher_w: &EvalWeights,
+    ds_target_in: usize,
+    beam_w: usize,
+) -> Option<(FastPlace, f32)> {
+    #[derive(Clone, Copy)]
+    struct LocalDsNode {
+        board: FastBoard,
+        held: Option<u8>,
+        q_cursor: u16,
+        pieces_used: u16,
+        rem_g: u16,
+        score: i64,
+        first_fp: FastPlace,
+        has_first: bool,
+    }
+    #[derive(Clone, Copy, Eq, PartialEq, Hash)]
+    struct LocalKey {
+        board: FastBoard,
+        held: Option<u8>,
+        q_cursor: u16,
+    }
+
+    let target_ds = ds_target_in.min(rem_g0 as usize).max(1);
+    let q_len_ed = ed.pieces.len();
+    let dummy_fp = FastPlace {
+        color_idx: 0,
+        did_hold: false,
+        norm_i: 0,
+        norm_j: 0,
+        tf: (0, 0, Orientation::R0),
+    };
+    let mut buckets: Vec<Vec<LocalDsNode>> = vec![Vec::new(); target_ds + 1];
+    let init_sc = eval_fast_with_bag(
+        b0,
+        rem_g0,
+        held0.or_else(|| ed.pieces.get(qc0).copied()),
+        avail_mask_from_q(held0, qc0, &ed.pieces),
+        teacher_w,
+    );
+    buckets[0].push(LocalDsNode {
+        board: *b0,
+        held: held0,
+        q_cursor: qc0 as u16,
+        pieces_used: 0,
+        rem_g: rem_g0,
+        score: init_sc,
+        first_fp: dummy_fp,
+        has_first: false,
+    });
+
+    let mut seen: HashSet<LocalKey, FxBuild> =
+        HashSet::with_capacity_and_hasher(beam_w * 6, FxBuild::default());
+    let mut cur_sub: Vec<LocalDsNode> = Vec::with_capacity(beam_w);
+    let mut next_sub: Vec<LocalDsNode> = Vec::with_capacity(beam_w * 16);
+    let mut best_win: Option<(u16, FastPlace)> = None;
+
+    for ds_cur in 0..target_ds {
+        let mut bucket = std::mem::take(&mut buckets[ds_cur]);
+        if bucket.is_empty() {
+            continue;
+        }
+        bucket.sort_unstable_by_key(|n| (n.score, n.pieces_used));
+        seen.clear();
+        cur_sub.clear();
+        let min_np = bucket.iter().map(|n| n.pieces_used).min().unwrap_or(0);
+        let mut np_cnt = [0usize; 12];
+        let per_np_cap = (beam_w / 3).max(16);
+        let strat_cap = (beam_w * 3) / 4;
+        for &n in &bucket {
+            if cur_sub.len() >= strat_cap {
+                break;
+            }
+            let tier = (n.pieces_used.saturating_sub(min_np) as usize).min(11);
+            if np_cnt[tier] >= per_np_cap {
+                continue;
+            }
+            if seen.insert(LocalKey { board: n.board, held: n.held, q_cursor: n.q_cursor }) {
+                np_cnt[tier] += 1;
+                cur_sub.push(n);
+            }
+        }
+        for n in bucket {
+            if cur_sub.len() >= beam_w {
+                break;
+            }
+            if seen.insert(LocalKey { board: n.board, held: n.held, q_cursor: n.q_cursor }) {
+                cur_sub.push(n);
+            }
+        }
+
+        let mut best_next_ds_sc = i64::MAX;
+        for z_sub in 0..=6usize {
+            if cur_sub.is_empty() {
+                break;
+            }
+            if z_sub > 0 && best_next_ds_sc != i64::MAX && cur_sub[0].score > best_next_ds_sc + 900 {
+                break;
+            }
+            next_sub.clear();
+            for &node in &cur_sub {
+                let qc = node.q_cursor as usize;
+                let (c_nh, c_h) = if node.held.is_some() {
+                    (ed.pieces.get(qc).copied(), node.held)
+                } else {
+                    (ed.pieces.get(qc).copied(), ed.pieces.get(qc + 1).copied())
+                };
+                if c_nh.is_none() && c_h.is_none() {
+                    continue;
+                }
+                pgen.generate_for_state(fst, &node.board, c_nh, c_h, tmp_places);
+                for &fp in tmp_places.iter() {
+                    let mut b = node.board;
+                    let o = &fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
+                    let (lines, ds_d, _) = b.place_and_sift(o, fp.norm_i, fp.norm_j);
+                    let rem_g = node.rem_g.saturating_sub(ds_d as u16);
+                    let np = node.pieces_used + 1;
+                    let ffp = if node.has_first { node.first_fp } else { fp };
+                    if rem_g == 0 && b.rows < 20 {
+                        if best_win.map_or(true, |(wp, _)| np < wp) {
+                            best_win = Some((np, ffp));
+                        }
+                        continue;
+                    }
+                    if !spawn_exact_cheese(&mut b, rem_g, lines, &ed.holes) {
+                        continue;
+                    }
+                    let (held, nqc) = if node.held.is_some() {
+                        if fp.did_hold {
+                            (c_nh, (qc + 1).min(q_len_ed))
+                        } else {
+                            (node.held, (qc + 1).min(q_len_ed))
+                        }
+                    } else if fp.did_hold {
+                        (c_nh, (qc + 2).min(q_len_ed))
+                    } else {
+                        (None, (qc + 1).min(q_len_ed))
+                    };
+                    let in_h = held.or_else(|| ed.pieces.get(nqc).copied());
+                    let av = avail_mask_from_q(held, nqc, &ed.pieces);
+                    let sc = (np as i64) * 100 + eval_fast_with_bag(&b, rem_g, in_h, av, teacher_w);
+                    if ds_d > 0 {
+                        let nds = (ds_cur + ds_d as usize).min(target_ds);
+                        if sc < best_next_ds_sc {
+                            best_next_ds_sc = sc;
+                        }
+                        buckets[nds].push(LocalDsNode {
+                            board: b,
+                            held,
+                            q_cursor: nqc as u16,
+                            pieces_used: np,
+                            rem_g,
+                            score: sc,
+                            first_fp: ffp,
+                            has_first: true,
+                        });
+                    } else {
+                        next_sub.push(LocalDsNode {
+                            board: b,
+                            held,
+                            q_cursor: nqc as u16,
+                            pieces_used: np,
+                            rem_g,
+                            score: sc,
+                            first_fp: ffp,
+                            has_first: true,
+                        });
+                    }
+                }
+            }
+            if next_sub.is_empty() {
+                break;
+            }
+            next_sub.sort_unstable_by_key(|n| (n.score, n.pieces_used));
+            cur_sub.clear();
+            for ch in next_sub.iter().copied() {
+                if cur_sub.len() >= beam_w {
+                    break;
+                }
+                if seen.insert(LocalKey { board: ch.board, held: ch.held, q_cursor: ch.q_cursor }) {
+                    cur_sub.push(ch);
+                }
+            }
+        }
+    }
+
+    if let Some((wp, ffp)) = best_win {
+        return Some((ffp, (wp.saturating_sub(1)) as f32));
+    }
+    if !buckets[target_ds].is_empty() {
+        buckets[target_ds].sort_unstable_by_key(|n| (n.score, n.pieces_used));
+        let best = buckets[target_ds][0];
+        if best.has_first {
+            let est_rem = (best.pieces_used as f32 - 1.0).max(0.0) + (best.rem_g as f32) * 1.67;
+            return Some((best.first_fp, est_rem));
+        }
+    }
+    None
+}
+
+fn generate_dagger_decisions(
+    seed: u64,
+    dagger_mdl: &Arc<SpatialValueModel>,
+    is_val: bool,
+) -> Option<(usize, Vec<Decision>)> {
+    let ed = collect_exact_seed(seed)?;
+    let fst = FastShapeTable::srs();
+    let teacher_w = ew_cons22();
+
+    let mut cfg = BeamConfig::default();
+    cfg.beam_width = 64;
+    cfg.max_per_root = 16;
+    cfg.rollout_top_k = 0;
+    cfg.bag_det_extend = true;
+    cfg.endgame_wide = true;
+    cfg.endgame_solver = true;
+    cfg.simulate_cheese_spawn = true;
+    cfg.spatial_model = Some(dagger_mdl.clone());
+    cfg.spatial_rerank_only = true;
+    cfg.spatial_no_pe_internal = true;
+
+    let mut game_cfg = BSConfig::default();
+    game_cfg.garbage.total_lines = Some(100);
+    game_cfg.prng_seed = Some(seed);
+    let mut stacker = Stacker::new(Ruleset::guideline().into(), game_cfg);
+    let mut ai = FastAI::new(cfg);
+
+    let mut pgen = FastPlaceGen::new();
+    let mut tmp_places: Vec<FastPlace> = Vec::with_capacity(64);
+    let mut act_buf = [0u16; SPARSE_DIM];
+    let mut dense_buf = [0.0f32; DENSE_DIM];
+    let q_len_ed = ed.pieces.len();
+
+    let mut decisions = Vec::new();
+    let mut ds_total = 0usize;
+    let mut step = 0usize;
+    let mut cur_held: Option<u8> = None;
+    let mut cur_qc: usize = 0;
+
+    while ds_total < 100 && stacker.current_piece_type().is_some() {
+        let snap = match stacker.snapshot() {
+            Some(s) => s,
+            None => break,
+        };
+        let g_rows = garbage_rows(&stacker);
+        let rem_g = 100usize.saturating_sub(ds_total) as u16;
+        let cur_b = FastBoard::from_basic_matrix(&snap.matrix, g_rows);
+
+        // Query local WG_ds oracle on every 3rd step OR whenever h1 is covered (messy Legal state!)
+        if rem_g > 6 && (step % 3 == 0 || has_h1_cover(&cur_b)) {
+            if let Some((fp_star, est_rem_pcs)) = solve_local_wg_ds_first_move(
+                &fst,
+                &mut pgen,
+                &mut tmp_places,
+                &cur_b,
+                cur_held,
+                cur_qc,
+                rem_g,
+                &ed,
+                &teacher_w,
+                10,
+                220,
+            ) {
+                let (c_nh, c_h) = if cur_held.is_some() {
+                    (ed.pieces.get(cur_qc).copied(), cur_held)
+                } else {
+                    (ed.pieces.get(cur_qc).copied(), ed.pieces.get(cur_qc + 1).copied())
+                };
+                pgen.generate_for_state(&fst, &cur_b, c_nh, c_h, &mut tmp_places);
+                let mut moves = Vec::with_capacity(tmp_places.len());
+                let mut target_idx: Option<usize> = None;
+                for &fp in &tmp_places {
+                    let is_star = fp.color_idx == fp_star.color_idx
+                        && fp.did_hold == fp_star.did_hold
+                        && fp.norm_i == fp_star.norm_i
+                        && fp.norm_j == fp_star.norm_j
+                        && fp.tf.2 == fp_star.tf.2;
+                    let mut b = cur_b;
+                    let o = &fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
+                    let (lines, ds_d, _) = b.place_and_sift(o, fp.norm_i, fp.norm_j);
+                    let rg_after = rem_g.saturating_sub(ds_d as u16);
+                    if rg_after == 0 && b.rows < 20 {
+                        if is_star {
+                            target_idx = None;
+                            break;
+                        }
+                        continue;
+                    }
+                    if !spawn_opaque_cheese(&mut b, rg_after, lines) || b.rows >= 20 {
+                        if !is_star {
+                            continue;
+                        }
+                    }
+                    let (held, nqc) = if cur_held.is_some() {
+                        if fp.did_hold {
+                            (c_nh, (cur_qc + 1).min(q_len_ed))
+                        } else {
+                            (cur_held, (cur_qc + 1).min(q_len_ed))
+                        }
+                    } else if fp.did_hold {
+                        (c_nh, (cur_qc + 2).min(q_len_ed))
+                    } else {
+                        (None, (cur_qc + 1).min(q_len_ed))
+                    };
+                    let in_h = held.or_else(|| ed.pieces.get(nqc).copied());
+                    let av = avail_mask_from_q(held, nqc, &ed.pieces);
+                    let n_act = extract_spatial_features_ex(
+                        &b,
+                        rg_after,
+                        in_h,
+                        av,
+                        false,
+                        &mut act_buf,
+                        &mut dense_buf,
+                    );
+                    if is_star {
+                        target_idx = Some(moves.len());
+                    }
+                    moves.push(MoveFeat {
+                        active: act_buf[..n_act].to_vec(),
+                        dense: dense_buf,
+                    });
+                }
+                if let Some(ti) = target_idx {
+                    if moves.len() >= 2 {
+                        decisions.push(Decision {
+                            moves,
+                            target_idx: ti,
+                            rem_pcs: est_rem_pcs,
+                            is_val,
+                        });
+                    }
+                }
+            }
+        }
+
+        // Advance Legal student game
+        let res = match ai.best_move(&snap, Some(g_rows), Some(rem_g)) {
+            Some(r) => r,
+            None => break,
+        };
+        let did_hold = res.inputs.first() == Some(&Input::Hold);
+        let mut inputs = res.inputs;
+        assert_eq!(inputs.pop(), Some(Input::HD));
+        stacker.run(inputs);
+        let (_, ds) = stacker.hard_drop();
+        ds_total += ds;
+        step += 1;
+        let c_nh = ed.pieces.get(cur_qc).copied();
+        let (nh, nqc) = if cur_held.is_some() {
+            if did_hold {
+                (c_nh, (cur_qc + 1).min(q_len_ed))
+            } else {
+                (cur_held, (cur_qc + 1).min(q_len_ed))
+            }
+        } else if did_hold {
+            (c_nh, (cur_qc + 2).min(q_len_ed))
+        } else {
+            (None, (cur_qc + 1).min(q_len_ed))
+        };
+        cur_held = nh;
+        cur_qc = nqc;
+        if step >= 340 {
+            break;
+        }
+    }
+    Some((step, decisions))
+}
+
 struct GradBuf {
     lin_bias: f32,
     lin_sparse: [f32; SPARSE_DIM],
@@ -964,14 +1358,17 @@ fn main() {
     let mut out_path = "models/spatial_bc1.txt".to_string();
     let mut games: usize = 80;
     let mut wg_beam: usize = 1400;
+    let mut dagger_init: Option<String> = None;
+    let mut dagger_games: usize = 0;
     let mut lin_epochs: usize = 14;
     let mut mlp_epochs: usize = 16;
     let mut batch_sz: usize = 32;
     let mut tau: f32 = 0.50;
     let mut cal_w: f32 = 0.025;
     let mut lr_lin: f32 = 0.008;
-    let mut lr_mlp: f32 = 0.0015;
+    let mut lr_mlp: f32 = 0.0008;
     let mut wd: f32 = 0.002;
+    let mut wd_mlp: f32 = 0.015;
     let mut seed_base: u64 = 3000;
     let mut eval_legal: usize = 5;
 
@@ -981,6 +1378,8 @@ fn main() {
             "--out" => { out_path = args[i + 1].clone(); i += 2; }
             "--games" => { games = args[i + 1].parse().unwrap(); i += 2; }
             "--wg-beam" => { wg_beam = args[i + 1].parse().unwrap(); i += 2; }
+            "--dagger-init" => { dagger_init = Some(args[i + 1].clone()); i += 2; }
+            "--dagger-games" => { dagger_games = args[i + 1].parse().unwrap(); i += 2; }
             "--lin-epochs" => { lin_epochs = args[i + 1].parse().unwrap(); i += 2; }
             "--mlp-epochs" => { mlp_epochs = args[i + 1].parse().unwrap(); i += 2; }
             "--batch" => { batch_sz = args[i + 1].parse().unwrap(); i += 2; }
@@ -989,6 +1388,7 @@ fn main() {
             "--lr-lin" => { lr_lin = args[i + 1].parse().unwrap(); i += 2; }
             "--lr-mlp" => { lr_mlp = args[i + 1].parse().unwrap(); i += 2; }
             "--wd" => { wd = args[i + 1].parse().unwrap(); i += 2; }
+            "--wd-mlp" => { wd_mlp = args[i + 1].parse().unwrap(); i += 2; }
             "--seed-base" => { seed_base = args[i + 1].parse().unwrap(); i += 2; }
             "--eval-legal" => { eval_legal = args[i + 1].parse().unwrap(); i += 2; }
             other => { eprintln!("Unknown arg: {}", other); std::process::exit(1); }
@@ -997,8 +1397,8 @@ fn main() {
 
     let n_threads = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(2);
     println!(
-        "=== Full-Action-Space Afterstate BC (WG_ds -> SpatialValueModel) ===\n  out={} games={} wg_beam={} lin_ep={} mlp_ep={} batch={} tau={} cal_w={} lr_lin={} lr_mlp={} wd={} threads={}",
-        out_path, games, wg_beam, lin_epochs, mlp_epochs, batch_sz, tau, cal_w, lr_lin, lr_mlp, wd, n_threads
+        "=== Full-Action-Space Afterstate BC + DAgger (WG_ds -> SpatialValueModel) ===\n  out={} games={} wg_beam={} dagger_games={} lin_ep={} mlp_ep={} batch={} tau={} cal_w={} lr_lin={} lr_mlp={} wd={} wd_mlp={} threads={}",
+        out_path, games, wg_beam, dagger_games, lin_epochs, mlp_epochs, batch_sz, tau, cal_w, lr_lin, lr_mlp, wd, wd_mlp, n_threads
     );
 
     let t0 = Instant::now();
@@ -1028,11 +1428,48 @@ fn main() {
             decisions.push(d);
         }
     }
+    let clean_decs = decisions.len();
+
+    if dagger_games > 0 {
+        let d_path = dagger_init.as_deref().unwrap_or("models/spatial_bc1_lin.txt");
+        let d_mdl = Arc::new(SpatialValueModel::load_from_file(d_path).expect("load dagger init"));
+        let d_seeds: Vec<u64> = (0..dagger_games).map(|k| seed_base + 5000 + k as u64).collect();
+        let d_val_start = ((dagger_games * 85) / 100).max(1).min(dagger_games.saturating_sub(1));
+        let d_chunk = (dagger_games + n_threads - 1) / n_threads;
+        let d_raw: Vec<(usize, Vec<Decision>)> = std::thread::scope(|sc| {
+            let hs: Vec<_> = d_seeds.chunks(d_chunk).enumerate().map(|(ci, sl)| {
+                let base_i = ci * d_chunk;
+                let dm = d_mdl.clone();
+                sc.spawn(move || {
+                    sl.iter().enumerate().filter_map(|(k, &s)| {
+                        generate_dagger_decisions(s, &dm, base_i + k >= d_val_start)
+                    }).collect::<Vec<_>>()
+                })
+            }).collect();
+            let mut out = Vec::new();
+            for h in hs { out.extend(h.join().unwrap()); }
+            out
+        });
+        let d_mean_pcs = d_raw.iter().map(|(p, _)| *p as f64).sum::<f64>() / (d_raw.len().max(1) as f64);
+        let mut d_decs = 0usize;
+        for (_, ds) in d_raw {
+            for d in ds {
+                total_moves += d.moves.len();
+                d_decs += 1;
+                decisions.push(d);
+            }
+        }
+        println!(
+            "Phase 1B (BC-DAgger): {} Legal games (mean={:.2} pcs) -> {} recovery decisions",
+            dagger_games, d_mean_pcs, d_decs
+        );
+    }
+
     let train_idxs: Vec<usize> = (0..decisions.len()).filter(|&i| !decisions[i].is_val).collect();
     let val_idxs: Vec<usize> = (0..decisions.len()).filter(|&i| decisions[i].is_val).collect();
     println!(
-        "Phase 1: solved {} games (mean={:.2} pcs) -> {} decisions ({} train, {} val), {} legal moves in {:.1}s",
-        games, mean_pcs, decisions.len(), train_idxs.len(), val_idxs.len(), total_moves, t0.elapsed().as_secs_f64()
+        "Phase 1 Total: {} clean WG_ds (mean={:.2}) + {} DAgger -> {} decisions ({} clean, {} train, {} val), {} legal moves in {:.1}s",
+        games, mean_pcs, dagger_games, decisions.len(), clean_decs, train_idxs.len(), val_idxs.len(), total_moves, t0.elapsed().as_secs_f64()
     );
 
     // Compute dense normalization stats across all moves in training decisions
@@ -1228,7 +1665,7 @@ fn main() {
                     backward_move(&mdl, &dec.moves[m], true, &z_cache[m], &a1_cache[m], &a2_cache[m], raw_mlp_cache[m], d_v * inv_b, &mut grad);
                 }
             }
-            adam_mlp.apply(&mut mdl, &grad, lrl, lrm, wd, wd * 2.0, true);
+            adam_mlp.apply(&mut mdl, &grad, lrl, lrm, wd, wd_mlp, true);
         }
         let (v_ce, v_top1, v_top3, v_mae) = eval_decisions(&mdl, &decisions, &val_idxs, true, tau);
         if v_ce < best_mlp_ce {

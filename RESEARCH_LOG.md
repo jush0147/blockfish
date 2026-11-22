@@ -103,6 +103,15 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
 - **Pivot — Direct Legal `p=5` Optimization (`examples/opt_legal.rs`)**:
   - Instead of indirect supervised regression to noisy/confounded Oracle rollouts, directly optimize the pure-linear `SpatialValueModel` (99 params, `rem_g` anchored for piece-unit calibration) on **actual Legal `p=5` gameplay** via Antithetic Evolution Strategies + Adam + CRN (`spatial_no_pe_internal`, ~3s/eval on 4 cores), then stack flat `h=8` PIMC (`-15` to `-19` pcs lift) and non-clairvoyant rollouts on top.
 
+- **Round BC-1 (`models/spatial_bc1_lin.txt`, `models/spatial_bc1.txt`, Actions Run #15 — NEW ALL-TIME LEGAL RECORD)**:
+  - **Full-Action-Space Afterstate Cross-Entropy BC** (`examples/train_bc.rs`) on 120 `WG_ds B=1400` games (`167.21` mean, `19,945` decisions, `918,229` legal moves, `needs_pe = false`, ZERO Phase-3 rollouts):
+    - `val_ce = 0.9158` (LIN, `top1=71.1%`, `top3=92.5%`, `rem_g=1.683`) / `0.8946` (MLP, `top1=71.3%`, `top3=92.7%`).
+    - **`LEGAL_pimc_w8_bc_lin`: `188.80 [183..196]`** (0 top-out, `126.5s`) — **breaks 190-piece barrier**, beating previous all-time record `spatial_wg1` (`191.80`) by `-3.0` pcs and WG-5 (`198.20`) by **`-9.4` pcs**!
+    - `sp_rpimc_linfast_nope_w8_h9` (`bc1_lin`): **`189.20 [182..195]`** (`cov=26.4`, `147.3s`).
+    - `lin_nope_pre3_w12_h11_b28` (`bc1_lin`): **`189.00 [183..203]`** (`wide=23.8`, 4/5 seeds `<= 190`, but `cov` rose to `33.4` due to `h=11` Strategy Fusion).
+    - **`LEGAL_pimc_w8_bc_mlp`: `191.60 [188..195]`** (0 top-out — completely eliminated WG-4/WG-5 MLP cell-hoarding!).
+  - **Next (BC-2)**: Add on-policy **Legal BC-DAgger** (40 Legal `p=5` games queried with local 10-row `WG_ds` oracle on messy/covered states) + stronger MLP regularization (`wd_mlp=0.015`) + Strategy-Fusion-free `h=7/8` wide-world & CVaR PIMC sweep (`bc_cvar`).
+
 ---
 
 ## 4. Roadmap
