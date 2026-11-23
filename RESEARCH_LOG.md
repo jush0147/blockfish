@@ -126,8 +126,14 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
       - **`pro_h9_w20_b36_cvar35`**: **`185.80 [182..193]`** (`[183, 193, 186, 185, 182]`, current all-time Legal `p=5` record!).
       - `pro_h10_w20_b40_cvar40`: regressed to `189.40` (`cov=40.0`), confirming `h=9` is the Strategy Fusion boundary.
     - **Fixed Direct Legal ES-3 (`opt_legal.rs`, unclamped `dense[3..=22]`, `b=64`, NO PIMC)**:
-      - Improved plain `p=5` `b=64` beam from `200.62 -> 196.22 [182, 202, 190, 206, 201]` (`-4.40` pcs in 5 iters; seed 101 hit `182` with ZERO PIMC!).
-      - Next: verify `models/spatial_es3.txt` with `cvar_top2` (`b120` + `h9_w16_b32_cvar30` + `h9_w20_b36_cvar35`), then upgrade to `SPATIAL_VAL_V4` features + BC-3 + Endgame Solver tightening.
+      - Improved training `b=64` from `200.62 -> 196.22`, but held-out `101..=105` `cvar_top2` (Run #20 `45097331474`) regressed slightly vs `bc2_lin` (`plain_p5_b120=202.40`, `h9_w16_b32_cvar30=187.20`, `h9_w20_b36_cvar35=187.80`) due to small-sample `b=64` overfitting.
+  - **Round BC-3 (`SPATIAL_VAL_V4`, `models/spatial_bc3_lin.txt` & `models/spatial_bc3.txt`, Actions Run #21 `45098011902` — NEW ALL-TIME LEGAL RECORD `183.60`)**:
+    - Upgraded `SpatialValueModel` to `SPATIAL_VAL_V4` (`SPARSE_DIM: 186 -> 330`, `DENSE_DIM: 74 -> 82`, 100% V1/V2/V3 backward-compatible): added adjacent column height diffs `dh[0..9]` (`63` bits), exact `h1`/`h2` 3-col contour (`32` bits), nonlinear `h1/h2/h3/holes` cover buckets (`16` bits), `row_g` skim-to-uncover-h1 & hand tactical interactions (`30` bits), and 8 dense scalars.
+    - Trained on `150` `WG_ds (B=1600)` + `50` Legal DAgger games (`29,352` decisions, `1,356,107` legal moves, `needs_pe=false`):
+      - **`plain_p5_b120` (ZERO PIMC)**: dropped **`-7.80` pcs** (`201.20 -> 193.40 [190..197]`)!
+      - **`pro_h9_w16_b32_cvar30`**: **`183.60 [173..189]`** (**NEW ALL-TIME LEGAL RECORD**, `-2.20` pcs over `185.80`; `cov` dropped `32.2 -> 27.0`, `cov_nxt` `16.4% -> 14.8%`, **seed 103 hit `173` legally!**).
+      - **`pro_h9_w20_b36_cvar35`** (4/5 seeds before 90m cutoff): `101:179, 102:188, 103:177, 104:185` (**4-seed mean = `182.25`**!).
+    - Remaining gap (`183.60` vs `WG_ds 164.60`): `cov=27.0 (+7.8)`, `nar=8.6 (+4.8)`, `wide=24.8 (+2.8)`, `end=6.0 (+4.2)`, `O=17.2 (-0.6)`. Next: wire `SpatialValueModel` into `solve_endgame_ds` (attack `end=6.0`), add `h1_clean_fit` (clear `h1` without covering `h2`) for V5, and run BC-4 with `bc3_lin` DAgger.
 
 ---
 
