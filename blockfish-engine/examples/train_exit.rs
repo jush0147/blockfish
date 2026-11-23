@@ -11,7 +11,10 @@ use blockfish::{
     },
     StackerExt as _,
 };
-use std::sync::Arc;
+use std::sync::{
+    atomic::{AtomicUsize, Ordering},
+    Arc,
+};
 use std::time::Instant;
 
 fn garbage_rows(stacker: &Stacker) -> u16 {
@@ -604,6 +607,7 @@ fn main() {
     teacher_cfg.root_pimc_steady_g4 = false;
 
     let t0 = Instant::now();
+    let done_cnt = AtomicUsize::new(0);
     let seeds: Vec<u64> = (0..games).map(|k| seed_base + k as u64).collect();
     let val_start = ((games * 85) / 100).max(1).min(games.saturating_sub(1));
     let chunk_sz = (games + n_threads - 1) / n_threads;
@@ -612,11 +616,17 @@ fn main() {
         for (ci, chunk) in seeds.chunks(chunk_sz).enumerate() {
             let base_idx = ci * chunk_sz;
             let cfg_ref = &teacher_cfg;
+            let done_ref = &done_cnt;
             handles.push(sc.spawn(move || {
                 let mut out = Vec::new();
                 for (li, &s) in chunk.iter().enumerate() {
                     let is_val = (base_idx + li) >= val_start;
-                    out.push(generate_legal_exit_game(s, cfg_ref, tau_q, is_val));
+                    let res = generate_legal_exit_game(s, cfg_ref, tau_q, is_val);
+                    let d = done_ref.fetch_add(1, Ordering::Relaxed) + 1;
+                    if d % 8 == 0 || d == games {
+                        println!("  [Self-Play {:3}/{}] last_pcs={} dt={:.1}s", d, games, res.0, t0.elapsed().as_secs_f64());
+                    }
+                    out.push(res);
                 }
                 out
             }));

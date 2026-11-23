@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "=== Round ExIt-1: Legal AlphaZero Expert Iteration (140 Legal PIMC CVaR-25 games -> models/spatial_exit1.txt) ==="
+echo "=== Round ExIt-1: Legal AlphaZero Expert Iteration (64 Legal PIMC CVaR-25 games -> models/spatial_exit1.txt, ~42m) ==="
 cargo run --release -p blockfish --features race --example train_exit -- \
   --init models/spatial_bc4.txt \
   --out models/spatial_exit1.txt \
-  --games 140 \
+  --games 64 \
   --worlds 6 \
   --horizon 8 \
   --width 20 \
@@ -23,5 +23,5 @@ cargo run --release -p blockfish --features race --example train_exit -- \
   --seed-base 6000
 
 echo ""
-echo "=== Fair 10-Seed (101..=110) Held-Out Legal Verification of models/spatial_exit1.txt vs 187.90 Baseline ==="
+echo "=== Fair 10-Seed (101..=110) Held-Out Legal Verification of models/spatial_exit1.txt vs 187.90 Baseline (~14m) ==="
 cargo run --release -p blockfish --features race --example bench_legal -- wg5_lin_sweep models/spatial_exit1.txt fullmlp_w16 10
