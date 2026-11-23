@@ -905,6 +905,35 @@ fn main() {
             c3.root_pimc_cvar_pct = 40;
             eval_seeds("pro_h10_w20_b40_cvar40", &seeds, &c3);
         }
+        if which == "cvar_top2" {
+            let mut c0 = c_base.clone();
+            c0.beam_width = 120;
+            c0.max_per_root = 24;
+            c0.root_pimc_worlds = 0;
+            eval_seeds("plain_p5_b120", &seeds, &c0);
+
+            let mut c1 = c_base.clone();
+            c1.beam_width = 80;
+            c1.max_per_root = 16;
+            c1.root_pimc_prescreen_worlds = 3;
+            c1.root_pimc_roots = 32;
+            c1.root_pimc_fine_roots = 10;
+            c1.root_pimc_worlds = 16;
+            c1.root_pimc_horizon = 9;
+            c1.root_pimc_width = 32;
+            c1.root_pimc_margin = 500;
+            c1.root_pimc_cvar_pct = 30;
+            eval_seeds("pro_h9_w16_b32_cvar30", &seeds, &c1);
+
+            let mut c2 = c1.clone();
+            c2.root_pimc_prescreen_worlds = 4;
+            c2.root_pimc_roots = 36;
+            c2.root_pimc_fine_roots = 12;
+            c2.root_pimc_worlds = 20;
+            c2.root_pimc_width = 36;
+            c2.root_pimc_cvar_pct = 35;
+            eval_seeds("pro_h9_w20_b36_cvar35", &seeds, &c2);
+        }
         return;
     }
 

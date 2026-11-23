@@ -121,7 +121,13 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
     - `spatial_probe`: **`bc2` full MLP hit `OR_p6 = 199.40 [195..208]`** (first time `OR_p6 < 200`, `mlp = -0.01..-0.46`, zero hoarding!), beating `bc2_lin` (`200.00`) and `h2nog0` (`204.20`).
     - Non-Clairvoyant 1-ply rollout (`nc_h5_nc10 = 245.60`, `nc_h6_nc12 = 250.60`, `mlp_h6_nc12 = 254.00`): negative result — 1-ply greedy rollout is too weak and adds noise (`avg_c = 15.9`), confirming `b=32` in-world beam + CVaR (`186.00`) is strictly superior.
     - `bc2` MLP + CVaR: `mlp_h9_w16_b32_cvar40 = 188.20 [180..196]`, `cvar30 = 188.40` (`nar=5.6`).
-  - **Next (ES-2 + CVaR-Pro)**: Run Direct Legal ES-2 (`opt_legal`) starting from `models/spatial_bc2_lin.txt` (`186.00`) + scale CVaR-Pro (`h9/h10, w=20, b=36/40, cvar35/40`).
+  - **Round ES-3 & CVaR-Pro (`models/spatial_es3.txt`, Actions Run `45086995056` — NEW ALL-TIME LEGAL RECORD `185.80`)**:
+    - **CVaR-Pro on `models/spatial_bc2_lin.txt`**:
+      - **`pro_h9_w20_b36_cvar35`**: **`185.80 [182..193]`** (`[183, 193, 186, 185, 182]`, current all-time Legal `p=5` record!).
+      - `pro_h10_w20_b40_cvar40`: regressed to `189.40` (`cov=40.0`), confirming `h=9` is the Strategy Fusion boundary.
+    - **Fixed Direct Legal ES-3 (`opt_legal.rs`, unclamped `dense[3..=22]`, `b=64`, NO PIMC)**:
+      - Improved plain `p=5` `b=64` beam from `200.62 -> 196.22 [182, 202, 190, 206, 201]` (`-4.40` pcs in 5 iters; seed 101 hit `182` with ZERO PIMC!).
+      - Next: verify `models/spatial_es3.txt` with `cvar_top2` (`b120` + `h9_w16_b32_cvar30` + `h9_w20_b36_cvar35`), then upgrade to `SPATIAL_VAL_V4` features + BC-3 + Endgame Solver tightening.
 
 ---
 
