@@ -2,8 +2,8 @@ use super::{fast::FastBoard, fast_eval::fast_piece_estimate_ex};
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
 
-pub const SPARSE_DIM: usize = 186;
-pub const DENSE_DIM: usize = 74;
+pub const SPARSE_DIM: usize = 330;
+pub const DENSE_DIM: usize = 82;
 pub const SPATIAL_H1: usize = 64;
 pub const SPATIAL_H2: usize = 32;
 
@@ -704,6 +704,208 @@ pub fn extract_spatial_features_ex(
     dense[72] = h1_contig_cover as f32;
     dense[73] = h2_contig_cover as f32;
 
+    // --- SPATIAL_VAL_V4 Sparse Features (186..330) ---
+    // 9. Adjacent column height diffs dh[c] = (stack_h[c+1] - stack_h[c]).clamp(-3, 3) (`186..249`, 9*7=63 bits)
+    let mut flat_pairs_cnt: i32 = 0;
+    for c in 0..9usize {
+        let diff = stack_h[c + 1] - stack_h[c];
+        if diff == 0 {
+            flat_pairs_cnt += 1;
+        }
+        let bucket = (diff.clamp(-3, 3) + 3) as u16;
+        active_bits[n_act] = (186 + c * 7) as u16 + bucket;
+        n_act += 1;
+    }
+
+    // 10. Exact h1 3-column contour (`249..265`, 4*4=16 bits) when h1_open
+    if h1_open {
+        if let Some(c1) = h1_col {
+            let dl = if c1 == 0 { 3 } else { stack_h[c1 - 1].clamp(0, 3) } as u16;
+            let dr = if c1 == 9 { 3 } else { stack_h[c1 + 1].clamp(0, 3) } as u16;
+            active_bits[n_act] = 249 + dl * 4 + dr;
+            n_act += 1;
+        }
+    }
+
+    // 11. Exact h2 3-column contour (`265..281`, 4*4=16 bits) when h2_open
+    if h2_open {
+        if let Some(c2) = h2_col {
+            let dl = if c2 == 0 { 3 } else { stack_h[c2 - 1].clamp(0, 3) } as u16;
+            let dr = if c2 == 9 { 3 } else { stack_h[c2 + 1].clamp(0, 3) } as u16;
+            active_bits[n_act] = 265 + dl * 4 + dr;
+            n_act += 1;
+        }
+    }
+
+    // 12. Nonlinear cover & hole threshold buckets (`281..297`, 16 bits)
+    if g >= 1 {
+        let b = (h1_blocks.clamp(0, 3)) as u16;
+        active_bits[n_act] = 281 + b;
+        n_act += 1;
+    }
+    if g >= 2 {
+        let b = (h2_blocks.clamp(0, 3)) as u16;
+        active_bits[n_act] = 285 + b;
+        n_act += 1;
+    }
+    if g >= 3 {
+        let b = (h3_blocks.clamp(0, 3)) as u16;
+        active_bits[n_act] = 289 + b;
+        n_act += 1;
+    }
+    {
+        let b = (covered_holes.clamp(0, 3)) as u16;
+        active_bits[n_act] = 293 + b;
+        n_act += 1;
+    }
+
+    // 13. h1/h2 interaction, row_g skim-to-uncover-h1, and hand tactical bits (`297..313`, 16 bits)
+    if h1_open && g >= 2 && h2_blocks == 1 {
+        active_bits[n_act] = 297;
+        n_act += 1;
+    }
+    if h1_open && g >= 2 && h2_blocks >= 2 {
+        active_bits[n_act] = 298;
+        n_act += 1;
+    }
+    if g >= 2 && h1_blocks == 1 && h2_open {
+        active_bits[n_act] = 299;
+        n_act += 1;
+    }
+    let rg_clean = n > g && row_holes_buf[0] == 0;
+    let rg_emp = if n > g { row_empty_cnt[0] } else { 10 };
+    if g >= 1 && h1_blocks == 1 && rg_clean {
+        if rg_emp == 1 {
+            active_bits[n_act] = 300;
+            n_act += 1;
+        } else if rg_emp == 2 {
+            active_bits[n_act] = 301;
+            n_act += 1;
+            let emp_mask = !board.data[g] & 0x3FF;
+            if (emp_mask & (emp_mask >> 1)) != 0 {
+                active_bits[n_act] = 303;
+                n_act += 1;
+            }
+        } else if rg_emp == 3 {
+            active_bits[n_act] = 302;
+            n_act += 1;
+        }
+    }
+    if h1_open && h2_open {
+        if let (Some(c1), Some(c2)) = (h1_col, h2_col) {
+            if (c1 as i32 - c2 as i32).abs() == 1 {
+                active_bits[n_act] = 304;
+                n_act += 1;
+            } else {
+                active_bits[n_act] = 305;
+                n_act += 1;
+            }
+        }
+    }
+    if g >= 1 && h1_blocks >= 1 && h1_contig_cover == 0 {
+        active_bits[n_act] = 306;
+        n_act += 1;
+    }
+    if g >= 1 && h1_blocks >= 1 && n > g && row_holes_buf[0] != 0 {
+        active_bits[n_act] = 307;
+        n_act += 1;
+    }
+    if h1_open && hand_fits_h1 > 0.5 && h2_open {
+        active_bits[n_act] = 308;
+        n_act += 1;
+    }
+    if h1_open && hand_fits_h1 == 0.0 {
+        active_bits[n_act] = 309;
+        n_act += 1;
+    }
+    if in_hand == Some(0) && (h1_narrow_2plus > 0 || h2_narrow_2plus > 0.5 || i_dep_cols > 0) {
+        active_bits[n_act] = 310;
+        n_act += 1;
+    }
+    if in_hand == Some(1) {
+        if clean_o_spots == 0 {
+            active_bits[n_act] = 311;
+            n_act += 1;
+        } else {
+            active_bits[n_act] = 312;
+            n_act += 1;
+        }
+    }
+
+    // 14. Piece-in-hand x (h1_open / h1_covered) interactions (`313..327`, 14 bits)
+    if let Some(p) = in_hand {
+        if (p as usize) < 7 {
+            if h1_open {
+                active_bits[n_act] = 313 + p as u16;
+            } else {
+                active_bits[n_act] = 320 + p as u16;
+            }
+            n_act += 1;
+        }
+    }
+
+    // 15. Stack height regime bits (`327..330`, 3 bits)
+    if max_stack_h <= 2 {
+        active_bits[n_act] = 327;
+        n_act += 1;
+    } else if max_stack_h >= 6 {
+        active_bits[n_act] = 328;
+        n_act += 1;
+        if max_stack_h >= 9 {
+            active_bits[n_act] = 329;
+            n_act += 1;
+        }
+    }
+
+    // --- SPATIAL_VAL_V4 Dense Features (74..82) ---
+    let row_g_empty_when_h1_cov = if g >= 1 && h1_blocks > 0 && n > g {
+        row_empty_cnt[0] as f32
+    } else {
+        0.0
+    };
+    let row_g1_empty_when_h1_cov2 = if g >= 1 && h1_blocks >= 2 && n > g + 1 {
+        row_empty_cnt[1] as f32
+    } else {
+        0.0
+    };
+    let (h1_left_h, h1_right_h) = if let Some(c1) = h1_col {
+        (
+            if c1 > 0 { stack_h[c1 - 1] as f32 } else { 0.0 },
+            if c1 < 9 { stack_h[c1 + 1] as f32 } else { 0.0 },
+        )
+    } else {
+        (0.0, 0.0)
+    };
+    let (h2_left_h, h2_right_h) = if let Some(c2) = h2_col {
+        (
+            if c2 > 0 { stack_h[c2 - 1] as f32 } else { 0.0 },
+            if c2 < 9 { stack_h[c2 + 1] as f32 } else { 0.0 },
+        )
+    } else {
+        (0.0, 0.0)
+    };
+    let mut well_sum_non_h1: i32 = 0;
+    for c in 0..10usize {
+        if Some(c) == h1_col {
+            continue;
+        }
+        let left = if c == 0 { 99 } else { stack_h[c - 1] };
+        let right = if c == 9 { 99 } else { stack_h[c + 1] };
+        let well = left.min(right) - stack_h[c];
+        if well >= 2 {
+            well_sum_non_h1 += well - 1;
+        }
+    }
+
+    dense[74] = row_g_empty_when_h1_cov;
+    dense[75] = row_g1_empty_when_h1_cov2;
+    dense[76] = h1_left_h;
+    dense[77] = h1_right_h;
+    dense[78] = h2_left_h;
+    dense[79] = h2_right_h;
+    dense[80] = well_sum_non_h1 as f32;
+    dense[81] = flat_pairs_cnt as f32;
+
     n_act
 }
 
@@ -1030,7 +1232,7 @@ impl SpatialValueModel {
         let mut w = BufWriter::new(f);
         writeln!(
             w,
-            "SPATIAL_VAL_V3 {} {} {} {}",
+            "SPATIAL_VAL_V4 {} {} {} {}",
             SPARSE_DIM, DENSE_DIM, SPATIAL_H1, SPATIAL_H2
         )?;
         for j in 0..DENSE_DIM {
@@ -1136,7 +1338,8 @@ impl SpatialValueModel {
         if parts.len() != 5
             || (parts[0] != "SPATIAL_VAL_V1"
                 && parts[0] != "SPATIAL_VAL_V2"
-                && parts[0] != "SPATIAL_VAL_V3")
+                && parts[0] != "SPATIAL_VAL_V3"
+                && parts[0] != "SPATIAL_VAL_V4")
         {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::InvalidData,
@@ -1147,10 +1350,13 @@ impl SpatialValueModel {
         let dd: usize = parts[2].parse().unwrap_or(0);
         let h1: usize = parts[3].parse().unwrap_or(0);
         let h2: usize = parts[4].parse().unwrap_or(0);
-        let dd_ok = (parts[0] == "SPATIAL_VAL_V1" && (dd == 68 || dd == 72 || dd == DENSE_DIM))
-            || (parts[0] == "SPATIAL_VAL_V2" && (dd == 72 || dd == DENSE_DIM))
-            || (parts[0] == "SPATIAL_VAL_V3" && dd == DENSE_DIM);
-        if sd != SPARSE_DIM || !dd_ok || h1 != SPATIAL_H1 || h2 != SPATIAL_H2 {
+        let sd_ok = (parts[0] == "SPATIAL_VAL_V4" && sd == SPARSE_DIM)
+            || (parts[0] != "SPATIAL_VAL_V4" && (sd == 186 || sd == SPARSE_DIM));
+        let dd_ok = (parts[0] == "SPATIAL_VAL_V1" && (dd == 68 || dd == 72 || dd == 74 || dd == DENSE_DIM))
+            || (parts[0] == "SPATIAL_VAL_V2" && (dd == 72 || dd == 74 || dd == DENSE_DIM))
+            || (parts[0] == "SPATIAL_VAL_V3" && (dd == 74 || dd == DENSE_DIM))
+            || (parts[0] == "SPATIAL_VAL_V4" && dd == DENSE_DIM);
+        if !sd_ok || !dd_ok || h1 != SPATIAL_H1 || h2 != SPATIAL_H2 {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::InvalidData,
                 "dimension mismatch in spatial model",
@@ -1163,10 +1369,10 @@ impl SpatialValueModel {
         m.dense_mean[..dd].copy_from_slice(&dm[..dd]);
         m.dense_inv_std[..dd].copy_from_slice(&dis[..dd]);
         m.lin_bias = next_floats()?[0];
-        m.lin_sparse.copy_from_slice(&next_floats()?[..SPARSE_DIM]);
+        m.lin_sparse[..sd].copy_from_slice(&next_floats()?[..sd]);
         m.lin_dense[..dd].copy_from_slice(&next_floats()?[..dd]);
         m.b1.copy_from_slice(&next_floats()?[..SPATIAL_H1]);
-        for i in 0..SPARSE_DIM {
+        for i in 0..sd {
             m.w_sparse[i].copy_from_slice(&next_floats()?[..SPATIAL_H1]);
         }
         for j in 0..dd {

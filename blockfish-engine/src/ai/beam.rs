@@ -1658,8 +1658,8 @@ impl BeamSearcher {
         let mut best_rem_g = rem0;
         let mut best_fb_score = sc0;
         let wq_len = world_q.len();
-        let beam_w = 18usize;
-        let sub_w = 10usize;
+        let beam_w = 36usize;
+        let sub_w = 20usize;
         let z_limit = 3usize;
 
         for ds_cur in ds0_u..target_ds {
@@ -1929,9 +1929,9 @@ impl BeamSearcher {
 
         // Step 1: Exact DS-bucketed BFS over known pieces (hold + previews)
         if best_win.map_or(true, |(wp, _, _, _)| wp > 1) {
-            let end_bw = 180usize;
-            let end_sub_w = 140usize;
-            let per_root_cap = 16usize;
+            let end_bw = 320usize;
+            let end_sub_w = 240usize;
+            let per_root_cap = 24usize;
             let z_limit = 4usize;
 
             for ds_cur in 0..target_ds {
@@ -2210,10 +2210,10 @@ impl BeamSearcher {
             bag_bits.swap(i, j);
         }
 
-        let w_cnt = if bag_n <= 2 { 4 } else { 5 };
+        let w_cnt = if bag_n <= 2 { 6 } else { 10 };
         let need_q_len = (rem_g0 as usize + 8).clamp(total_known + 3, 15).min(16);
-        let mut world_qs = [[0u8; 16]; 8];
-        let mut world_end_bags = [0x7Fu8; 8];
+        let mut world_qs = [[0u8; 16]; 12];
+        let mut world_end_bags = [0x7Fu8; 12];
         for w in 0..w_cnt {
             for i in 0..q_len {
                 world_qs[w][i] = q[i];
@@ -2249,10 +2249,10 @@ impl BeamSearcher {
         }
 
         let mut scored_roots: Vec<(u16, i64)> = Vec::with_capacity(cand_roots.len());
+        let mut w_scores = [0i64; 12];
         for &ri in &cand_roots {
             let fp = self.root_places[ri as usize];
             let mut sum_w: i64 = 0;
-            let mut worst_w: i64 = i64::MIN;
             for w in 0..w_cnt {
                 let (w_sc, evals) = self.endgame_world_ds(
                     root_board,
@@ -2266,13 +2266,16 @@ impl BeamSearcher {
                     &end_w,
                 );
                 nodes_evaluated += evals;
+                w_scores[w] = w_sc;
                 sum_w += w_sc;
-                if w_sc > worst_w {
-                    worst_w = w_sc;
-                }
             }
             let mean_sc = sum_w / (w_cnt as i64);
-            let comb_sc = (mean_sc * 85 + worst_w * 15) / 100;
+            let slice = &mut w_scores[..w_cnt];
+            slice.sort_unstable();
+            let tail_k = ((w_cnt + 2) / 3).max(1);
+            let tail_sum: i64 = slice[(w_cnt - tail_k)..].iter().sum();
+            let cvar_sc = tail_sum / (tail_k as i64);
+            let comb_sc = (mean_sc * 70 + cvar_sc * 30) / 100;
             scored_roots.push((ri, comb_sc));
         }
         scored_roots.sort_unstable_by_key(|&(ri, sc)| (sc, ri));
