@@ -832,7 +832,7 @@ impl BeamSearcher {
                         cfg,
                     );
                     nodes_evaluated += evals;
-                    r_sc
+                    r_sc + (node.nds_used as i64) * cfg.nds_pen
                 } else {
                     node.score
                 };

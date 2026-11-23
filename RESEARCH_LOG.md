@@ -139,7 +139,10 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
     - Trained on `150` `WG_ds (B=1800)` + `60` Legal DAgger games from `spatial_bc3_lin.txt` (`30,063` decisions, `1,389,534` legal moves): `val_ce = 0.9773` (LIN, `top1=70.4%`) / `0.9662` (MLP, `top1=70.7%`, `top3=92.0%`).
     - **`LEGAL_pimc_w8_bc_lin` (`w=8, h=8, b=24, roots=8`, 149.6s)**: **`183.40 [179..190]`** (**NEW ALL-TIME LEGAL RECORD**, `[179, 183, 182, 183, 190]` — **`-5.80` pcs** faster/stronger than BC-3's `w8 = 189.20` and 5× faster than `h9_w16`!).
     - `LEGAL_b120_bc_mlp`: **`194.80 [191..203]`** (4/5 seeds `<= 194` with ZERO PIMC!); `end` in `pro_h9_w16_b32_cvar30` dropped `6.0 -> 4.2` (`-1.8` pcs saved in endgame).
-    - Next: `v5_search_break` sweep scaling the `183.40` `h=8` winner (`w=16..20, b=28..32, cvar=0/25/30`), testing short-horizon DS-bucketed PIMC (`ds_target=5` with V5 internal + CVaR-30), and testing `spatial_bc4.txt` (V5 MLP) at `h=8` + CVaR-25.
+    - **`v5_search_break` (Actions Run `45124242227`) & `OR_p20` Diagnostic (`spatial_bc4_lin.txt`)**:
+      - `h8_w16_b28_r12_cvar25`: `185.00 [181..190]`; `ds5_w16_b24_r12_cvar30`: `187.40`; `bc4` MLP `cvar16`: `186.00` (seed 103 = **`173`**, seed 101 `cov=19`).
+      - **Key Root-Cause Discovery (`diag_cheese spatial_or_p20 models/spatial_bc4_lin.txt`)**: Even with **20 previews + 100% exact holes + `b=240`**, `spatial_bc4_lin.txt` only hits **`176.00 [175, 177]`** (`nds=59.50`, vs `WG_ds` `163.00`, `nds=54.80` -> `+4.7` extra `nds` lines × `2.5` = `+11.75` pieces!). Why? `cfg.nds_pen == 0`, so fixed-depth beam search burns non-garbage lines freely (`-0.016/cell` vs true conservation cost `+0.25/cell = +2.50/line`).
+      - Next: `nds_expectimax` sweep testing exact cell-conservation `nds_pen ∈ {40, 80, 120, 160}` (zero hoarding!) + Non-Clairvoyant Depth-6 Prefix + Exact 7-Bag Expectimax Rollout (`rollout_top_k=24, rollout_horizon=0/2/3`).
 
 ---
 

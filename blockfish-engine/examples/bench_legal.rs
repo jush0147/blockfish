@@ -983,6 +983,63 @@ fn main() {
             c_ds5.root_pimc_cvar_pct = 30;
             eval_seeds("ds5_w16_b24_r12_cvar30", &seeds, &c_ds5);
         }
+        if which == "nds_expectimax" {
+            // 1. Cell-conservation nds_pen sweep on plain p=5 b=120
+            for &np in &[40i64, 80, 120, 160] {
+                let mut c = c_base.clone();
+                c.beam_width = 120;
+                c.max_per_root = 24;
+                c.root_pimc_worlds = 0;
+                c.nds_pen = np;
+                eval_seeds(&format!("b120_nds{}", np), &seeds, &c);
+            }
+
+            // 2. Cell-conservation nds_pen sweep on fast w8_h8 (183.40 baseline!)
+            for &np in &[40i64, 80, 120, 160] {
+                let mut c = c_base.clone();
+                c.beam_width = 64;
+                c.max_per_root = 16;
+                c.root_pimc_prescreen_worlds = 0;
+                c.root_pimc_roots = 8;
+                c.root_pimc_worlds = 8;
+                c.root_pimc_horizon = 8;
+                c.root_pimc_width = 24;
+                c.root_pimc_margin = 350;
+                c.root_pimc_cvar_pct = 0;
+                c.nds_pen = np;
+                eval_seeds(&format!("w8_h8_nds{}", np), &seeds, &c);
+            }
+
+            // 3. Non-Clairvoyant Depth-6 Prefix + Exact 7-Bag Expectimax Rollout (zero prefix strategy fusion!)
+            for &(rh, np) in &[(0usize, 0i64), (2, 0), (3, 0), (2, 80)] {
+                let mut c = c_base.clone();
+                c.beam_width = 120;
+                c.max_per_root = 24;
+                c.root_pimc_worlds = 0;
+                c.rollout_top_k = 24;
+                c.rollout_per_root = 2;
+                c.rollout_horizon = rh;
+                c.rollout_samples = 2;
+                c.nds_pen = np;
+                eval_seeds(&format!("nc_exp_rh{}_nds{}", rh, np), &seeds, &c);
+            }
+
+            // 4. Cell-conservation nds_pen on h8_w16_b28_r12_cvar25
+            for &np in &[60i64, 100] {
+                let mut c = c_base.clone();
+                c.beam_width = 80;
+                c.max_per_root = 16;
+                c.root_pimc_prescreen_worlds = 0;
+                c.root_pimc_roots = 12;
+                c.root_pimc_worlds = 16;
+                c.root_pimc_horizon = 8;
+                c.root_pimc_width = 28;
+                c.root_pimc_margin = 400;
+                c.root_pimc_cvar_pct = 25;
+                c.nds_pen = np;
+                eval_seeds(&format!("h8_w16_c25_nds{}", np), &seeds, &c);
+            }
+        }
         return;
     }
 
