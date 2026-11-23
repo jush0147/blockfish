@@ -1122,6 +1122,8 @@ fn forward_move(
     mdl: &SpatialValueModel,
     mf: &MoveFeat,
     use_mlp: bool,
+    drop1: Option<&[f32; SPATIAL_H1]>,
+    drop2: Option<&[f32; SPATIAL_H2]>,
     z_out: &mut [f32; DENSE_DIM],
     a1_out: &mut [f32; SPATIAL_H1],
     a2_out: &mut [f32; SPATIAL_H2],
@@ -1159,7 +1161,8 @@ fn forward_move(
     }
     let mut h2 = mdl.b2;
     for h in 0..SPATIAL_H1 {
-        let a1 = h1[h].clamp(0.0, 6.0);
+        let d1 = drop1.map_or(1.0, |m| m[h]);
+        let a1 = h1[h].clamp(0.0, 6.0) * d1;
         a1_out[h] = a1;
         if a1 > 0.0 {
             let row = &mdl.w2[h];
@@ -1170,7 +1173,8 @@ fn forward_move(
     }
     let mut raw_mlp = mdl.b3;
     for k in 0..SPATIAL_H2 {
-        let a2 = h2[k].clamp(0.0, 6.0);
+        let d2 = drop2.map_or(1.0, |m| m[k]);
+        let a2 = h2[k].clamp(0.0, 6.0) * d2;
         a2_out[k] = a2;
         if a2 > 0.0 {
             raw_mlp += a2 * mdl.w3[k];
@@ -1185,6 +1189,8 @@ fn backward_move(
     mdl: &SpatialValueModel,
     mf: &MoveFeat,
     use_mlp: bool,
+    drop1: Option<&[f32; SPATIAL_H1]>,
+    drop2: Option<&[f32; SPATIAL_H2]>,
     z: &[f32; DENSE_DIM],
     a1: &[f32; SPATIAL_H1],
     a2: &[f32; SPATIAL_H2],
@@ -1213,9 +1219,10 @@ fn backward_move(
     let mut d_h2 = [0.0f32; SPATIAL_H2];
     for k in 0..SPATIAL_H2 {
         if a2[k] > 0.0 {
+            let d2 = drop2.map_or(1.0, |m| m[k]);
             g.w3[k] += d_mlp * a2[k];
-            if a2[k] < 6.0 {
-                let dk = d_mlp * mdl.w3[k];
+            if d2 > 0.0 && a2[k] < 6.0 * d2 {
+                let dk = d_mlp * mdl.w3[k] * d2;
                 d_h2[k] = dk;
                 g.b2[k] += dk;
             }
@@ -1223,6 +1230,7 @@ fn backward_move(
     }
     for h in 0..SPATIAL_H1 {
         if a1[h] > 0.0 {
+            let d1 = drop1.map_or(1.0, |m| m[h]);
             let mut dh = 0.0f32;
             let row = &mdl.w2[h];
             let grow = &mut g.w2[h];
@@ -1233,10 +1241,11 @@ fn backward_move(
                     dh += dk * row[k];
                 }
             }
-            if a1[h] < 6.0 && dh != 0.0 {
-                g.b1[h] += dh;
+            if d1 > 0.0 && a1[h] < 6.0 * d1 && dh != 0.0 {
+                let dh_s = dh * d1;
+                g.b1[h] += dh_s;
                 for &b in &mf.active {
-                    g.w_sparse[b as usize][h] += dh;
+                    g.w_sparse[b as usize][h] += dh_s;
                 }
                 for j in 0..DENSE_DIM {
                     if j == 0 || j == 2 {
@@ -1244,7 +1253,7 @@ fn backward_move(
                     }
                     let zm = z[j].clamp(-3.0, 3.0);
                     if zm != 0.0 {
-                        g.w_dense[j][h] += dh * zm;
+                        g.w_dense[j][h] += dh_s * zm;
                     }
                 }
             }
@@ -1267,7 +1276,7 @@ fn eval_decisions(mdl: &SpatialValueModel, decisions: &[Decision], idxs: &[usize
         let mut max_l = f32::NEG_INFINITY;
         let mut star_v = 0.0f32;
         for (mi, mf) in dec.moves.iter().enumerate() {
-            let (v, _) = forward_move(mdl, mf, use_mlp, &mut z, &mut a1, &mut a2);
+            let (v, _) = forward_move(mdl, mf, use_mlp, None, None, &mut z, &mut a1, &mut a2);
             if mi == dec.target_idx {
                 star_v = v;
             }
@@ -1327,7 +1336,7 @@ fn eval_legal_set(label: &str, seeds: &[u64], mdl: &Arc<SpatialValueModel>, beam
     cfg.spatial_rerank_only = false;
     cfg.spatial_no_pe_internal = true;
     if with_pimc {
-        cfg.spatial_rerank_only = true;
+        cfg.spatial_rerank_only = false;
         cfg.root_pimc_worlds = 8;
         cfg.root_pimc_horizon = 8;
         cfg.root_pimc_roots = 8;
@@ -1369,6 +1378,8 @@ fn main() {
     let mut lr_mlp: f32 = 0.0008;
     let mut wd: f32 = 0.002;
     let mut wd_mlp: f32 = 0.015;
+    let mut dropout: f32 = 0.15;
+    let mut label_smooth: f32 = 0.02;
     let mut seed_base: u64 = 3000;
     let mut eval_legal: usize = 5;
 
@@ -1389,6 +1400,8 @@ fn main() {
             "--lr-mlp" => { lr_mlp = args[i + 1].parse().unwrap(); i += 2; }
             "--wd" => { wd = args[i + 1].parse().unwrap(); i += 2; }
             "--wd-mlp" => { wd_mlp = args[i + 1].parse().unwrap(); i += 2; }
+            "--dropout" => { dropout = args[i + 1].parse().unwrap(); i += 2; }
+            "--label-smooth" => { label_smooth = args[i + 1].parse().unwrap(); i += 2; }
             "--seed-base" => { seed_base = args[i + 1].parse().unwrap(); i += 2; }
             "--eval-legal" => { eval_legal = args[i + 1].parse().unwrap(); i += 2; }
             other => { eprintln!("Unknown arg: {}", other); std::process::exit(1); }
@@ -1397,8 +1410,8 @@ fn main() {
 
     let n_threads = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(2);
     println!(
-        "=== Full-Action-Space Afterstate BC + DAgger (WG_ds -> SpatialValueModel) ===\n  out={} games={} wg_beam={} dagger_games={} lin_ep={} mlp_ep={} batch={} tau={} cal_w={} lr_lin={} lr_mlp={} wd={} wd_mlp={} threads={}",
-        out_path, games, wg_beam, dagger_games, lin_epochs, mlp_epochs, batch_sz, tau, cal_w, lr_lin, lr_mlp, wd, wd_mlp, n_threads
+        "=== Full-Action-Space Afterstate BC + DAgger (WG_ds -> SpatialValueModel {}x{}) ===\n  out={} games={} wg_beam={} dagger_games={} lin_ep={} mlp_ep={} batch={} tau={} cal_w={} lr_lin={} lr_mlp={} wd={} wd_mlp={} drop={} ls={} threads={}",
+        SPATIAL_H1, SPATIAL_H2, out_path, games, wg_beam, dagger_games, lin_epochs, mlp_epochs, batch_sz, tau, cal_w, lr_lin, lr_mlp, wd, wd_mlp, dropout, label_smooth, n_threads
     );
 
     let t0 = Instant::now();
@@ -1538,7 +1551,7 @@ fn main() {
                 let mut max_l = f32::NEG_INFINITY;
                 let mut star_v = 0.0f32;
                 for m in 0..nm {
-                    let (v, rm) = forward_move(&mdl, &dec.moves[m], false, &mut z_cache[m], &mut a1_cache[m], &mut a2_cache[m]);
+                    let (v, rm) = forward_move(&mdl, &dec.moves[m], false, None, None, &mut z_cache[m], &mut a1_cache[m], &mut a2_cache[m]);
                     raw_mlp_cache[m] = rm;
                     if m == dec.target_idx { star_v = v; }
                     let l = -v / tau;
@@ -1551,9 +1564,10 @@ fn main() {
                     sum_e += logits_buf[m];
                 }
                 let inv_e = 1.0 / sum_e.max(1e-12);
+                let ls_u = label_smooth / (nm.max(1) as f32);
                 for m in 0..nm {
                     let p_m = logits_buf[m] * inv_e;
-                    let y_m = if m == dec.target_idx { 1.0f32 } else { 0.0f32 };
+                    let y_m = if m == dec.target_idx { 1.0f32 - label_smooth + ls_u } else { ls_u };
                     // d(CE)/d(v_m) = -(p_m - y_m) / tau
                     let mut d_v = -(p_m - y_m) / tau;
                     if m == dec.target_idx {
@@ -1561,7 +1575,7 @@ fn main() {
                         let huber_g = if err.abs() <= 2.0 { err } else { 2.0 * err.signum() };
                         d_v += cal_w * huber_g;
                     }
-                    backward_move(&mdl, &dec.moves[m], false, &z_cache[m], &a1_cache[m], &a2_cache[m], 0.0, d_v * inv_b, &mut grad);
+                    backward_move(&mdl, &dec.moves[m], false, None, None, &z_cache[m], &a1_cache[m], &a2_cache[m], 0.0, d_v * inv_b, &mut grad);
                 }
             }
             adam.apply(&mut mdl, &grad, lr_cur, 0.0, wd, 0.0, false);
@@ -1594,25 +1608,31 @@ fn main() {
         u * scale
     };
     for i in 0..SPARSE_DIM {
-        for h in 0..SPATIAL_H1 { mdl.w_sparse[i][h] = rand_w(0.03); }
+        for h in 0..SPATIAL_H1 { mdl.w_sparse[i][h] = rand_w(0.025); }
     }
     for j in 0..DENSE_DIM {
         if j == 0 || j == 2 { continue; }
-        for h in 0..SPATIAL_H1 { mdl.w_dense[j][h] = rand_w(0.04); }
+        for h in 0..SPATIAL_H1 { mdl.w_dense[j][h] = rand_w(0.035); }
     }
     for h in 0..SPATIAL_H1 {
         mdl.b1[h] = 0.05;
-        for k in 0..SPATIAL_H2 { mdl.w2[h][k] = rand_w(0.06); }
+        for k in 0..SPATIAL_H2 { mdl.w2[h][k] = rand_w(0.045); }
     }
     for k in 0..SPATIAL_H2 {
         mdl.b2[k] = 0.05;
-        mdl.w3[k] = rand_w(0.02);
+        mdl.w3[k] = rand_w(0.018);
     }
     mdl.b3 = 0.0;
 
     let mut adam_mlp = AdamState::new();
     let mut best_mlp_ce = best_lin_ce;
     let mut best_mlp_mdl = best_lin_mdl.clone();
+    let mut drop_rng = 0xA0761D6478BD642Fu64;
+    let keep_p = (1.0 - dropout).clamp(0.2, 1.0);
+    let inv_keep = 1.0 / keep_p;
+    let drop_thresh = (keep_p * (u32::MAX as f32)) as u32;
+    let mut drop1_buf = [1.0f32; SPATIAL_H1];
+    let mut drop2_buf = [1.0f32; SPATIAL_H2];
 
     for ep in 1..=mlp_epochs {
         for k in (1..order.len()).rev() {
@@ -1637,10 +1657,24 @@ fn main() {
                 raw_mlp_cache.resize(nm, 0.0);
                 logits_buf.resize(nm, 0.0);
 
+                let (d1_opt, d2_opt) = if dropout > 0.0 {
+                    for h in 0..SPATIAL_H1 {
+                        drop_rng = drop_rng.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+                        drop1_buf[h] = if (drop_rng >> 32) as u32 <= drop_thresh { inv_keep } else { 0.0 };
+                    }
+                    for k in 0..SPATIAL_H2 {
+                        drop_rng = drop_rng.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+                        drop2_buf[k] = if (drop_rng >> 32) as u32 <= drop_thresh { inv_keep } else { 0.0 };
+                    }
+                    (Some(&drop1_buf), Some(&drop2_buf))
+                } else {
+                    (None, None)
+                };
+
                 let mut max_l = f32::NEG_INFINITY;
                 let mut star_v = 0.0f32;
                 for m in 0..nm {
-                    let (v, rm) = forward_move(&mdl, &dec.moves[m], true, &mut z_cache[m], &mut a1_cache[m], &mut a2_cache[m]);
+                    let (v, rm) = forward_move(&mdl, &dec.moves[m], true, d1_opt, d2_opt, &mut z_cache[m], &mut a1_cache[m], &mut a2_cache[m]);
                     raw_mlp_cache[m] = rm;
                     if m == dec.target_idx { star_v = v; }
                     let l = -v / tau;
@@ -1653,16 +1687,17 @@ fn main() {
                     sum_e += logits_buf[m];
                 }
                 let inv_e = 1.0 / sum_e.max(1e-12);
+                let ls_u = label_smooth / (nm.max(1) as f32);
                 for m in 0..nm {
                     let p_m = logits_buf[m] * inv_e;
-                    let y_m = if m == dec.target_idx { 1.0f32 } else { 0.0f32 };
+                    let y_m = if m == dec.target_idx { 1.0f32 - label_smooth + ls_u } else { ls_u };
                     let mut d_v = -(p_m - y_m) / tau;
                     if m == dec.target_idx {
                         let err = star_v - dec.rem_pcs;
                         let huber_g = if err.abs() <= 2.0 { err } else { 2.0 * err.signum() };
                         d_v += cal_w * huber_g;
                     }
-                    backward_move(&mdl, &dec.moves[m], true, &z_cache[m], &a1_cache[m], &a2_cache[m], raw_mlp_cache[m], d_v * inv_b, &mut grad);
+                    backward_move(&mdl, &dec.moves[m], true, d1_opt, d2_opt, &z_cache[m], &a1_cache[m], &a2_cache[m], raw_mlp_cache[m], d_v * inv_b, &mut grad);
                 }
             }
             adam_mlp.apply(&mut mdl, &grad, lrl, lrm, wd, wd_mlp, true);

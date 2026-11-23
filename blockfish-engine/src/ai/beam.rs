@@ -1608,7 +1608,9 @@ impl BeamSearcher {
         cfg: &BeamConfig,
     ) -> i64 {
         if let Some(ref sm) = cfg.spatial_model {
-            if cfg.spatial_no_pe_internal || !sm.needs_pe {
+            if !cfg.spatial_rerank_only && sm.has_mlp {
+                sm.evaluate_board_with_bag(board, rem_g, in_hand, avail_mask)
+            } else if cfg.spatial_no_pe_internal || !sm.needs_pe {
                 sm.evaluate_linear_board_with_bag_no_pe(board, rem_g, in_hand, avail_mask)
             } else {
                 sm.evaluate_linear_board_with_bag(board, rem_g, in_hand, avail_mask)

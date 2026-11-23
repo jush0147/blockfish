@@ -142,8 +142,14 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
     - **`v5_search_break` (Actions Run `45124242227`) & `OR_p20` Diagnostic (`spatial_bc4_lin.txt`)**:
       - `h8_w16_b28_r12_cvar25`: `185.00 [181..190]`; `ds5_w16_b24_r12_cvar30`: `187.40`; `bc4` MLP `cvar16`: `186.00` (seed 103 = **`173`**, seed 101 `cov=19`).
       - **Key Root-Cause Discovery (`diag_cheese spatial_or_p20 models/spatial_bc4_lin.txt`)**: Even with **20 previews + 100% exact holes + `b=240`**, `spatial_bc4_lin.txt` only hits **`176.00 [175, 177]`** (`nds=59.50`, vs `WG_ds` `163.00`, `nds=54.80`).
-      - **`nds_expectimax` (Actions Run `45134409140`)**: Proved `nds_pen > 0` in finite-horizon beam is mathematically equivalent to rewarding `stack_cells` (`C_d = C_0 + 4d - ds - 10*nds`) and degrades Legal play (`avg_c: 12.2 -> 20.3`, `w8_h8: 183.40 -> 186.40 -> 208.00`). Exact 7-bag 1-ply Expectimax (`nc_exp_rh0`) improved `plain_b120` by `-4.0` pcs (`199.20 -> 195.20`) but trailed `w8_h8` (`183.40`) due to opaque prefix spawns and narrow `width=2` rollout.
-      - **Next Pivot**: (1) Test **Full V5 MLP inside the PIMC inner beam (`spatial_rerank_only = false`)** — never tested before, yet `bc4` MLP already beat `bc4_lin` by `-4.40` pcs on `b120` (`194.80` vs `199.20`) at only `1.45×` cost; (2) Scale up `train_bc.rs` to **500+ `WG_ds` games (`> 3.5M` moves) + Dropout + Label Smoothing** to eliminate epoch-6 MLP overfitting and break `< 180 -> 170s`.
+      - **`nds_expectimax` (Actions Run `45134409140`)**: Proved `nds_pen > 0` in finite-horizon beam is mathematically equivalent to rewarding `stack_cells` (`C_d = C_0 + 4d - ds - 10*nds`) and degrades Legal play (`avg_c: 12.2 -> 20.3`, `w8_h8: 183.40 -> 186.40 -> 208.00`). Exact 7-bag 1-ply Expectimax (`nc_exp_rh0`) improved `plain_b120` by `-4.0` pcs (`199.20 -> 195.20`) but trailed `w8_h8` (`183.40`).
+      - **`full_mlp_pimc` (Actions Run `45144768300` — NEW ALL-TIME LEGAL RECORD `181.20 [175..187]`!!)**:
+        - Running **Full V5 MLP (`models/spatial_bc4.txt`) INSIDE the PIMC inner beam (`spatial_rerank_only = false`)** broke the 183-piece barrier with a clean monotonic scaling curve:
+          - `fullmlp_w8_h8_b24_cvar0`: `187.80` (`182.6s`)
+          - `fullmlp_w12_h8_b24_cvar25`: `184.60` (`279.1s`, `-3.20` pcs)
+          - **`fullmlp_w16_h8_b28_cvar25`**: **`181.20 [175..187]`** (`[101:187, 102:184, 103:180, 104:180, 105:175]`, `nds=61.40`, `wide=22.8`, `O=17.6`, `nar=6.8`, `end=4.2`, `459.1s` — **3/5 seeds `<= 180`**, `-3.80` pcs better than `bc4_lin` on the exact same config `185.00`, AND faster!).
+      - **Next (Round BC-5 — Wide `128x48` NNUE + Scale-Up Dataset + Dropout/Label Smoothing)**:
+        - Upgraded `SpatialValueModel` to `128 -> 48 -> 1` NNUE (100% backward-compatible zero-padding for `64x32` models), added Full MLP to `eval_endgame_state`, added decision-consistent inverted Dropout (`0.15`) + Label Smoothing (`0.02`) in `train_bc.rs`, and scaled training to `350` `WG_ds (B=900)` + `50` Legal DAgger (`spatial_bc4.txt`) games (`~65K` decisions, `~3M` legal moves) -> `models/spatial_bc5.txt` + `fullmlp_w16` verification.
 
 ---
 

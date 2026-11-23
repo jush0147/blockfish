@@ -4,8 +4,8 @@ use std::io::{BufRead, BufReader, BufWriter, Write};
 
 pub const SPARSE_DIM: usize = 374;
 pub const DENSE_DIM: usize = 90;
-pub const SPATIAL_H1: usize = 64;
-pub const SPATIAL_H2: usize = 32;
+pub const SPATIAL_H1: usize = 128;
+pub const SPATIAL_H2: usize = 48;
 
 /// Extracts sparse binary indices (`0..SPARSE_DIM`) and dense tactical scalars (`DENSE_DIM`)
 /// from a legal observable `FastBoard` state. Returns the number of active sparse indices written
@@ -1546,7 +1546,7 @@ impl SpatialValueModel {
             || (parts[0] == "SPATIAL_VAL_V3" && (dd == 74 || dd == 82 || dd == DENSE_DIM))
             || (parts[0] == "SPATIAL_VAL_V4" && (dd == 82 || dd == DENSE_DIM))
             || (parts[0] == "SPATIAL_VAL_V5" && dd == DENSE_DIM);
-        if !sd_ok || !dd_ok || h1 != SPATIAL_H1 || h2 != SPATIAL_H2 {
+        if !sd_ok || !dd_ok || h1 == 0 || h1 > SPATIAL_H1 || h2 == 0 || h2 > SPATIAL_H2 {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::InvalidData,
                 "dimension mismatch in spatial model",
@@ -1561,19 +1561,19 @@ impl SpatialValueModel {
         m.lin_bias = next_floats()?[0];
         m.lin_sparse[..sd].copy_from_slice(&next_floats()?[..sd]);
         m.lin_dense[..dd].copy_from_slice(&next_floats()?[..dd]);
-        m.b1.copy_from_slice(&next_floats()?[..SPATIAL_H1]);
+        m.b1[..h1].copy_from_slice(&next_floats()?[..h1]);
         for i in 0..sd {
-            m.w_sparse[i].copy_from_slice(&next_floats()?[..SPATIAL_H1]);
+            m.w_sparse[i][..h1].copy_from_slice(&next_floats()?[..h1]);
         }
         for j in 0..dd {
-            m.w_dense[j].copy_from_slice(&next_floats()?[..SPATIAL_H1]);
+            m.w_dense[j][..h1].copy_from_slice(&next_floats()?[..h1]);
         }
-        m.b2.copy_from_slice(&next_floats()?[..SPATIAL_H2]);
-        for i in 0..SPATIAL_H1 {
-            m.w2[i].copy_from_slice(&next_floats()?[..SPATIAL_H2]);
+        m.b2[..h2].copy_from_slice(&next_floats()?[..h2]);
+        for i in 0..h1 {
+            m.w2[i][..h2].copy_from_slice(&next_floats()?[..h2]);
         }
         m.b3 = next_floats()?[0];
-        m.w3.copy_from_slice(&next_floats()?[..SPATIAL_H2]);
+        m.w3[..h2].copy_from_slice(&next_floats()?[..h2]);
         m.prepare_fast();
         Ok(m)
     }

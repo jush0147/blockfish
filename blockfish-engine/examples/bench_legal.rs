@@ -1069,6 +1069,20 @@ fn main() {
             c_m3.root_pimc_width = 28;
             eval_seeds("fullmlp_w16_h8_b28_cvar25", &seeds, &c_m3);
         }
+        if which == "fullmlp_w16" {
+            let mut c_m3 = c_base.clone();
+            c_m3.spatial_rerank_only = false;
+            c_m3.beam_width = 80;
+            c_m3.max_per_root = 16;
+            c_m3.root_pimc_prescreen_worlds = 0;
+            c_m3.root_pimc_roots = 12;
+            c_m3.root_pimc_worlds = 16;
+            c_m3.root_pimc_horizon = 8;
+            c_m3.root_pimc_width = 28;
+            c_m3.root_pimc_margin = 400;
+            c_m3.root_pimc_cvar_pct = 25;
+            eval_seeds("fullmlp_w16_h8_b28_cvar25", &seeds, &c_m3);
+        }
         return;
     }
 
