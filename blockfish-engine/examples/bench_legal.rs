@@ -1138,6 +1138,89 @@ fn main() {
             c_lp3.pimc_horizon = 6;
             eval_seeds("lpimc_h12_w16_b24_c30", &seeds, &c_lp3);
         }
+        if which == "risk_calib" {
+            let mut c_m = c_base.clone();
+            c_m.spatial_rerank_only = false;
+            c_m.beam_width = 80;
+            c_m.max_per_root = 16;
+            c_m.root_pimc_prescreen_worlds = 0;
+            c_m.root_pimc_roots = 12;
+            c_m.root_pimc_worlds = 16;
+            c_m.root_pimc_horizon = 8;
+            c_m.root_pimc_width = 28;
+            c_m.root_pimc_margin = 400;
+            c_m.root_pimc_cvar_pct = 25;
+
+            let base_sm = (**c_base.spatial_model.as_ref().unwrap()).clone();
+
+            // 1. Lower rem_g (1.68 -> 1.50): less greedy h2-covering
+            {
+                let mut m = base_sm.clone();
+                if m.dense_inv_std[0] > 0.0 {
+                    m.lin_dense[0] = 1.50 / m.dense_inv_std[0];
+                }
+                m.prepare_fast();
+                let mut c = c_m.clone();
+                c.spatial_model = Some(Arc::new(m));
+                eval_seeds("rc_remg_150", &seeds, &c);
+            }
+
+            // 2. Higher rem_g (1.68 -> 1.85): less passive wide-0ds
+            {
+                let mut m = base_sm.clone();
+                if m.dense_inv_std[0] > 0.0 {
+                    m.lin_dense[0] = 1.85 / m.dense_inv_std[0];
+                }
+                m.prepare_fast();
+                let mut c = c_m.clone();
+                c.spatial_model = Some(Arc::new(m));
+                eval_seeds("rc_remg_185", &seeds, &c);
+            }
+
+            // 3. Cover-risk pricing +30% (h1_cc, h2_cc, cov_holes, blk_ov_h)
+            {
+                let mut m = base_sm.clone();
+                for &j in &[23usize, 25, 28, 72, 73] {
+                    m.lin_dense[j] *= 1.30;
+                }
+                m.prepare_fast();
+                let mut c = c_m.clone();
+                c.spatial_model = Some(Arc::new(m));
+                eval_seeds("rc_covrisk_130", &seeds, &c);
+            }
+
+            // 4. Cover-risk pricing +60%
+            {
+                let mut m = base_sm.clone();
+                for &j in &[23usize, 25, 28, 72, 73] {
+                    m.lin_dense[j] *= 1.60;
+                }
+                m.prepare_fast();
+                let mut c = c_m.clone();
+                c.spatial_model = Some(Arc::new(m));
+                eval_seeds("rc_covrisk_160", &seeds, &c);
+            }
+
+            // 5. MLP boost 1.5x (stronger nonlinear correction)
+            {
+                let mut m = base_sm.clone();
+                m.b3 *= 1.50;
+                for k in 0..m.w3.len() {
+                    m.w3[k] *= 1.50;
+                }
+                m.prepare_fast();
+                let mut c = c_m.clone();
+                c.spatial_model = Some(Arc::new(m));
+                eval_seeds("rc_mlp_150", &seeds, &c);
+            }
+
+            // 6. Stronger CVaR-50 anti-Strategy-Fusion
+            {
+                let mut c = c_m.clone();
+                c.root_pimc_cvar_pct = 50;
+                eval_seeds("rc_cvar_50", &seeds, &c);
+            }
+        }
         return;
     }
 

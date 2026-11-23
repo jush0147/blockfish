@@ -157,8 +157,10 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
         - Held-out 10-seed (`101..=110`) `fullmlp_w16`: **`189.30 [180..200]`** (improved hard seeds `106..=110` from `194.60 -> 190.40` (`-4.20` pcs, `cov_nxt` `17.9% -> 17.0%`), but regressed on `101..=105`, staying on the ~188 plateau).
       - **Round BC-6 (`SPATIAL_VAL_V6` Exact 2D `3×3` Pattern NNUE `64x32`, `models/spatial_bc6.txt` & `models/spatial_bc6_lin.txt`, Actions Run `45238581076`, 54m)**:
         - Improved `val_ce` to `0.9529` (LIN) / `0.9443` (MLP, `top1=71.3%`) on the exact same BC-4 dataset (`150 WG_ds B=1800 + 60 DAgger`), `LEGAL_b120_bc_lin = 196.60`, `LEGAL_pimc_w8 = 185.80` (`104:177`), and `10-seed` `fullmlp_w16 = 190.00 [186..198]` (beat `bc4` on seeds `108` `-10` pcs and `109` `-15` pcs, confirming ~188–190 is the structural ceiling of `h=8` clairvoyant `root_pimc`).
-      - **Next Pivot — Non-Clairvoyant Prefix-6 + CVaR Leaf-PIMC (`total_h = 10..12`, ZERO Prefix Strategy Fusion)**:
-        - Upgraded Stage 3 `pimc_worlds` in `beam.rs` to materialize Stage-1 opaque garbage rows (`materialize_fog_holes`) and apply `CVaR` tail aggregation (`25..30%`), breaking past the `h=9` Strategy Fusion wall by forcing plies `1..6` to commit non-clairvoyantly before branching into `12..16` CRN worlds for `4..6` more plies (`total_h = 10..12`, 2.5× faster than `root_pimc`)! Launching 10-seed (`101..=110`) `leaf_pimc_break` on `models/spatial_bc4.txt` (~34m).
+      - **`leaf_pimc_break` (Actions Run `45252557365`, 16m, 10 seeds `101..=110`)**:
+        - Non-Clairvoyant Prefix-6 + CVaR Leaf-PIMC (`lpimc_h10=196.00`, `h11=195.70`, `h12=194.00`) trailed `root_pimc` (`187.90`) by `+6.1` pcs because Stage-1 opaque `0x3FF` spawns poison the depth-1..5 beam (`cov` jumped `30.7 -> 36.9`, `cov_nxt` `17.9% -> 19.9%`).
+      - **Next (`risk_calib` 10-seed sweep on `models/spatial_bc4.txt` `fullmlp_w16`, ~48m)**:
+        - Directly test 6 low-dimensional Legal `p=5` calibration levers on 10 seeds (`101..=110`) vs `187.90`: `rem_g ∈ {1.50, 1.85}`, cover-risk multiplier `{1.30×, 1.60×}`, nonlinear MLP boost `1.50×`, and stronger `CVaR-50`.
 
 ---
 
