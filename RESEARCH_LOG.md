@@ -133,7 +133,13 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
       - **`plain_p5_b120` (ZERO PIMC)**: dropped **`-7.80` pcs** (`201.20 -> 193.40 [190..197]`)!
       - **`pro_h9_w16_b32_cvar30`**: **`183.60 [173..189]`** (**NEW ALL-TIME LEGAL RECORD**, `-2.20` pcs over `185.80`; `cov` dropped `32.2 -> 27.0`, `cov_nxt` `16.4% -> 14.8%`, **seed 103 hit `173` legally!**).
       - **`pro_h9_w20_b36_cvar35`** (4/5 seeds before 90m cutoff): `101:179, 102:188, 103:177, 104:185` (**4-seed mean = `182.25`**!).
-    - Remaining gap (`183.60` vs `WG_ds 164.60`): `cov=27.0 (+7.8)`, `nar=8.6 (+4.8)`, `wide=24.8 (+2.8)`, `end=6.0 (+4.2)`, `O=17.2 (-0.6)`. Next: wire `SpatialValueModel` into `solve_endgame_ds` (attack `end=6.0`), add `h1_clean_fit` (clear `h1` without covering `h2`) for V5, and run BC-4 with `bc3_lin` DAgger.
+    - Remaining gap (`183.60` vs `WG_ds 164.60`): `cov=27.0 (+7.8)`, `nar=8.6 (+4.8)`, `wide=24.8 (+2.8)`, `end=6.0 (+4.2)`, `O=17.2 (-0.6)`.
+  - **Round BC-4 (`SPATIAL_VAL_V5` + Spatial-guided Endgame, `models/spatial_bc4_lin.txt` & `models/spatial_bc4.txt`, Actions Run `45116823389` — NEW ALL-TIME LEGAL RECORD `183.40`)**:
+    - Upgraded to `SPATIAL_VAL_V5` (`374` sparse / `90` dense: exact `h1_clean_fit` without covering `h2`, 5-col outer contour around `h1`/`h2`, garbage height regime bits) + wired `SpatialValueModel` into `solve_endgame_ds` / `endgame_world_ds`.
+    - Trained on `150` `WG_ds (B=1800)` + `60` Legal DAgger games from `spatial_bc3_lin.txt` (`30,063` decisions, `1,389,534` legal moves): `val_ce = 0.9773` (LIN, `top1=70.4%`) / `0.9662` (MLP, `top1=70.7%`, `top3=92.0%`).
+    - **`LEGAL_pimc_w8_bc_lin` (`w=8, h=8, b=24, roots=8`, 149.6s)**: **`183.40 [179..190]`** (**NEW ALL-TIME LEGAL RECORD**, `[179, 183, 182, 183, 190]` — **`-5.80` pcs** faster/stronger than BC-3's `w8 = 189.20` and 5× faster than `h9_w16`!).
+    - `LEGAL_b120_bc_mlp`: **`194.80 [191..203]`** (4/5 seeds `<= 194` with ZERO PIMC!); `end` in `pro_h9_w16_b32_cvar30` dropped `6.0 -> 4.2` (`-1.8` pcs saved in endgame).
+    - Next: `v5_search_break` sweep scaling the `183.40` `h=8` winner (`w=16..20, b=28..32, cvar=0/25/30`), testing short-horizon DS-bucketed PIMC (`ds_target=5` with V5 internal + CVaR-30), and testing `spatial_bc4.txt` (V5 MLP) at `h=8` + CVaR-25.
 
 ---
 

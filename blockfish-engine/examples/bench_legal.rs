@@ -948,6 +948,41 @@ fn main() {
             c1.root_pimc_cvar_pct = 30;
             eval_seeds("pro_h9_w16_b32_cvar30", &seeds, &c1);
         }
+        if which == "v5_search_break" {
+            // 1. Scale up the 183.40 h=8 winner (no prescreen drop, roots=12, margin=400)
+            let mut c_h8 = c_base.clone();
+            c_h8.beam_width = 80;
+            c_h8.max_per_root = 16;
+            c_h8.root_pimc_prescreen_worlds = 0;
+            c_h8.root_pimc_roots = 12;
+            c_h8.root_pimc_worlds = 16;
+            c_h8.root_pimc_horizon = 8;
+            c_h8.root_pimc_width = 28;
+            c_h8.root_pimc_margin = 400;
+            c_h8.root_pimc_cvar_pct = 0;
+            eval_seeds("h8_w16_b28_r12_cvar0", &seeds, &c_h8);
+
+            // 2. Same h=8 with CVaR-25
+            let mut c_h8_c25 = c_h8.clone();
+            c_h8_c25.root_pimc_cvar_pct = 25;
+            eval_seeds("h8_w16_b28_r12_cvar25", &seeds, &c_h8_c25);
+
+            // 3. Heavy h=8 CVaR-30 (w=20, b=32, r=14)
+            let mut c_h8_w20 = c_h8.clone();
+            c_h8_w20.root_pimc_roots = 14;
+            c_h8_w20.root_pimc_worlds = 20;
+            c_h8_w20.root_pimc_width = 32;
+            c_h8_w20.root_pimc_cvar_pct = 30;
+            eval_seeds("h8_w20_b32_r14_cvar30", &seeds, &c_h8_w20);
+
+            // 4. Short-horizon DS-bucketed PIMC (ds_target=5, spatial V5 internal, CVaR-30)
+            let mut c_ds5 = c_h8.clone();
+            c_ds5.root_pimc_ds_target = 5;
+            c_ds5.root_pimc_horizon = 10;
+            c_ds5.root_pimc_width = 24;
+            c_ds5.root_pimc_cvar_pct = 30;
+            eval_seeds("ds5_w16_b24_r12_cvar30", &seeds, &c_ds5);
+        }
         return;
     }
 
