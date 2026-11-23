@@ -1,4 +1,4 @@
-=== Part 1: Scaling 181.20 Champion (models/spatial_bc4.txt, 64x32 native speed) to w20/w24 h8/h9 ===
+=== Round ExIt-1: Legal AlphaZero Expert Iteration (64 Legal PIMC CVaR-25 games -> models/spatial_exit1.txt, ~42m) ===
 [1m[33mwarning[0m[1m: unused build dependency `fontconfig`[0m
   [1m[94m--> [0mblockfish-client/Cargo.toml:29:1
    [1m[94m|[0m
@@ -97,32 +97,36 @@
    [1m[94m|[0m                                                         [92m++++[0m
 
 [1m[33mwarning[0m: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
-[1m[92m    Finished[0m `release` profile [optimized] target(s) in 8.10s
-[1m[92m     Running[0m `target/release/examples/bench_legal wg5_lin_sweep models/spatial_bc4.txt fullmlp_scale 5`
-=== Legal wg5_lin_sweep (models/spatial_bc4.txt, which=fullmlp_scale, n_seeds=5) ===
-  [seed 104] pcs=183 nds=62 0ds=83 (cov=28 O=18 nar=11 wide=24 end= 2) cov_nxt=17.0% | 475.2s
-  [seed 103] pcs=185 nds=63 0ds=85 (cov=33 O=18 nar= 9 wide=20 end= 5) cov_nxt=20.0% | 485.6s
-  [seed 102] pcs=190 nds=65 0ds=90 (cov=27 O=19 nar=15 wide=23 end= 6) cov_nxt=15.0% | 505.8s
-  [seed 101] pcs=190 nds=65 0ds=90 (cov=28 O=19 nar=11 wide=26 end= 6) cov_nxt=15.0% | 527.6s
-  [seed 105] pcs=188 nds=64 0ds=88 (cov=26 O=19 nar=10 wide=30 end= 3) cov_nxt=12.0% | 816.5s
-fullmlp_w20_h8_b36_cvar25  n= 5 mean=187.20 min=183 max=190 <=166: 0 top= 0 | nds=63.80 0ds=87.20 (cov=28.4 O=18.6 nar=11.2 wide=24.6 g0=0.0 end=4.4) cov_nxt=15.8% avg_c=12.4 | 816.5s
-  seeds: [101:190, 102:190, 103:185, 104:183, 105:188]
-  [seed 102] pcs=185 nds=62 0ds=85 (cov=33 O=19 nar= 9 wide=18 end= 6) cov_nxt=16.0% | 702.1s
-  [seed 103] pcs=186 nds=63 0ds=86 (cov=40 O=13 nar= 5 wide=23 end= 5) cov_nxt=19.0% | 705.7s
-  [seed 104] pcs=189 nds=64 0ds=89 (cov=31 O=18 nar=13 wide=22 end= 5) cov_nxt=19.0% | 716.6s
-  [seed 101] pcs=191 nds=65 0ds=91 (cov=29 O=19 nar= 5 wide=36 end= 2) cov_nxt=16.0% | 745.4s
-  [seed 105] pcs=186 nds=64 0ds=86 (cov=34 O=16 nar= 8 wide=24 end= 4) cov_nxt=19.0% | 1167.1s
-fullmlp_w24_h8_b44_cvar30  n= 5 mean=187.40 min=185 max=191 <=166: 0 top= 0 | nds=63.60 0ds=87.40 (cov=33.4 O=17.0 nar=8.0 wide=24.6 g0=0.0 end=4.4) cov_nxt=17.8% avg_c=12.1 | 1167.1s
-  seeds: [101:191, 102:185, 103:186, 104:189, 105:186]
-  [seed 102] pcs=182 nds=62 0ds=82 (cov=29 O=16 nar= 6 wide=25 end= 6) cov_nxt=15.0% | 521.8s
-  [seed 101] pcs=177 nds=59 0ds=77 (cov=17 O=19 nar= 4 wide=32 end= 5) cov_nxt=10.0% | 537.0s
-  [seed 104] pcs=191 nds=65 0ds=91 (cov=23 O=18 nar= 8 wide=39 end= 3) cov_nxt=13.0% | 550.5s
-  [seed 103] pcs=194 nds=66 0ds=94 (cov=31 O=19 nar=17 wide=24 end= 3) cov_nxt=16.0% | 584.4s
-  [seed 105] pcs=191 nds=65 0ds=91 (cov=28 O=19 nar=10 wide=33 end= 1) cov_nxt=16.0% | 909.5s
-fullmlp_w20_h9_b36_cvar30  n= 5 mean=187.00 min=177 max=194 <=166: 0 top= 0 | nds=63.40 0ds=87.00 (cov=25.6 O=18.2 nar=9.0 wide=30.6 g0=0.0 end=3.6) cov_nxt=14.0% avg_c=12.2 | 909.5s
-  seeds: [101:177, 102:182, 103:194, 104:191, 105:191]
+[1m[92m    Finished[0m `release` profile [optimized] target(s) in 5.34s
+[1m[92m     Running[0m `target/release/examples/train_exit --init models/spatial_bc4.txt --out models/spatial_exit1.txt --games 64 --worlds 6 --horizon 8 --width 20 --cvar 25 --epochs 24 --batch 32 --tau 0.45 --tau-q 0.35 --cal-w 0.08 --lr-lin 0.0005 --lr-mlp 0.0008 --wd-lin 0.001 --wd-mlp 0.005 --dropout 0.12 --seed-base 6000`
+=== Legal Expert Iteration (ExIt): models/spatial_bc4.txt (64x32) -> models/spatial_exit1.txt ===
+  games=64 w=6 h=8 b=20 cvar=25 ep=24 tau=0.45 tau_q=0.35 cal_w=0.08 lr_lin=0.0005 lr_mlp=0.0008 drop=0.12 threads=4
+  [Self-Play   8/64] last_pcs=191 dt=274.4s
+  [Self-Play  16/64] last_pcs=186 dt=519.5s
+  [Self-Play  24/64] last_pcs=186 dt=765.2s
+  [Self-Play  32/64] last_pcs=190 dt=1025.8s
+  [Self-Play  40/64] last_pcs=185 dt=1285.7s
+  [Self-Play  48/64] last_pcs=193 dt=1545.4s
+  [Self-Play  56/64] last_pcs=183 dt=1794.5s
+  [Self-Play  64/64] last_pcs=182 dt=2020.8s
+Phase 1 Legal Self-Play: 64 games (mean=187.84 top=0) -> 11866 decisions (10007 train, 1859 val), 556581 moves in 2020.8s
+  [INIT ep  0/24] val_soft_ce=1.4979 top1=67.5% top3=88.1% legal_v_mae=10.89
+  [ExIt ep  1/24] lr=0.00080 | val_soft_ce=1.4336 top1=66.2% top3=88.6% legal_v_mae=6.48
+  [ExIt ep  2/24] lr=0.00080 | val_soft_ce=1.4190 top1=66.4% top3=88.4% legal_v_mae=6.27
+  [ExIt ep  4/24] lr=0.00077 | val_soft_ce=1.4035 top1=67.0% top3=88.6% legal_v_mae=6.01
+  [ExIt ep  6/24] lr=0.00073 | val_soft_ce=1.4008 top1=67.1% top3=88.1% legal_v_mae=5.81
+  [ExIt ep  8/24] lr=0.00066 | val_soft_ce=1.4015 top1=66.6% top3=88.2% legal_v_mae=5.62
+  [ExIt ep 10/24] lr=0.00058 | val_soft_ce=1.4047 top1=66.9% top3=88.3% legal_v_mae=5.47
+  [ExIt ep 12/24] lr=0.00049 | val_soft_ce=1.4051 top1=66.9% top3=87.9% legal_v_mae=5.33
+  [ExIt ep 14/24] lr=0.00039 | val_soft_ce=1.4248 top1=66.4% top3=87.6% legal_v_mae=5.22
+  [ExIt ep 16/24] lr=0.00030 | val_soft_ce=1.4230 top1=66.9% top3=87.9% legal_v_mae=5.14
+  [ExIt ep 18/24] lr=0.00022 | val_soft_ce=1.4257 top1=66.1% top3=87.7% legal_v_mae=5.08
+  [ExIt ep 20/24] lr=0.00015 | val_soft_ce=1.4268 top1=66.0% top3=87.8% legal_v_mae=5.03
+  [ExIt ep 22/24] lr=0.00011 | val_soft_ce=1.4313 top1=65.9% top3=87.7% legal_v_mae=5.01
+  [ExIt ep 24/24] lr=0.00008 | val_soft_ce=1.4360 top1=65.5% top3=87.3% legal_v_mae=4.98
+Saved Legal ExIt model (val_soft_ce=1.3931, rem_g=1.718, ah=64x32) to models/spatial_exit1.txt
 
-=== Part 2: 10-Seed (101..=110) Held-Out Legal Validation of 181.20 Champion (fullmlp_w16) ===
+=== Fair 10-Seed (101..=110) Held-Out Legal Verification of models/spatial_exit1.txt vs 187.90 Baseline (~14m) ===
 [1m[33mwarning[0m[1m: unused build dependency `fontconfig`[0m
   [1m[94m--> [0mblockfish-client/Cargo.toml:29:1
    [1m[94m|[0m
@@ -219,18 +223,19 @@ fullmlp_w20_h9_b36_cvar30  n= 5 mean=187.00 min=177 max=194 <=166: 0 top= 0 | nd
    [1m[94m|[0m                                                         [92m++++[0m
 
 [1m[33mwarning[0m: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
-[1m[92m    Finished[0m `release` profile [optimized] target(s) in 0.03s
-[1m[92m     Running[0m `target/release/examples/bench_legal wg5_lin_sweep models/spatial_bc4.txt fullmlp_w16 10`
-=== Legal wg5_lin_sweep (models/spatial_bc4.txt, which=fullmlp_w16, n_seeds=10) ===
-  [seed 104] pcs=180 nds=61 0ds=80 (cov=31 O=17 nar= 1 wide=24 end= 7) cov_nxt=15.0% | 278.2s
-  [seed 103] pcs=180 nds=61 0ds=80 (cov=24 O=18 nar=13 wide=21 end= 4) cov_nxt=16.0% | 284.4s
-  [seed 102] pcs=184 nds=62 0ds=84 (cov=38 O=15 nar= 8 wide=19 end= 4) cov_nxt=18.0% | 294.7s
-  [seed 101] pcs=187 nds=64 0ds=87 (cov=32 O=19 nar= 4 wide=27 end= 5) cov_nxt=20.0% | 334.4s
-  [seed 105] pcs=175 nds=59 0ds=75 (cov=24 O=19 nar= 8 wide=23 end= 1) cov_nxt=13.0% | 553.8s
-  [seed 107] pcs=180 nds=61 0ds=80 (cov=21 O=20 nar= 9 wide=25 end= 5) cov_nxt=12.0% | 580.2s
-  [seed 106] pcs=201 nds=69 0ds=101 (cov=39 O=16 nar=16 wide=21 end= 9) cov_nxt=21.0% | 601.8s
-  [seed 108] pcs=197 nds=68 0ds=97 (cov=47 O=16 nar= 3 wide=27 end= 4) cov_nxt=27.0% | 640.0s
-  [seed 109] pcs=201 nds=69 0ds=101 (cov=27 O=21 nar= 8 wide=39 end= 6) cov_nxt=18.0% | 793.7s
-  [seed 110] pcs=194 nds=66 0ds=94 (cov=24 O=21 nar= 8 wide=34 end= 7) cov_nxt=19.0% | 808.4s
-fullmlp_w16_h8_b28_cvar25  n=10 mean=187.90 min=175 max=201 <=166: 0 top= 0 | nds=64.00 0ds=87.90 (cov=30.7 O=18.2 nar=7.8 wide=26.0 g0=0.0 end=5.2) cov_nxt=17.9% avg_c=12.5 | 808.4s
-  seeds: [101:187, 102:184, 103:180, 104:180, 105:175, 106:201, 107:180, 108:197, 109:201, 110:194]
+[1m[92m   Compiling[0m blockfish v0.1.0 (/home/runner/work/blockfish/blockfish/blockfish-engine)
+[1m[92m    Finished[0m `release` profile [optimized] target(s) in 1.52s
+[1m[92m     Running[0m `target/release/examples/bench_legal wg5_lin_sweep models/spatial_exit1.txt fullmlp_w16 10`
+=== Legal wg5_lin_sweep (models/spatial_exit1.txt, which=fullmlp_w16, n_seeds=10) ===
+  [seed 103] pcs=187 nds=64 0ds=87 (cov=40 O=14 nar= 5 wide=23 end= 5) cov_nxt=22.0% | 171.6s
+  [seed 102] pcs=182 nds=62 0ds=82 (cov=29 O=18 nar=13 wide=20 end= 2) cov_nxt=17.0% | 187.4s
+  [seed 101] pcs=190 nds=65 0ds=90 (cov=37 O=16 nar= 4 wide=24 end= 9) cov_nxt=21.0% | 194.2s
+  [seed 104] pcs=194 nds=66 0ds=94 (cov=26 O=19 nar=10 wide=34 end= 5) cov_nxt=11.0% | 198.7s
+  [seed 105] pcs=188 nds=64 0ds=88 (cov=33 O=18 nar= 9 wide=24 end= 4) cov_nxt=16.0% | 354.7s
+  [seed 107] pcs=185 nds=63 0ds=85 (cov=30 O=18 nar= 7 wide=26 end= 4) cov_nxt=16.0% | 375.6s
+  [seed 106] pcs=190 nds=64 0ds=90 (cov=34 O=17 nar= 8 wide=26 end= 5) cov_nxt=18.0% | 379.6s
+  [seed 108] pcs=197 nds=68 0ds=97 (cov=28 O=17 nar=13 wide=34 end= 5) cov_nxt=15.0% | 386.0s
+  [seed 109] pcs=200 nds=69 0ds=100 (cov=28 O=20 nar=11 wide=36 end= 5) cov_nxt=14.0% | 498.2s
+  [seed 110] pcs=180 nds=61 0ds=80 (cov=25 O=23 nar= 5 wide=20 end= 7) cov_nxt=20.0% | 504.5s
+fullmlp_w16_h8_b28_cvar25  n=10 mean=189.30 min=180 max=200 <=166: 0 top= 0 | nds=64.60 0ds=89.30 (cov=31.0 O=18.0 nar=8.5 wide=26.7 g0=0.0 end=5.1) cov_nxt=17.0% avg_c=12.3 | 504.5s
+  seeds: [101:190, 102:182, 103:187, 104:194, 105:188, 106:190, 107:185, 108:197, 109:200, 110:180]
