@@ -148,8 +148,11 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
           - `fullmlp_w8_h8_b24_cvar0`: `187.80` (`182.6s`)
           - `fullmlp_w12_h8_b24_cvar25`: `184.60` (`279.1s`, `-3.20` pcs)
           - **`fullmlp_w16_h8_b28_cvar25`**: **`181.20 [175..187]`** (`[101:187, 102:184, 103:180, 104:180, 105:175]`, `nds=61.40`, `wide=22.8`, `O=17.6`, `nar=6.8`, `end=4.2`, `459.1s` — **3/5 seeds `<= 180`**, `-3.80` pcs better than `bc4_lin` on the exact same config `185.00`, AND faster!).
-      - **Next (Round BC-5 — Wide `128x48` NNUE + Scale-Up Dataset + Dropout/Label Smoothing)**:
-        - Upgraded `SpatialValueModel` to `128 -> 48 -> 1` NNUE (100% backward-compatible zero-padding for `64x32` models), added Full MLP to `eval_endgame_state`, added decision-consistent inverted Dropout (`0.15`) + Label Smoothing (`0.02`) in `train_bc.rs`, and scaled training to `350` `WG_ds (B=900)` + `50` Legal DAgger (`spatial_bc4.txt`) games (`~65K` decisions, `~3M` legal moves) -> `models/spatial_bc5.txt` + `fullmlp_w16` verification.
+      - **Round BC-5 (`128x48` V5 NNUE + Dropout `0.15` + LS `0.02`, `models/spatial_bc5.txt` & `models/spatial_bc5_lin.txt`, Actions Run `45152685776`)**:
+        - Trained on `350` `WG_ds (B=900, mean=168.61)` + `50` DAgger (`spatial_bc4.txt`) games (`63,011` decisions, `2,907,240` legal moves): achieved all-time best `val_ce = 0.8974` (`top1=71.8%`, `top3=92.3%`, `-0.0688` CE better than BC-4!), `LEGAL_pimc_w8_bc_mlp = 186.20` (beat `bc5_lin 188.20`), but 4-seed `fullmlp_w16` averaged `187.00` (`101:183, 102:185, 103:189, 104:191`) — weaker `B=900` teacher (`+1.88` pcs worse than BC-4's `B=1800`) + lower DAgger ratio (`12.5%` vs `28.6%`).
+      - **Next (`fullmlp_scale` + 10-seed validation + AlphaZero ExIt)**:
+        - Added `active_h1`/`active_h2` fast slicing in `spatial_val.rs` so `64x32` champion `models/spatial_bc4.txt` (`181.20`) runs at 100% native speed inside `128x48` arrays.
+        - Scaling `models/spatial_bc4.txt` to `w20_h8_b36_cvar25` / `w24_h8_b44_cvar30` / `w20_h9_b36_cvar30` + 10-seed (`101..=110`) validation of `fullmlp_w16`, then moving to **Legal Expert Iteration (ExIt)** distilling our own `181.20` CVaR-25 Legal PIMC search instead of clairvoyant Oracle `WG_ds`!
 
 ---
 

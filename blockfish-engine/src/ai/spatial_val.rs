@@ -1123,6 +1123,8 @@ pub struct SpatialValueModel {
     pub has_mlp: bool,
     pub needs_pe: bool,
     pub fast_ready: bool,
+    pub active_h1: usize,
+    pub active_h2: usize,
 }
 
 impl Default for SpatialValueModel {
@@ -1151,6 +1153,8 @@ impl Default for SpatialValueModel {
             has_mlp: true,
             needs_pe: true,
             fast_ready: false,
+            active_h1: SPATIAL_H1,
+            active_h2: SPATIAL_H2,
         }
     }
 }
@@ -1196,6 +1200,24 @@ impl SpatialValueModel {
         }
         self.has_mlp = self.b3 != 0.0 || self.w3.iter().any(|&w| w != 0.0);
         self.needs_pe = self.lin_dense[2] != 0.0 || (self.has_mlp && self.fast_dense_active[2]);
+        let mut ah1 = 0usize;
+        for h in 0..SPATIAL_H1 {
+            if self.fast_b1[h] != 0.0
+                || self.w2[h].iter().any(|&w| w != 0.0)
+                || self.w_sparse.iter().any(|r| r[h] != 0.0)
+                || self.fast_w_dense.iter().any(|r| r[h] != 0.0)
+            {
+                ah1 = h + 1;
+            }
+        }
+        let mut ah2 = 0usize;
+        for k in 0..SPATIAL_H2 {
+            if self.w3[k] != 0.0 {
+                ah2 = k + 1;
+            }
+        }
+        self.active_h1 = ah1;
+        self.active_h2 = ah2;
         self.fast_ready = true;
     }
 
@@ -1208,6 +1230,8 @@ impl SpatialValueModel {
         if self.fast_ready && !self.has_mlp {
             return self.predict_linear_extracted(active_bits, dense);
         }
+        let ah1 = if self.fast_ready { self.active_h1 } else { SPATIAL_H1 };
+        let ah2 = if self.fast_ready { self.active_h2 } else { SPATIAL_H2 };
         let mut lin = if self.fast_ready { self.fast_lin_bias } else { self.lin_bias };
         let mut h1 = if self.fast_ready { self.fast_b1 } else { self.b1 };
 
@@ -1216,8 +1240,8 @@ impl SpatialValueModel {
                 let idx = bit as usize;
                 lin += self.lin_sparse[idx];
                 if self.fast_sparse_active[idx] {
-                    let row = &self.w_sparse[idx];
-                    for h in 0..SPATIAL_H1 {
+                    let row = &self.w_sparse[idx][..ah1];
+                    for h in 0..ah1 {
                         h1[h] += row[h];
                     }
                 }
@@ -1242,8 +1266,8 @@ impl SpatialValueModel {
                 if self.fast_dense_active[j] {
                     let xm = x.clamp(self.fast_min_d[j], self.fast_max_d[j]);
                     if xm != 0.0 {
-                        let row = &self.fast_w_dense[j];
-                        for h in 0..SPATIAL_H1 {
+                        let row = &self.fast_w_dense[j][..ah1];
+                        for h in 0..ah1 {
                             h1[h] += xm * row[h];
                         }
                     }
@@ -1264,19 +1288,19 @@ impl SpatialValueModel {
         }
 
         let mut h2 = self.b2;
-        for i in 0..SPATIAL_H1 {
+        for i in 0..ah1 {
             let a1 = h1[i];
             if a1 > 0.0 {
                 let c1 = a1.min(6.0);
-                let row = &self.w2[i];
-                for k in 0..SPATIAL_H2 {
+                let row = &self.w2[i][..ah2];
+                for k in 0..ah2 {
                     h2[k] += c1 * row[k];
                 }
             }
         }
 
         let mut mlp = self.b3;
-        for k in 0..SPATIAL_H2 {
+        for k in 0..ah2 {
             let a2 = h2[k];
             if a2 > 0.0 {
                 mlp += a2.min(6.0) * self.w3[k];

@@ -1083,6 +1083,32 @@ fn main() {
             c_m3.root_pimc_cvar_pct = 25;
             eval_seeds("fullmlp_w16_h8_b28_cvar25", &seeds, &c_m3);
         }
+        if which == "fullmlp_scale" {
+            let mut c_m1 = c_base.clone();
+            c_m1.spatial_rerank_only = false;
+            c_m1.beam_width = 80;
+            c_m1.max_per_root = 16;
+            c_m1.root_pimc_prescreen_worlds = 0;
+            c_m1.root_pimc_roots = 14;
+            c_m1.root_pimc_worlds = 20;
+            c_m1.root_pimc_horizon = 8;
+            c_m1.root_pimc_width = 36;
+            c_m1.root_pimc_margin = 450;
+            c_m1.root_pimc_cvar_pct = 25;
+            eval_seeds("fullmlp_w20_h8_b36_cvar25", &seeds, &c_m1);
+
+            let mut c_m2 = c_m1.clone();
+            c_m2.root_pimc_roots = 16;
+            c_m2.root_pimc_worlds = 24;
+            c_m2.root_pimc_width = 44;
+            c_m2.root_pimc_cvar_pct = 30;
+            eval_seeds("fullmlp_w24_h8_b44_cvar30", &seeds, &c_m2);
+
+            let mut c_m3 = c_m1.clone();
+            c_m3.root_pimc_horizon = 9;
+            c_m3.root_pimc_cvar_pct = 30;
+            eval_seeds("fullmlp_w20_h9_b36_cvar30", &seeds, &c_m3);
+        }
         return;
     }
 
