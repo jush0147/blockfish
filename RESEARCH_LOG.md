@@ -141,8 +141,9 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
     - `LEGAL_b120_bc_mlp`: **`194.80 [191..203]`** (4/5 seeds `<= 194` with ZERO PIMC!); `end` in `pro_h9_w16_b32_cvar30` dropped `6.0 -> 4.2` (`-1.8` pcs saved in endgame).
     - **`v5_search_break` (Actions Run `45124242227`) & `OR_p20` Diagnostic (`spatial_bc4_lin.txt`)**:
       - `h8_w16_b28_r12_cvar25`: `185.00 [181..190]`; `ds5_w16_b24_r12_cvar30`: `187.40`; `bc4` MLP `cvar16`: `186.00` (seed 103 = **`173`**, seed 101 `cov=19`).
-      - **Key Root-Cause Discovery (`diag_cheese spatial_or_p20 models/spatial_bc4_lin.txt`)**: Even with **20 previews + 100% exact holes + `b=240`**, `spatial_bc4_lin.txt` only hits **`176.00 [175, 177]`** (`nds=59.50`, vs `WG_ds` `163.00`, `nds=54.80` -> `+4.7` extra `nds` lines × `2.5` = `+11.75` pieces!). Why? `cfg.nds_pen == 0`, so fixed-depth beam search burns non-garbage lines freely (`-0.016/cell` vs true conservation cost `+0.25/cell = +2.50/line`).
-      - Next: `nds_expectimax` sweep testing exact cell-conservation `nds_pen ∈ {40, 80, 120, 160}` (zero hoarding!) + Non-Clairvoyant Depth-6 Prefix + Exact 7-Bag Expectimax Rollout (`rollout_top_k=24, rollout_horizon=0/2/3`).
+      - **Key Root-Cause Discovery (`diag_cheese spatial_or_p20 models/spatial_bc4_lin.txt`)**: Even with **20 previews + 100% exact holes + `b=240`**, `spatial_bc4_lin.txt` only hits **`176.00 [175, 177]`** (`nds=59.50`, vs `WG_ds` `163.00`, `nds=54.80`).
+      - **`nds_expectimax` (Actions Run `45134409140`)**: Proved `nds_pen > 0` in finite-horizon beam is mathematically equivalent to rewarding `stack_cells` (`C_d = C_0 + 4d - ds - 10*nds`) and degrades Legal play (`avg_c: 12.2 -> 20.3`, `w8_h8: 183.40 -> 186.40 -> 208.00`). Exact 7-bag 1-ply Expectimax (`nc_exp_rh0`) improved `plain_b120` by `-4.0` pcs (`199.20 -> 195.20`) but trailed `w8_h8` (`183.40`) due to opaque prefix spawns and narrow `width=2` rollout.
+      - **Next Pivot**: (1) Test **Full V5 MLP inside the PIMC inner beam (`spatial_rerank_only = false`)** — never tested before, yet `bc4` MLP already beat `bc4_lin` by `-4.40` pcs on `b120` (`194.80` vs `199.20`) at only `1.45×` cost; (2) Scale up `train_bc.rs` to **500+ `WG_ds` games (`> 3.5M` moves) + Dropout + Label Smoothing** to eliminate epoch-6 MLP overfitting and break `< 180 -> 170s`.
 
 ---
 

@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "=== Cell-Conservation nds_pen + Non-Clairvoyant 7-Bag Expectimax Sweep on models/spatial_bc4_lin.txt (~40m) ==="
-cargo run --release -p blockfish --features race --example bench_legal -- wg5_lin_sweep models/spatial_bc4_lin.txt nds_expectimax 5
+echo "=== Part 1: Full-MLP Inside PIMC Beam (spatial_rerank_only=false) on models/spatial_bc4.txt (V5 MLP) ==="
+cargo run --release -p blockfish --features race --example bench_legal -- wg5_lin_sweep models/spatial_bc4.txt full_mlp_pimc 5
+
+echo ""
+echo "=== Part 2: Full-MLP Inside PIMC Beam (spatial_rerank_only=false) on models/spatial_bc3.txt (V4 MLP) ==="
+cargo run --release -p blockfish --features race --example bench_legal -- wg5_lin_sweep models/spatial_bc3.txt full_mlp_pimc 5

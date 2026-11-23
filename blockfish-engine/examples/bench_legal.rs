@@ -1040,6 +1040,35 @@ fn main() {
                 eval_seeds(&format!("h8_w16_c25_nds{}", np), &seeds, &c);
             }
         }
+        if which == "full_mlp_pimc" {
+            // Run FULL SpatialValueModel MLP inside the PIMC inner beam (spatial_rerank_only = false)!
+            let mut c_m = c_base.clone();
+            c_m.spatial_rerank_only = false;
+            c_m.beam_width = 64;
+            c_m.max_per_root = 16;
+            c_m.root_pimc_prescreen_worlds = 0;
+            c_m.root_pimc_roots = 8;
+            c_m.root_pimc_worlds = 8;
+            c_m.root_pimc_horizon = 8;
+            c_m.root_pimc_width = 24;
+            c_m.root_pimc_margin = 350;
+            c_m.root_pimc_cvar_pct = 0;
+            eval_seeds("fullmlp_w8_h8_b24_cvar0", &seeds, &c_m);
+
+            let mut c_m2 = c_m.clone();
+            c_m2.root_pimc_roots = 10;
+            c_m2.root_pimc_worlds = 12;
+            c_m2.root_pimc_margin = 400;
+            c_m2.root_pimc_cvar_pct = 25;
+            eval_seeds("fullmlp_w12_h8_b24_cvar25", &seeds, &c_m2);
+
+            let mut c_m3 = c_m2.clone();
+            c_m3.beam_width = 80;
+            c_m3.root_pimc_roots = 12;
+            c_m3.root_pimc_worlds = 16;
+            c_m3.root_pimc_width = 28;
+            eval_seeds("fullmlp_w16_h8_b28_cvar25", &seeds, &c_m3);
+        }
         return;
     }
 
