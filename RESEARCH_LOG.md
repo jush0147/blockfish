@@ -150,9 +150,10 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
           - **`fullmlp_w16_h8_b28_cvar25`**: **`181.20 [175..187]`** (`[101:187, 102:184, 103:180, 104:180, 105:175]`, `nds=61.40`, `wide=22.8`, `O=17.6`, `nar=6.8`, `end=4.2`, `459.1s` — **3/5 seeds `<= 180`**, `-3.80` pcs better than `bc4_lin` on the exact same config `185.00`, AND faster!).
       - **Round BC-5 (`128x48` V5 NNUE + Dropout `0.15` + LS `0.02`, `models/spatial_bc5.txt` & `models/spatial_bc5_lin.txt`, Actions Run `45152685776`)**:
         - Trained on `350` `WG_ds (B=900, mean=168.61)` + `50` DAgger (`spatial_bc4.txt`) games (`63,011` decisions, `2,907,240` legal moves): achieved all-time best `val_ce = 0.8974` (`top1=71.8%`, `top3=92.3%`, `-0.0688` CE better than BC-4!), `LEGAL_pimc_w8_bc_mlp = 186.20` (beat `bc5_lin 188.20`), but 4-seed `fullmlp_w16` averaged `187.00` (`101:183, 102:185, 103:189, 104:191`) — weaker `B=900` teacher (`+1.88` pcs worse than BC-4's `B=1800`) + lower DAgger ratio (`12.5%` vs `28.6%`).
-      - **Next (`fullmlp_scale` + 10-seed validation + AlphaZero ExIt)**:
-        - Added `active_h1`/`active_h2` fast slicing in `spatial_val.rs` so `64x32` champion `models/spatial_bc4.txt` (`181.20`) runs at 100% native speed inside `128x48` arrays.
-        - Scaling `models/spatial_bc4.txt` to `w20_h8_b36_cvar25` / `w24_h8_b44_cvar30` / `w20_h9_b36_cvar30` + 10-seed (`101..=110`) validation of `fullmlp_w16`, then moving to **Legal Expert Iteration (ExIt)** distilling our own `181.20` CVaR-25 Legal PIMC search instead of clairvoyant Oracle `WG_ds`!
+      - **`fullmlp_scale` & 10-Seed (`101..=110`) Strict Baseline (Actions Run `45170400970`)**:
+        - `spatial_bc4.txt` (`fullmlp_w16_h8_b28_cvar25`) on 10 seeds (`101..=110`): **`mean = 187.90 [175..201]`** (`101..=105: 181.20`, `106..=110: 194.60`, `cov=30.7`, `cov_nxt=17.9%`, `seed 108 cov_nxt=27%`). Scaling to `w20/w24` and `h9` stayed flat (`187.00–187.40`), confirming that Oracle-`WG_ds` 1-ply BC + PIMC scaling has plateaued at `~187` (10-seed).
+      - **Algorithmic Pivot — Legal AlphaZero Expert Iteration (`examples/train_exit.rs`, Round ExIt-1)**:
+        - Completely drop clairvoyant Oracle `WG_ds` supervision; run `140` Legal `p=5` self-play games with `w=6, h=8, b=20, cvar=25` (`spatial_bc4.txt` full MLP), distilling Legal PIMC soft Q-distributions (`last_top_candidates`) + true Legal Monte-Carlo remaining-piece returns `G_t = P_final - t` (`legal_v_mae = 12.68` at init!) into `models/spatial_exit1.txt`, then verify fairly on 10 seeds (`101..=110`) vs `187.90`.
 
 ---
 
