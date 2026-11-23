@@ -1,4 +1,4 @@
-=== Round NC-1: Hybrid Known-Prefix Beam + Non-Clairvoyant Rollout PIMC & BC-2 MLP + CVaR30/40 (5-seed Legal) ===
+=== Round BC-4 (SPATIAL_VAL_V5 + Spatial Endgame): 150 WG_ds(B=1800) + 60 DAgger(bc3_lin) ===
 [1m[33mwarning[0m[1m: unused build dependency `fontconfig`[0m
   [1m[94m--> [0mblockfish-client/Cargo.toml:29:1
    [1m[94m|[0m
@@ -97,23 +97,54 @@
    [1m[94m|[0m                                                         [92m++++[0m
 
 [1m[33mwarning[0m: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
-[1m[92m    Finished[0m `release` profile [optimized] target(s) in 6.04s
-[1m[92m     Running[0m `target/release/examples/bench_legal wg5_lin_sweep models/spatial_bc2_lin.txt nc_pimc 5`
-=== Legal wg5_lin_sweep (models/spatial_bc2_lin.txt, which=nc_pimc, n_seeds=5) ===
-  [seed 101] pcs=250 nds=89 0ds=150 (cov=44 O=22 nar=22 wide=47 end=15) cov_nxt=20.0% | 270.4s
-  [seed 103] pcs=242 nds=85 0ds=142 (cov=62 O=19 nar=18 wide=38 end= 5) cov_nxt=22.0% | 274.8s
-  [seed 104] pcs=245 nds=87 0ds=145 (cov=66 O=18 nar=17 wide=41 end= 3) cov_nxt=25.0% | 275.2s
-  [seed 102] pcs=250 nds=89 0ds=150 (cov=63 O=18 nar=17 wide=49 end= 3) cov_nxt=19.0% | 277.9s
-  [seed 105] pcs=241 nds=85 0ds=141 (cov=44 O=21 nar=22 wide=52 end= 2) cov_nxt=17.0% | 448.2s
-nc_h5_nc10_w16_cvar25      n= 5 mean=245.60 min=241 max=250 <=166: 0 top= 0 | nds=87.00 0ds=145.60 (cov=55.8 O=19.6 nar=19.2 wide=45.4 g0=0.0 end=5.6) cov_nxt=20.6% avg_c=15.9 | 448.2s
-  seeds: [101:250, 102:250, 103:242, 104:245, 105:241]
-  [seed 102] pcs=247 nds=87 0ds=147 (cov=70 O=21 nar=19 wide=31 end= 6) cov_nxt=29.0% | 329.9s
-  [seed 103] pcs=240 nds=85 0ds=140 (cov=49 O=22 nar=25 wide=38 end= 6) cov_nxt=23.0% | 331.9s
-  [seed 101] pcs=254 nds=90 0ds=154 (cov=61 O=23 nar=22 wide=35 end=13) cov_nxt=22.0% | 338.5s
-  [seed 104] pcs=254 nds=90 0ds=154 (cov=68 O=20 nar=15 wide=48 end= 3) cov_nxt=23.0% | 347.0s
-  [seed 105] pcs=258 nds=92 0ds=158 (cov=54 O=22 nar=26 wide=44 end=12) cov_nxt=18.0% | 551.5s
-nc_h6_nc12_w16_cvar30      n= 5 mean=250.60 min=240 max=258 <=166: 0 top= 0 | nds=88.80 0ds=150.60 (cov=60.4 O=21.6 nar=21.4 wide=39.2 g0=0.0 end=8.0) cov_nxt=23.0% avg_c=15.4 | 551.5s
-  seeds: [101:254, 102:247, 103:240, 104:254, 105:258]
+[1m[33mwarning[0m[1m: field `seed` is never read[0m
+  [1m[94m--> [0mblockfish-engine/examples/train_bc.rs:23:5
+   [1m[94m|[0m
+[1m[94m22[0m [1m[94m|[0m struct ExactSeedData {
+   [1m[94m|[0m        [1m[94m-------------[0m [1m[94mfield in this struct[0m
+[1m[94m23[0m [1m[94m|[0m     seed: u64,
+   [1m[94m|[0m     [1m[33m^^^^[0m
+   [1m[94m|[0m
+   [1m[94m= [0m[1mnote[0m: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m: `blockfish` (example "train_bc") generated 1 warning
+[1m[92m    Finished[0m `release` profile [optimized] target(s) in 7.08s
+[1m[92m     Running[0m `target/release/examples/train_bc --out models/spatial_bc4.txt --games 150 --wg-beam 1800 --dagger-init models/spatial_bc3_lin.txt --dagger-games 60 --lin-epochs 32 --mlp-epochs 24 --batch 32 --tau 0.45 --cal-w 0.025 --lr-lin 0.008 --lr-mlp 0.0008 --wd 0.002 --wd-mlp 0.015 --eval-legal 5`
+=== Full-Action-Space Afterstate BC + DAgger (WG_ds -> SpatialValueModel) ===
+  out=models/spatial_bc4.txt games=150 wg_beam=1800 dagger_games=60 lin_ep=32 mlp_ep=24 batch=32 tau=0.45 cal_w=0.025 lr_lin=0.008 lr_mlp=0.0008 wd=0.002 wd_mlp=0.015 threads=4
+Phase 1B (BC-DAgger): 60 Legal games (mean=196.83 pcs) -> 5203 recovery decisions
+Phase 1 Total: 150 clean WG_ds (mean=166.73) + 60 DAgger -> 30063 decisions (24860 clean, 25438 train, 4625 val), 1389534 legal moves in 2370.1s
+  [LIN ep  1/32] lr=0.00800 | val_ce=1.0463 top1=69.1% top3=90.4% v_mae=2.02
+  [LIN ep  3/32] lr=0.00793 | val_ce=1.0344 top1=69.3% top3=91.0% v_mae=2.04
+  [LIN ep  6/32] lr=0.00757 | val_ce=1.0639 top1=67.5% top3=90.2% v_mae=2.00
+  [LIN ep  9/32] lr=0.00695 | val_ce=1.0483 top1=68.8% top3=90.8% v_mae=2.05
+  [LIN ep 12/32] lr=0.00610 | val_ce=1.0296 top1=69.4% top3=91.1% v_mae=2.04
+  [LIN ep 15/32] lr=0.00510 | val_ce=1.0216 top1=68.9% top3=91.3% v_mae=2.00
+  [LIN ep 18/32] lr=0.00405 | val_ce=1.0147 top1=69.7% top3=91.3% v_mae=2.03
+  [LIN ep 21/32] lr=0.00302 | val_ce=0.9929 top1=70.1% top3=91.4% v_mae=2.02
+  [LIN ep 24/32] lr=0.00212 | val_ce=0.9789 top1=70.5% top3=91.8% v_mae=1.99
+  [LIN ep 27/32] lr=0.00141 | val_ce=0.9811 top1=70.0% top3=91.7% v_mae=2.00
+  [LIN ep 30/32] lr=0.00096 | val_ce=0.9774 top1=70.4% top3=91.9% v_mae=1.99
+  [LIN ep 32/32] lr=0.00082 | val_ce=0.9773 top1=70.4% top3=91.6% v_mae=2.00
+Saved pure-linear BC model (val_ce=0.9773, rem_g=1.680) to models/spatial_bc4_lin.txt
+  [MLP ep  1/24] lr=0.00080 | val_ce=0.9751 top1=70.7% top3=91.8% v_mae=2.00
+  [MLP ep  3/24] lr=0.00079 | val_ce=0.9733 top1=70.6% top3=92.0% v_mae=2.00
+  [MLP ep  6/24] lr=0.00073 | val_ce=0.9675 top1=70.2% top3=92.0% v_mae=1.99
+  [MLP ep  9/24] lr=0.00062 | val_ce=0.9843 top1=70.2% top3=91.5% v_mae=2.00
+  [MLP ep 12/24] lr=0.00049 | val_ce=1.0114 top1=69.3% top3=91.2% v_mae=2.02
+  [MLP ep 15/24] lr=0.00035 | val_ce=1.0392 top1=68.8% top3=91.1% v_mae=2.02
+  [MLP ep 18/24] lr=0.00022 | val_ce=1.0632 top1=68.4% top3=90.7% v_mae=2.02
+  [MLP ep 21/24] lr=0.00013 | val_ce=1.0841 top1=68.0% top3=90.4% v_mae=2.04
+  [MLP ep 24/24] lr=0.00008 | val_ce=1.0945 top1=67.8% top3=90.2% v_mae=2.04
+Saved full-MLP BC model (val_ce=0.9662, needs_pe=false) to models/spatial_bc4.txt
+
+=== Post-BC Held-Out Legal Verification (seeds 101..=105) ===
+  LEGAL_b120_bc_lin            mean=199.20 top=0 pcs=[200, 203, 195, 199, 199] dt=30.9s
+  LEGAL_b120_bc_mlp            mean=194.80 top=0 pcs=[193, 203, 194, 193, 191] dt=44.8s
+  LEGAL_pimc_w8_bc_lin         mean=183.40 top=0 pcs=[179, 183, 182, 183, 190] dt=149.6s
+  LEGAL_pimc_w8_bc_mlp         mean=186.60 top=0 pcs=[180, 183, 195, 189, 186] dt=147.6s
+
+=== Held-Out 5-Seed Legal Verification of models/spatial_bc4_lin.txt (cvar16: pro_h9_w16_b32_cvar30) ===
 [1m[33mwarning[0m[1m: unused build dependency `fontconfig`[0m
   [1m[94m--> [0mblockfish-client/Cargo.toml:29:1
    [1m[94m|[0m
@@ -210,27 +241,14 @@ nc_h6_nc12_w16_cvar30      n= 5 mean=250.60 min=240 max=258 <=166: 0 top= 0 | nd
    [1m[94m|[0m                                                         [92m++++[0m
 
 [1m[33mwarning[0m: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
-[1m[92m    Finished[0m `release` profile [optimized] target(s) in 0.02s
-[1m[92m     Running[0m `target/release/examples/bench_legal wg5_lin_sweep models/spatial_bc2.txt nc_pimc_mlp 5`
-=== Legal wg5_lin_sweep (models/spatial_bc2.txt, which=nc_pimc_mlp, n_seeds=5) ===
-  [seed 103] pcs=180 nds=61 0ds=80 (cov=27 O=16 nar= 5 wide=31 end= 1) cov_nxt=13.0% | 395.8s
-  [seed 101] pcs=184 nds=63 0ds=84 (cov=37 O=16 nar= 3 wide=23 end= 5) cov_nxt=19.0% | 404.4s
-  [seed 104] pcs=189 nds=65 0ds=89 (cov=19 O=21 nar=10 wide=34 end= 5) cov_nxt=13.0% | 409.8s
-  [seed 102] pcs=201 nds=69 0ds=101 (cov=46 O=16 nar= 5 wide=28 end= 6) cov_nxt=24.0% | 423.1s
-  [seed 105] pcs=188 nds=64 0ds=88 (cov=28 O=22 nar= 5 wide=28 end= 5) cov_nxt=15.0% | 664.7s
-mlp_h9_w16_b32_cvar30      n= 5 mean=188.40 min=180 max=201 <=166: 0 top= 0 | nds=64.40 0ds=88.40 (cov=31.4 O=18.2 nar=5.6 wide=28.8 g0=0.0 end=4.4) cov_nxt=16.8% avg_c=12.0 | 664.7s
-  seeds: [101:184, 102:201, 103:180, 104:189, 105:188]
-  [seed 103] pcs=180 nds=61 0ds=80 (cov=27 O=16 nar= 5 wide=31 end= 1) cov_nxt=13.0% | 395.4s
-  [seed 104] pcs=189 nds=65 0ds=89 (cov=18 O=21 nar=12 wide=33 end= 5) cov_nxt=12.0% | 412.5s
-  [seed 101] pcs=188 nds=64 0ds=88 (cov=31 O=20 nar= 9 wide=25 end= 3) cov_nxt=15.0% | 415.7s
-  [seed 102] pcs=196 nds=67 0ds=96 (cov=40 O=15 nar= 5 wide=31 end= 5) cov_nxt=21.0% | 419.2s
-  [seed 105] pcs=188 nds=64 0ds=88 (cov=40 O=14 nar= 9 wide=17 end= 8) cov_nxt=21.0% | 660.4s
-mlp_h9_w16_b32_cvar40      n= 5 mean=188.20 min=180 max=196 <=166: 0 top= 0 | nds=64.20 0ds=88.20 (cov=31.2 O=17.2 nar=8.0 wide=27.4 g0=0.0 end=4.4) cov_nxt=16.4% avg_c=12.1 | 660.4s
-  seeds: [101:188, 102:196, 103:180, 104:189, 105:188]
-  [seed 102] pcs=232 nds=82 0ds=132 (cov=49 O=19 nar=20 wide=41 end= 3) cov_nxt=16.0% | 323.9s
-  [seed 104] pcs=250 nds=89 0ds=150 (cov=52 O=20 nar=15 wide=59 end= 4) cov_nxt=20.0% | 343.4s
-  [seed 101] pcs=254 nds=91 0ds=154 (cov=46 O=24 nar=19 wide=54 end=11) cov_nxt=18.0% | 346.6s
-  [seed 103] pcs=259 nds=93 0ds=159 (cov=71 O=20 nar=17 wide=42 end= 9) cov_nxt=23.0% | 348.0s
-  [seed 105] pcs=275 nds=99 0ds=175 (cov=76 O=19 nar=29 wide=47 end= 4) cov_nxt=23.0% | 570.4s
-mlp_h6_nc12_w16_cvar30     n= 5 mean=254.00 min=232 max=275 <=166: 0 top= 0 | nds=90.80 0ds=154.00 (cov=58.8 O=20.4 nar=20.0 wide=48.6 g0=0.0 end=6.2) cov_nxt=20.0% avg_c=16.2 | 570.4s
-  seeds: [101:254, 102:232, 103:259, 104:250, 105:275]
+[1m[92m   Compiling[0m blockfish v0.1.0 (/home/runner/work/blockfish/blockfish/blockfish-engine)
+[1m[92m    Finished[0m `release` profile [optimized] target(s) in 1.69s
+[1m[92m     Running[0m `target/release/examples/bench_legal wg5_lin_sweep models/spatial_bc4_lin.txt cvar16 5`
+=== Legal wg5_lin_sweep (models/spatial_bc4_lin.txt, which=cvar16, n_seeds=5) ===
+  [seed 103] pcs=175 nds=59 0ds=75 (cov=26 O=18 nar= 4 wide=24 end= 3) cov_nxt=15.0% | 457.9s
+  [seed 102] pcs=183 nds=62 0ds=83 (cov=29 O=16 nar= 8 wide=25 end= 5) cov_nxt=14.0% | 476.5s
+  [seed 101] pcs=185 nds=63 0ds=85 (cov=29 O=19 nar= 7 wide=26 end= 4) cov_nxt=16.0% | 486.2s
+  [seed 104] pcs=198 nds=68 0ds=98 (cov=28 O=21 nar=11 wide=32 end= 6) cov_nxt=18.0% | 506.8s
+  [seed 105] pcs=188 nds=64 0ds=88 (cov=35 O=17 nar=11 wide=22 end= 3) cov_nxt=22.0% | 777.5s
+pro_h9_w16_b32_cvar30      n= 5 mean=185.80 min=175 max=198 <=166: 0 top= 0 | nds=63.20 0ds=85.80 (cov=29.4 O=18.2 nar=8.2 wide=25.8 g0=0.0 end=4.2) cov_nxt=17.0% avg_c=12.1 | 777.5s
+  seeds: [101:185, 102:183, 103:175, 104:198, 105:188]
