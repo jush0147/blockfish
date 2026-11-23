@@ -142,12 +142,7 @@ fn apply_params(base: &SpatialValueModel, theta: &[f32; PARAM_DIM]) -> SpatialVa
     m.b3 = 0.0;
     m.w3 = [0.0; SPATIAL_H2];
     for j in 1..DENSE_DIM {
-        let mut v = theta[j - 1];
-        // Prevent ES perturbations from flipping raw height/cell weights deeply negative (hoarding topout)
-        if (3..=22).contains(&j) && j != 4 {
-            v = v.max(-0.02);
-        }
-        m.lin_dense[j] = v;
+        m.lin_dense[j] = theta[j - 1];
     }
     for i in SPARSE_START..SPARSE_DIM {
         m.lin_sparse[i] = theta[N_DENSE_OPT + (i - SPARSE_START)];

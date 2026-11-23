@@ -1,19 +1,23 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "=== Round ES-2: Direct Legal p=5 Antithetic-ES from spatial_bc2_lin.txt (18 iters x 16 evals x 6 games -> models/spatial_es2.txt) ==="
+echo "=== Part 1: CVaR-Pro 5-Seed Sweep on models/spatial_bc2_lin.txt (current 186.00 record) ==="
+cargo run --release -p blockfish --features race --example bench_legal -- wg5_lin_sweep models/spatial_bc2_lin.txt cvar_pro 5
+
+echo ""
+echo "=== Part 2: Fixed Direct Legal ES-3 from models/spatial_bc2_lin.txt (10 iters x 12 evals x 6 games, no clamp -> models/spatial_es3.txt) ==="
 cargo run --release -p blockfish --features race --example opt_legal -- \
   --init models/spatial_bc2_lin.txt \
-  --out models/spatial_es2.txt \
-  --iters 18 \
-  --pop 8 \
+  --out models/spatial_es3.txt \
+  --iters 10 \
+  --pop 6 \
   --games 6 \
   --val-games 5 \
   --beam 64 \
-  --sigma 0.020 \
-  --lr 0.010 \
-  --seed 20261122
+  --sigma 0.012 \
+  --lr 0.006 \
+  --seed 20261123
 
 echo ""
-echo "=== Post-ES2 5-Seed Held-Out Legal CVaR-Pro Verification ==="
-cargo run --release -p blockfish --features race --example bench_legal -- wg5_lin_sweep models/spatial_es2.txt cvar_pro 5
+echo "=== Part 3: Held-Out 5-Seed Legal Verification of models/spatial_es3.txt ==="
+cargo run --release -p blockfish --features race --example bench_legal -- spatial5_1 models/spatial_es3.txt sp_rpimc_linfast_nope_w8_h9
