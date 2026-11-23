@@ -461,6 +461,7 @@ impl BeamSearcher {
                 &q[..q_len],
                 bag_mask,
                 crn_seed,
+                cfg,
             ) {
                 return Some(res);
             }
@@ -1597,6 +1598,26 @@ impl BeamSearcher {
         w
     }
 
+    #[inline]
+    fn eval_endgame_state(
+        board: &FastBoard,
+        rem_g: u16,
+        in_hand: Option<u8>,
+        avail_mask: u8,
+        end_w: &EvalWeights,
+        cfg: &BeamConfig,
+    ) -> i64 {
+        if let Some(ref sm) = cfg.spatial_model {
+            if cfg.spatial_no_pe_internal || !sm.needs_pe {
+                sm.evaluate_linear_board_with_bag_no_pe(board, rem_g, in_hand, avail_mask)
+            } else {
+                sm.evaluate_linear_board_with_bag(board, rem_g, in_hand, avail_mask)
+            }
+        } else {
+            eval_fast_with_bag(board, rem_g, in_hand, avail_mask, end_w)
+        }
+    }
+
     fn endgame_world_ds(
         &mut self,
         root_board: &FastBoard,
@@ -1608,6 +1629,7 @@ impl BeamSearcher {
         world_q: &[u8],
         end_bag: u8,
         end_w: &EvalWeights,
+        cfg: &BeamConfig,
     ) -> (i64, usize) {
         let target_ds = (rem_g0 as usize).min(9);
         let mut b0 = *root_board;
@@ -1638,7 +1660,7 @@ impl BeamSearcher {
 
         let in_hand0 = Self::hand_piece(held0, qc0, world_q);
         let avail0 = Self::avail_mask_from_q(held0, qc0, world_q, end_bag);
-        let sc0 = 100 + eval_fast_with_bag(&b0, rem0, in_hand0, avail0, end_w);
+        let sc0 = 100 + Self::eval_endgame_state(&b0, rem0, in_hand0, avail0, end_w, cfg);
 
         let ds0_u = (ds0 as usize).min(target_ds);
         let mut buckets: [Vec<BeamNode>; 10] = Default::default();
@@ -1784,7 +1806,7 @@ impl BeamSearcher {
                         let in_hand2 = Self::hand_piece(new_held, next_qc, world_q);
                         let avail2 = Self::avail_mask_from_q(new_held, next_qc, world_q, end_bag);
                         let sc = (np as i64) * 100
-                            + eval_fast_with_bag(&b2, rem2, in_hand2, avail2, end_w);
+                            + Self::eval_endgame_state(&b2, rem2, in_hand2, avail2, end_w, cfg);
                         evals += 1;
 
                         let out_node = BeamNode {
@@ -1856,6 +1878,7 @@ impl BeamSearcher {
         q: &[u8],
         bag_mask: u8,
         crn_seed: u64,
+        cfg: &BeamConfig,
     ) -> Option<BeamResult> {
         let q_len = q.len();
         let target_ds = (rem_g0 as usize).min(9);
@@ -1909,7 +1932,7 @@ impl BeamSearcher {
             };
             let in_hand = Self::hand_piece(held, qc, q);
             let avail = Self::avail_mask_from_q(held, qc, q, bag_mask);
-            let sc = 100 + eval_fast_with_bag(&b, rem_g, in_hand, avail, &end_w);
+            let sc = 100 + Self::eval_endgame_state(&b, rem_g, in_hand, avail, &end_w, cfg);
             nodes_evaluated += 1;
             if sc < root_best_prog[idx] {
                 root_best_prog[idx] = sc;
@@ -2081,7 +2104,7 @@ impl BeamSearcher {
                             let in_hand = Self::hand_piece(held, next_qc, q);
                             let avail = Self::avail_mask_from_q(held, next_qc, q, bag_mask);
                             let sc = (np as i64) * 100
-                                + eval_fast_with_bag(&b, rem_g, in_hand, avail, &end_w);
+                                + Self::eval_endgame_state(&b, rem_g, in_hand, avail, &end_w, cfg);
                             nodes_evaluated += 1;
 
                             let ri = node.first_idx as usize;
@@ -2264,6 +2287,7 @@ impl BeamSearcher {
                     &world_qs[w][..need_q_len],
                     world_end_bags[w],
                     &end_w,
+                    cfg,
                 );
                 nodes_evaluated += evals;
                 w_scores[w] = w_sc;

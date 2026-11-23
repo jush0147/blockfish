@@ -934,6 +934,20 @@ fn main() {
             c2.root_pimc_cvar_pct = 35;
             eval_seeds("pro_h9_w20_b36_cvar35", &seeds, &c2);
         }
+        if which == "cvar16" {
+            let mut c1 = c_base.clone();
+            c1.beam_width = 80;
+            c1.max_per_root = 16;
+            c1.root_pimc_prescreen_worlds = 3;
+            c1.root_pimc_roots = 32;
+            c1.root_pimc_fine_roots = 10;
+            c1.root_pimc_worlds = 16;
+            c1.root_pimc_horizon = 9;
+            c1.root_pimc_width = 32;
+            c1.root_pimc_margin = 500;
+            c1.root_pimc_cvar_pct = 30;
+            eval_seeds("pro_h9_w16_b32_cvar30", &seeds, &c1);
+        }
         return;
     }
 

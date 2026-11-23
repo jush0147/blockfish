@@ -2,8 +2,8 @@ use super::{fast::FastBoard, fast_eval::fast_piece_estimate_ex};
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
 
-pub const SPARSE_DIM: usize = 330;
-pub const DENSE_DIM: usize = 82;
+pub const SPARSE_DIM: usize = 374;
+pub const DENSE_DIM: usize = 90;
 pub const SPATIAL_H1: usize = 64;
 pub const SPATIAL_H2: usize = 32;
 
@@ -906,6 +906,191 @@ pub fn extract_spatial_features_ex(
     dense[80] = well_sum_non_h1 as f32;
     dense[81] = flat_pairs_cnt as f32;
 
+    // --- SPATIAL_VAL_V5 Features (Sparse 330..374, Dense 82..90) ---
+    // Exact h1 clean-fit (clearing h1 without dropping blocks onto open h2)
+    let mut h1_clean_fit_cnt = 0.0f32;
+    let mut hand_clean_fits_h1 = 0.0f32;
+    let mut bag_clean_fit_frac = 0.0f32;
+    let mut h1_above_h2_cover_risk = 0.0f32;
+    if h1_open {
+        if let Some(c1) = h1_col {
+            let l1 = if c1 == 0 { 99 } else { stack_h[c1 - 1] };
+            let r1 = if c1 == 9 { 99 } else { stack_h[c1 + 1] };
+            let l2 = if c1 <= 1 { 99 } else { stack_h[c1 - 2] };
+            let r2 = if c1 >= 8 { 99 } else { stack_h[c1 + 2] };
+            let c2_avoid: Option<usize> = if h2_open { h2_col } else { None };
+            let avoid = |col: usize| -> bool { c2_avoid == Some(col) };
+            let mut clean_fits: u8 = 1; // I vertical only touches c1
+            // T
+            if (l1 == 0 && c1 > 0 && !avoid(c1 - 1)) || (r1 == 0 && c1 < 9 && !avoid(c1 + 1)) {
+                clean_fits |= 1 << 2;
+            }
+            // S
+            if (l1 == 0 && c1 > 0 && !avoid(c1 - 1))
+                || (r1 == 0 && c1 + 2 < 10 && !avoid(c1 + 1) && !avoid(c1 + 2))
+            {
+                clean_fits |= 1 << 3;
+            }
+            // Z
+            if (r1 == 0 && c1 < 9 && !avoid(c1 + 1))
+                || (l1 == 0 && c1 >= 2 && !avoid(c1 - 1) && !avoid(c1 - 2))
+            {
+                clean_fits |= 1 << 4;
+            }
+            // J
+            if (r1 <= 1 && c1 < 9 && !avoid(c1 + 1))
+                || (l1 == 0 && l2 == 0 && c1 >= 2 && !avoid(c1 - 1) && !avoid(c1 - 2))
+            {
+                clean_fits |= 1 << 5;
+            }
+            // L
+            if (l1 <= 1 && c1 > 0 && !avoid(c1 - 1))
+                || (r1 == 0 && r2 == 0 && c1 + 2 < 10 && !avoid(c1 + 1) && !avoid(c1 + 2))
+            {
+                clean_fits |= 1 << 6;
+            }
+            h1_clean_fit_cnt = clean_fits.count_ones() as f32;
+            if let Some(p) = in_hand {
+                if (p as usize) < 7 && ((clean_fits >> p) & 1) != 0 {
+                    hand_clean_fits_h1 = 1.0;
+                }
+            }
+            let denom = avail_mask.count_ones().max(1) as f32;
+            bag_clean_fit_frac = (clean_fits & avail_mask).count_ones() as f32 / denom;
+
+            if let Some(c2) = c2_avoid {
+                if (c1 as i32 - c2 as i32).abs() <= 2 && stack_h[c2] == 0 {
+                    h1_above_h2_cover_risk = 1.0;
+                }
+                if h1_clean_fit_cnt <= 1.5 {
+                    active_bits[n_act] = 330;
+                    n_act += 1;
+                } else if h1_clean_fit_cnt <= 2.5 {
+                    active_bits[n_act] = 331;
+                    n_act += 1;
+                } else {
+                    active_bits[n_act] = 332;
+                    n_act += 1;
+                }
+                if hand_clean_fits_h1 > 0.5 {
+                    active_bits[n_act] = 333;
+                    n_act += 1;
+                } else if hand_fits_h1 > 0.5 {
+                    active_bits[n_act] = 334;
+                    n_act += 1;
+                }
+            }
+
+            // Outer 5-col contour around h1 (`338..348`, 10 bits)
+            let d_l2 = if c1 >= 2 {
+                (stack_h[c1 - 2] - stack_h[c1 - 1]).clamp(-2, 2) + 2
+            } else {
+                4
+            } as u16;
+            active_bits[n_act] = 338 + d_l2;
+            n_act += 1;
+            let d_r2 = if c1 + 2 < 10 {
+                (stack_h[c1 + 2] - stack_h[c1 + 1]).clamp(-2, 2) + 2
+            } else {
+                4
+            } as u16;
+            active_bits[n_act] = 343 + d_r2;
+            n_act += 1;
+        }
+    }
+    if h1_narrow_1 > 0 && hand_fits_h1 == 0.0 {
+        active_bits[n_act] = 335;
+        n_act += 1;
+    }
+    if h1_narrow_2plus > 0 && !has_i_avail {
+        active_bits[n_act] = 336;
+        n_act += 1;
+    }
+    if h2_narrow_2plus > 0.5 && !has_i_avail {
+        active_bits[n_act] = 337;
+        n_act += 1;
+    }
+
+    // Outer 5-col contour around h2 (`348..358`, 10 bits)
+    if h2_open {
+        if let Some(c2) = h2_col {
+            let d_l2 = if c2 >= 2 {
+                (stack_h[c2 - 2] - stack_h[c2 - 1]).clamp(-2, 2) + 2
+            } else {
+                4
+            } as u16;
+            active_bits[n_act] = 348 + d_l2;
+            n_act += 1;
+            let d_r2 = if c2 + 2 < 10 {
+                (stack_h[c2 + 2] - stack_h[c2 + 1]).clamp(-2, 2) + 2
+            } else {
+                4
+            } as u16;
+            active_bits[n_act] = 353 + d_r2;
+            n_act += 1;
+        }
+    }
+
+    // Skim, I-dep, stack-mass, and garbage-height regime bits (`358..374`, 16 bits)
+    active_bits[n_act] = 358 + (near_full_9.clamp(0, 2) as u16);
+    n_act += 1;
+    if clean_skim_rows >= 1 {
+        active_bits[n_act] = 361;
+        n_act += 1;
+    }
+    active_bits[n_act] = 362 + (i_dep_cols.clamp(0, 2) as u16);
+    n_act += 1;
+    if pillars_2plus >= 1 {
+        active_bits[n_act] = 365;
+        n_act += 1;
+    }
+    let sc_bucket: u16 = if stack_cells <= 8 {
+        0
+    } else if stack_cells <= 16 {
+        1
+    } else if stack_cells <= 24 {
+        2
+    } else {
+        3
+    };
+    active_bits[n_act] = 366 + sc_bucket;
+    n_act += 1;
+    if g == 4 {
+        active_bits[n_act] = 370;
+        n_act += 1;
+    } else if g == 5 || g == 6 {
+        active_bits[n_act] = 371;
+        n_act += 1;
+    } else if g == 7 || g == 8 {
+        active_bits[n_act] = 372;
+        n_act += 1;
+    } else if g >= 9 {
+        active_bits[n_act] = 373;
+        n_act += 1;
+    }
+
+    let row_g_2emp_adj = if rg_clean && rg_emp == 2 {
+        let emp_mask = !board.data[g] & 0x3FF;
+        if (emp_mask & (emp_mask >> 1)) != 0 { 1.0 } else { 0.0 }
+    } else {
+        0.0
+    };
+    let mut top_empty_cols: i32 = 0;
+    for c in 0..10usize {
+        if stack_h[c] == 0 && Some(c) != h1_col {
+            top_empty_cols += 1;
+        }
+    }
+
+    dense[82] = h1_clean_fit_cnt;
+    dense[83] = hand_clean_fits_h1;
+    dense[84] = bag_clean_fit_frac;
+    dense[85] = (h1_fit_cnt - h1_clean_fit_cnt).max(0.0);
+    dense[86] = row_g_2emp_adj;
+    dense[87] = h1_above_h2_cover_risk;
+    dense[88] = (max_stack_h - min_stack_h).max(0) as f32;
+    dense[89] = top_empty_cols as f32;
+
     n_act
 }
 
@@ -1232,7 +1417,7 @@ impl SpatialValueModel {
         let mut w = BufWriter::new(f);
         writeln!(
             w,
-            "SPATIAL_VAL_V4 {} {} {} {}",
+            "SPATIAL_VAL_V5 {} {} {} {}",
             SPARSE_DIM, DENSE_DIM, SPATIAL_H1, SPATIAL_H2
         )?;
         for j in 0..DENSE_DIM {
@@ -1339,7 +1524,8 @@ impl SpatialValueModel {
             || (parts[0] != "SPATIAL_VAL_V1"
                 && parts[0] != "SPATIAL_VAL_V2"
                 && parts[0] != "SPATIAL_VAL_V3"
-                && parts[0] != "SPATIAL_VAL_V4")
+                && parts[0] != "SPATIAL_VAL_V4"
+                && parts[0] != "SPATIAL_VAL_V5")
         {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::InvalidData,
@@ -1350,12 +1536,16 @@ impl SpatialValueModel {
         let dd: usize = parts[2].parse().unwrap_or(0);
         let h1: usize = parts[3].parse().unwrap_or(0);
         let h2: usize = parts[4].parse().unwrap_or(0);
-        let sd_ok = (parts[0] == "SPATIAL_VAL_V4" && sd == SPARSE_DIM)
-            || (parts[0] != "SPATIAL_VAL_V4" && (sd == 186 || sd == SPARSE_DIM));
-        let dd_ok = (parts[0] == "SPATIAL_VAL_V1" && (dd == 68 || dd == 72 || dd == 74 || dd == DENSE_DIM))
-            || (parts[0] == "SPATIAL_VAL_V2" && (dd == 72 || dd == 74 || dd == DENSE_DIM))
-            || (parts[0] == "SPATIAL_VAL_V3" && (dd == 74 || dd == DENSE_DIM))
-            || (parts[0] == "SPATIAL_VAL_V4" && dd == DENSE_DIM);
+        let sd_ok = (parts[0] == "SPATIAL_VAL_V5" && sd == SPARSE_DIM)
+            || (parts[0] == "SPATIAL_VAL_V4" && (sd == 330 || sd == SPARSE_DIM))
+            || (parts[0] != "SPATIAL_VAL_V4"
+                && parts[0] != "SPATIAL_VAL_V5"
+                && (sd == 186 || sd == 330 || sd == SPARSE_DIM));
+        let dd_ok = (parts[0] == "SPATIAL_VAL_V1" && (dd == 68 || dd == 72 || dd == 74 || dd == 82 || dd == DENSE_DIM))
+            || (parts[0] == "SPATIAL_VAL_V2" && (dd == 72 || dd == 74 || dd == 82 || dd == DENSE_DIM))
+            || (parts[0] == "SPATIAL_VAL_V3" && (dd == 74 || dd == 82 || dd == DENSE_DIM))
+            || (parts[0] == "SPATIAL_VAL_V4" && (dd == 82 || dd == DENSE_DIM))
+            || (parts[0] == "SPATIAL_VAL_V5" && dd == DENSE_DIM);
         if !sd_ok || !dd_ok || h1 != SPATIAL_H1 || h2 != SPATIAL_H2 {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::InvalidData,
