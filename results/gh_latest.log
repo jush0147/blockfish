@@ -1,4 +1,4 @@
-=== Cell-Conservation nds_pen + Non-Clairvoyant 7-Bag Expectimax Sweep on models/spatial_bc4_lin.txt (~40m) ===
+=== Part 1: Full-MLP Inside PIMC Beam (spatial_rerank_only=false) on models/spatial_bc4.txt (V5 MLP) ===
 [1m[33mwarning[0m[1m: unused build dependency `fontconfig`[0m
   [1m[94m--> [0mblockfish-client/Cargo.toml:29:1
    [1m[94m|[0m
@@ -97,104 +97,149 @@
    [1m[94m|[0m                                                         [92m++++[0m
 
 [1m[33mwarning[0m: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
-[1m[92m    Finished[0m `release` profile [optimized] target(s) in 7.77s
-[1m[92m     Running[0m `target/release/examples/bench_legal wg5_lin_sweep models/spatial_bc4_lin.txt nds_expectimax 5`
-=== Legal wg5_lin_sweep (models/spatial_bc4_lin.txt, which=nds_expectimax, n_seeds=5) ===
-  [seed 104] pcs=196 nds=68 0ds=96 (cov=40 O=18 nar=12 wide=22 end= 4) cov_nxt=18.0% | 18.7s
-  [seed 102] pcs=197 nds=67 0ds=97 (cov=33 O=18 nar=17 wide=27 end= 2) cov_nxt=16.0% | 31.8s
-  [seed 103] pcs=203 nds=69 0ds=103 (cov=38 O=18 nar=14 wide=27 end= 6) cov_nxt=22.0% | 32.3s
-  [seed 101] pcs=195 nds=67 0ds=95 (cov=32 O=19 nar=15 wide=26 end= 3) cov_nxt=17.0% | 34.4s
-  [seed 105] pcs=196 nds=67 0ds=96 (cov=34 O=18 nar= 4 wide=38 end= 2) cov_nxt=17.0% | 51.1s
-b120_nds40                 n= 5 mean=197.40 min=195 max=203 <=166: 0 top= 0 | nds=67.60 0ds=97.40 (cov=35.4 O=18.2 nar=12.4 wide=28.0 g0=0.0 end=3.4) cov_nxt=18.0% avg_c=13.2 | 51.1s
-  seeds: [101:195, 102:197, 103:203, 104:196, 105:196]
-  [seed 102] pcs=209 nds=73 0ds=109 (cov=37 O=19 nar=12 wide=36 end= 5) cov_nxt=19.0% | 23.9s
-  [seed 104] pcs=203 nds=69 0ds=103 (cov=23 O=25 nar=19 wide=30 end= 6) cov_nxt=13.0% | 26.4s
-  [seed 103] pcs=200 nds=69 0ds=100 (cov=28 O=19 nar=12 wide=33 end= 8) cov_nxt=15.0% | 26.7s
-  [seed 101] pcs=192 nds=66 0ds=92 (cov=34 O=18 nar=11 wide=25 end= 4) cov_nxt=20.0% | 33.5s
-  [seed 105] pcs=193 nds=66 0ds=93 (cov=29 O=18 nar= 6 wide=37 end= 3) cov_nxt=17.0% | 46.3s
-b120_nds80                 n= 5 mean=199.40 min=192 max=209 <=166: 0 top= 0 | nds=68.60 0ds=99.40 (cov=30.2 O=19.8 nar=12.0 wide=32.2 g0=0.0 end=5.2) cov_nxt=16.8% avg_c=14.3 | 46.3s
-  seeds: [101:192, 102:209, 103:200, 104:203, 105:193]
-  [seed 102] pcs=223 nds=78 0ds=123 (cov=44 O=20 nar=19 wide=37 end= 3) cov_nxt=17.0% | 26.9s
-  [seed 103] pcs=203 nds=69 0ds=103 (cov=37 O=21 nar=11 wide=31 end= 3) cov_nxt=17.0% | 31.0s
-  [seed 101] pcs=221 nds=78 0ds=121 (cov=38 O=22 nar=20 wide=34 end= 7) cov_nxt=21.0% | 33.1s
-  [seed 104] pcs=199 nds=68 0ds=99 (cov=17 O=22 nar=13 wide=39 end= 8) cov_nxt=13.0% | 34.0s
-  [seed 105] pcs=218 nds=76 0ds=118 (cov=54 O=22 nar=14 wide=20 end= 8) cov_nxt=18.0% | 59.3s
-b120_nds120                n= 5 mean=212.80 min=199 max=223 <=166: 0 top= 0 | nds=73.80 0ds=112.80 (cov=38.0 O=21.4 nar=15.4 wide=32.2 g0=0.0 end=5.8) cov_nxt=17.2% avg_c=15.6 | 59.3s
-  seeds: [101:221, 102:223, 103:203, 104:199, 105:218]
-  [seed 104] pcs=244 nds=86 0ds=144 (cov=46 O=22 nar=27 wide=43 end= 6) cov_nxt=21.0% | 33.5s
-  [seed 103] pcs=253 nds=90 0ds=153 (cov=54 O=26 nar=23 wide=42 end= 8) cov_nxt=19.0% | 38.5s
-  [seed 101] pcs=264 nds=95 0ds=164 (cov=44 O=24 nar=38 wide=48 end=10) cov_nxt=17.0% | 44.8s
-  [seed 102] pcs=259 nds=93 0ds=159 (cov=78 O=16 nar=18 wide=41 end= 6) cov_nxt=25.0% | 46.0s
-  [seed 105] pcs=314 nds=114 0ds=214 (cov=85 O=29 nar=37 wide=60 end= 3) cov_nxt=22.0% | 69.7s
-b120_nds160                n= 5 mean=266.80 min=244 max=314 <=166: 0 top= 0 | nds=95.60 0ds=166.80 (cov=61.4 O=23.4 nar=28.6 wide=46.8 g0=0.0 end=6.6) cov_nxt=20.8% avg_c=20.3 | 69.7s
-  seeds: [101:264, 102:259, 103:253, 104:244, 105:314]
-  [seed 104] pcs=181 nds=61 0ds=81 (cov=28 O=19 nar= 6 wide=23 end= 5) cov_nxt=19.0% | 104.8s
-  [seed 103] pcs=184 nds=63 0ds=84 (cov=30 O=18 nar=10 wide=22 end= 4) cov_nxt=19.0% | 112.6s
-  [seed 102] pcs=188 nds=64 0ds=88 (cov=20 O=22 nar=13 wide=30 end= 3) cov_nxt=14.0% | 114.5s
-  [seed 101] pcs=192 nds=66 0ds=92 (cov=25 O=21 nar=13 wide=27 end= 6) cov_nxt=16.0% | 120.5s
-  [seed 105] pcs=187 nds=63 0ds=87 (cov=27 O=21 nar= 8 wide=29 end= 2) cov_nxt=10.0% | 188.4s
-w8_h8_nds40                n= 5 mean=186.40 min=181 max=192 <=166: 0 top= 0 | nds=63.40 0ds=86.40 (cov=26.0 O=20.2 nar=10.0 wide=26.2 g0=0.0 end=4.0) cov_nxt=15.6% avg_c=12.7 | 188.4s
-  seeds: [101:192, 102:188, 103:184, 104:181, 105:187]
-  [seed 103] pcs=181 nds=61 0ds=81 (cov=26 O=18 nar= 6 wide=27 end= 4) cov_nxt=18.0% | 106.9s
-  [seed 101] pcs=204 nds=70 0ds=104 (cov=48 O=16 nar= 7 wide=28 end= 5) cov_nxt=22.0% | 121.1s
-  [seed 102] pcs=195 nds=67 0ds=95 (cov=36 O=19 nar=11 wide=25 end= 4) cov_nxt=16.0% | 123.7s
-  [seed 104] pcs=192 nds=66 0ds=92 (cov=22 O=18 nar=16 wide=31 end= 5) cov_nxt=16.0% | 126.5s
-  [seed 105] pcs=193 nds=66 0ds=93 (cov=38 O=16 nar=10 wide=26 end= 3) cov_nxt=21.0% | 192.2s
-w8_h8_nds80                n= 5 mean=193.00 min=181 max=204 <=166: 0 top= 0 | nds=66.00 0ds=93.00 (cov=34.0 O=17.4 nar=10.0 wide=27.4 g0=0.0 end=4.2) cov_nxt=18.6% avg_c=13.6 | 192.2s
-  seeds: [101:204, 102:195, 103:181, 104:192, 105:193]
-  [seed 103] pcs=183 nds=62 0ds=83 (cov=34 O=15 nar= 6 wide=24 end= 4) cov_nxt=21.0% | 106.3s
-  [seed 102] pcs=184 nds=62 0ds=84 (cov=24 O=21 nar= 7 wide=30 end= 2) cov_nxt=14.0% | 121.9s
-  [seed 101] pcs=195 nds=67 0ds=95 (cov=31 O=18 nar= 9 wide=33 end= 4) cov_nxt=19.0% | 122.5s
-  [seed 104] pcs=200 nds=69 0ds=100 (cov=43 O=16 nar=13 wide=20 end= 8) cov_nxt=22.0% | 125.5s
-  [seed 105] pcs=191 nds=65 0ds=91 (cov=33 O=18 nar=11 wide=26 end= 3) cov_nxt=13.0% | 201.3s
-w8_h8_nds120               n= 5 mean=190.60 min=183 max=200 <=166: 0 top= 0 | nds=65.00 0ds=90.60 (cov=33.0 O=17.6 nar=9.2 wide=26.6 g0=0.0 end=4.2) cov_nxt=17.8% avg_c=14.3 | 201.3s
-  seeds: [101:195, 102:184, 103:183, 104:200, 105:191]
-  [seed 101] pcs=212 nds=74 0ds=112 (cov=27 O=23 nar=10 wide=46 end= 6) cov_nxt=15.0% | 126.2s
-  [seed 103] pcs=207 nds=72 0ds=107 (cov=29 O=19 nar=18 wide=36 end= 5) cov_nxt=13.0% | 127.9s
-  [seed 102] pcs=208 nds=72 0ds=108 (cov=36 O=23 nar=12 wide=32 end= 5) cov_nxt=17.0% | 139.9s
-  [seed 104] pcs=211 nds=73 0ds=111 (cov=52 O=16 nar=10 wide=29 end= 4) cov_nxt=24.0% | 149.5s
-  [seed 105] pcs=202 nds=70 0ds=102 (cov=39 O=19 nar= 6 wide=34 end= 4) cov_nxt=20.0% | 197.7s
-w8_h8_nds160               n= 5 mean=208.00 min=202 max=212 <=166: 0 top= 0 | nds=72.20 0ds=108.00 (cov=36.6 O=20.0 nar=11.2 wide=35.4 g0=0.0 end=4.8) cov_nxt=17.8% avg_c=15.9 | 197.7s
-  seeds: [101:212, 102:208, 103:207, 104:211, 105:202]
-  [seed 103] pcs=200 nds=69 0ds=100 (cov=45 O=15 nar= 5 wide=28 end= 7) cov_nxt=25.0% | 31.8s
-  [seed 104] pcs=191 nds=65 0ds=91 (cov=32 O=17 nar= 8 wide=28 end= 6) cov_nxt=14.0% | 34.6s
-  [seed 101] pcs=188 nds=64 0ds=88 (cov=30 O=16 nar= 8 wide=29 end= 5) cov_nxt=19.0% | 36.3s
-  [seed 102] pcs=204 nds=71 0ds=104 (cov=35 O=19 nar= 5 wide=37 end= 8) cov_nxt=19.0% | 42.5s
-  [seed 105] pcs=193 nds=66 0ds=93 (cov=27 O=19 nar= 6 wide=39 end= 2) cov_nxt=12.0% | 56.6s
-nc_exp_rh0_nds0            n= 5 mean=195.20 min=188 max=204 <=166: 0 top= 0 | nds=67.00 0ds=95.20 (cov=33.8 O=17.2 nar=6.4 wide=32.2 g0=0.0 end=5.6) cov_nxt=17.8% avg_c=12.5 | 56.6s
-  seeds: [101:188, 102:204, 103:200, 104:191, 105:193]
-  [seed 103] pcs=196 nds=67 0ds=96 (cov=33 O=17 nar= 8 wide=35 end= 3) cov_nxt=21.0% | 40.8s
-  [seed 101] pcs=192 nds=66 0ds=92 (cov=33 O=15 nar=16 wide=21 end= 7) cov_nxt=16.0% | 43.9s
-  [seed 104] pcs=191 nds=65 0ds=91 (cov=28 O=19 nar=10 wide=30 end= 4) cov_nxt=19.0% | 46.6s
-  [seed 102] pcs=205 nds=71 0ds=105 (cov=27 O=23 nar=19 wide=28 end= 8) cov_nxt=14.0% | 51.6s
-  [seed 105] pcs=192 nds=66 0ds=92 (cov=37 O=17 nar= 5 wide=31 end= 2) cov_nxt=23.0% | 70.0s
-nc_exp_rh2_nds0            n= 5 mean=195.20 min=191 max=205 <=166: 0 top= 0 | nds=67.00 0ds=95.20 (cov=31.6 O=18.2 nar=11.6 wide=29.0 g0=0.0 end=4.8) cov_nxt=18.6% avg_c=13.1 | 70.0s
-  seeds: [101:192, 102:205, 103:196, 104:191, 105:192]
-  [seed 104] pcs=192 nds=66 0ds=92 (cov=35 O=16 nar= 9 wide=27 end= 5) cov_nxt=19.0% | 60.8s
-  [seed 101] pcs=188 nds=64 0ds=88 (cov=27 O=16 nar= 7 wide=31 end= 7) cov_nxt=15.0% | 61.1s
-  [seed 102] pcs=202 nds=70 0ds=102 (cov=37 O=19 nar=11 wide=33 end= 2) cov_nxt=15.0% | 62.2s
-  [seed 103] pcs=201 nds=69 0ds=101 (cov=30 O=19 nar=12 wide=35 end= 5) cov_nxt=16.0% | 65.2s
-  [seed 105] pcs=194 nds=67 0ds=94 (cov=28 O=17 nar=16 wide=30 end= 3) cov_nxt=19.0% | 98.8s
-nc_exp_rh3_nds0            n= 5 mean=195.40 min=188 max=202 <=166: 0 top= 0 | nds=67.20 0ds=95.40 (cov=31.4 O=17.4 nar=11.0 wide=31.2 g0=0.0 end=4.4) cov_nxt=16.8% avg_c=12.6 | 98.8s
-  seeds: [101:188, 102:202, 103:201, 104:192, 105:194]
-  [seed 102] pcs=225 nds=79 0ds=125 (cov=50 O=18 nar=16 wide=39 end= 2) cov_nxt=23.0% | 47.6s
-  [seed 101] pcs=204 nds=71 0ds=104 (cov=42 O=18 nar=13 wide=25 end= 6) cov_nxt=22.0% | 49.0s
-  [seed 104] pcs=193 nds=66 0ds=93 (cov=31 O=18 nar=14 wide=26 end= 4) cov_nxt=12.0% | 50.8s
-  [seed 103] pcs=195 nds=67 0ds=95 (cov=26 O=23 nar=14 wide=28 end= 4) cov_nxt=19.0% | 51.3s
-  [seed 105] pcs=210 nds=73 0ds=110 (cov=35 O=21 nar=19 wide=34 end= 1) cov_nxt=20.0% | 77.8s
-nc_exp_rh2_nds80           n= 5 mean=205.40 min=193 max=225 <=166: 0 top= 0 | nds=71.20 0ds=105.40 (cov=36.8 O=19.6 nar=15.2 wide=30.4 g0=0.0 end=3.4) cov_nxt=19.2% avg_c=14.4 | 77.8s
-  seeds: [101:204, 102:225, 103:195, 104:193, 105:210]
-  [seed 104] pcs=197 nds=68 0ds=97 (cov=31 O=22 nar=12 wide=26 end= 6) cov_nxt=17.0% | 297.1s
-  [seed 101] pcs=185 nds=63 0ds=85 (cov=34 O=18 nar= 7 wide=22 end= 4) cov_nxt=20.0% | 303.3s
-  [seed 102] pcs=190 nds=65 0ds=90 (cov=39 O=19 nar= 7 wide=22 end= 3) cov_nxt=15.0% | 303.5s
-  [seed 103] pcs=189 nds=64 0ds=89 (cov=34 O=17 nar= 9 wide=25 end= 4) cov_nxt=17.0% | 309.5s
-  [seed 105] pcs=193 nds=66 0ds=93 (cov=29 O=20 nar= 9 wide=30 end= 5) cov_nxt=18.0% | 510.7s
-h8_w16_c25_nds60           n= 5 mean=190.80 min=185 max=197 <=166: 0 top= 0 | nds=65.20 0ds=90.80 (cov=33.4 O=19.2 nar=8.8 wide=25.0 g0=0.0 end=4.4) cov_nxt=17.4% avg_c=12.7 | 510.7s
-  seeds: [101:185, 102:190, 103:189, 104:197, 105:193]
-  [seed 103] pcs=181 nds=61 0ds=81 (cov=21 O=16 nar=11 wide=29 end= 4) cov_nxt=16.0% | 279.6s
-  [seed 101] pcs=183 nds=62 0ds=83 (cov=31 O=15 nar=12 wide=21 end= 4) cov_nxt=17.0% | 304.0s
-  [seed 102] pcs=193 nds=66 0ds=93 (cov=34 O=18 nar=13 wide=25 end= 3) cov_nxt=18.0% | 309.2s
-  [seed 104] pcs=196 nds=67 0ds=96 (cov=31 O=22 nar= 8 wide=29 end= 6) cov_nxt=14.0% | 311.6s
-  [seed 105] pcs=188 nds=64 0ds=88 (cov=24 O=18 nar= 9 wide=32 end= 5) cov_nxt=11.0% | 484.5s
-h8_w16_c25_nds100          n= 5 mean=188.20 min=181 max=196 <=166: 0 top= 0 | nds=64.00 0ds=88.20 (cov=28.2 O=17.8 nar=10.6 wide=27.2 g0=0.0 end=4.4) cov_nxt=15.2% avg_c=13.6 | 484.5s
-  seeds: [101:183, 102:193, 103:181, 104:196, 105:188]
+[1m[92m    Finished[0m `release` profile [optimized] target(s) in 7.84s
+[1m[92m     Running[0m `target/release/examples/bench_legal wg5_lin_sweep models/spatial_bc4.txt full_mlp_pimc 5`
+=== Legal wg5_lin_sweep (models/spatial_bc4.txt, which=full_mlp_pimc, n_seeds=5) ===
+  [seed 101] pcs=184 nds=63 0ds=84 (cov=34 O=17 nar= 8 wide=21 end= 4) cov_nxt=24.0% | 104.3s
+  [seed 103] pcs=190 nds=65 0ds=90 (cov=34 O=19 nar= 4 wide=30 end= 3) cov_nxt=18.0% | 109.6s
+  [seed 104] pcs=188 nds=64 0ds=88 (cov=34 O=14 nar= 3 wide=31 end= 6) cov_nxt=22.0% | 126.8s
+  [seed 102] pcs=192 nds=66 0ds=92 (cov=28 O=18 nar= 9 wide=34 end= 3) cov_nxt=14.0% | 128.5s
+  [seed 105] pcs=185 nds=63 0ds=85 (cov=31 O=19 nar=12 wide=23 end= 0) cov_nxt=15.0% | 182.6s
+fullmlp_w8_h8_b24_cvar0    n= 5 mean=187.80 min=184 max=192 <=166: 0 top= 0 | nds=64.20 0ds=87.80 (cov=32.2 O=17.4 nar=7.2 wide=27.8 g0=0.0 end=3.2) cov_nxt=18.6% avg_c=12.2 | 182.6s
+  seeds: [101:184, 102:192, 103:190, 104:188, 105:185]
+  [seed 104] pcs=181 nds=61 0ds=81 (cov=28 O=16 nar= 4 wide=31 end= 2) cov_nxt=19.0% | 159.3s
+  [seed 103] pcs=183 nds=62 0ds=83 (cov=32 O=17 nar= 5 wide=26 end= 3) cov_nxt=18.0% | 166.4s
+  [seed 102] pcs=185 nds=62 0ds=85 (cov=34 O=18 nar= 8 wide=19 end= 6) cov_nxt=17.0% | 173.6s
+  [seed 101] pcs=189 nds=65 0ds=89 (cov=31 O=21 nar= 7 wide=25 end= 5) cov_nxt=24.0% | 180.7s
+  [seed 105] pcs=185 nds=63 0ds=85 (cov=24 O=21 nar= 8 wide=25 end= 7) cov_nxt=16.0% | 279.1s
+fullmlp_w12_h8_b24_cvar25  n= 5 mean=184.60 min=181 max=189 <=166: 0 top= 0 | nds=62.60 0ds=84.60 (cov=29.8 O=18.6 nar=6.4 wide=25.2 g0=0.0 end=4.6) cov_nxt=18.8% avg_c=12.2 | 279.1s
+  seeds: [101:189, 102:185, 103:183, 104:181, 105:185]
+  [seed 104] pcs=180 nds=61 0ds=80 (cov=31 O=17 nar= 1 wide=24 end= 7) cov_nxt=15.0% | 275.7s
+  [seed 103] pcs=180 nds=61 0ds=80 (cov=24 O=18 nar=13 wide=21 end= 4) cov_nxt=16.0% | 281.8s
+  [seed 102] pcs=184 nds=62 0ds=84 (cov=38 O=15 nar= 8 wide=19 end= 4) cov_nxt=18.0% | 292.2s
+  [seed 101] pcs=187 nds=64 0ds=87 (cov=32 O=19 nar= 4 wide=27 end= 5) cov_nxt=20.0% | 314.7s
+  [seed 105] pcs=175 nds=59 0ds=75 (cov=24 O=19 nar= 8 wide=23 end= 1) cov_nxt=13.0% | 459.1s
+fullmlp_w16_h8_b28_cvar25  n= 5 mean=181.20 min=175 max=187 <=166: 0 top= 0 | nds=61.40 0ds=81.20 (cov=29.8 O=17.6 nar=6.8 wide=22.8 g0=0.0 end=4.2) cov_nxt=16.4% avg_c=12.2 | 459.1s
+  seeds: [101:187, 102:184, 103:180, 104:180, 105:175]
+
+=== Part 2: Full-MLP Inside PIMC Beam (spatial_rerank_only=false) on models/spatial_bc3.txt (V4 MLP) ===
+[1m[33mwarning[0m[1m: unused build dependency `fontconfig`[0m
+  [1m[94m--> [0mblockfish-client/Cargo.toml:29:1
+   [1m[94m|[0m
+[1m[94m29[0m [1m[94m|[0m fontconfig = "0.2"
+   [1m[94m|[0m [1m[33m^^^^^^^^^^^^^^^^^^[0m
+   [1m[94m|[0m
+   [1m[94m= [0m[1mnote[0m: `cargo::unused_dependencies` is set to `warn` by default
+[1m[96mhelp[0m: consider removing the dependency on `fontconfig`
+[1m[33mwarning[0m: `blockfish-client` (manifest) generated 1 warning
+[1m[33mwarning[0m[1m: unused imports: `Input` and `place::PlaceFinder`[0m
+ [1m[94m--> [0mblockfish-engine/src/ai/fast.rs:2:5
+  [1m[94m|[0m
+[1m[94m2[0m [1m[94m|[0m     place::PlaceFinder,
+  [1m[94m|[0m     [1m[33m^^^^^^^^^^^^^^^^^^[0m
+[1m[94m3[0m [1m[94m|[0m     shape::{ShapeRef, ShapeTable},
+[1m[94m4[0m [1m[94m|[0m     BasicMatrix, Color, Input, Orientation,
+  [1m[94m|[0m                         [1m[33m^^^^^[0m
+  [1m[94m|[0m
+  [1m[94m= [0m[1mnote[0m: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m[1m: use of deprecated constant `std::u16::MAX`: replaced by the `MAX` associated constant on this type[0m
+  [1m[94m--> [0mblockfish-engine/src/matrix.rs:41:15
+   [1m[94m|[0m
+[1m[94m41[0m [1m[94m|[0m     std::u16::MAX.overflowing_shl(cols.into()).0
+   [1m[94m|[0m               [1m[33m^^^[0m
+   [1m[94m|[0m
+   [1m[94m= [0m[1mnote[0m: `#[warn(deprecated)]` on by default
+
+[1m[33mwarning[0m[1m: use of deprecated constant `std::u16::MAX`: replaced by the `MAX` associated constant on this type[0m
+  [1m[94m--> [0mblockfish-engine/src/matrix.rs:46:15
+   [1m[94m|[0m
+[1m[94m46[0m [1m[94m|[0m     std::u16::MAX
+   [1m[94m|[0m               [1m[33m^^^[0m
+
+[1m[33mwarning[0m[1m: use of deprecated constant `std::usize::MAX`: replaced by the `MAX` associated constant on this type[0m
+  [1m[94m--> [0mblockfish-engine/src/place.rs:27:30
+   [1m[94m|[0m
+[1m[94m27[0m [1m[94m|[0m             idx: std::usize::MAX,
+   [1m[94m|[0m                              [1m[33m^^^[0m
+
+[1m[33mwarning[0m[1m: use of deprecated constant `std::i64::MAX`: replaced by the `MAX` associated constant on this type[0m
+   [1m[94m--> [0mblockfish-engine/src/ai/analysis.rs:169:36
+    [1m[94m|[0m
+[1m[94m169[0m [1m[94m|[0m     let mut global_min = std::i64::MAX;
+    [1m[94m|[0m                                    [1m[33m^^^[0m
+
+[1m[33mwarning[0m[1m: use of deprecated constant `std::i64::MAX`: replaced by the `MAX` associated constant on this type[0m
+   [1m[94m--> [0mblockfish-engine/src/ai/b_star.rs:195:67
+    [1m[94m|[0m
+[1m[94m195[0m [1m[94m|[0m             .min_by_key(|&i| self.lvls[i].peek().map_or(std::i64::MAX, |n| n.f))
+    [1m[94m|[0m                                                                   [1m[33m^^^[0m
+
+[1m[33mwarning[0m[1m: use of deprecated constant `std::i64::MAX`: replaced by the `MAX` associated constant on this type[0m
+   [1m[94m--> [0mblockfish-engine/src/ai/b_star.rs:206:75
+    [1m[94m|[0m
+[1m[94m206[0m [1m[94m|[0m                 let best = self.move_best.entry(m_id).or_insert(std::i64::MAX);
+    [1m[94m|[0m                                                                           [1m[33m^^^[0m
+
+[1m[33mwarning[0m[1m: use of deprecated constant `std::usize::MAX`: replaced by the `MAX` associated constant on this type[0m
+   [1m[94m--> [0mblockfish-engine/src/ai/eval.rs:118:32
+    [1m[94m|[0m
+[1m[94m118[0m [1m[94m|[0m     let mut idx0 = std::usize::MAX;
+    [1m[94m|[0m                                [1m[33m^^^[0m
+
+[1m[33mwarning[0m[1m: use of deprecated constant `std::usize::MAX`: replaced by the `MAX` associated constant on this type[0m
+   [1m[94m--> [0mblockfish-engine/src/ai/eval.rs:121:31
+    [1m[94m|[0m
+[1m[94m121[0m [1m[94m|[0m         if idx0 < std::usize::MAX {
+    [1m[94m|[0m                               [1m[33m^^^[0m
+
+[1m[33mwarning[0m[1m: variable does not need to be mutable[0m
+   [1m[94m--> [0mblockfish-engine/src/ai/fast.rs:338:13
+    [1m[94m|[0m
+[1m[94m338[0m [1m[94m|[0m         let mut shapes_opt: [Option<FastShape>; 7] = [None, None, None, None, None, None, None];
+    [1m[94m|[0m             [1m[94m----[0m[1m[33m^^^^^^^^^^[0m
+    [1m[94m|[0m             [1m[94m|[0m
+    [1m[94m|[0m             [1m[94mhelp: remove this `mut`[0m
+    [1m[94m|[0m
+    [1m[94m= [0m[1mnote[0m: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m[1m: hiding a lifetime that's elided elsewhere is confusing[0m
+  [1m[94m--> [0mblockfish-engine/src/shape.rs:16:18
+   [1m[94m|[0m
+[1m[94m16[0m [1m[94m|[0m     pub fn shape(&self, color: Color) -> Option<ShapeRef> {
+   [1m[94m|[0m                  [1m[33m^^^^^[0m                          [1m[33m^^^^^^^^[0m [1m[33mthe same lifetime is hidden here[0m
+   [1m[94m|[0m                  [1m[33m|[0m
+   [1m[94m|[0m                  [1m[33mthe lifetime is elided here[0m
+   [1m[94m|[0m
+   [1m[94m= [0m[1mhelp[0m: the same lifetime is referred to in inconsistent ways, making the signature confusing
+   [1m[94m= [0m[1mnote[0m: `#[warn(mismatched_lifetime_syntaxes)]` on by default
+[1m[96mhelp[0m: use `'_` for type paths
+   [1m[94m|[0m
+[1m[94m16[0m [1m[94m| [0m    pub fn shape(&self, color: Color) -> Option<ShapeRef[92m<'_>[0m> {
+   [1m[94m|[0m                                                         [92m++++[0m
+
+[1m[33mwarning[0m: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
+[1m[92m    Finished[0m `release` profile [optimized] target(s) in 0.03s
+[1m[92m     Running[0m `target/release/examples/bench_legal wg5_lin_sweep models/spatial_bc3.txt full_mlp_pimc 5`
+=== Legal wg5_lin_sweep (models/spatial_bc3.txt, which=full_mlp_pimc, n_seeds=5) ===
+  [seed 103] pcs=185 nds=62 0ds=85 (cov=41 O= 9 nar= 8 wide=24 end= 3) cov_nxt=21.0% | 98.1s
+  [seed 104] pcs=181 nds=61 0ds=81 (cov=24 O=18 nar= 5 wide=29 end= 5) cov_nxt=12.0% | 112.9s
+  [seed 102] pcs=184 nds=62 0ds=84 (cov=24 O=19 nar= 9 wide=29 end= 3) cov_nxt=18.0% | 118.5s
+  [seed 101] pcs=187 nds=64 0ds=87 (cov=33 O=18 nar= 6 wide=26 end= 4) cov_nxt=21.0% | 118.6s
+  [seed 105] pcs=193 nds=66 0ds=93 (cov=33 O=18 nar=13 wide=26 end= 3) cov_nxt=19.0% | 191.6s
+fullmlp_w8_h8_b24_cvar0    n= 5 mean=186.00 min=181 max=193 <=166: 0 top= 0 | nds=63.00 0ds=86.00 (cov=31.0 O=16.4 nar=8.2 wide=26.8 g0=0.0 end=3.6) cov_nxt=18.2% avg_c=12.1 | 191.6s
+  seeds: [101:187, 102:184, 103:185, 104:181, 105:193]
+  [seed 103] pcs=182 nds=62 0ds=82 (cov=30 O=14 nar= 7 wide=28 end= 3) cov_nxt=16.0% | 158.8s
+  [seed 102] pcs=186 nds=63 0ds=86 (cov=26 O=22 nar=12 wide=24 end= 2) cov_nxt=17.0% | 172.5s
+  [seed 101] pcs=195 nds=67 0ds=95 (cov=26 O=18 nar= 9 wide=37 end= 5) cov_nxt=18.0% | 177.0s
+  [seed 104] pcs=197 nds=67 0ds=97 (cov=28 O=17 nar= 9 wide=35 end= 8) cov_nxt=18.0% | 187.4s
+  [seed 105] pcs=188 nds=64 0ds=88 (cov=25 O=17 nar= 9 wide=31 end= 6) cov_nxt=15.0% | 280.4s
+fullmlp_w12_h8_b24_cvar25  n= 5 mean=189.60 min=182 max=197 <=166: 0 top= 0 | nds=64.60 0ds=89.60 (cov=27.0 O=17.6 nar=9.2 wide=31.0 g0=0.0 end=4.8) cov_nxt=16.8% avg_c=11.9 | 280.4s
+  seeds: [101:195, 102:186, 103:182, 104:197, 105:188]
+  [seed 102] pcs=181 nds=61 0ds=81 (cov=28 O=18 nar= 5 wide=28 end= 2) cov_nxt=20.0% | 273.2s
+  [seed 103] pcs=185 nds=63 0ds=85 (cov=43 O=15 nar= 9 wide=13 end= 5) cov_nxt=19.0% | 282.0s
+  [seed 104] pcs=189 nds=64 0ds=89 (cov=33 O=17 nar= 7 wide=27 end= 5) cov_nxt=19.0% | 291.1s
+  [seed 101] pcs=182 nds=62 0ds=82 (cov=29 O=18 nar= 5 wide=26 end= 4) cov_nxt=21.0% | 293.3s
+  [seed 105] pcs=192 nds=66 0ds=92 (cov=24 O=20 nar= 7 wide=35 end= 6) cov_nxt=17.0% | 481.2s
+fullmlp_w16_h8_b28_cvar25  n= 5 mean=185.80 min=181 max=192 <=166: 0 top= 0 | nds=63.20 0ds=85.80 (cov=31.4 O=17.6 nar=6.6 wide=25.8 g0=0.0 end=4.4) cov_nxt=19.2% avg_c=11.7 | 481.2s
+  seeds: [101:182, 102:181, 103:185, 104:189, 105:192]
