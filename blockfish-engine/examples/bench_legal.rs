@@ -1109,6 +1109,35 @@ fn main() {
             c_m3.root_pimc_cvar_pct = 30;
             eval_seeds("fullmlp_w20_h9_b36_cvar30", &seeds, &c_m3);
         }
+        if which == "leaf_pimc_break" {
+            // Non-Clairvoyant Prefix-6 (b=160) + CVaR Leaf-PIMC (total_h = 10..12, ZERO prefix Strategy Fusion!)
+            let mut c_lp = c_base.clone();
+            c_lp.spatial_rerank_only = false;
+            c_lp.beam_width = 160;
+            c_lp.max_per_root = 32;
+            c_lp.root_pimc_worlds = 0;
+            c_lp.pimc_worlds = 12;
+            c_lp.pimc_horizon = 4;
+            c_lp.pimc_roots = 12;
+            c_lp.pimc_width = 20;
+            c_lp.pimc_margin = 450;
+            c_lp.pimc_weight_pct = 100;
+            c_lp.pimc_spawn = true;
+            c_lp.pimc_seed_leaves = 4;
+            c_lp.root_pimc_cvar_pct = 25;
+            eval_seeds("lpimc_h10_w12_b20_c25", &seeds, &c_lp);
+
+            let mut c_lp2 = c_lp.clone();
+            c_lp2.pimc_worlds = 16;
+            c_lp2.pimc_horizon = 5;
+            c_lp2.pimc_width = 24;
+            c_lp2.root_pimc_cvar_pct = 30;
+            eval_seeds("lpimc_h11_w16_b24_c30", &seeds, &c_lp2);
+
+            let mut c_lp3 = c_lp2.clone();
+            c_lp3.pimc_horizon = 6;
+            eval_seeds("lpimc_h12_w16_b24_c30", &seeds, &c_lp3);
+        }
         return;
     }
 

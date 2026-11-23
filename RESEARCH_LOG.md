@@ -155,9 +155,10 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
       - **Round ExIt-1 (`examples/train_exit.rs`, `models/spatial_exit1.txt`, Actions Run `45203324414`, 43m)**:
         - `64` Legal CVaR-25 self-play games (`mean = 187.84`, `11,866` decisions) distilled soft Q-values + true Legal MC returns: `val_soft_ce` `1.4979 -> 1.3931`, `legal_v_mae` `10.89 -> 4.98`, `rem_g = 1.718`.
         - Held-out 10-seed (`101..=110`) `fullmlp_w16`: **`189.30 [180..200]`** (improved hard seeds `106..=110` from `194.60 -> 190.40` (`-4.20` pcs, `cov_nxt` `17.9% -> 17.0%`), but regressed on `101..=105`, staying on the ~188 plateau).
-      - **Next (`SPATIAL_VAL_V6` — Exact 2D `3×3` Pattern NNUE, Round BC-6)**:
-        - Upgraded `SpatialValueModel` to `SPATIAL_VAL_V6` (`SPARSE_DIM: 374 -> 1591`, `DENSE_DIM: 90`, `64x32` fast native active path, 100% V1–V5 backward-compatible): added exact `3×3` 2D occupancy bitmasks around `h1` (`512` patterns) and `h2` (`512` patterns), translation-invariant `3-col` surface contours (`49` patterns), and exact `5-col` `h1` contour (`144` patterns) — O(1) lookup (~10 ns) giving exact 2D convolutional pattern recognition to both linear skip and MLP!
-        - Launching Round BC-6 (`150` `WG_ds B=1800` + `60` DAgger `spatial_bc4.txt` + Dropout `0.15` + LS `0.02`) + 10-seed (`101..=110`) `fullmlp_w16` verification (~58m).
+      - **Round BC-6 (`SPATIAL_VAL_V6` Exact 2D `3×3` Pattern NNUE `64x32`, `models/spatial_bc6.txt` & `models/spatial_bc6_lin.txt`, Actions Run `45238581076`, 54m)**:
+        - Improved `val_ce` to `0.9529` (LIN) / `0.9443` (MLP, `top1=71.3%`) on the exact same BC-4 dataset (`150 WG_ds B=1800 + 60 DAgger`), `LEGAL_b120_bc_lin = 196.60`, `LEGAL_pimc_w8 = 185.80` (`104:177`), and `10-seed` `fullmlp_w16 = 190.00 [186..198]` (beat `bc4` on seeds `108` `-10` pcs and `109` `-15` pcs, confirming ~188–190 is the structural ceiling of `h=8` clairvoyant `root_pimc`).
+      - **Next Pivot — Non-Clairvoyant Prefix-6 + CVaR Leaf-PIMC (`total_h = 10..12`, ZERO Prefix Strategy Fusion)**:
+        - Upgraded Stage 3 `pimc_worlds` in `beam.rs` to materialize Stage-1 opaque garbage rows (`materialize_fog_holes`) and apply `CVaR` tail aggregation (`25..30%`), breaking past the `h=9` Strategy Fusion wall by forcing plies `1..6` to commit non-clairvoyantly before branching into `12..16` CRN worlds for `4..6` more plies (`total_h = 10..12`, 2.5× faster than `root_pimc`)! Launching 10-seed (`101..=110`) `leaf_pimc_break` on `models/spatial_bc4.txt` (~34m).
 
 ---
 

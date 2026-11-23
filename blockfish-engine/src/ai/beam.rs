@@ -1068,7 +1068,9 @@ impl BeamSearcher {
                     }
 
                     let mut sum_w: i64 = 0;
-                    for w in 0..w_cnt {
+                    let mut w_scores = [0i64; 32];
+                    let w_lim = w_cnt.min(32);
+                    for w in 0..w_lim {
                         let (w_sc, evals) = self.pimc_eval_root(
                             &seeds[..seed_cnt],
                             &q[..q_len],
@@ -1078,8 +1080,19 @@ impl BeamSearcher {
                         );
                         nodes_evaluated += evals;
                         sum_w += w_sc;
+                        w_scores[w] = w_sc;
                     }
-                    pimc_scores[ci] = sum_w / (w_cnt as i64);
+                    let mean_sc = sum_w / (w_lim as i64);
+                    let cvar_pct = cfg.root_pimc_cvar_pct.clamp(0, 100);
+                    pimc_scores[ci] = if cvar_pct > 0 && w_lim >= 4 {
+                        let tail_k = (w_lim + 3) / 4;
+                        w_scores[..w_lim].sort_unstable_by(|a, b| b.cmp(a));
+                        let tail_sum: i64 = w_scores[..tail_k].iter().sum();
+                        let tail_sc = tail_sum / (tail_k as i64);
+                        ((100 - cvar_pct) * mean_sc + cvar_pct * tail_sc) / 100
+                    } else {
+                        mean_sc
+                    };
                 }
 
                 let min_pimc = pimc_scores[..eval_k].iter().copied().min().unwrap_or(0);
@@ -2822,6 +2835,8 @@ impl BeamSearcher {
             let hc = Self::hand_piece(s.held, s.q_cursor as usize, q);
             let mut n = s;
             n.held = hc;
+            let mut mat_rng = spawn_seed ^ 0x9E3779B97F4A7C15;
+            n.board.materialize_fog_holes(&mut mat_rng);
             let key = DedupKey {
                 board: n.board,
                 held: n.held,
