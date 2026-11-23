@@ -152,8 +152,12 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
         - Trained on `350` `WG_ds (B=900, mean=168.61)` + `50` DAgger (`spatial_bc4.txt`) games (`63,011` decisions, `2,907,240` legal moves): achieved all-time best `val_ce = 0.8974` (`top1=71.8%`, `top3=92.3%`, `-0.0688` CE better than BC-4!), `LEGAL_pimc_w8_bc_mlp = 186.20` (beat `bc5_lin 188.20`), but 4-seed `fullmlp_w16` averaged `187.00` (`101:183, 102:185, 103:189, 104:191`) — weaker `B=900` teacher (`+1.88` pcs worse than BC-4's `B=1800`) + lower DAgger ratio (`12.5%` vs `28.6%`).
       - **`fullmlp_scale` & 10-Seed (`101..=110`) Strict Baseline (Actions Run `45170400970`)**:
         - `spatial_bc4.txt` (`fullmlp_w16_h8_b28_cvar25`) on 10 seeds (`101..=110`): **`mean = 187.90 [175..201]`** (`101..=105: 181.20`, `106..=110: 194.60`, `cov=30.7`, `cov_nxt=17.9%`, `seed 108 cov_nxt=27%`). Scaling to `w20/w24` and `h9` stayed flat (`187.00–187.40`), confirming that Oracle-`WG_ds` 1-ply BC + PIMC scaling has plateaued at `~187` (10-seed).
-      - **Algorithmic Pivot — Legal AlphaZero Expert Iteration (`examples/train_exit.rs`, Round ExIt-1)**:
-        - Completely drop clairvoyant Oracle `WG_ds` supervision; run `140` Legal `p=5` self-play games with `w=6, h=8, b=20, cvar=25` (`spatial_bc4.txt` full MLP), distilling Legal PIMC soft Q-distributions (`last_top_candidates`) + true Legal Monte-Carlo remaining-piece returns `G_t = P_final - t` (`legal_v_mae = 12.68` at init!) into `models/spatial_exit1.txt`, then verify fairly on 10 seeds (`101..=110`) vs `187.90`.
+      - **Round ExIt-1 (`examples/train_exit.rs`, `models/spatial_exit1.txt`, Actions Run `45203324414`, 43m)**:
+        - `64` Legal CVaR-25 self-play games (`mean = 187.84`, `11,866` decisions) distilled soft Q-values + true Legal MC returns: `val_soft_ce` `1.4979 -> 1.3931`, `legal_v_mae` `10.89 -> 4.98`, `rem_g = 1.718`.
+        - Held-out 10-seed (`101..=110`) `fullmlp_w16`: **`189.30 [180..200]`** (improved hard seeds `106..=110` from `194.60 -> 190.40` (`-4.20` pcs, `cov_nxt` `17.9% -> 17.0%`), but regressed on `101..=105`, staying on the ~188 plateau).
+      - **Next (`SPATIAL_VAL_V6` — Exact 2D `3×3` Pattern NNUE, Round BC-6)**:
+        - Upgraded `SpatialValueModel` to `SPATIAL_VAL_V6` (`SPARSE_DIM: 374 -> 1591`, `DENSE_DIM: 90`, `64x32` fast native active path, 100% V1–V5 backward-compatible): added exact `3×3` 2D occupancy bitmasks around `h1` (`512` patterns) and `h2` (`512` patterns), translation-invariant `3-col` surface contours (`49` patterns), and exact `5-col` `h1` contour (`144` patterns) — O(1) lookup (~10 ns) giving exact 2D convolutional pattern recognition to both linear skip and MLP!
+        - Launching Round BC-6 (`150` `WG_ds B=1800` + `60` DAgger `spatial_bc4.txt` + Dropout `0.15` + LS `0.02`) + 10-seed (`101..=110`) `fullmlp_w16` verification (~58m).
 
 ---
 

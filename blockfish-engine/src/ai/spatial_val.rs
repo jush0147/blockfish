@@ -2,7 +2,7 @@ use super::{fast::FastBoard, fast_eval::fast_piece_estimate_ex};
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
 
-pub const SPARSE_DIM: usize = 374;
+pub const SPARSE_DIM: usize = 1591;
 pub const DENSE_DIM: usize = 90;
 pub const SPATIAL_H1: usize = 128;
 pub const SPATIAL_H2: usize = 48;
@@ -1091,6 +1091,87 @@ pub fn extract_spatial_features_ex(
     dense[88] = (max_stack_h - min_stack_h).max(0) as f32;
     dense[89] = top_empty_cols as f32;
 
+    // --- SPATIAL_VAL_V6 Exact 2D Pattern Features (Sparse 374..1591) ---
+    // 16. Exact 3x3 2D bitmask around h1 (`374..886`, 512 patterns, walls=1)
+    if let Some(c1) = h1_col {
+        let mut pat: u16 = 0;
+        let mut shift = 0u16;
+        for rel in 0..3usize {
+            let row_bits = if g + rel < n { board.data[g + rel] & 0x3FF } else { 0 };
+            for dc in 0..3usize {
+                let cc = c1 as i32 + (dc as i32 - 1);
+                let filled = if cc < 0 || cc >= 10 {
+                    true
+                } else {
+                    ((row_bits >> (cc as usize)) & 1) != 0
+                };
+                if filled {
+                    pat |= 1u16 << shift;
+                }
+                shift += 1;
+            }
+        }
+        active_bits[n_act] = 374 + pat;
+        n_act += 1;
+    }
+
+    // 17. Exact 3x3 2D bitmask around h2 (`886..1398`, 512 patterns, walls=1)
+    if let Some(c2) = h2_col {
+        let mut pat: u16 = 0;
+        let mut shift = 0u16;
+        for rel in 0..3usize {
+            let row_bits = if g + rel < n { board.data[g + rel] & 0x3FF } else { 0 };
+            for dc in 0..3usize {
+                let cc = c2 as i32 + (dc as i32 - 1);
+                let filled = if cc < 0 || cc >= 10 {
+                    true
+                } else {
+                    ((row_bits >> (cc as usize)) & 1) != 0
+                };
+                if filled {
+                    pat |= 1u16 << shift;
+                }
+                shift += 1;
+            }
+        }
+        active_bits[n_act] = 886 + pat;
+        n_act += 1;
+    }
+
+    // 18. Translation-invariant 3-col surface contour (dh[c], dh[c+1]) (`1398..1447`, 49 patterns, deduplicated)
+    let mut seen_3col: u64 = 0;
+    for c in 0..8usize {
+        let d0 = ((stack_h[c + 1] - stack_h[c]).clamp(-3, 3) + 3) as usize;
+        let d1 = ((stack_h[c + 2] - stack_h[c + 1]).clamp(-3, 3) + 3) as usize;
+        let p = d0 * 7 + d1;
+        let bit = 1u64 << p;
+        if (seen_3col & bit) == 0 {
+            seen_3col |= bit;
+            active_bits[n_act] = 1398 + p as u16;
+            n_act += 1;
+        }
+    }
+
+    // 19. Exact 5-col h1 contour pattern (`1447..1591`, 144 patterns) when h1_open
+    if h1_open {
+        if let Some(c1) = h1_col {
+            let dl1 = if c1 == 0 { 3 } else { stack_h[c1 - 1].clamp(0, 3) } as u16;
+            let dr1 = if c1 == 9 { 3 } else { stack_h[c1 + 1].clamp(0, 3) } as u16;
+            let dl2 = if c1 >= 2 {
+                ((stack_h[c1 - 2] - stack_h[c1 - 1]).clamp(-1, 1) + 1) as u16
+            } else {
+                2
+            };
+            let dr2 = if c1 + 2 < 10 {
+                ((stack_h[c1 + 2] - stack_h[c1 + 1]).clamp(-1, 1) + 1) as u16
+            } else {
+                2
+            };
+            active_bits[n_act] = 1447 + (dl2 * 3 + dr2) * 16 + dl1 * 4 + dr1;
+            n_act += 1;
+        }
+    }
+
     n_act
 }
 
@@ -1439,10 +1520,20 @@ impl SpatialValueModel {
     pub fn save_to_file(&self, path: &str) -> std::io::Result<()> {
         let f = File::create(path)?;
         let mut w = BufWriter::new(f);
+        let sh1 = if self.fast_ready && self.active_h1 > 0 {
+            self.active_h1
+        } else {
+            SPATIAL_H1
+        };
+        let sh2 = if self.fast_ready && self.active_h2 > 0 {
+            self.active_h2
+        } else {
+            SPATIAL_H2
+        };
         writeln!(
             w,
-            "SPATIAL_VAL_V5 {} {} {} {}",
-            SPARSE_DIM, DENSE_DIM, SPATIAL_H1, SPATIAL_H2
+            "SPATIAL_VAL_V6 {} {} {} {}",
+            SPARSE_DIM, DENSE_DIM, sh1, sh2
         )?;
         for j in 0..DENSE_DIM {
             write!(
@@ -1481,12 +1572,12 @@ impl SpatialValueModel {
             )?;
         }
         writeln!(w)?;
-        for h in 0..SPATIAL_H1 {
+        for h in 0..sh1 {
             write!(w, "{}{:.7}", if h == 0 { "" } else { " " }, self.b1[h])?;
         }
         writeln!(w)?;
         for i in 0..SPARSE_DIM {
-            for h in 0..SPATIAL_H1 {
+            for h in 0..sh1 {
                 write!(
                     w,
                     "{}{:.7}",
@@ -1497,7 +1588,7 @@ impl SpatialValueModel {
             writeln!(w)?;
         }
         for j in 0..DENSE_DIM {
-            for h in 0..SPATIAL_H1 {
+            for h in 0..sh1 {
                 write!(
                     w,
                     "{}{:.7}",
@@ -1507,18 +1598,18 @@ impl SpatialValueModel {
             }
             writeln!(w)?;
         }
-        for k in 0..SPATIAL_H2 {
+        for k in 0..sh2 {
             write!(w, "{}{:.7}", if k == 0 { "" } else { " " }, self.b2[k])?;
         }
         writeln!(w)?;
-        for i in 0..SPATIAL_H1 {
-            for k in 0..SPATIAL_H2 {
+        for i in 0..sh1 {
+            for k in 0..sh2 {
                 write!(w, "{}{:.7}", if k == 0 { "" } else { " " }, self.w2[i][k])?;
             }
             writeln!(w)?;
         }
         writeln!(w, "{:.7}", self.b3)?;
-        for k in 0..SPATIAL_H2 {
+        for k in 0..sh2 {
             write!(w, "{}{:.7}", if k == 0 { "" } else { " " }, self.w3[k])?;
         }
         writeln!(w)?;
@@ -1549,7 +1640,8 @@ impl SpatialValueModel {
                 && parts[0] != "SPATIAL_VAL_V2"
                 && parts[0] != "SPATIAL_VAL_V3"
                 && parts[0] != "SPATIAL_VAL_V4"
-                && parts[0] != "SPATIAL_VAL_V5")
+                && parts[0] != "SPATIAL_VAL_V5"
+                && parts[0] != "SPATIAL_VAL_V6")
         {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::InvalidData,
@@ -1560,16 +1652,8 @@ impl SpatialValueModel {
         let dd: usize = parts[2].parse().unwrap_or(0);
         let h1: usize = parts[3].parse().unwrap_or(0);
         let h2: usize = parts[4].parse().unwrap_or(0);
-        let sd_ok = (parts[0] == "SPATIAL_VAL_V5" && sd == SPARSE_DIM)
-            || (parts[0] == "SPATIAL_VAL_V4" && (sd == 330 || sd == SPARSE_DIM))
-            || (parts[0] != "SPATIAL_VAL_V4"
-                && parts[0] != "SPATIAL_VAL_V5"
-                && (sd == 186 || sd == 330 || sd == SPARSE_DIM));
-        let dd_ok = (parts[0] == "SPATIAL_VAL_V1" && (dd == 68 || dd == 72 || dd == 74 || dd == 82 || dd == DENSE_DIM))
-            || (parts[0] == "SPATIAL_VAL_V2" && (dd == 72 || dd == 74 || dd == 82 || dd == DENSE_DIM))
-            || (parts[0] == "SPATIAL_VAL_V3" && (dd == 74 || dd == 82 || dd == DENSE_DIM))
-            || (parts[0] == "SPATIAL_VAL_V4" && (dd == 82 || dd == DENSE_DIM))
-            || (parts[0] == "SPATIAL_VAL_V5" && dd == DENSE_DIM);
+        let sd_ok = sd > 0 && sd <= SPARSE_DIM;
+        let dd_ok = dd > 0 && dd <= DENSE_DIM;
         if !sd_ok || !dd_ok || h1 == 0 || h1 > SPATIAL_H1 || h2 == 0 || h2 > SPATIAL_H2 {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::InvalidData,

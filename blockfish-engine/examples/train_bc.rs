@@ -1607,18 +1607,20 @@ fn main() {
         let u = (((init_rng >> 32) as f32) / (u32::MAX as f32)) * 2.0 - 1.0;
         u * scale
     };
+    let tr_h1 = 64usize.min(SPATIAL_H1);
+    let tr_h2 = 32usize.min(SPATIAL_H2);
     for i in 0..SPARSE_DIM {
-        for h in 0..SPATIAL_H1 { mdl.w_sparse[i][h] = rand_w(0.025); }
+        for h in 0..tr_h1 { mdl.w_sparse[i][h] = rand_w(0.025); }
     }
     for j in 0..DENSE_DIM {
         if j == 0 || j == 2 { continue; }
-        for h in 0..SPATIAL_H1 { mdl.w_dense[j][h] = rand_w(0.035); }
+        for h in 0..tr_h1 { mdl.w_dense[j][h] = rand_w(0.035); }
     }
-    for h in 0..SPATIAL_H1 {
+    for h in 0..tr_h1 {
         mdl.b1[h] = 0.05;
-        for k in 0..SPATIAL_H2 { mdl.w2[h][k] = rand_w(0.045); }
+        for k in 0..tr_h2 { mdl.w2[h][k] = rand_w(0.045); }
     }
-    for k in 0..SPATIAL_H2 {
+    for k in 0..tr_h2 {
         mdl.b2[k] = 0.05;
         mdl.w3[k] = rand_w(0.018);
     }

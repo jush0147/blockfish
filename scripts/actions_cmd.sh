@@ -1,27 +1,26 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "=== Round ExIt-1: Legal AlphaZero Expert Iteration (64 Legal PIMC CVaR-25 games -> models/spatial_exit1.txt, ~42m) ==="
-cargo run --release -p blockfish --features race --example train_exit -- \
-  --init models/spatial_bc4.txt \
-  --out models/spatial_exit1.txt \
-  --games 64 \
-  --worlds 6 \
-  --horizon 8 \
-  --width 20 \
-  --cvar 25 \
-  --epochs 24 \
+echo "=== Round BC-6 (SPATIAL_VAL_V6 Exact 2D 3x3 Pattern NNUE 64x32): 150 WG_ds(B=1800) + 60 DAgger(bc4) ==="
+cargo run --release -p blockfish --features race --example train_bc -- \
+  --out models/spatial_bc6.txt \
+  --games 150 \
+  --wg-beam 1800 \
+  --dagger-init models/spatial_bc4.txt \
+  --dagger-games 60 \
+  --lin-epochs 32 \
+  --mlp-epochs 26 \
   --batch 32 \
   --tau 0.45 \
-  --tau-q 0.35 \
-  --cal-w 0.08 \
-  --lr-lin 0.0005 \
-  --lr-mlp 0.0008 \
-  --wd-lin 0.001 \
-  --wd-mlp 0.005 \
-  --dropout 0.12 \
-  --seed-base 6000
+  --cal-w 0.025 \
+  --lr-lin 0.008 \
+  --lr-mlp 0.0009 \
+  --wd 0.002 \
+  --wd-mlp 0.012 \
+  --dropout 0.15 \
+  --label-smooth 0.02 \
+  --eval-legal 5
 
 echo ""
-echo "=== Fair 10-Seed (101..=110) Held-Out Legal Verification of models/spatial_exit1.txt vs 187.90 Baseline (~14m) ==="
-cargo run --release -p blockfish --features race --example bench_legal -- wg5_lin_sweep models/spatial_exit1.txt fullmlp_w16 10
+echo "=== Fair 10-Seed (101..=110) Held-Out Legal Verification of models/spatial_bc6.txt (fullmlp_w16 vs 187.90) ==="
+cargo run --release -p blockfish --features race --example bench_legal -- wg5_lin_sweep models/spatial_bc6.txt fullmlp_w16 10
