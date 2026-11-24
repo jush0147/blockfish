@@ -1218,12 +1218,13 @@ fn main() {
         }
     } else if mode == "spatial_or_p20" {
         let model_path = args.get(2).map(|s| s.as_str()).unwrap_or("models/spatial_r1.txt");
-        let sm = SpatialValueModel::load_from_file(model_path).expect("load spatial model");
-        let seeds2: Vec<u64> = vec![101, 102];
-        let ed2 = collect_exact_seeds(&seeds2);
-        println!("=== Spatial OR_p20 ({}) (seeds 101..=102) ===", model_path);
-        run_oracle_agg("OR_p20_b240_sp_top1", &ed2, 20, 240, 1, false, 0, &sm);
-        run_oracle_agg("OR_p20_b240_sp_ann_top3", &ed2, 20, 240, 3, true, 0, &sm);
+        let n_seeds: usize = args.get(3).and_then(|s| s.parse().ok()).unwrap_or(2);
+        let mut sm = SpatialValueModel::load_from_file(model_path).expect("load spatial model");
+        sm.prepare_fast();
+        let seeds_n: Vec<u64> = (101..(101 + n_seeds as u64)).collect();
+        let ed_n = collect_exact_seeds(&seeds_n);
+        println!("=== Spatial OR_p20 ({}, has_mlp={}, n_seeds={}) ===", model_path, sm.has_mlp, n_seeds);
+        run_oracle_agg("OR_p20_b240_sp_top1", &ed_n, 20, 240, 1, false, 0, &sm);
     } else if mode == "or_break_probe" {
         let seeds2: Vec<u64> = vec![101, 102];
         let ed2 = collect_exact_seeds(&seeds2);

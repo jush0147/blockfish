@@ -180,7 +180,12 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
           - **Non-Clairvoyant Rollout & ExIt-1 REAL FULL-MLP Verification (Actions Run `45369836460`, 42m34s)**:
             - `realmlp_h6_nc12_w16_b28_c25` (10 seeds `101..=110`): `236.00 [218..258]` (`1533.7s`) — 1-ply greedy rollout (`~230`-piece policy) adds massive variance that drowns root signal (abandoned).
             - `models/spatial_exit1.txt` REAL FULL MLP (5 seeds `101..=105`): `187.80 [181..192]` (`975.1s`, seed `104` hit **`181`**, `-7` pcs better than `bc4` `188`).
-          - Next: test **REAL FULL-MLP Pure Mean (`cvar=0`) & Sharp Horizon (`h=8, 7, 6`)** on our `185.60` champion `models/spatial_bc4.txt` (5 seeds `101..=105`, ~52m) to test whether `CVaR-25` (originally tuned for buggy linear skip!) and `h=8` hallucination have been making REAL FULL MLP overly conservative (`wide=25..27`).
+          - **REAL FULL-MLP Pure Mean (`cvar=0`) & Sharp Horizon (`h=8, 7, 6`) Ablation (Actions Run `45390096575`, `models/spatial_bc4.txt`, 5 seeds `101..=105`)**:
+            - `realmlp_h8_w16_b28_c0`: **`184.80 [173..193]`** (`[101:183, 102:184, 103:173, 104:191, 105:193]`, `nds=62.80`, `cov=29.6`, `nar=9.4`, `wide=25.4`, **`end=2.8`**, `cov_nxt=15.8%`, `1055.6s`) — seed `103` hit **`173`** and `end=2.8` (all-time lowest endgame!), virtually tied with `cvar=25` (`184.20`).
+            - `realmlp_h7_w20_b36_c0`: **`185.20 [180..189]`** (`[101:180, 102:184, 103:187, 104:186, 105:189]`, `cov=31.0`, `nar=7.4`, `wide=26.0`, `end=4.2`, `1388.4s`) — tightest max (`189`), `+0.4` pcs behind `h=8`.
+            - `realmlp_h6_w20_b40_c0`: **`188.00 [183..191]`** (`cov=33.0`, `wide=27.0`, `1315.2s`) — confirms `h=8` is the true optimum of 1-ply-shared clairvoyant `root_pimc` (`h=5: 194.8 -> h=6: 188.0 -> h=7: 185.2 -> h=8: 184.2/184.8 -> h=9: 186.8`).
+          - **Diagnosis of `+20.2` Gap (`184.80` vs `WG_ds 164.60`)**: `+16.0` of `+20.2` (`80%`!) is purely **`cov (+10.4)` + `nar (+5.6)`** (`O` is `-0.2`, `end` is `+1.0`, `wide` is `+3.4`).
+          - Next: (1) Measure REAL FULL-MLP `OR_p20` Oracle ceiling (`spatial_bc4.txt`, 5 seeds) to separate Evaluator Gap vs Search Gap; (2) Eliminate Stage-1 opaque `0x3FF` root pruning via 4-world CRN real-hole prescreening over 36 roots (`realmlp_prescreen`); (3) Test Top-4 **2-Ply Non-Clairvoyant Expectimax Rerank** (`min_{a_2} E_w[V(a_1, a_2, w)]`, `realmlp_d2_exp`) eliminating step-2 Strategy Fusion (~46m total, strictly < 60m).
 
 ---
 

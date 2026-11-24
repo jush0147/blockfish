@@ -188,6 +188,7 @@ pub struct BeamConfig {
     pub root_pimc_nc_steps: usize,
     pub nds_pen: i64,
     pub stage1_weights: Option<EvalWeights>,
+    pub root_pimc_d2_top_k: usize,
 }
 
 impl Default for BeamConfig {
@@ -242,6 +243,7 @@ impl Default for BeamConfig {
             root_pimc_nc_steps: 0,
             nds_pen: 0,
             stage1_weights: None,
+            root_pimc_d2_top_k: 0,
         }
     }
 }
@@ -1313,6 +1315,7 @@ impl BeamSearcher {
                                 rem_g0,
                                 unspawned_0,
                                 fp,
+                                None,
                                 &world_qs[w][..need_q_len],
                                 &world_bags[w][..need_q_len],
                                 world_end_bags[w],
@@ -1378,6 +1381,7 @@ impl BeamSearcher {
                             rem_g0,
                             unspawned_0,
                             fp,
+                            None,
                             &world_qs[w][..need_q_len],
                             &world_bags[w][..need_q_len],
                             world_end_bags[w],
@@ -1402,6 +1406,203 @@ impl BeamSearcher {
                     } else {
                         mean_sc
                     };
+                }
+
+                // Phase 4B: Top-K 2-Ply Non-Clairvoyant Expectimax Rerank
+                // Eliminates step-2 Strategy Fusion by enforcing a shared a_2 across all W worlds:
+                //   Q_nc2(a_1) = min_{a_2} E_w[ V(a_1, a_2, w) ]
+                if cfg.root_pimc_d2_top_k > 0 && eval_k >= 2 && h >= 2 && root_board.garbage_rows > 0 {
+                    let mut order: Vec<usize> = (0..eval_k).collect();
+                    order.sort_unstable_by_key(|&ai| (pimc_scores[ai], ai));
+                    let best_p1 = pimc_scores[order[0]];
+                    if best_p1 > -10_000_000 && pimc_scores[order[1]] - best_p1 <= 120 {
+                        let d2_k = cfg.root_pimc_d2_top_k.min(eval_k);
+                        let mut d2_active: Vec<usize> = Vec::with_capacity(d2_k);
+                        for &ai in order.iter().take(d2_k) {
+                            if ai == order[0] || pimc_scores[ai] - best_p1 <= 150 {
+                                d2_active.push(ai);
+                            }
+                        }
+                        let mut all_valid = d2_active.len() >= 2;
+                        let mut d2_prepped: Vec<(usize, FastPlace, Vec<FastPlace>)> =
+                            Vec::with_capacity(d2_active.len());
+                        if all_valid {
+                            for &ai in &d2_active {
+                                let fp = self.root_places[candidates[fine_roots[ai].0].0 as usize];
+                                let mut b0 = root_board;
+                                let o0 = &self.fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
+                                let (lines0, ds0, _) = b0.place_and_sift(o0, fp.norm_i, fp.norm_j);
+                                let rem0 = rem_g0.saturating_sub(ds0 as u16);
+                                if rem0 == 0 || b0.garbage_rows == 0 {
+                                    all_valid = false;
+                                    break;
+                                }
+                                if !Self::spawn_cheese_from_stream(
+                                    &mut b0,
+                                    rem0,
+                                    lines0,
+                                    cfg.root_pimc_steady_g4,
+                                    unspawned_0,
+                                    &world_holes[0],
+                                ) {
+                                    all_valid = false;
+                                    break;
+                                }
+                                let (held0, qc0) = if hold0.is_some() {
+                                    if fp.did_hold {
+                                        (cur0, if cur0.is_some() { 1 } else { 0 })
+                                    } else {
+                                        (hold0, 1.min(q_len))
+                                    }
+                                } else if fp.did_hold {
+                                    (cur0, 2.min(q_len))
+                                } else {
+                                    (None, 1.min(q_len))
+                                };
+                                let (c_nh2, c_h2) = if held0.is_some() {
+                                    (if qc0 < need_q_len { Some(world_qs[0][qc0]) } else { None }, held0)
+                                } else {
+                                    (
+                                        if qc0 < need_q_len { Some(world_qs[0][qc0]) } else { None },
+                                        if qc0 + 1 < need_q_len { Some(world_qs[0][qc0 + 1]) } else { None },
+                                    )
+                                };
+                                self.pgen.generate_for_state(&self.fst, &b0, c_nh2, c_h2, &mut self.tmp_places);
+                                if self.tmp_places.is_empty() {
+                                    all_valid = false;
+                                    break;
+                                }
+                                // Score all legal step-2 moves with 1-ply eval to pick top 6 (preserving 0ds & ds1)
+                                let mut d2_scored: Vec<(FastPlace, i64, u8)> = Vec::with_capacity(self.tmp_places.len());
+                                for &fp2 in &self.tmp_places {
+                                    let mut b2 = b0;
+                                    let o2 = &self.fst.shapes[fp2.color_idx as usize].orients[fp2.tf.2 as usize];
+                                    let (l2, ds2, _) = b2.place_and_sift(o2, fp2.norm_i, fp2.norm_j);
+                                    let r2 = rem0.saturating_sub(ds2 as u16);
+                                    if r2 == 0 && b2.rows < 20 {
+                                        d2_scored.push((fp2, -15_000_000 + 200 + (b2.rows as i64) * 5, ds2));
+                                        continue;
+                                    }
+                                    if !Self::spawn_cheese_from_stream(
+                                        &mut b2,
+                                        r2,
+                                        l2,
+                                        cfg.root_pimc_steady_g4,
+                                        unspawned_0,
+                                        &world_holes[0],
+                                    ) {
+                                        continue;
+                                    }
+                                    let (nh2, nqc2) = if held0.is_some() {
+                                        if fp2.did_hold {
+                                            (c_nh2, if c_nh2.is_some() { qc0 + 1 } else { qc0 })
+                                        } else {
+                                            (held0, qc0 + 1)
+                                        }
+                                    } else if fp2.did_hold {
+                                        (c_nh2, qc0 + 2)
+                                    } else {
+                                        (None, qc0 + 1)
+                                    };
+                                    let nqc2 = nqc2.min(need_q_len);
+                                    let ih2 = Self::hand_piece(nh2, nqc2, &world_qs[0][..need_q_len]);
+                                    let av2 = Self::avail_mask_from_q(nh2, nqc2, &world_qs[0][..need_q_len], world_end_bags[0]);
+                                    let sc2 = Self::eval_state(&b2, r2, ih2, av2, cfg);
+                                    nodes_evaluated += 1;
+                                    d2_scored.push((fp2, sc2, ds2));
+                                }
+                                if d2_scored.is_empty() {
+                                    all_valid = false;
+                                    break;
+                                }
+                                d2_scored.sort_unstable_by_key(|x| x.1);
+                                let d2_m = 6usize;
+                                let mut picked: Vec<FastPlace> = Vec::with_capacity(d2_m + 1);
+                                let mut p_has_0 = false;
+                                let mut p_has_1 = false;
+                                for &(fp2, _, ds2) in d2_scored.iter().take(d2_m) {
+                                    if ds2 == 0 { p_has_0 = true; } else { p_has_1 = true; }
+                                    picked.push(fp2);
+                                }
+                                if !p_has_0 || !p_has_1 {
+                                    for &(fp2, _, ds2) in d2_scored.iter().skip(d2_m) {
+                                        if !p_has_0 && ds2 == 0 {
+                                            picked.push(fp2);
+                                            p_has_0 = true;
+                                        } else if !p_has_1 && ds2 > 0 {
+                                            picked.push(fp2);
+                                            p_has_1 = true;
+                                        }
+                                        if p_has_0 && p_has_1 {
+                                            break;
+                                        }
+                                    }
+                                }
+                                d2_prepped.push((ai, fp, picked));
+                            }
+                        }
+
+                        if all_valid {
+                            let width_d2 = (width_fine * 3 / 4).clamp(12, 24);
+                            let mut d2_mask = vec![false; eval_k];
+                            let mut d2_max = i64::MIN;
+                            for (ai, fp, picked_a2) in d2_prepped {
+                                d2_mask[ai] = true;
+                                let mut best_a2_sc = i64::MAX;
+                                for fp2 in picked_a2 {
+                                    let mut sum_w: i64 = 0;
+                                    let mut w_scores = [0i64; 24];
+                                    for w in 0..w_cnt {
+                                        let w_seed = crn_seed ^ ((w as u64) + 1).wrapping_mul(0x9E3779B97F4A7C15);
+                                        let (w_sc, evals) = self.root_pimc_eval_world(
+                                            &root_board,
+                                            hold0,
+                                            cur0,
+                                            q_len,
+                                            rem_g0,
+                                            unspawned_0,
+                                            fp,
+                                            Some(fp2),
+                                            &world_qs[w][..need_q_len],
+                                            &world_bags[w][..need_q_len],
+                                            world_end_bags[w],
+                                            &world_holes[w],
+                                            h,
+                                            width_d2,
+                                            true,
+                                            w_seed,
+                                            cfg,
+                                        );
+                                        nodes_evaluated += evals;
+                                        sum_w += w_sc;
+                                        w_scores[w] = w_sc;
+                                    }
+                                    let mean_sc = sum_w / (w_cnt as i64);
+                                    let agg_sc = if cvar_pct > 0 && w_cnt >= 4 {
+                                        let tail_k = (w_cnt + 3) / 4;
+                                        w_scores[..w_cnt].sort_unstable_by(|a, b| b.cmp(a));
+                                        let tail_sum: i64 = w_scores[..tail_k].iter().sum();
+                                        let tail_sc = tail_sum / (tail_k as i64);
+                                        ((100 - cvar_pct) * mean_sc + cvar_pct * tail_sc) / 100
+                                    } else {
+                                        mean_sc
+                                    };
+                                    if agg_sc < best_a2_sc {
+                                        best_a2_sc = agg_sc;
+                                    }
+                                }
+                                pimc_scores[ai] = best_a2_sc;
+                                if best_a2_sc > d2_max {
+                                    d2_max = best_a2_sc;
+                                }
+                            }
+                            for ai in 0..eval_k {
+                                if !d2_mask[ai] && pimc_scores[ai] <= d2_max {
+                                    pimc_scores[ai] = d2_max + 200;
+                                }
+                            }
+                        }
+                    }
                 }
 
                 let min_pimc = pimc_scores.iter().copied().min().unwrap_or(0);
@@ -3450,6 +3651,7 @@ impl BeamSearcher {
         rem_g0: u16,
         unspawned_0: usize,
         root_fp: FastPlace,
+        second_fp: Option<FastPlace>,
         world_q: &[u8],
         world_bags: &[u8],
         end_bag: u8,
@@ -3460,7 +3662,7 @@ impl BeamSearcher {
         w_seed: u64,
         cfg: &BeamConfig,
     ) -> (i64, usize) {
-        if cfg.root_pimc_ds_target > 0 {
+        if cfg.root_pimc_ds_target > 0 && second_fp.is_none() {
             return self.root_pimc_eval_world_ds(
                 root_board,
                 hold0,
@@ -3500,7 +3702,7 @@ impl BeamSearcher {
             return (5_000_000, 1);
         }
 
-        let (held0, qc0) = if hold0.is_some() {
+        let (mut held0, mut qc0) = if hold0.is_some() {
             if root_fp.did_hold {
                 (cur0, if cur0.is_some() { 1 } else { 0 })
             } else {
@@ -3512,22 +3714,65 @@ impl BeamSearcher {
             (None, 1.min(q_len))
         };
 
-        let nds0 = lines0.saturating_sub(ds0) as u16;
-        let ng0 = u8::from(root_board.garbage_rows == 0 && rem_g0 > 0);
+        let mut rem_cur = rem0;
+        let mut nds_cur = lines0.saturating_sub(ds0) as u16;
+        let mut ng_cur = u8::from(root_board.garbage_rows == 0 && rem_g0 > 0);
+        let mut start_step = 1usize;
+
+        if let Some(fp2) = second_fp {
+            let orient2 = &self.fst.shapes[fp2.color_idx as usize].orients[fp2.tf.2 as usize];
+            let ng_add = u8::from(b0.garbage_rows == 0 && rem_cur > 0);
+            let (lines2, ds2, _) = b0.place_and_sift(orient2, fp2.norm_i, fp2.norm_j);
+            rem_cur = rem_cur.saturating_sub(ds2 as u16);
+            nds_cur = nds_cur.saturating_add(lines2.saturating_sub(ds2) as u16);
+            ng_cur = ng_cur.saturating_add(ng_add);
+            if rem_cur == 0 && b0.rows < 20 {
+                return (-15_000_000 + 200 + (b0.rows as i64) * 5, 1);
+            }
+            if rem_cur > 0
+                && !Self::spawn_cheese_from_stream(
+                    &mut b0,
+                    rem_cur,
+                    lines2,
+                    cfg.root_pimc_steady_g4,
+                    unspawned_0,
+                    world_holes,
+                )
+            {
+                return (5_000_000, 1);
+            }
+            let wq_len_cur = world_q.len();
+            let c_nh2 = if qc0 < wq_len_cur { Some(world_q[qc0]) } else { None };
+            let (nh2, nqc2) = if held0.is_some() {
+                if fp2.did_hold {
+                    (c_nh2, if c_nh2.is_some() { qc0 + 1 } else { qc0 })
+                } else {
+                    (held0, qc0 + 1)
+                }
+            } else if fp2.did_hold {
+                (c_nh2, qc0 + 2)
+            } else {
+                (None, qc0 + 1)
+            };
+            held0 = nh2;
+            qc0 = nqc2.min(wq_len_cur);
+            start_step = 2;
+        }
+
         let in_hand0 = Self::hand_piece(held0, qc0, world_q);
         let avail0 = Self::avail_mask_from_q(held0, qc0, world_q, end_bag);
-        let sc0 = (nds0 as i64) * cfg.nds_pen
-            + Self::eval_state(&b0, rem0, in_hand0, avail0, cfg)
-            - cfg.no_g_credit * (ng0 as i64);
+        let sc0 = (nds_cur as i64) * cfg.nds_pen
+            + Self::eval_state(&b0, rem_cur, in_hand0, avail0, cfg)
+            - cfg.no_g_credit * (ng_cur as i64);
 
         self.pimc_beam.clear();
         self.pimc_beam.push(BeamNode {
             board: b0,
             held: held0,
             q_cursor: qc0 as u8,
-            rem_garbage: rem0,
-            nds_used: nds0,
-            no_g_moves: ng0,
+            rem_garbage: rem_cur,
+            nds_used: nds_cur,
+            no_g_moves: ng_cur,
             first_idx: 0,
             score: sc0,
         });
@@ -3537,7 +3782,7 @@ impl BeamSearcher {
         let width = width.max(4);
         let wq_len = world_q.len();
 
-        for step in 1..=horizon {
+        for step in start_step..=horizon {
             if self.pimc_beam.is_empty() {
                 break;
             }
