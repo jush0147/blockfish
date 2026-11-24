@@ -1,4 +1,4 @@
-=== Non-Clairvoyant Prefix-6 + CVaR Leaf-PIMC (total_h = 10..12, ZERO Prefix Strategy Fusion) on 10 Seeds (101..=110) ===
+=== 10-Seed (101..=110) Legal Risk-Calibration Sweep on models/spatial_bc4.txt (fullmlp_w16 vs 187.90, ~48m) ===
 [1m[33mwarning[0m[1m: unused build dependency `fontconfig`[0m
   [1m[94m--> [0mblockfish-client/Cargo.toml:29:1
    [1m[94m|[0m
@@ -97,42 +97,78 @@
    [1m[94m|[0m                                                         [92m++++[0m
 
 [1m[33mwarning[0m: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
-[1m[92m    Finished[0m `release` profile [optimized] target(s) in 5.94s
-[1m[92m     Running[0m `target/release/examples/bench_legal wg5_lin_sweep models/spatial_bc4.txt leaf_pimc_break 10`
-=== Legal wg5_lin_sweep (models/spatial_bc4.txt, which=leaf_pimc_break, n_seeds=10) ===
-  [seed 104] pcs=206 nds=71 0ds=106 (cov=37 O=23 nar= 7 wide=37 end= 2) cov_nxt=24.0% | 77.0s
-  [seed 101] pcs=191 nds=66 0ds=91 (cov=39 O=16 nar= 9 wide=21 end= 6) cov_nxt=21.0% | 77.5s
-  [seed 103] pcs=189 nds=64 0ds=89 (cov=27 O=15 nar=12 wide=31 end= 4) cov_nxt=20.0% | 79.2s
-  [seed 102] pcs=198 nds=68 0ds=98 (cov=45 O=14 nar= 9 wide=28 end= 2) cov_nxt=21.0% | 87.1s
-  [seed 105] pcs=192 nds=65 0ds=92 (cov=33 O=19 nar=10 wide=28 end= 2) cov_nxt=18.0% | 142.4s
-  [seed 106] pcs=198 nds=68 0ds=98 (cov=45 O=18 nar=11 wide=23 end= 1) cov_nxt=19.0% | 155.2s
-  [seed 107] pcs=196 nds=68 0ds=96 (cov=52 O=13 nar= 5 wide=21 end= 5) cov_nxt=24.0% | 156.4s
-  [seed 108] pcs=192 nds=66 0ds=92 (cov=32 O=18 nar= 6 wide=34 end= 2) cov_nxt=16.0% | 162.6s
-  [seed 109] pcs=204 nds=70 0ds=104 (cov=38 O=16 nar=15 wide=31 end= 4) cov_nxt=20.0% | 194.0s
-  [seed 110] pcs=194 nds=66 0ds=94 (cov=43 O=15 nar= 6 wide=29 end= 1) cov_nxt=19.0% | 211.1s
-lpimc_h10_w12_b20_c25      n=10 mean=196.00 min=189 max=206 <=166: 0 top= 0 | nds=67.20 0ds=96.00 (cov=39.1 O=16.7 nar=9.0 wide=28.3 g0=0.0 end=2.9) cov_nxt=20.2% avg_c=13.2 | 211.1s
-  seeds: [101:191, 102:198, 103:189, 104:206, 105:192, 106:198, 107:196, 108:192, 109:204, 110:194]
-  [seed 103] pcs=183 nds=62 0ds=83 (cov=28 O=16 nar= 9 wide=25 end= 5) cov_nxt=22.0% | 116.1s
-  [seed 104] pcs=191 nds=66 0ds=91 (cov=28 O=18 nar= 8 wide=32 end= 5) cov_nxt=17.0% | 121.7s
-  [seed 102] pcs=190 nds=65 0ds=90 (cov=26 O=19 nar=13 wide=28 end= 4) cov_nxt=15.0% | 130.2s
-  [seed 101] pcs=197 nds=68 0ds=97 (cov=34 O=17 nar= 8 wide=33 end= 5) cov_nxt=19.0% | 136.2s
-  [seed 105] pcs=200 nds=69 0ds=100 (cov=44 O=19 nar= 8 wide=25 end= 4) cov_nxt=27.0% | 256.5s
-  [seed 107] pcs=196 nds=67 0ds=96 (cov=29 O=17 nar=12 wide=34 end= 4) cov_nxt=21.0% | 264.4s
-  [seed 106] pcs=201 nds=70 0ds=101 (cov=41 O=13 nar=12 wide=29 end= 6) cov_nxt=17.0% | 267.8s
-  [seed 108] pcs=207 nds=71 0ds=107 (cov=45 O=16 nar=19 wide=25 end= 2) cov_nxt=21.0% | 279.5s
-  [seed 109] pcs=201 nds=69 0ds=101 (cov=25 O=20 nar=14 wide=37 end= 5) cov_nxt=17.0% | 354.5s
-  [seed 110] pcs=191 nds=65 0ds=91 (cov=32 O=15 nar=10 wide=29 end= 5) cov_nxt=15.0% | 354.9s
-lpimc_h11_w16_b24_c30      n=10 mean=195.70 min=183 max=207 <=166: 0 top= 0 | nds=67.20 0ds=95.70 (cov=33.2 O=17.0 nar=11.3 wide=29.7 g0=0.0 end=4.5) cov_nxt=19.1% avg_c=13.0 | 354.9s
-  seeds: [101:197, 102:190, 103:183, 104:191, 105:200, 106:201, 107:196, 108:207, 109:201, 110:191]
-  [seed 103] pcs=185 nds=63 0ds=85 (cov=39 O=13 nar= 6 wide=24 end= 3) cov_nxt=19.0% | 145.5s
-  [seed 104] pcs=193 nds=66 0ds=93 (cov=29 O=24 nar= 4 wide=32 end= 4) cov_nxt=17.0% | 149.0s
-  [seed 101] pcs=197 nds=68 0ds=97 (cov=44 O=18 nar= 5 wide=24 end= 6) cov_nxt=21.0% | 152.6s
-  [seed 102] pcs=197 nds=67 0ds=97 (cov=40 O=13 nar=11 wide=29 end= 4) cov_nxt=20.0% | 154.0s
-  [seed 105] pcs=188 nds=64 0ds=88 (cov=31 O=17 nar= 7 wide=26 end= 7) cov_nxt=15.0% | 290.6s
-  [seed 107] pcs=197 nds=68 0ds=97 (cov=40 O=18 nar= 8 wide=29 end= 2) cov_nxt=20.0% | 306.0s
-  [seed 108] pcs=194 nds=66 0ds=94 (cov=49 O=15 nar= 4 wide=20 end= 6) cov_nxt=28.0% | 306.3s
-  [seed 106] pcs=203 nds=70 0ds=103 (cov=32 O=21 nar=10 wide=36 end= 4) cov_nxt=20.0% | 309.1s
-  [seed 109] pcs=196 nds=67 0ds=96 (cov=40 O=18 nar= 5 wide=29 end= 4) cov_nxt=22.0% | 396.3s
-  [seed 110] pcs=190 nds=65 0ds=90 (cov=25 O=20 nar= 8 wide=34 end= 3) cov_nxt=17.0% | 407.6s
-lpimc_h12_w16_b24_c30      n=10 mean=194.00 min=185 max=203 <=166: 0 top= 0 | nds=66.40 0ds=94.00 (cov=36.9 O=17.7 nar=6.8 wide=28.3 g0=0.0 end=4.3) cov_nxt=19.9% avg_c=12.7 | 407.6s
-  seeds: [101:197, 102:197, 103:185, 104:193, 105:188, 106:203, 107:197, 108:194, 109:196, 110:190]
+[1m[92m    Finished[0m `release` profile [optimized] target(s) in 6.32s
+[1m[92m     Running[0m `target/release/examples/bench_legal wg5_lin_sweep models/spatial_bc4.txt risk_calib 10`
+=== Legal wg5_lin_sweep (models/spatial_bc4.txt, which=risk_calib, n_seeds=10) ===
+  [seed 103] pcs=179 nds=61 0ds=79 (cov=34 O=14 nar= 3 wide=23 end= 5) cov_nxt=18.0% | 233.5s
+  [seed 102] pcs=186 nds=63 0ds=86 (cov=29 O=17 nar= 5 wide=32 end= 3) cov_nxt=15.0% | 237.2s
+  [seed 104] pcs=192 nds=66 0ds=92 (cov=30 O=20 nar= 5 wide=32 end= 5) cov_nxt=17.0% | 270.0s
+  [seed 101] pcs=188 nds=64 0ds=88 (cov=37 O=16 nar= 4 wide=24 end= 7) cov_nxt=19.0% | 274.4s
+  [seed 105] pcs=191 nds=65 0ds=91 (cov=24 O=23 nar= 5 wide=36 end= 3) cov_nxt=14.0% | 473.6s
+  [seed 106] pcs=201 nds=69 0ds=101 (cov=38 O=17 nar=17 wide=20 end= 9) cov_nxt=20.0% | 501.4s
+  [seed 108] pcs=187 nds=64 0ds=87 (cov=23 O=20 nar= 6 wide=34 end= 4) cov_nxt=14.0% | 519.1s
+  [seed 107] pcs=185 nds=62 0ds=85 (cov=21 O=20 nar= 5 wide=34 end= 5) cov_nxt=15.0% | 525.5s
+  [seed 109] pcs=191 nds=65 0ds=91 (cov=36 O=17 nar= 9 wide=25 end= 4) cov_nxt=21.0% | 668.5s
+  [seed 110] pcs=198 nds=68 0ds=98 (cov=35 O=16 nar= 7 wide=36 end= 4) cov_nxt=18.0% | 705.6s
+rc_remg_150                n=10 mean=189.80 min=179 max=201 <=166: 0 top= 0 | nds=64.70 0ds=89.80 (cov=30.7 O=18.0 nar=6.6 wide=29.6 g0=0.0 end=4.9) cov_nxt=17.1% avg_c=12.0 | 705.6s
+  seeds: [101:188, 102:186, 103:179, 104:192, 105:191, 106:201, 107:185, 108:187, 109:191, 110:198]
+  [seed 102] pcs=181 nds=61 0ds=81 (cov=30 O=19 nar= 6 wide=22 end= 4) cov_nxt=13.0% | 216.0s
+  [seed 104] pcs=183 nds=62 0ds=83 (cov=28 O=20 nar= 0 wide=33 end= 2) cov_nxt=18.0% | 217.2s
+  [seed 103] pcs=186 nds=64 0ds=86 (cov=41 O=11 nar= 7 wide=25 end= 2) cov_nxt=24.0% | 223.8s
+  [seed 101] pcs=185 nds=63 0ds=85 (cov=33 O=20 nar= 7 wide=23 end= 2) cov_nxt=19.0% | 242.1s
+  [seed 105] pcs=187 nds=64 0ds=87 (cov=24 O=20 nar=14 wide=25 end= 4) cov_nxt=12.0% | 456.0s
+  [seed 107] pcs=187 nds=64 0ds=87 (cov=27 O=20 nar= 6 wide=30 end= 4) cov_nxt=14.0% | 461.5s
+  [seed 108] pcs=184 nds=62 0ds=84 (cov=25 O=19 nar= 6 wide=30 end= 4) cov_nxt=13.0% | 461.7s
+  [seed 106] pcs=199 nds=68 0ds=99 (cov=25 O=20 nar=13 wide=31 end=10) cov_nxt=19.0% | 465.9s
+  [seed 110] pcs=194 nds=67 0ds=94 (cov=32 O=20 nar= 7 wide=31 end= 4) cov_nxt=18.0% | 637.5s
+  [seed 109] pcs=198 nds=68 0ds=98 (cov=19 O=21 nar=11 wide=41 end= 6) cov_nxt=14.0% | 638.2s
+rc_remg_185                n=10 mean=188.40 min=181 max=199 <=166: 0 top= 0 | nds=64.30 0ds=88.40 (cov=28.4 O=19.0 nar=7.7 wide=29.1 g0=0.0 end=4.2) cov_nxt=16.4% avg_c=12.3 | 638.2s
+  seeds: [101:185, 102:181, 103:186, 104:183, 105:187, 106:199, 107:187, 108:184, 109:198, 110:194]
+  [seed 104] pcs=185 nds=63 0ds=85 (cov=24 O=20 nar=13 wide=25 end= 3) cov_nxt=16.0% | 228.7s
+  [seed 103] pcs=188 nds=64 0ds=88 (cov=31 O=16 nar= 7 wide=30 end= 4) cov_nxt=22.0% | 233.8s
+  [seed 101] pcs=191 nds=65 0ds=91 (cov=29 O=20 nar= 3 wide=37 end= 2) cov_nxt=21.0% | 246.5s
+  [seed 102] pcs=201 nds=70 0ds=101 (cov=43 O=19 nar= 9 wide=25 end= 5) cov_nxt=21.0% | 255.5s
+  [seed 105] pcs=191 nds=65 0ds=91 (cov=27 O=19 nar=12 wide=30 end= 3) cov_nxt=15.0% | 479.8s
+  [seed 108] pcs=184 nds=63 0ds=84 (cov=25 O=20 nar= 7 wide=28 end= 4) cov_nxt=19.0% | 480.5s
+  [seed 107] pcs=185 nds=63 0ds=85 (cov=24 O=17 nar= 4 wide=37 end= 3) cov_nxt=14.0% | 489.1s
+  [seed 106] pcs=191 nds=65 0ds=91 (cov=28 O=21 nar= 8 wide=32 end= 2) cov_nxt=18.0% | 491.2s
+  [seed 109] pcs=196 nds=67 0ds=96 (cov=27 O=19 nar=11 wide=36 end= 3) cov_nxt=14.0% | 654.2s
+  [seed 110] pcs=193 nds=66 0ds=93 (cov=40 O=17 nar=10 wide=23 end= 3) cov_nxt=19.0% | 655.9s
+rc_covrisk_130             n=10 mean=190.50 min=184 max=201 <=166: 0 top= 0 | nds=65.10 0ds=90.50 (cov=29.8 O=18.8 nar=8.4 wide=30.3 g0=0.0 end=3.2) cov_nxt=17.9% avg_c=12.5 | 655.9s
+  seeds: [101:191, 102:201, 103:188, 104:185, 105:191, 106:191, 107:185, 108:184, 109:196, 110:193]
+  [seed 102] pcs=190 nds=65 0ds=90 (cov=26 O=18 nar=13 wide=28 end= 5) cov_nxt=12.0% | 215.5s
+  [seed 104] pcs=186 nds=63 0ds=86 (cov=35 O=17 nar= 6 wide=26 end= 2) cov_nxt=19.0% | 216.3s
+  [seed 103] pcs=184 nds=62 0ds=84 (cov=35 O=14 nar= 7 wide=23 end= 5) cov_nxt=16.0% | 222.3s
+  [seed 101] pcs=195 nds=67 0ds=95 (cov=31 O=21 nar= 4 wide=36 end= 3) cov_nxt=20.0% | 236.9s
+  [seed 107] pcs=185 nds=63 0ds=85 (cov=36 O=16 nar=11 wide=19 end= 3) cov_nxt=18.0% | 440.7s
+  [seed 105] pcs=188 nds=64 0ds=88 (cov=39 O=16 nar= 4 wide=28 end= 1) cov_nxt=16.0% | 446.1s
+  [seed 106] pcs=193 nds=66 0ds=93 (cov=35 O=18 nar=11 wide=24 end= 5) cov_nxt=16.0% | 448.2s
+  [seed 108] pcs=196 nds=67 0ds=96 (cov=26 O=20 nar=16 wide=29 end= 5) cov_nxt=18.0% | 485.8s
+  [seed 109] pcs=183 nds=62 0ds=83 (cov=31 O=15 nar= 6 wide=26 end= 5) cov_nxt=19.0% | 591.5s
+  [seed 110] pcs=197 nds=67 0ds=97 (cov=30 O=17 nar= 9 wide=35 end= 6) cov_nxt=16.0% | 630.8s
+rc_covrisk_160             n=10 mean=189.70 min=183 max=197 <=166: 0 top= 0 | nds=64.60 0ds=89.70 (cov=32.4 O=17.2 nar=8.7 wide=27.4 g0=0.0 end=4.0) cov_nxt=17.0% avg_c=12.3 | 630.8s
+  seeds: [101:195, 102:190, 103:184, 104:186, 105:188, 106:193, 107:185, 108:196, 109:183, 110:197]
+  [seed 104] pcs=180 nds=61 0ds=80 (cov=31 O=17 nar= 1 wide=24 end= 7) cov_nxt=15.0% | 221.3s
+  [seed 103] pcs=180 nds=61 0ds=80 (cov=24 O=18 nar=13 wide=21 end= 4) cov_nxt=16.0% | 224.9s
+  [seed 102] pcs=184 nds=62 0ds=84 (cov=38 O=15 nar= 8 wide=19 end= 4) cov_nxt=18.0% | 234.1s
+  [seed 101] pcs=187 nds=64 0ds=87 (cov=32 O=19 nar= 4 wide=27 end= 5) cov_nxt=20.0% | 266.0s
+  [seed 105] pcs=175 nds=59 0ds=75 (cov=24 O=19 nar= 8 wide=23 end= 1) cov_nxt=13.0% | 439.3s
+  [seed 107] pcs=180 nds=61 0ds=80 (cov=21 O=20 nar= 9 wide=25 end= 5) cov_nxt=12.0% | 460.9s
+  [seed 106] pcs=201 nds=69 0ds=101 (cov=39 O=16 nar=16 wide=21 end= 9) cov_nxt=21.0% | 476.8s
+  [seed 108] pcs=197 nds=68 0ds=97 (cov=47 O=16 nar= 3 wide=27 end= 4) cov_nxt=27.0% | 510.6s
+  [seed 109] pcs=201 nds=69 0ds=101 (cov=27 O=21 nar= 8 wide=39 end= 6) cov_nxt=18.0% | 638.8s
+  [seed 110] pcs=194 nds=66 0ds=94 (cov=24 O=21 nar= 8 wide=34 end= 7) cov_nxt=19.0% | 653.4s
+rc_mlp_150                 n=10 mean=187.90 min=175 max=201 <=166: 0 top= 0 | nds=64.00 0ds=87.90 (cov=30.7 O=18.2 nar=7.8 wide=26.0 g0=0.0 end=5.2) cov_nxt=17.9% avg_c=12.5 | 653.4s
+  seeds: [101:187, 102:184, 103:180, 104:180, 105:175, 106:201, 107:180, 108:197, 109:201, 110:194]
+  [seed 102] pcs=184 nds=63 0ds=84 (cov=40 O=13 nar= 6 wide=21 end= 4) cov_nxt=20.0% | 218.9s
+  [seed 104] pcs=186 nds=63 0ds=86 (cov=22 O=18 nar=17 wide=25 end= 4) cov_nxt=10.0% | 241.0s
+  [seed 103] pcs=186 nds=63 0ds=86 (cov=32 O=16 nar=14 wide=19 end= 5) cov_nxt=20.0% | 242.1s
+  [seed 101] pcs=182 nds=62 0ds=82 (cov=27 O=20 nar= 5 wide=26 end= 4) cov_nxt=17.0% | 249.7s
+  [seed 105] pcs=190 nds=65 0ds=90 (cov=25 O=19 nar=13 wide=27 end= 6) cov_nxt=13.0% | 467.1s
+  [seed 106] pcs=188 nds=64 0ds=88 (cov=23 O=23 nar=17 wide=22 end= 3) cov_nxt=13.0% | 478.5s
+  [seed 107] pcs=193 nds=65 0ds=93 (cov=38 O=17 nar= 8 wide=25 end= 5) cov_nxt=20.0% | 497.5s
+  [seed 108] pcs=198 nds=69 0ds=98 (cov=43 O=15 nar= 4 wide=30 end= 6) cov_nxt=25.0% | 500.0s
+  [seed 109] pcs=194 nds=66 0ds=94 (cov=30 O=20 nar=10 wide=32 end= 2) cov_nxt=14.0% | 656.8s
+  [seed 110] pcs=191 nds=65 0ds=91 (cov=32 O=16 nar= 7 wide=31 end= 5) cov_nxt=25.0% | 664.0s
+rc_cvar_50                 n=10 mean=189.20 min=182 max=198 <=166: 0 top= 0 | nds=64.50 0ds=89.20 (cov=31.2 O=17.7 nar=10.1 wide=25.8 g0=0.0 end=4.4) cov_nxt=17.7% avg_c=12.4 | 664.0s
+  seeds: [101:182, 102:184, 103:186, 104:186, 105:190, 106:188, 107:193, 108:198, 109:194, 110:191]
