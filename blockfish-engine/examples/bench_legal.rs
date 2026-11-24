@@ -1288,6 +1288,22 @@ fn main() {
             c.root_pimc_cvar_pct = 25;
             eval_seeds("ens2_w16_h8_b28_cvar25", &seeds, &c);
         }
+        if which == "realmlp_ds5" {
+            let mut c = c_base.clone();
+            c.spatial_model = Some(sm_full.clone());
+            c.spatial_rerank_only = false;
+            c.beam_width = 80;
+            c.max_per_root = 16;
+            c.root_pimc_prescreen_worlds = 0;
+            c.root_pimc_roots = 10;
+            c.root_pimc_worlds = 16;
+            c.root_pimc_horizon = 9;
+            c.root_pimc_ds_target = 5;
+            c.root_pimc_width = 22;
+            c.root_pimc_margin = 400;
+            c.root_pimc_cvar_pct = 25;
+            eval_seeds("realmlp_ds5_w16_b22_c25", &seeds, &c);
+        }
         return;
     }
 

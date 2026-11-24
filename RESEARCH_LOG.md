@@ -171,7 +171,10 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
         - **Round BC-7 (`models/spatial_bc7.txt`, `V6 2D 3×3 Pattern 64x32`, Actions Run `45331301626`, 1h4m47s)**:
           - `100` clean `WG_ds (B=2800)` games (**`mean = 166.10`**, strongest teacher yet!) + `50` REAL-MLP DAgger games (`spatial_bc4.txt` `mlp=true`, `4341` recovery decisions, **`2327` with multi-move Soft-Q**) + `--mixed-spawn` (50% CRN real-hole + 50% opaque) -> `20,851` decisions, `967,107` moves.
           - Best LIN `val_ce = 0.9898`, `rem_g = 1.675`, `v_mae = 1.98`; best MLP (ep 6) `val_ce = 0.9839`, `top1 = 70.4%`, **`v_mae = 1.96`**, `needs_pe = false`.
-          - Added zero-overhead shared-feature **2-model ensemble** (`SpatialValueModel::evaluate_board_with_bag_ensemble2` + `BeamConfig::spatial_model_2`). Next: verify `spatial_bc7.txt` (10 seeds REAL MLP) + `bc4 + bc7` 2-model REAL MLP ensemble (5 seeds)!
+          - **Held-out REAL FULL-MLP Verification (Actions Run `45340066535`, 58m49s)**:
+            - `spatial_bc7.txt` standalone 10 seeds (`101..=110`): **`188.00 [181..193]`** (`nds=63.90`, `cov=29.6`, `wide=27.5`, `end=4.3`, `2193.3s`) — only `100` clean games on `1591` V6 sparse features caused early MLP saturation (ep 6).
+            - `ens2 (bc4 V5 + bc7 V6)` 5 seeds (`101..=105`): **`184.60 [175..193]`** (`[101:180, 102:184, 103:175, 104:191, 105:193]`, **`cov=25.0`**, **`cov_nxt=15.2%`** — slashed `cov` by `-3.9` and `cov_nxt` by `-2.9%` vs `bc4` alone, while `wide=27.4` remained the #1 gap vs `WG_ds` `wide~16`!).
+          - Next: attack the **`wide = 25..27`** gap directly with **REAL FULL-MLP `DS-Target=5` PIMC (`realmlp_ds5`, explicit `+100` piece cost per `0ds` move)** + test **Top-2 Ensemble (`bc4 V5 185.60 + bc6 V6 186.70`)**!
 
 ---
 
