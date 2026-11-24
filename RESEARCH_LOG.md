@@ -164,7 +164,8 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
       - **REAL FULL-MLP 10-Seed (`101..=110`) Showdown (Actions Run `45295407061` — NEW ALL-TIME 10-SEED LEGAL RECORD `185.60 [176..193]`!!)**:
         - **`models/spatial_bc4.txt` (`V5 64x32` REAL FULL MLP, `has_mlp=true`)**: **`185.60 [176..193]`** (`[101:180, 102:184, 103:176, 104:188, 105:193, 106:187, 107:185, 108:186, 109:185, 110:192]`, `nds=63.10`, `cov=28.9`, **`end=3.4`**, `2030.7s`) — **`-2.30` pcs better** than linear skip (`187.90`), worst seed dropped `201 -> 193`, hard seeds `106..=110` dropped **`194.60 -> 187.00` (`-7.60` pcs!!)**!
         - **`models/spatial_bc6.txt` (`V6 2D 3×3 Pattern 64x32` REAL FULL MLP)**: **`186.70 [182..195]`** (`-3.30` pcs better than linear skip `190.00`!).
-        - Next: test our strongest-CE MLP **`models/spatial_bc5.txt` (`128x48`, `val_ce = 0.8974`)** with REAL `has_mlp=true` on 10 seeds (`101..=110`, ~60m), then train **BC-7** (`V6` + high-data strong `WG_ds` + `bc4` MLP DAgger + Multi-Move Q targets)!
+        - **`models/spatial_bc5.txt` (`V5 128x48`, `B=900` weaker teacher + `12.5%` DAgger, Actions Run `45307436422`, 51m)**: `188.90 [181..197]` — proving teacher strength (`B=1800` `166.73` vs `B=900` `168.61`) and high DAgger ratio (`28.6%`) beat raw hidden width (`-3.30` pcs faster & stronger for `bc4` `64x32`).
+        - Next: test REAL `has_mlp=true` `bc4` with **`mlp_boost = 1.40× + cvar30`** (10 seeds, ~34m) and **`w20_h9_b36_cvar30`** (5 seeds, ~23m), then train **BC-7** (`B=2800` ~`165.0` ultra-strong teacher + `33%` REAL-MLP DAgger)!
 
 ---
 
