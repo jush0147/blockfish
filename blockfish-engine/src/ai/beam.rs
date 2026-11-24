@@ -174,6 +174,7 @@ pub struct BeamConfig {
     pub weights: EvalWeights,
     pub value_model: Option<Arc<LearnedValueModel>>,
     pub spatial_model: Option<Arc<SpatialValueModel>>,
+    pub spatial_model_2: Option<Arc<SpatialValueModel>>,
     pub value_fast_micro: i64,
     pub spatial_rerank_only: bool,
     pub anneal_mid_pen: i64,
@@ -227,6 +228,7 @@ impl Default for BeamConfig {
             weights: EvalWeights::default(),
             value_model: None,
             spatial_model: None,
+            spatial_model_2: None,
             value_fast_micro: 0,
             spatial_rerank_only: false,
             anneal_mid_pen: 0,
@@ -1482,7 +1484,15 @@ impl BeamSearcher {
                 m_sc
             }
         } else if let Some(ref sm) = cfg.spatial_model {
-            if allow_spatial {
+            if let Some(ref sm2) = cfg.spatial_model_2 {
+                if allow_spatial {
+                    sm.evaluate_board_with_bag_ensemble2(sm2, board, rem_g, in_hand, avail_mask, true)
+                } else if cfg.spatial_fast_ew_internal {
+                    eval_fast_with_bag(board, rem_g, in_hand, avail_mask, &cfg.weights)
+                } else {
+                    sm.evaluate_board_with_bag_ensemble2(sm2, board, rem_g, in_hand, avail_mask, false)
+                }
+            } else if allow_spatial {
                 sm.evaluate_board_with_bag(board, rem_g, in_hand, avail_mask)
             } else if cfg.spatial_fast_ew_internal {
                 eval_fast_with_bag(board, rem_g, in_hand, avail_mask, &cfg.weights)
@@ -1621,7 +1631,10 @@ impl BeamSearcher {
         cfg: &BeamConfig,
     ) -> i64 {
         if let Some(ref sm) = cfg.spatial_model {
-            if !cfg.spatial_rerank_only && sm.has_mlp {
+            if let Some(ref sm2) = cfg.spatial_model_2 {
+                let use_mlp = !cfg.spatial_rerank_only && (sm.has_mlp || sm2.has_mlp);
+                sm.evaluate_board_with_bag_ensemble2(sm2, board, rem_g, in_hand, avail_mask, use_mlp)
+            } else if !cfg.spatial_rerank_only && sm.has_mlp {
                 sm.evaluate_board_with_bag(board, rem_g, in_hand, avail_mask)
             } else if cfg.spatial_no_pe_internal || !sm.needs_pe {
                 sm.evaluate_linear_board_with_bag_no_pe(board, rem_g, in_hand, avail_mask)

@@ -1454,6 +1454,52 @@ impl SpatialValueModel {
         (pred * 100.0).round() as i64
     }
 
+    /// Evaluate the average of two `SpatialValueModel`s with a SINGLE shared feature extraction.
+    #[inline]
+    pub fn evaluate_board_with_bag_ensemble2(
+        &self,
+        other: &SpatialValueModel,
+        board: &FastBoard,
+        rem_garbage: u16,
+        in_hand: Option<u8>,
+        avail_mask: u8,
+        use_mlp: bool,
+    ) -> i64 {
+        let col_h = board.col_heights();
+        let max_h = *col_h.iter().max().unwrap() as i64;
+        let center_max_h = col_h[3..=6].iter().copied().max().unwrap() as i64;
+        if max_h >= 20 || center_max_h >= 19 {
+            return 5_000_000 + max_h * 10_000 + center_max_h * 10_000;
+        }
+        if rem_garbage == 0 {
+            return -10_000_000 + (board.rows as i64) * 5;
+        }
+        let mut active_bits = [0u16; SPARSE_DIM];
+        let mut dense = [0.0f32; DENSE_DIM];
+        let compute_pe = (!self.fast_ready || self.needs_pe) || (!other.fast_ready || other.needs_pe);
+        let n_act = extract_spatial_features_ex(
+            board,
+            rem_garbage,
+            in_hand,
+            avail_mask,
+            compute_pe,
+            &mut active_bits,
+            &mut dense,
+        );
+        let act = &active_bits[..n_act];
+        let p1 = if !use_mlp || (self.fast_ready && !self.has_mlp) {
+            self.predict_linear_extracted(act, &dense)
+        } else {
+            self.predict_extracted(act, &dense)
+        };
+        let p2 = if !use_mlp || (other.fast_ready && !other.has_mlp) {
+            other.predict_linear_extracted(act, &dense)
+        } else {
+            other.predict_extracted(act, &dense)
+        };
+        (0.5 * (p1 + p2) * 100.0).round() as i64
+    }
+
     #[inline]
     pub fn evaluate_linear_board_with_bag(
         &self,

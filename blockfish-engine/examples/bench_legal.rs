@@ -1266,6 +1266,28 @@ fn main() {
             c.root_pimc_cvar_pct = 30;
             eval_seeds("realmlp_w20_h9_b36_c30", &seeds, &c);
         }
+        if let Some(m2_path) = which.strip_prefix("ens2:") {
+            let mut sm2 = SpatialValueModel::load_from_file(m2_path).expect("load spatial model 2");
+            sm2.prepare_fast();
+            println!(
+                "  [ens2] model2={} (has_mlp={}, ah={}x{}, needs_pe={})",
+                m2_path, sm2.has_mlp, sm2.active_h1, sm2.active_h2, sm2.needs_pe
+            );
+            let mut c = c_base.clone();
+            c.spatial_model = Some(sm_full.clone());
+            c.spatial_model_2 = Some(Arc::new(sm2));
+            c.spatial_rerank_only = false;
+            c.beam_width = 80;
+            c.max_per_root = 16;
+            c.root_pimc_prescreen_worlds = 0;
+            c.root_pimc_roots = 12;
+            c.root_pimc_worlds = 16;
+            c.root_pimc_horizon = 8;
+            c.root_pimc_width = 28;
+            c.root_pimc_margin = 400;
+            c.root_pimc_cvar_pct = 25;
+            eval_seeds("ens2_w16_h8_b28_cvar25", &seeds, &c);
+        }
         return;
     }
 
