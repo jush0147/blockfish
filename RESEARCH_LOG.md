@@ -161,8 +161,10 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
         - Non-Clairvoyant Prefix-6 + CVaR Leaf-PIMC (`lpimc_h10=196.00`, `h11=195.70`, `h12=194.00`) trailed `root_pimc` (`187.90`) by `+6.1` pcs because Stage-1 opaque `0x3FF` spawns poison the depth-1..5 beam (`cov` jumped `30.7 -> 36.9`, `cov_nxt` `17.9% -> 19.9%`).
       - **`risk_calib` (Actions Run `45284574903`, 1h06m) — CRITICAL BENCHMARK BUG DISCOVERED!!**:
         - `rc_mlp_150` produced **BIT-FOR-BIT IDENTICAL** scores (`187.90`) to baseline, exposing a silent bug in `bench_legal.rs` `wg5_lin_sweep` (lines 698–699): it had zeroed `sm_val.b3 = 0.0; sm_val.w3 = [0.0; ...]` on load, meaning EVERY prior `full_mlp_pimc` / `fullmlp_w16` / `fullmlp_scale` / `leaf_pimc_break` / `risk_calib` run on `bc4`, `bc5`, `bc6`, and `exit1` had been running **PURE LINEAR SKIP ONLY (`has_mlp=false`)**!
-        - Fixed `bench_legal.rs` to preserve intact `sm_full` (`has_mlp=true`) and log `full_has_mlp` + `ah=H1xH2`.
-        - Launching **REAL FULL-MLP 10-Seed (`101..=110`) Showdown** (`models/spatial_bc4.txt`, `models/spatial_bc6.txt` V6 2D-Patterns, `models/spatial_exit1.txt` ExIt-1, ~51m) — the VERY FIRST TIME our V5/V6/ExIt MLPs actually run inside the PIMC inner beam!
+      - **REAL FULL-MLP 10-Seed (`101..=110`) Showdown (Actions Run `45295407061` — NEW ALL-TIME 10-SEED LEGAL RECORD `185.60 [176..193]`!!)**:
+        - **`models/spatial_bc4.txt` (`V5 64x32` REAL FULL MLP, `has_mlp=true`)**: **`185.60 [176..193]`** (`[101:180, 102:184, 103:176, 104:188, 105:193, 106:187, 107:185, 108:186, 109:185, 110:192]`, `nds=63.10`, `cov=28.9`, **`end=3.4`**, `2030.7s`) — **`-2.30` pcs better** than linear skip (`187.90`), worst seed dropped `201 -> 193`, hard seeds `106..=110` dropped **`194.60 -> 187.00` (`-7.60` pcs!!)**!
+        - **`models/spatial_bc6.txt` (`V6 2D 3×3 Pattern 64x32` REAL FULL MLP)**: **`186.70 [182..195]`** (`-3.30` pcs better than linear skip `190.00`!).
+        - Next: test our strongest-CE MLP **`models/spatial_bc5.txt` (`128x48`, `val_ce = 0.8974`)** with REAL `has_mlp=true` on 10 seeds (`101..=110`, ~60m), then train **BC-7** (`V6` + high-data strong `WG_ds` + `bc4` MLP DAgger + Multi-Move Q targets)!
 
 ---
 
