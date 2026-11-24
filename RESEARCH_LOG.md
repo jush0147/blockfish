@@ -177,9 +177,10 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
           - **REAL FULL-MLP `DS-Target=5` & Top-2 Ensemble Ablation (Actions Run `45348014227`, 51m36s, 5 seeds `101..=105`)**:
             - `realmlp_ds5_w16_b22_c25` (`spatial_bc4.txt`): `191.00 [182..197]` (`cov=31.6`, `wide=27.0`, `1742.0s`) — DS-target beam inside clairvoyant worlds amplifies strategy fusion over unknown future holes/pieces (`+6.8` pcs worse than `h=8`).
             - `ens2 (bc4 V5 + bc6 V6)`: **`184.40 [176..193]`** (`[101:180, 102:184, 103:176, 104:189, 105:193]`, `cov=25.0`, `cov_nxt=15.6%`) — virtually identical to `bc4` alone (`184.20`), confirming that **all 1-step clairvoyant-BC models share the same `~185` ceiling** caused by clairvoyance bias & strategy fusion.
-          - Next: directly attack **clairvoyance bias & strategy fusion** on two fronts:
-            1. **Non-Clairvoyant REAL FULL-MLP Rollout PIMC (`realmlp_nc`, `h=6` exact preview + `12` non-clairvoyant 1-ply MLP rollout steps = 18-piece lookahead with ZERO strategy fusion, 10 seeds `101..=110`)**.
-            2. **Legal AlphaZero ExIt-1 (`models/spatial_exit1.txt`) REAL FULL-MLP Verification** (never previously tested with `has_mlp=true` after the `bench_legal.rs` bugfix!).
+          - **Non-Clairvoyant Rollout & ExIt-1 REAL FULL-MLP Verification (Actions Run `45369836460`, 42m34s)**:
+            - `realmlp_h6_nc12_w16_b28_c25` (10 seeds `101..=110`): `236.00 [218..258]` (`1533.7s`) — 1-ply greedy rollout (`~230`-piece policy) adds massive variance that drowns root signal (abandoned).
+            - `models/spatial_exit1.txt` REAL FULL MLP (5 seeds `101..=105`): `187.80 [181..192]` (`975.1s`, seed `104` hit **`181`**, `-7` pcs better than `bc4` `188`).
+          - Next: test **REAL FULL-MLP Pure Mean (`cvar=0`) & Sharp Horizon (`h=8, 7, 6`)** on our `185.60` champion `models/spatial_bc4.txt` (5 seeds `101..=105`, ~52m) to test whether `CVaR-25` (originally tuned for buggy linear skip!) and `h=8` hallucination have been making REAL FULL MLP overly conservative (`wide=25..27`).
 
 ---
 

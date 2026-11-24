@@ -1320,6 +1320,51 @@ fn main() {
             c.root_pimc_cvar_pct = 25;
             eval_seeds("realmlp_h6_nc12_w16_b28_c25", &seeds, &c);
         }
+        if which == "realmlp_cvar0" {
+            let mut c = c_base.clone();
+            c.spatial_model = Some(sm_full.clone());
+            c.spatial_rerank_only = false;
+            c.beam_width = 80;
+            c.max_per_root = 16;
+            c.root_pimc_prescreen_worlds = 0;
+            c.root_pimc_roots = 12;
+            c.root_pimc_worlds = 16;
+            c.root_pimc_horizon = 8;
+            c.root_pimc_width = 28;
+            c.root_pimc_margin = 400;
+            c.root_pimc_cvar_pct = 0;
+            eval_seeds("realmlp_h8_w16_b28_c0", &seeds, &c);
+        }
+        if which == "realmlp_h7_c0" {
+            let mut c = c_base.clone();
+            c.spatial_model = Some(sm_full.clone());
+            c.spatial_rerank_only = false;
+            c.beam_width = 80;
+            c.max_per_root = 16;
+            c.root_pimc_prescreen_worlds = 0;
+            c.root_pimc_roots = 12;
+            c.root_pimc_worlds = 20;
+            c.root_pimc_horizon = 7;
+            c.root_pimc_width = 36;
+            c.root_pimc_margin = 400;
+            c.root_pimc_cvar_pct = 0;
+            eval_seeds("realmlp_h7_w20_b36_c0", &seeds, &c);
+        }
+        if which == "realmlp_h6_c0" {
+            let mut c = c_base.clone();
+            c.spatial_model = Some(sm_full.clone());
+            c.spatial_rerank_only = false;
+            c.beam_width = 80;
+            c.max_per_root = 16;
+            c.root_pimc_prescreen_worlds = 0;
+            c.root_pimc_roots = 12;
+            c.root_pimc_worlds = 20;
+            c.root_pimc_horizon = 6;
+            c.root_pimc_width = 40;
+            c.root_pimc_margin = 400;
+            c.root_pimc_cvar_pct = 0;
+            eval_seeds("realmlp_h6_w20_b40_c0", &seeds, &c);
+        }
         return;
     }
 
