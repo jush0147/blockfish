@@ -1,13 +1,30 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "=== Part 1: REAL FULL-MLP Oracle Ceiling Check (OR_p20, models/spatial_bc4.txt, 2 seeds 101..=102, ~4.5m) ==="
-cargo run --release -p blockfish --features race --example diag_cheese -- spatial_or_p20 models/spatial_bc4.txt 2
+echo "=== Part 1: Train Round V5-Q1 (Compact V5 64x32 + Multi-Move Q-Advantage adv_w=0.35 + 100% Real-Hole Spawns, ~22m) ==="
+cargo run --release -p blockfish --features race --example train_bc -- \
+  --out models/spatial_v5q1.txt \
+  --games 120 \
+  --wg-beam 1600 \
+  --dagger-init models/spatial_bc4.txt \
+  --dagger-games 70 \
+  --dagger-mlp \
+  --real-spawn \
+  --v5-only \
+  --clean-q \
+  --adv-w 0.35 \
+  --cal-w 0.04 \
+  --lin-epochs 14 \
+  --mlp-epochs 18 \
+  --wd-mlp 0.015 \
+  --dropout 0.15 \
+  --label-smooth 0.02 \
+  --eval-legal 0
 
 echo ""
-echo "=== Part 2: Eliminate Stage-1 Opaque 0x3FF Pruning (4-world CRN prescreen 36->12, w=16, h=8, b=28, cvar=25, 5 seeds, ~18m) ==="
-cargo run --release -p blockfish --features race --example bench_legal -- wg5_lin_sweep models/spatial_bc4.txt realmlp_prescreen 5
+echo "=== Part 2: REAL FULL-MLP OR_p20 Ceiling Check on spatial_v5q1.txt (vs bc4 176.00, 2 seeds 101..=102, ~2m) ==="
+cargo run --release -p blockfish --features race --example diag_cheese -- spatial_or_p20 models/spatial_v5q1.txt 2
 
 echo ""
-echo "=== Part 3: Top-4 2-Ply Non-Clairvoyant Expectimax Rerank (d2k4, w=12, h=8, b=24, cvar=25, 5 seeds, ~22m) ==="
-cargo run --release -p blockfish --features race --example bench_legal -- wg5_lin_sweep models/spatial_bc4.txt realmlp_d2_exp 5
+echo "=== Part 3: Held-Out 5-Seed REAL FULL-MLP Legal Benchmark (fullmlp_w16 on spatial_v5q1.txt vs bc4 184.20, ~17m) ==="
+cargo run --release -p blockfish --features race --example bench_legal -- wg5_lin_sweep models/spatial_v5q1.txt fullmlp_w16 5
