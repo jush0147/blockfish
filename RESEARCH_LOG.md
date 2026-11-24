@@ -159,8 +159,10 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
         - Improved `val_ce` to `0.9529` (LIN) / `0.9443` (MLP, `top1=71.3%`) on the exact same BC-4 dataset (`150 WG_ds B=1800 + 60 DAgger`), `LEGAL_b120_bc_lin = 196.60`, `LEGAL_pimc_w8 = 185.80` (`104:177`), and `10-seed` `fullmlp_w16 = 190.00 [186..198]` (beat `bc4` on seeds `108` `-10` pcs and `109` `-15` pcs, confirming ~188–190 is the structural ceiling of `h=8` clairvoyant `root_pimc`).
       - **`leaf_pimc_break` (Actions Run `45252557365`, 16m, 10 seeds `101..=110`)**:
         - Non-Clairvoyant Prefix-6 + CVaR Leaf-PIMC (`lpimc_h10=196.00`, `h11=195.70`, `h12=194.00`) trailed `root_pimc` (`187.90`) by `+6.1` pcs because Stage-1 opaque `0x3FF` spawns poison the depth-1..5 beam (`cov` jumped `30.7 -> 36.9`, `cov_nxt` `17.9% -> 19.9%`).
-      - **Next (`risk_calib` 10-seed sweep on `models/spatial_bc4.txt` `fullmlp_w16`, ~48m)**:
-        - Directly test 6 low-dimensional Legal `p=5` calibration levers on 10 seeds (`101..=110`) vs `187.90`: `rem_g ∈ {1.50, 1.85}`, cover-risk multiplier `{1.30×, 1.60×}`, nonlinear MLP boost `1.50×`, and stronger `CVaR-50`.
+      - **`risk_calib` (Actions Run `45284574903`, 1h06m) — CRITICAL BENCHMARK BUG DISCOVERED!!**:
+        - `rc_mlp_150` produced **BIT-FOR-BIT IDENTICAL** scores (`187.90`) to baseline, exposing a silent bug in `bench_legal.rs` `wg5_lin_sweep` (lines 698–699): it had zeroed `sm_val.b3 = 0.0; sm_val.w3 = [0.0; ...]` on load, meaning EVERY prior `full_mlp_pimc` / `fullmlp_w16` / `fullmlp_scale` / `leaf_pimc_break` / `risk_calib` run on `bc4`, `bc5`, `bc6`, and `exit1` had been running **PURE LINEAR SKIP ONLY (`has_mlp=false`)**!
+        - Fixed `bench_legal.rs` to preserve intact `sm_full` (`has_mlp=true`) and log `full_has_mlp` + `ah=H1xH2`.
+        - Launching **REAL FULL-MLP 10-Seed (`101..=110`) Showdown** (`models/spatial_bc4.txt`, `models/spatial_bc6.txt` V6 2D-Patterns, `models/spatial_exit1.txt` ExIt-1, ~51m) — the VERY FIRST TIME our V5/V6/ExIt MLPs actually run inside the PIMC inner beam!
 
 ---
 

@@ -694,14 +694,18 @@ fn main() {
             .and_then(|s| s.parse().ok())
             .unwrap_or(5);
         let seeds: Vec<u64> = (101..(101 + n_seeds as u64)).collect();
-        let mut sm_val = SpatialValueModel::load_from_file(&model_path).expect("load spatial model");
+        let mut sm_full_val = SpatialValueModel::load_from_file(&model_path).expect("load spatial model");
+        sm_full_val.prepare_fast();
+        let sm_full = Arc::new(sm_full_val.clone());
+
+        let mut sm_val = sm_full_val;
         sm_val.b3 = 0.0;
         sm_val.w3 = [0.0; blockfish::ai::spatial_val::SPATIAL_H2];
         sm_val.prepare_fast();
         let sm = Arc::new(sm_val);
         println!(
-            "=== Legal wg5_lin_sweep ({}, which={}, n_seeds={}) ===",
-            model_path, which, n_seeds
+            "=== Legal wg5_lin_sweep ({}, which={}, n_seeds={}, full_has_mlp={}, ah={}x{}) ===",
+            model_path, which, n_seeds, sm_full.has_mlp, sm_full.active_h1, sm_full.active_h2
         );
 
         let mut c_base = make_spatial_cfg(sm.clone());
@@ -1043,6 +1047,7 @@ fn main() {
         if which == "full_mlp_pimc" {
             // Run FULL SpatialValueModel MLP inside the PIMC inner beam (spatial_rerank_only = false)!
             let mut c_m = c_base.clone();
+            c_m.spatial_model = Some(sm_full.clone());
             c_m.spatial_rerank_only = false;
             c_m.beam_width = 64;
             c_m.max_per_root = 16;
@@ -1071,6 +1076,7 @@ fn main() {
         }
         if which == "fullmlp_w16" {
             let mut c_m3 = c_base.clone();
+            c_m3.spatial_model = Some(sm_full.clone());
             c_m3.spatial_rerank_only = false;
             c_m3.beam_width = 80;
             c_m3.max_per_root = 16;
@@ -1085,6 +1091,7 @@ fn main() {
         }
         if which == "fullmlp_scale" {
             let mut c_m1 = c_base.clone();
+            c_m1.spatial_model = Some(sm_full.clone());
             c_m1.spatial_rerank_only = false;
             c_m1.beam_width = 80;
             c_m1.max_per_root = 16;
@@ -1112,6 +1119,7 @@ fn main() {
         if which == "leaf_pimc_break" {
             // Non-Clairvoyant Prefix-6 (b=160) + CVaR Leaf-PIMC (total_h = 10..12, ZERO prefix Strategy Fusion!)
             let mut c_lp = c_base.clone();
+            c_lp.spatial_model = Some(sm_full.clone());
             c_lp.spatial_rerank_only = false;
             c_lp.beam_width = 160;
             c_lp.max_per_root = 32;
@@ -1140,6 +1148,7 @@ fn main() {
         }
         if which == "risk_calib" {
             let mut c_m = c_base.clone();
+            c_m.spatial_model = Some(sm_full.clone());
             c_m.spatial_rerank_only = false;
             c_m.beam_width = 80;
             c_m.max_per_root = 16;
@@ -1151,7 +1160,7 @@ fn main() {
             c_m.root_pimc_margin = 400;
             c_m.root_pimc_cvar_pct = 25;
 
-            let base_sm = (**c_base.spatial_model.as_ref().unwrap()).clone();
+            let base_sm = (*sm_full).clone();
 
             // 1. Lower rem_g (1.68 -> 1.50): less greedy h2-covering
             {
