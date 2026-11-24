@@ -159,6 +159,9 @@ fn spawn_exact_cheese(b: &mut FastBoard, rem_g: u16, lines_cleared: u8, holes: &
     true
 }
 
+const TRAIN_H1: usize = 64;
+const TRAIN_H2: usize = 32;
+
 fn spawn_opaque_cheese(b: &mut FastBoard, rem_g: u16, lines_cleared: u8) -> bool {
     let target_g: usize = if lines_cleared > 0 { 4 } else { 9 };
     let g = b.garbage_rows as usize;
@@ -176,6 +179,48 @@ fn spawn_opaque_cheese(b: &mut FastBoard, rem_g: u16, lines_cleared: u8) -> bool
     }
     for k in 0..num {
         b.data[k] = 0xFC00 | 0x3FF; // opaque garbage row (matches beam.rs simulate_cheese_spawn)
+    }
+    b.rows = (old_rows + num) as u8;
+    b.garbage_rows = (g + num) as u8;
+    true
+}
+
+/// Zero-leakage Jstris real-hole spawn using common random numbers per decision step
+/// (completely independent of true future holes), matching `root_pimc`'s real-hole leaf distribution.
+fn spawn_random_cheese(b: &mut FastBoard, rem_g: u16, lines_cleared: u8, mut rng: u64) -> bool {
+    let target_g: usize = if lines_cleared > 0 { 4 } else { 9 };
+    let g = b.garbage_rows as usize;
+    let unspawned = (rem_g as usize).saturating_sub(g);
+    let num = target_g.saturating_sub(g).min(unspawned);
+    if num == 0 {
+        return true;
+    }
+    let old_rows = b.rows as usize;
+    if old_rows + num >= 32 {
+        return false;
+    }
+    let mut prev_hole: usize = if g > 0 {
+        let m = (!b.data[0]) & 0x3FF;
+        if m != 0 { m.trailing_zeros() as usize } else { 10 }
+    } else {
+        10
+    };
+    for r in (0..old_rows).rev() {
+        b.data[r + num] = b.data[r];
+    }
+    for k in 0..num {
+        rng = rng.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+        let hole = if prev_hole < 10 {
+            let mut h = ((rng >> 33) as usize) % 9;
+            if h >= prev_hole {
+                h += 1;
+            }
+            h
+        } else {
+            ((rng >> 33) as usize) % 10
+        };
+        prev_hole = hole;
+        b.data[num - 1 - k] = 0xFC00 | (0x3FF & !(1u16 << hole));
     }
     b.rows = (old_rows + num) as u8;
     b.garbage_rows = (g + num) as u8;
@@ -250,10 +295,16 @@ struct Decision {
     moves: Vec<MoveFeat>,
     target_idx: usize,
     rem_pcs: f32,
+    q_vals: Option<Vec<f32>>,
     is_val: bool,
 }
 
-fn solve_and_extract_decisions(seed: u64, wg_beam: usize, is_val: bool) -> Option<(usize, Vec<Decision>)> {
+fn solve_and_extract_decisions(
+    seed: u64,
+    wg_beam: usize,
+    is_val: bool,
+    mixed_spawn: bool,
+) -> Option<(usize, Vec<Decision>)> {
     let ed = collect_exact_seed(seed)?;
     let fst = FastShapeTable::srs();
     let teacher_w = ew_cons22();
@@ -538,7 +589,15 @@ fn solve_and_extract_decisions(seed: u64, wg_beam: usize, is_val: bool) -> Optio
                 }
                 continue;
             }
-            if !spawn_opaque_cheese(&mut b, rem_g, lines) || b.rows >= 20 {
+            let spawn_ok = if mixed_spawn && (step & 1) == 1 {
+                let crn = seed
+                    .wrapping_mul(0x9E3779B97F4A7C15)
+                    .wrapping_add((step as u64).wrapping_mul(0xBF58476D1CE4E5B9));
+                spawn_random_cheese(&mut b, rem_g, lines, crn)
+            } else {
+                spawn_opaque_cheese(&mut b, rem_g, lines)
+            };
+            if !spawn_ok || b.rows >= 20 {
                 if !is_star {
                     continue;
                 }
@@ -581,6 +640,7 @@ fn solve_and_extract_decisions(seed: u64, wg_beam: usize, is_val: bool) -> Optio
                     moves,
                     target_idx: ti,
                     rem_pcs: (total_pcs - step - 1) as f32,
+                    q_vals: None,
                     is_val,
                 });
             }
@@ -643,7 +703,7 @@ fn solve_local_wg_ds_first_move(
     teacher_w: &EvalWeights,
     ds_target_in: usize,
     beam_w: usize,
-) -> Option<(FastPlace, f32)> {
+) -> Option<(FastPlace, f32, Vec<(FastPlace, f32)>)> {
     #[derive(Clone, Copy)]
     struct LocalDsNode {
         board: FastBoard,
@@ -826,14 +886,35 @@ fn solve_local_wg_ds_first_move(
     }
 
     if let Some((wp, ffp)) = best_win {
-        return Some((ffp, (wp.saturating_sub(1)) as f32));
+        let est = (wp.saturating_sub(1)) as f32;
+        return Some((ffp, est, vec![(ffp, est)]));
     }
     if !buckets[target_ds].is_empty() {
         buckets[target_ds].sort_unstable_by_key(|n| (n.score, n.pieces_used));
         let best = buckets[target_ds][0];
         if best.has_first {
             let est_rem = (best.pieces_used as f32 - 1.0).max(0.0) + (best.rem_g as f32) * 1.67;
-            return Some((best.first_fp, est_rem));
+            let mut q_map: Vec<(FastPlace, f32)> = Vec::new();
+            for n in &buckets[target_ds] {
+                if !n.has_first {
+                    continue;
+                }
+                let q = est_rem + ((n.score - best.score) as f32) * 0.01;
+                if let Some(slot) = q_map.iter_mut().find(|(fp0, _)| {
+                    fp0.color_idx == n.first_fp.color_idx
+                        && fp0.did_hold == n.first_fp.did_hold
+                        && fp0.norm_i == n.first_fp.norm_i
+                        && fp0.norm_j == n.first_fp.norm_j
+                        && fp0.tf.2 == n.first_fp.tf.2
+                }) {
+                    if q < slot.1 {
+                        slot.1 = q;
+                    }
+                } else {
+                    q_map.push((n.first_fp, q));
+                }
+            }
+            return Some((best.first_fp, est_rem, q_map));
         }
     }
     None
@@ -842,6 +923,8 @@ fn solve_local_wg_ds_first_move(
 fn generate_dagger_decisions(
     seed: u64,
     dagger_mdl: &Arc<SpatialValueModel>,
+    dagger_mlp: bool,
+    mixed_spawn: bool,
     is_val: bool,
 ) -> Option<(usize, Vec<Decision>)> {
     let ed = collect_exact_seed(seed)?;
@@ -857,7 +940,7 @@ fn generate_dagger_decisions(
     cfg.endgame_solver = true;
     cfg.simulate_cheese_spawn = true;
     cfg.spatial_model = Some(dagger_mdl.clone());
-    cfg.spatial_rerank_only = true;
+    cfg.spatial_rerank_only = !dagger_mlp;
     cfg.spatial_no_pe_internal = true;
 
     let mut game_cfg = BSConfig::default();
@@ -889,7 +972,7 @@ fn generate_dagger_decisions(
 
         // Query local WG_ds oracle on every 3rd step OR whenever h1 is covered (messy Legal state!)
         if rem_g > 6 && (step % 3 == 0 || has_h1_cover(&cur_b)) {
-            if let Some((fp_star, est_rem_pcs)) = solve_local_wg_ds_first_move(
+            if let Some((fp_star, est_rem_pcs, q_map)) = solve_local_wg_ds_first_move(
                 &fst,
                 &mut pgen,
                 &mut tmp_places,
@@ -900,7 +983,7 @@ fn generate_dagger_decisions(
                 &ed,
                 &teacher_w,
                 10,
-                220,
+                280,
             ) {
                 let (c_nh, c_h) = if cur_held.is_some() {
                     (ed.pieces.get(cur_qc).copied(), cur_held)
@@ -909,6 +992,8 @@ fn generate_dagger_decisions(
                 };
                 pgen.generate_for_state(&fst, &cur_b, c_nh, c_h, &mut tmp_places);
                 let mut moves = Vec::with_capacity(tmp_places.len());
+                let mut q_vec = Vec::with_capacity(tmp_places.len());
+                let mut finite_q_cnt = 0usize;
                 let mut target_idx: Option<usize> = None;
                 for &fp in &tmp_places {
                     let is_star = fp.color_idx == fp_star.color_idx
@@ -927,7 +1012,15 @@ fn generate_dagger_decisions(
                         }
                         continue;
                     }
-                    if !spawn_opaque_cheese(&mut b, rg_after, lines) || b.rows >= 20 {
+                    let spawn_ok = if mixed_spawn && (step & 1) == 1 {
+                        let crn = seed
+                            .wrapping_mul(0x9E3779B97F4A7C15)
+                            .wrapping_add((step as u64).wrapping_mul(0xBF58476D1CE4E5B9));
+                        spawn_random_cheese(&mut b, rg_after, lines, crn)
+                    } else {
+                        spawn_opaque_cheese(&mut b, rg_after, lines)
+                    };
+                    if !spawn_ok || b.rows >= 20 {
                         if !is_star {
                             continue;
                         }
@@ -957,6 +1050,20 @@ fn generate_dagger_decisions(
                     if is_star {
                         target_idx = Some(moves.len());
                     }
+                    let qv = q_map
+                        .iter()
+                        .find(|(fp0, _)| {
+                            fp0.color_idx == fp.color_idx
+                                && fp0.did_hold == fp.did_hold
+                                && fp0.norm_i == fp.norm_i
+                                && fp0.norm_j == fp.norm_j
+                                && fp0.tf.2 == fp.tf.2
+                        })
+                        .map_or(f32::NAN, |&(_, q)| q);
+                    if qv.is_finite() {
+                        finite_q_cnt += 1;
+                    }
+                    q_vec.push(qv);
                     moves.push(MoveFeat {
                         active: act_buf[..n_act].to_vec(),
                         dense: dense_buf,
@@ -968,6 +1075,7 @@ fn generate_dagger_decisions(
                             moves,
                             target_idx: ti,
                             rem_pcs: est_rem_pcs,
+                            q_vals: if finite_q_cnt >= 2 { Some(q_vec) } else { None },
                             is_val,
                         });
                     }
@@ -1084,11 +1192,11 @@ impl AdamState {
             Self::upd(&mut mdl.lin_dense[j], g.lin_dense[j], &mut self.m.lin_dense[j], &mut self.v.lin_dense[j], lr_lin, if j == 0 { 0.0 } else { wd_lin }, b1t, b2t);
         }
         if train_mlp {
-            for h in 0..SPATIAL_H1 {
+            for h in 0..TRAIN_H1 {
                 Self::upd(&mut mdl.b1[h], g.b1[h], &mut self.m.b1[h], &mut self.v.b1[h], lr_mlp, 0.0, b1t, b2t);
             }
             for i in 0..SPARSE_DIM {
-                for h in 0..SPATIAL_H1 {
+                for h in 0..TRAIN_H1 {
                     Self::upd(&mut mdl.w_sparse[i][h], g.w_sparse[i][h], &mut self.m.w_sparse[i][h], &mut self.v.w_sparse[i][h], lr_mlp, wd_mlp, b1t, b2t);
                 }
             }
@@ -1097,20 +1205,20 @@ impl AdamState {
                     mdl.w_dense[j].fill(0.0);
                     continue;
                 }
-                for h in 0..SPATIAL_H1 {
+                for h in 0..TRAIN_H1 {
                     Self::upd(&mut mdl.w_dense[j][h], g.w_dense[j][h], &mut self.m.w_dense[j][h], &mut self.v.w_dense[j][h], lr_mlp, wd_mlp, b1t, b2t);
                 }
             }
-            for k in 0..SPATIAL_H2 {
+            for k in 0..TRAIN_H2 {
                 Self::upd(&mut mdl.b2[k], g.b2[k], &mut self.m.b2[k], &mut self.v.b2[k], lr_mlp, 0.0, b1t, b2t);
             }
-            for h in 0..SPATIAL_H1 {
-                for k in 0..SPATIAL_H2 {
+            for h in 0..TRAIN_H1 {
+                for k in 0..TRAIN_H2 {
                     Self::upd(&mut mdl.w2[h][k], g.w2[h][k], &mut self.m.w2[h][k], &mut self.v.w2[h][k], lr_mlp, wd_mlp, b1t, b2t);
                 }
             }
             Self::upd(&mut mdl.b3, g.b3, &mut self.m.b3, &mut self.v.b3, lr_mlp, 0.0, b1t, b2t);
-            for k in 0..SPATIAL_H2 {
+            for k in 0..TRAIN_H2 {
                 Self::upd(&mut mdl.w3[k], g.w3[k], &mut self.m.w3[k], &mut self.v.w3[k], lr_mlp, wd_mlp, b1t, b2t);
             }
         }
@@ -1143,7 +1251,7 @@ fn forward_move(
     let mut h1 = mdl.b1;
     for &b in &mf.active {
         let row = &mdl.w_sparse[b as usize];
-        for h in 0..SPATIAL_H1 {
+        for h in 0..TRAIN_H1 {
             h1[h] += row[h];
         }
     }
@@ -1154,25 +1262,25 @@ fn forward_move(
         let zm = z_out[j].clamp(-3.0, 3.0);
         if zm != 0.0 {
             let row = &mdl.w_dense[j];
-            for h in 0..SPATIAL_H1 {
+            for h in 0..TRAIN_H1 {
                 h1[h] += zm * row[h];
             }
         }
     }
     let mut h2 = mdl.b2;
-    for h in 0..SPATIAL_H1 {
+    for h in 0..TRAIN_H1 {
         let d1 = drop1.map_or(1.0, |m| m[h]);
         let a1 = h1[h].clamp(0.0, 6.0) * d1;
         a1_out[h] = a1;
         if a1 > 0.0 {
             let row = &mdl.w2[h];
-            for k in 0..SPATIAL_H2 {
+            for k in 0..TRAIN_H2 {
                 h2[k] += a1 * row[k];
             }
         }
     }
     let mut raw_mlp = mdl.b3;
-    for k in 0..SPATIAL_H2 {
+    for k in 0..TRAIN_H2 {
         let d2 = drop2.map_or(1.0, |m| m[k]);
         let a2 = h2[k].clamp(0.0, 6.0) * d2;
         a2_out[k] = a2;
@@ -1217,7 +1325,7 @@ fn backward_move(
     let d_mlp = d_out / (denom * denom);
     g.b3 += d_mlp;
     let mut d_h2 = [0.0f32; SPATIAL_H2];
-    for k in 0..SPATIAL_H2 {
+    for k in 0..TRAIN_H2 {
         if a2[k] > 0.0 {
             let d2 = drop2.map_or(1.0, |m| m[k]);
             g.w3[k] += d_mlp * a2[k];
@@ -1228,13 +1336,13 @@ fn backward_move(
             }
         }
     }
-    for h in 0..SPATIAL_H1 {
+    for h in 0..TRAIN_H1 {
         if a1[h] > 0.0 {
             let d1 = drop1.map_or(1.0, |m| m[h]);
             let mut dh = 0.0f32;
             let row = &mdl.w2[h];
             let grow = &mut g.w2[h];
-            for k in 0..SPATIAL_H2 {
+            for k in 0..TRAIN_H2 {
                 let dk = d_h2[k];
                 if dk != 0.0 {
                     grow[k] += dk * a1[h];
@@ -1369,6 +1477,8 @@ fn main() {
     let mut wg_beam: usize = 1400;
     let mut dagger_init: Option<String> = None;
     let mut dagger_games: usize = 0;
+    let mut dagger_mlp: bool = false;
+    let mut mixed_spawn: bool = false;
     let mut lin_epochs: usize = 14;
     let mut mlp_epochs: usize = 16;
     let mut batch_sz: usize = 32;
@@ -1391,6 +1501,8 @@ fn main() {
             "--wg-beam" => { wg_beam = args[i + 1].parse().unwrap(); i += 2; }
             "--dagger-init" => { dagger_init = Some(args[i + 1].clone()); i += 2; }
             "--dagger-games" => { dagger_games = args[i + 1].parse().unwrap(); i += 2; }
+            "--dagger-mlp" => { dagger_mlp = true; i += 1; }
+            "--mixed-spawn" => { mixed_spawn = true; i += 1; }
             "--lin-epochs" => { lin_epochs = args[i + 1].parse().unwrap(); i += 2; }
             "--mlp-epochs" => { mlp_epochs = args[i + 1].parse().unwrap(); i += 2; }
             "--batch" => { batch_sz = args[i + 1].parse().unwrap(); i += 2; }
@@ -1410,8 +1522,8 @@ fn main() {
 
     let n_threads = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(2);
     println!(
-        "=== Full-Action-Space Afterstate BC + DAgger (WG_ds -> SpatialValueModel {}x{}) ===\n  out={} games={} wg_beam={} dagger_games={} lin_ep={} mlp_ep={} batch={} tau={} cal_w={} lr_lin={} lr_mlp={} wd={} wd_mlp={} drop={} ls={} threads={}",
-        SPATIAL_H1, SPATIAL_H2, out_path, games, wg_beam, dagger_games, lin_epochs, mlp_epochs, batch_sz, tau, cal_w, lr_lin, lr_mlp, wd, wd_mlp, dropout, label_smooth, n_threads
+        "=== Full-Action-Space Afterstate BC + Soft-Q DAgger (WG_ds -> SpatialValueModel {}x{}) ===\n  out={} games={} wg_beam={} dagger_games={} dagger_mlp={} mixed_spawn={} lin_ep={} mlp_ep={} batch={} tau={} cal_w={} lr_lin={} lr_mlp={} wd={} wd_mlp={} drop={} ls={} threads={}",
+        TRAIN_H1, TRAIN_H2, out_path, games, wg_beam, dagger_games, dagger_mlp, mixed_spawn, lin_epochs, mlp_epochs, batch_sz, tau, cal_w, lr_lin, lr_mlp, wd, wd_mlp, dropout, label_smooth, n_threads
     );
 
     let t0 = Instant::now();
@@ -1423,7 +1535,7 @@ fn main() {
             let base_i = ci * chunk_sz;
             sc.spawn(move || {
                 sl.iter().enumerate().filter_map(|(k, &s)| {
-                    solve_and_extract_decisions(s, wg_beam, base_i + k >= val_start)
+                    solve_and_extract_decisions(s, wg_beam, base_i + k >= val_start, mixed_spawn)
                 }).collect::<Vec<_>>()
             })
         }).collect();
@@ -1455,7 +1567,7 @@ fn main() {
                 let dm = d_mdl.clone();
                 sc.spawn(move || {
                     sl.iter().enumerate().filter_map(|(k, &s)| {
-                        generate_dagger_decisions(s, &dm, base_i + k >= d_val_start)
+                        generate_dagger_decisions(s, &dm, dagger_mlp, mixed_spawn, base_i + k >= d_val_start)
                     }).collect::<Vec<_>>()
                 })
             }).collect();
@@ -1465,16 +1577,20 @@ fn main() {
         });
         let d_mean_pcs = d_raw.iter().map(|(p, _)| *p as f64).sum::<f64>() / (d_raw.len().max(1) as f64);
         let mut d_decs = 0usize;
+        let mut d_softq = 0usize;
         for (_, ds) in d_raw {
             for d in ds {
                 total_moves += d.moves.len();
                 d_decs += 1;
+                if d.q_vals.is_some() {
+                    d_softq += 1;
+                }
                 decisions.push(d);
             }
         }
         println!(
-            "Phase 1B (BC-DAgger): {} Legal games (mean={:.2} pcs) -> {} recovery decisions",
-            dagger_games, d_mean_pcs, d_decs
+            "Phase 1B (BC-DAgger mlp={}): {} Legal games (mean={:.2} pcs) -> {} recovery decisions ({} with multi-move Soft-Q)",
+            dagger_mlp, dagger_games, d_mean_pcs, d_decs, d_softq
         );
     }
 
@@ -1514,7 +1630,7 @@ fn main() {
         mdl.lin_dense[0] = 1.65 / mdl.dense_inv_std[0];
     }
 
-    // Stage A: Pure-Linear Full-Action-Space Softmax BC
+    // Stage A: Pure-Linear Full-Action-Space Softmax BC + Soft-Q
     let mut adam = AdamState::new();
     let mut grad = GradBuf::new();
     let mut order = train_idxs.clone();
@@ -1525,7 +1641,10 @@ fn main() {
     let mut a1_cache: Vec<[f32; SPATIAL_H1]> = Vec::new();
     let mut a2_cache: Vec<[f32; SPATIAL_H2]> = Vec::new();
     let mut raw_mlp_cache: Vec<f32> = Vec::new();
+    let mut v_cache: Vec<f32> = Vec::new();
     let mut logits_buf: Vec<f32> = Vec::new();
+    let mut q_soft_buf: Vec<f32> = Vec::new();
+    let tau_q = 0.65f32;
 
     for ep in 1..=lin_epochs {
         for k in (1..order.len()).rev() {
@@ -1546,14 +1665,14 @@ fn main() {
                 a1_cache.resize(nm, [0.0; SPATIAL_H1]);
                 a2_cache.resize(nm, [0.0; SPATIAL_H2]);
                 raw_mlp_cache.resize(nm, 0.0);
+                v_cache.resize(nm, 0.0);
                 logits_buf.resize(nm, 0.0);
 
                 let mut max_l = f32::NEG_INFINITY;
-                let mut star_v = 0.0f32;
                 for m in 0..nm {
                     let (v, rm) = forward_move(&mdl, &dec.moves[m], false, None, None, &mut z_cache[m], &mut a1_cache[m], &mut a2_cache[m]);
                     raw_mlp_cache[m] = rm;
-                    if m == dec.target_idx { star_v = v; }
+                    v_cache[m] = v;
                     let l = -v / tau;
                     if l > max_l { max_l = l; }
                     logits_buf[m] = l;
@@ -1565,15 +1684,53 @@ fn main() {
                 }
                 let inv_e = 1.0 / sum_e.max(1e-12);
                 let ls_u = label_smooth / (nm.max(1) as f32);
+                let has_softq = if let Some(ref qv) = dec.q_vals {
+                    q_soft_buf.resize(nm, 0.0);
+                    let mut min_q = f32::INFINITY;
+                    for &q in qv {
+                        if q.is_finite() && q < min_q {
+                            min_q = q;
+                        }
+                    }
+                    let mut qs_sum = 0.0f32;
+                    for m in 0..nm {
+                        if qv[m].is_finite() {
+                            let e = (-(qv[m] - min_q) / tau_q).exp();
+                            q_soft_buf[m] = e;
+                            qs_sum += e;
+                        } else {
+                            q_soft_buf[m] = 0.0;
+                        }
+                    }
+                    if qs_sum > 1e-12 {
+                        let inv_qs = 1.0 / qs_sum;
+                        for m in 0..nm {
+                            q_soft_buf[m] *= inv_qs;
+                        }
+                        true
+                    } else {
+                        false
+                    }
+                } else {
+                    false
+                };
+
                 for m in 0..nm {
                     let p_m = logits_buf[m] * inv_e;
-                    let y_m = if m == dec.target_idx { 1.0f32 - label_smooth + ls_u } else { ls_u };
+                    let y_oh = if m == dec.target_idx { 1.0f32 - label_smooth + ls_u } else { ls_u };
+                    let y_m = if has_softq { 0.65 * y_oh + 0.35 * q_soft_buf[m] } else { y_oh };
                     // d(CE)/d(v_m) = -(p_m - y_m) / tau
                     let mut d_v = -(p_m - y_m) / tau;
                     if m == dec.target_idx {
-                        let err = star_v - dec.rem_pcs;
+                        let err = v_cache[m] - dec.rem_pcs;
                         let huber_g = if err.abs() <= 2.0 { err } else { 2.0 * err.signum() };
                         d_v += cal_w * huber_g;
+                    } else if let Some(ref qv) = dec.q_vals {
+                        if qv[m].is_finite() {
+                            let err = v_cache[m] - qv[m];
+                            let huber_g = if err.abs() <= 2.0 { err } else { 2.0 * err.signum() };
+                            d_v += (0.40 * cal_w) * huber_g;
+                        }
                     }
                     backward_move(&mdl, &dec.moves[m], false, None, None, &z_cache[m], &a1_cache[m], &a2_cache[m], 0.0, d_v * inv_b, &mut grad);
                 }
@@ -1599,7 +1756,7 @@ fn main() {
     best_lin_mdl.save_to_file(&lin_path).expect("save lin BC");
     println!("Saved pure-linear BC model (val_ce={:.4}, rem_g={:.3}) to {}", best_lin_ce, best_lin_mdl.lin_dense[0] * best_lin_mdl.dense_inv_std[0], lin_path);
 
-    // Stage B: Full-MLP BC initialized from best pure-linear BC
+    // Stage B: Full-MLP BC + Soft-Q initialized from best pure-linear BC
     mdl = best_lin_mdl.clone();
     let mut init_rng = 0xD6E8FEB86659FD93u64;
     let mut rand_w = |scale: f32| -> f32 {
@@ -1607,20 +1764,18 @@ fn main() {
         let u = (((init_rng >> 32) as f32) / (u32::MAX as f32)) * 2.0 - 1.0;
         u * scale
     };
-    let tr_h1 = 64usize.min(SPATIAL_H1);
-    let tr_h2 = 32usize.min(SPATIAL_H2);
     for i in 0..SPARSE_DIM {
-        for h in 0..tr_h1 { mdl.w_sparse[i][h] = rand_w(0.025); }
+        for h in 0..TRAIN_H1 { mdl.w_sparse[i][h] = rand_w(0.025); }
     }
     for j in 0..DENSE_DIM {
         if j == 0 || j == 2 { continue; }
-        for h in 0..tr_h1 { mdl.w_dense[j][h] = rand_w(0.035); }
+        for h in 0..TRAIN_H1 { mdl.w_dense[j][h] = rand_w(0.035); }
     }
-    for h in 0..tr_h1 {
+    for h in 0..TRAIN_H1 {
         mdl.b1[h] = 0.05;
-        for k in 0..tr_h2 { mdl.w2[h][k] = rand_w(0.045); }
+        for k in 0..TRAIN_H2 { mdl.w2[h][k] = rand_w(0.045); }
     }
-    for k in 0..tr_h2 {
+    for k in 0..TRAIN_H2 {
         mdl.b2[k] = 0.05;
         mdl.w3[k] = rand_w(0.018);
     }
@@ -1657,14 +1812,15 @@ fn main() {
                 a1_cache.resize(nm, [0.0; SPATIAL_H1]);
                 a2_cache.resize(nm, [0.0; SPATIAL_H2]);
                 raw_mlp_cache.resize(nm, 0.0);
+                v_cache.resize(nm, 0.0);
                 logits_buf.resize(nm, 0.0);
 
                 let (d1_opt, d2_opt) = if dropout > 0.0 {
-                    for h in 0..SPATIAL_H1 {
+                    for h in 0..TRAIN_H1 {
                         drop_rng = drop_rng.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
                         drop1_buf[h] = if (drop_rng >> 32) as u32 <= drop_thresh { inv_keep } else { 0.0 };
                     }
-                    for k in 0..SPATIAL_H2 {
+                    for k in 0..TRAIN_H2 {
                         drop_rng = drop_rng.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
                         drop2_buf[k] = if (drop_rng >> 32) as u32 <= drop_thresh { inv_keep } else { 0.0 };
                     }
@@ -1674,11 +1830,10 @@ fn main() {
                 };
 
                 let mut max_l = f32::NEG_INFINITY;
-                let mut star_v = 0.0f32;
                 for m in 0..nm {
                     let (v, rm) = forward_move(&mdl, &dec.moves[m], true, d1_opt, d2_opt, &mut z_cache[m], &mut a1_cache[m], &mut a2_cache[m]);
                     raw_mlp_cache[m] = rm;
-                    if m == dec.target_idx { star_v = v; }
+                    v_cache[m] = v;
                     let l = -v / tau;
                     if l > max_l { max_l = l; }
                     logits_buf[m] = l;
@@ -1690,14 +1845,52 @@ fn main() {
                 }
                 let inv_e = 1.0 / sum_e.max(1e-12);
                 let ls_u = label_smooth / (nm.max(1) as f32);
+                let has_softq = if let Some(ref qv) = dec.q_vals {
+                    q_soft_buf.resize(nm, 0.0);
+                    let mut min_q = f32::INFINITY;
+                    for &q in qv {
+                        if q.is_finite() && q < min_q {
+                            min_q = q;
+                        }
+                    }
+                    let mut qs_sum = 0.0f32;
+                    for m in 0..nm {
+                        if qv[m].is_finite() {
+                            let e = (-(qv[m] - min_q) / tau_q).exp();
+                            q_soft_buf[m] = e;
+                            qs_sum += e;
+                        } else {
+                            q_soft_buf[m] = 0.0;
+                        }
+                    }
+                    if qs_sum > 1e-12 {
+                        let inv_qs = 1.0 / qs_sum;
+                        for m in 0..nm {
+                            q_soft_buf[m] *= inv_qs;
+                        }
+                        true
+                    } else {
+                        false
+                    }
+                } else {
+                    false
+                };
+
                 for m in 0..nm {
                     let p_m = logits_buf[m] * inv_e;
-                    let y_m = if m == dec.target_idx { 1.0f32 - label_smooth + ls_u } else { ls_u };
+                    let y_oh = if m == dec.target_idx { 1.0f32 - label_smooth + ls_u } else { ls_u };
+                    let y_m = if has_softq { 0.65 * y_oh + 0.35 * q_soft_buf[m] } else { y_oh };
                     let mut d_v = -(p_m - y_m) / tau;
                     if m == dec.target_idx {
-                        let err = star_v - dec.rem_pcs;
+                        let err = v_cache[m] - dec.rem_pcs;
                         let huber_g = if err.abs() <= 2.0 { err } else { 2.0 * err.signum() };
                         d_v += cal_w * huber_g;
+                    } else if let Some(ref qv) = dec.q_vals {
+                        if qv[m].is_finite() {
+                            let err = v_cache[m] - qv[m];
+                            let huber_g = if err.abs() <= 2.0 { err } else { 2.0 * err.signum() };
+                            d_v += (0.40 * cal_w) * huber_g;
+                        }
                     }
                     backward_move(&mdl, &dec.moves[m], true, d1_opt, d2_opt, &z_cache[m], &a1_cache[m], &a2_cache[m], raw_mlp_cache[m], d_v * inv_b, &mut grad);
                 }

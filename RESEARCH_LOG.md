@@ -165,7 +165,11 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
         - **`models/spatial_bc4.txt` (`V5 64x32` REAL FULL MLP, `has_mlp=true`)**: **`185.60 [176..193]`** (`[101:180, 102:184, 103:176, 104:188, 105:193, 106:187, 107:185, 108:186, 109:185, 110:192]`, `nds=63.10`, `cov=28.9`, **`end=3.4`**, `2030.7s`) — **`-2.30` pcs better** than linear skip (`187.90`), worst seed dropped `201 -> 193`, hard seeds `106..=110` dropped **`194.60 -> 187.00` (`-7.60` pcs!!)**!
         - **`models/spatial_bc6.txt` (`V6 2D 3×3 Pattern 64x32` REAL FULL MLP)**: **`186.70 [182..195]`** (`-3.30` pcs better than linear skip `190.00`!).
         - **`models/spatial_bc5.txt` (`V5 128x48`, `B=900` weaker teacher + `12.5%` DAgger, Actions Run `45307436422`, 51m)**: `188.90 [181..197]` — proving teacher strength (`B=1800` `166.73` vs `B=900` `168.61`) and high DAgger ratio (`28.6%`) beat raw hidden width (`-3.30` pcs faster & stronger for `bc4` `64x32`).
-        - Next: test REAL `has_mlp=true` `bc4` with **`mlp_boost = 1.40× + cvar30`** (10 seeds, ~34m) and **`w20_h9_b36_cvar30`** (5 seeds, ~23m), then train **BC-7** (`B=2800` ~`165.0` ultra-strong teacher + `33%` REAL-MLP DAgger)!
+        - **REAL FULL-MLP Boost & Scaled Search Ablation (Actions Run `45314615547`, 59m22s, `models/spatial_bc4.txt`)**:
+          - `realmlp140_w16_h8_b28_c30` (10 seeds): **`186.70 [175..192]`** (seed `103` hit **`175`**, max `192`, `cov_nxt=17.0%`, `1612.0s`) — naturally trained `1.0×` MLP (`185.60 [176..193]`) remains better calibrated than `1.40×` boost.
+          - `realmlp_w20_h9_b36_c30` (5 seeds `101..=105`): **`186.80 [185..190]`** (vs `184.20` at `h=8, w=16, b=28, cvar=25`): deeper `h=9` clairvoyant world search suffers from 3-ply hallucination / strategy fusion (`cov_nxt` dropped to `14.2%`, `end=3.6`, but `wide` rose to `27.2`).
+        - **Round BC-7 (`models/spatial_bc7.txt`, `V6 2D 3×3 Pattern 64x32`)**:
+          - Upgraded `train_bc.rs` with 4 targeted breakthroughs: (1) ultra-strong **`WG_ds (B=2800)`** teacher (`100` clean games), (2) **`50` REAL-MLP DAgger games (`33%` ratio)** played by our `185.60` `spatial_bc4.txt` champion (`--dagger-mlp`), (3) **Multi-Move Soft-Q Distillation** (`0.65` one-hot + `0.35` `softmax(-Q/0.65)` + multi-move Huber value calibration from `buckets[target_ds]`), (4) **Zero-Leakage Mixed Real-Hole Spawn** (`--mixed-spawn`, 50% CRN Jstris real holes matching `root_pimc` + 50% opaque Stage-1), plus 2.5× faster active `64x32` training loops.
 
 ---
 
