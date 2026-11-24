@@ -1510,13 +1510,11 @@ fn main() {
             .unwrap_or(2);
         let seeds: Vec<u64> = (101..(101 + n_seeds as u64)).collect();
         let mut sm_val = SpatialValueModel::load_from_file(&model_path).expect("load spatial model");
-        sm_val.b3 = 0.0;
-        sm_val.w3 = [0.0; blockfish::ai::spatial_val::SPATIAL_H2];
         sm_val.prepare_fast();
         let sm = Arc::new(sm_val);
         println!(
-            "=== Legal deep_ds_pimc ({}, which={}, n_seeds={}) ===",
-            model_path, which, n_seeds
+            "=== Legal deep_ds_pimc ({}, which={}, n_seeds={}, has_mlp={}, ah={}x{}) ===",
+            model_path, which, n_seeds, sm.has_mlp, sm.active_h1, sm.active_h2
         );
 
         let mut ew_c22 = blockfish::ai::fast_eval::EvalWeights::default();
@@ -1571,7 +1569,7 @@ fn main() {
         ew4.h2_contig_cover = 80;
         ew4.endgame_cell_taper = 23;
 
-        let make_deep = |ds_t: usize, worlds: usize, width: usize, fine_r: usize| {
+        let make_deep = |ds_t: usize, worlds: usize, width: usize, fine_r: usize, cvar: i64| {
             let mut c = make_spatial_cfg(sm.clone());
             c.rollout_top_k = 0;
             c.beam_width = 80;
@@ -1592,21 +1590,31 @@ fn main() {
             c.root_pimc_width = width;
             c.root_pimc_margin = 450;
             c.root_pimc_weight_pct = 100;
+            c.root_pimc_cvar_pct = cvar;
             c.root_pimc_steady_g4 = false;
             c
         };
 
         if which == "all" || which == "ds8" {
-            eval_seeds("deep_c22_ds8_w8_b24", &seeds, &make_deep(8, 8, 24, 6));
+            eval_seeds("deep_c22_ds8_w8_b24", &seeds, &make_deep(8, 8, 24, 6, 0));
         }
         if which == "all" || which == "ds12" {
-            eval_seeds("deep_c22_ds12_w8_b24", &seeds, &make_deep(12, 8, 24, 6));
+            eval_seeds("deep_c22_ds12_w8_b24", &seeds, &make_deep(12, 8, 24, 6, 0));
         }
         if which == "all" || which == "ds12_b48" {
-            eval_seeds("deep_c22_ds12_w8_b48", &seeds, &make_deep(12, 8, 48, 6));
+            eval_seeds("deep_c22_ds12_w8_b48", &seeds, &make_deep(12, 8, 48, 6, 0));
         }
         if which == "all" || which == "ds16" {
-            eval_seeds("deep_c22_ds16_w8_b32", &seeds, &make_deep(16, 8, 32, 6));
+            eval_seeds("deep_c22_ds16_w8_b32", &seeds, &make_deep(16, 8, 32, 6, 0));
+        }
+        if which == "wide_ds5" {
+            eval_seeds("wide_c22_ds5_w12_b80_c25", &seeds, &make_deep(5, 12, 80, 8, 25));
+        }
+        if which == "wide_ds5_b120" {
+            eval_seeds("wide_c22_ds5_w12_b120_c25", &seeds, &make_deep(5, 12, 120, 8, 25));
+        }
+        if which == "wide_ds8_b100" {
+            eval_seeds("wide_c22_ds8_w10_b100_c25", &seeds, &make_deep(8, 10, 100, 8, 25));
         }
         return;
     }

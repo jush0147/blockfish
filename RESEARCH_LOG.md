@@ -193,7 +193,10 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
             - Trained compact V5 `64x32` on `120` `WG_ds (B=1600, mean=166.98)` + `70` REAL-MLP DAgger (`198.47`) = `27,829` decisions (`8,354` with `ds_target=8` multi-move Soft-Q + relative Q-Advantage `adv_w=0.35`, 100% real-hole CRN spawns): `val_ce = 1.0405`, `v_mae = 2.06`, `rem_g = 1.680`.
             - **`OR_p20` (`has_mlp=true`, `101..=102`)**: `178.50 [182, 175]` — **MASSIVE `cov` BREAKTHROUGH**: `cov` plunged from **`30.5 -> 20.5` (`-10.0` `0ds` moves, matching `WG_ds`'s `19.2`!!)** and `cov_nxt` dropped `16.0% -> 14.0%`, while `wide` rose `22.0 -> 29.0` (exact complement to `spatial_bc4.txt`'s `cov=30.5, wide=22.0`!).
             - Part 3 (Legal `fullmlp_w16`) was cut off at 90m due to `clean_q` data generation taking 73m; model `models/spatial_v5q1.txt` recovered and committed.
-            - Next (~40m total, strictly `< 60m`): (1) Evaluate `models/spatial_v5q1.txt` standalone (`fullmlp_w16`, 5 seeds `101..=105`, ~17m); (2) Evaluate **V5 Complementary Ensemble `ens2 (spatial_bc4.txt + spatial_v5q1.txt)`** (combining `bc4`'s `wide=22.0` with `v5q1`'s `cov=20.5`, 5 seeds `101..=105`, ~23m).
+            - **Held-out REAL FULL-MLP Legal Verification (Actions Run `45452866228`, 43m, 5 seeds `101..=105`)**:
+              - `spatial_v5q1.txt` standalone (`fullmlp_w16`): **`186.20 [182..188]`** (`[101:188, 102:182, 103:187, 104:188, 105:186]`, `max=188`, `seed 105` improved `-7` pcs vs `bc4 193`, `1270.5s`).
+              - `ens2 (spatial_bc4.txt + spatial_v5q1.txt)`: **`184.40 [176..193]`** (`[101:180, 102:184, 103:176, 104:189, 105:193]`, **`cov=25.0`**, `nds=62.40`, `cov_nxt=15.6%`, `1300.4s`) — **IDENTICAL** to `ens2 (bc4+bc6) = 184.40` and `ens2 (bc4+bc7) = 184.60`!
+            - **Key Pivot**: Three independent models (`bc6`, `bc7`, `v5q1`) ensembled with `bc4` all hit the exact same `184.40` wall under flat `b=28` PIMC (`OR_p20 = 176`). Next: test **WIDE Cell-Conserving DS-Bucketed PIMC (`ew_cons22` at `b=160..180` + `CVaR=25` + intact `spatial_bc4.txt` REAL FULL MLP terminal leaf)** — fixing the old `w3=0` MLP bug in `deep_ds_pimc` and moving out of the broken `b=24..32` regime.
 
 ---
 
