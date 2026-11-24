@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "=== Part 1: REAL FULL-MLP DS-Target=5 PIMC (models/spatial_bc4.txt, 5 seeds 101..=105, ~20m) ==="
-cargo run --release -p blockfish --features race --example bench_legal -- wg5_lin_sweep models/spatial_bc4.txt realmlp_ds5 5
+echo "=== Part 1: Non-Clairvoyant REAL FULL-MLP Rollout PIMC (h=6 + nc=12, models/spatial_bc4.txt, 10 seeds 101..=110, ~25m) ==="
+cargo run --release -p blockfish --features race --example bench_legal -- wg5_lin_sweep models/spatial_bc4.txt realmlp_nc 10
 
 echo ""
-echo "=== Part 2: Top-2 REAL FULL-MLP Ensemble (bc4 V5 185.60 + bc6 V6 186.70) on 5 Seeds (101..=105, ~22m) ==="
-cargo run --release -p blockfish --features race --example bench_legal -- wg5_lin_sweep models/spatial_bc4.txt ens2:models/spatial_bc6.txt 5
+echo "=== Part 2: Legal AlphaZero ExIt-1 (models/spatial_exit1.txt) REAL FULL-MLP Verification (5 seeds 101..=105, ~25m) ==="
+cargo run --release -p blockfish --features race --example bench_legal -- wg5_lin_sweep models/spatial_exit1.txt fullmlp_w16 5
 

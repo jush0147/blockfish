@@ -174,7 +174,12 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
           - **Held-out REAL FULL-MLP Verification (Actions Run `45340066535`, 58m49s)**:
             - `spatial_bc7.txt` standalone 10 seeds (`101..=110`): **`188.00 [181..193]`** (`nds=63.90`, `cov=29.6`, `wide=27.5`, `end=4.3`, `2193.3s`) — only `100` clean games on `1591` V6 sparse features caused early MLP saturation (ep 6).
             - `ens2 (bc4 V5 + bc7 V6)` 5 seeds (`101..=105`): **`184.60 [175..193]`** (`[101:180, 102:184, 103:175, 104:191, 105:193]`, **`cov=25.0`**, **`cov_nxt=15.2%`** — slashed `cov` by `-3.9` and `cov_nxt` by `-2.9%` vs `bc4` alone, while `wide=27.4` remained the #1 gap vs `WG_ds` `wide~16`!).
-          - Next: attack the **`wide = 25..27`** gap directly with **REAL FULL-MLP `DS-Target=5` PIMC (`realmlp_ds5`, explicit `+100` piece cost per `0ds` move)** + test **Top-2 Ensemble (`bc4 V5 185.60 + bc6 V6 186.70`)**!
+          - **REAL FULL-MLP `DS-Target=5` & Top-2 Ensemble Ablation (Actions Run `45348014227`, 51m36s, 5 seeds `101..=105`)**:
+            - `realmlp_ds5_w16_b22_c25` (`spatial_bc4.txt`): `191.00 [182..197]` (`cov=31.6`, `wide=27.0`, `1742.0s`) — DS-target beam inside clairvoyant worlds amplifies strategy fusion over unknown future holes/pieces (`+6.8` pcs worse than `h=8`).
+            - `ens2 (bc4 V5 + bc6 V6)`: **`184.40 [176..193]`** (`[101:180, 102:184, 103:176, 104:189, 105:193]`, `cov=25.0`, `cov_nxt=15.6%`) — virtually identical to `bc4` alone (`184.20`), confirming that **all 1-step clairvoyant-BC models share the same `~185` ceiling** caused by clairvoyance bias & strategy fusion.
+          - Next: directly attack **clairvoyance bias & strategy fusion** on two fronts:
+            1. **Non-Clairvoyant REAL FULL-MLP Rollout PIMC (`realmlp_nc`, `h=6` exact preview + `12` non-clairvoyant 1-ply MLP rollout steps = 18-piece lookahead with ZERO strategy fusion, 10 seeds `101..=110`)**.
+            2. **Legal AlphaZero ExIt-1 (`models/spatial_exit1.txt`) REAL FULL-MLP Verification** (never previously tested with `has_mlp=true` after the `bench_legal.rs` bugfix!).
 
 ---
 
