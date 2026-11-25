@@ -196,7 +196,14 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
             - **Held-out REAL FULL-MLP Legal Verification (Actions Run `45452866228`, 43m, 5 seeds `101..=105`)**:
               - `spatial_v5q1.txt` standalone (`fullmlp_w16`): **`186.20 [182..188]`** (`[101:188, 102:182, 103:187, 104:188, 105:186]`, `max=188`, `seed 105` improved `-7` pcs vs `bc4 193`, `1270.5s`).
               - `ens2 (spatial_bc4.txt + spatial_v5q1.txt)`: **`184.40 [176..193]`** (`[101:180, 102:184, 103:176, 104:189, 105:193]`, **`cov=25.0`**, `nds=62.40`, `cov_nxt=15.6%`, `1300.4s`) — **IDENTICAL** to `ens2 (bc4+bc6) = 184.40` and `ens2 (bc4+bc7) = 184.60`!
-            - **Key Pivot**: Three independent models (`bc6`, `bc7`, `v5q1`) ensembled with `bc4` all hit the exact same `184.40` wall under flat `b=28` PIMC (`OR_p20 = 176`). Next: test **WIDE Cell-Conserving DS-Bucketed PIMC (`ew_cons22` at `b=160..180` + `CVaR=25` + intact `spatial_bc4.txt` REAL FULL MLP terminal leaf)** — fixing the old `w3=0` MLP bug in `deep_ds_pimc` and moving out of the broken `b=24..32` regime.
+            - **Key Pivot — WIDE Cell-Conserving DS-Bucketed PIMC (Actions Run `45463827955`, `models/spatial_bc4.txt` REAL FULL MLP leaf, 5 seeds `101..=105`)**:
+              - `wide_c22_ds5_w12_b80_c25`: `190.40 [185..199]` (`cov=29.8, wide=29.2, cov_nxt=17.8%, 905.6s`)
+              - `wide_c22_ds5_w12_b120_c25`: `192.40 [185..202]` (`cov=32.8, wide=27.8, 1377.8s`)
+              - `wide_c22_ds8_w10_b100_c25`: `191.00 [185..200]` (`cov=35.6, cov_nxt=19.2%, 1532.6s`)
+              - Decisively rules out `ew_cons22` DS-bucketed PIMC inside finite-horizon clairvoyant worlds (`+6.6` to `+8.6` pcs worse than `realmlp_prescreen 183.80`).
+          - **Round ExIt-2 (`models/spatial_exit2.txt`, True Legal Self-Play Q-Advantage Distillation)**:
+            - Upgraded [`train_exit.rs`](file:///home/antigravity/jush0147/blockfish/blockfish-engine/examples/train_exit.rs) fixing all 3 ExIt-1 flaws: (1) replaced opaque `0x3FF` spawns with **100% real CRN hole spawns** (`spawn_random_cheese`), (2) added `--v5-only` (compact V5 `374` sparse matching `spatial_bc4.txt`), (3) added **noise-free relative Legal PIMC Q-Advantage regression** (`--adv-w 0.30`) baking 8-ply legal uncertainty-aware foresight directly into `V_θ`.
+            - Next run (~52m total, strictly `< 60m`): train `models/spatial_exit2.txt` (`64` Legal self-play games from `spatial_bc4.txt` `w=6, h=8, b=20, r=10, cvar=25`) + immediate 5-seed REAL FULL-MLP `fullmlp_w16` verification.
 
 ---
 

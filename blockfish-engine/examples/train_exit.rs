@@ -29,7 +29,7 @@ fn garbage_rows(stacker: &Stacker) -> u16 {
     if any_g { max_g } else { 0 }
 }
 
-fn spawn_opaque_cheese(b: &mut FastBoard, rem_g: u16, lines_cleared: u8) -> bool {
+fn spawn_random_cheese(b: &mut FastBoard, rem_g: u16, lines_cleared: u8, mut rng: u64) -> bool {
     let target_g: usize = if lines_cleared > 0 { 4 } else { 9 };
     let g = b.garbage_rows as usize;
     let unspawned = (rem_g as usize).saturating_sub(g);
@@ -44,8 +44,18 @@ fn spawn_opaque_cheese(b: &mut FastBoard, rem_g: u16, lines_cleared: u8) -> bool
     for r in (0..old_rows).rev() {
         b.data[r + num] = b.data[r];
     }
-    for k in 0..num {
-        b.data[k] = 0xFC00 | 0x3FF;
+    let mut prev_h: u16 = if g > 0 {
+        let h0 = (!b.data[num] & 0x3FF).trailing_zeros() as u16;
+        if h0 < 10 { h0 } else { 0 }
+    } else {
+        rng = rng.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+        ((rng >> 32) as u16) % 10
+    };
+    for k in (0..num).rev() {
+        rng = rng.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+        let off = (((rng >> 32) as u16) % 9) + 1;
+        prev_h = (prev_h + off) % 10;
+        b.data[k] = 0xFC00 | (0x3FF & !(1u16 << prev_h));
     }
     b.rows = (old_rows + num) as u8;
     b.garbage_rows = (g + num) as u8;
@@ -71,6 +81,7 @@ struct MoveFeat {
     active: Vec<u16>,
     dense: [f32; DENSE_DIM],
     target_p: f32,
+    q_adv: f32,
 }
 
 struct Decision {
@@ -326,6 +337,7 @@ fn generate_legal_exit_game(
     seed: u64,
     teacher_cfg: &BeamConfig,
     tau_q: f32,
+    v5_only: bool,
     is_val: bool,
 ) -> (usize, bool, Vec<Decision>) {
     let fst = FastShapeTable::srs();
@@ -419,6 +431,9 @@ fn generate_legal_exit_game(
                         }
                     }
 
+                    let crn = seed
+                        .wrapping_mul(0x9E3779B97F4A7C15)
+                        .wrapping_add((pcs as u64).wrapping_mul(0xBF58476D1CE4E5B9));
                     let mut moves_out = Vec::with_capacity(places.len());
                     let mut new_bi = 0usize;
                     let mut kept_sum = 0.0f32;
@@ -428,7 +443,7 @@ fn generate_legal_exit_game(
                         let (lines, ds, _) = b.place_and_sift(o, fp.norm_i, fp.norm_j);
                         let rem2 = rem_g.saturating_sub(ds as u16);
                         if rem2 > 0 {
-                            let _ = spawn_opaque_cheese(&mut b, rem2, lines);
+                            let _ = spawn_random_cheese(&mut b, rem2, lines, crn);
                         }
                         let (held2, qc2) = if hold0.is_some() {
                             if fp.did_hold { (cur0, 1usize) } else { (hold0, 1usize) }
@@ -443,10 +458,21 @@ fn generate_legal_exit_game(
                         let n_act = extract_spatial_features_ex(&b, rem2, in_h, av, false, &mut act_buf, &mut dense_buf);
                         if mi == bi { new_bi = moves_out.len(); }
                         kept_sum += probs[mi];
+                        let q_adv = if min_q.is_finite() {
+                            move_qs[mi].map_or(f32::NAN, |qv| (qv - min_q).clamp(0.0, 6.0))
+                        } else {
+                            f32::NAN
+                        };
+                        let active: Vec<u16> = if v5_only {
+                            act_buf[..n_act].iter().copied().filter(|&b| b < 374).collect()
+                        } else {
+                            act_buf[..n_act].to_vec()
+                        };
                         moves_out.push(MoveFeat {
-                            active: act_buf[..n_act].to_vec(),
+                            active,
                             dense: dense_buf,
                             target_p: probs[mi],
+                            q_adv,
                         });
                     }
                     if kept_sum > 0.0 {
@@ -537,7 +563,10 @@ fn main() {
     let mut worlds: usize = 6;
     let mut horizon: usize = 8;
     let mut width: usize = 20;
+    let mut roots: usize = 10;
     let mut cvar_pct: i64 = 25;
+    let mut v5_only: bool = false;
+    let mut adv_w: f32 = 0.25;
     let mut epochs: usize = 20;
     let mut batch_sz: usize = 32;
     let mut tau: f32 = 0.45;
@@ -559,7 +588,10 @@ fn main() {
             "--worlds" => { worlds = args[i + 1].parse().unwrap(); i += 2; }
             "--horizon" => { horizon = args[i + 1].parse().unwrap(); i += 2; }
             "--width" => { width = args[i + 1].parse().unwrap(); i += 2; }
+            "--roots" => { roots = args[i + 1].parse().unwrap(); i += 2; }
             "--cvar" => { cvar_pct = args[i + 1].parse().unwrap(); i += 2; }
+            "--v5-only" => { v5_only = true; i += 1; }
+            "--adv-w" => { adv_w = args[i + 1].parse().unwrap(); i += 2; }
             "--epochs" => { epochs = args[i + 1].parse().unwrap(); i += 2; }
             "--batch" => { batch_sz = args[i + 1].parse().unwrap(); i += 2; }
             "--tau" => { tau = args[i + 1].parse().unwrap(); i += 2; }
@@ -581,8 +613,8 @@ fn main() {
     let ah2 = mdl.active_h2.max(1);
     let n_threads = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(2);
     println!(
-        "=== Legal Expert Iteration (ExIt): {} ({}x{}) -> {} ===\n  games={} w={} h={} b={} cvar={} ep={} tau={} tau_q={} cal_w={} lr_lin={} lr_mlp={} drop={} threads={}",
-        init_path, ah1, ah2, out_path, games, worlds, horizon, width, cvar_pct, epochs, tau, tau_q, cal_w, lr_lin, lr_mlp, dropout, n_threads
+        "=== Legal Expert Iteration (ExIt-2): {} ({}x{}) -> {} ===\n  games={} w={} h={} b={} r={} cvar={} v5_only={} adv_w={} ep={} tau={} tau_q={} cal_w={} lr_lin={} lr_mlp={} drop={} threads={}",
+        init_path, ah1, ah2, out_path, games, worlds, horizon, width, roots, cvar_pct, v5_only, adv_w, epochs, tau, tau_q, cal_w, lr_lin, lr_mlp, dropout, n_threads
     );
 
     let mut teacher_cfg = BeamConfig::default();
@@ -597,7 +629,7 @@ fn main() {
     teacher_cfg.spatial_rerank_only = false;
     teacher_cfg.spatial_no_pe_internal = true;
     teacher_cfg.root_pimc_prescreen_worlds = 0;
-    teacher_cfg.root_pimc_roots = 8;
+    teacher_cfg.root_pimc_roots = roots;
     teacher_cfg.root_pimc_worlds = worlds;
     teacher_cfg.root_pimc_horizon = horizon;
     teacher_cfg.root_pimc_width = width;
@@ -621,7 +653,7 @@ fn main() {
                 let mut out = Vec::new();
                 for (li, &s) in chunk.iter().enumerate() {
                     let is_val = (base_idx + li) >= val_start;
-                    let res = generate_legal_exit_game(s, cfg_ref, tau_q, is_val);
+                    let res = generate_legal_exit_game(s, cfg_ref, tau_q, v5_only, is_val);
                     let d = done_ref.fetch_add(1, Ordering::Relaxed) + 1;
                     if d % 8 == 0 || d == games {
                         println!("  [Self-Play {:3}/{}] last_pcs={} dt={:.1}s", d, games, res.0, t0.elapsed().as_secs_f64());
@@ -670,6 +702,7 @@ fn main() {
     let mut a1_cache: Vec<[f32; SPATIAL_H1]> = Vec::new();
     let mut a2_cache: Vec<[f32; SPATIAL_H2]> = Vec::new();
     let mut raw_mlp_cache: Vec<f32> = Vec::new();
+    let mut v_cache: Vec<f32> = Vec::new();
     let mut logits_buf: Vec<f32> = Vec::new();
 
     let mut best_ce = init_ce;
@@ -696,6 +729,7 @@ fn main() {
                 a1_cache.resize(nm, [0.0; SPATIAL_H1]);
                 a2_cache.resize(nm, [0.0; SPATIAL_H2]);
                 raw_mlp_cache.resize(nm, 0.0);
+                v_cache.resize(nm, 0.0);
                 logits_buf.resize(nm, 0.0);
 
                 let (d1_opt, d2_opt) = if dropout > 0.0 {
@@ -717,6 +751,7 @@ fn main() {
                 for m in 0..nm {
                     let (v, rm) = forward_move(&mdl, &dec.moves[m], ah1, ah2, d1_opt, d2_opt, &mut z_cache[m], &mut a1_cache[m], &mut a2_cache[m]);
                     raw_mlp_cache[m] = rm;
+                    v_cache[m] = v;
                     if m == dec.best_idx { star_v = v; }
                     let l = -v / tau;
                     if l > max_l { max_l = l; }
@@ -728,6 +763,7 @@ fn main() {
                     sum_e += logits_buf[m];
                 }
                 let inv_e = 1.0 / sum_e.max(1e-12);
+                let mut d_v_buf: Vec<f32> = vec![0.0; nm];
                 for m in 0..nm {
                     let p_m = logits_buf[m] * inv_e;
                     let y_m = dec.moves[m].target_p;
@@ -737,7 +773,30 @@ fn main() {
                         let huber_g = if err.abs() <= 3.0 { err } else { 3.0 * err.signum() };
                         d_v += cal_w * huber_g;
                     }
-                    backward_move(&mdl, &dec.moves[m], ah1, ah2, d1_opt, d2_opt, &z_cache[m], &a1_cache[m], &a2_cache[m], raw_mlp_cache[m], d_v * inv_b, &mut grad);
+                    d_v_buf[m] = d_v;
+                }
+                if adv_w > 0.0 {
+                    let mut n_other = 0usize;
+                    for m in 0..nm {
+                        if m != dec.best_idx && dec.moves[m].q_adv.is_finite() {
+                            n_other += 1;
+                        }
+                    }
+                    if n_other > 0 {
+                        let w_each = adv_w / (n_other as f32);
+                        for m in 0..nm {
+                            if m != dec.best_idx && dec.moves[m].q_adv.is_finite() {
+                                let err = (v_cache[m] - star_v) - dec.moves[m].q_adv;
+                                let hg = if err.abs() <= 2.0 { err } else { 2.0 * err.signum() };
+                                let g_adv = w_each * hg;
+                                d_v_buf[m] += g_adv;
+                                d_v_buf[dec.best_idx] -= g_adv;
+                            }
+                        }
+                    }
+                }
+                for m in 0..nm {
+                    backward_move(&mdl, &dec.moves[m], ah1, ah2, d1_opt, d2_opt, &z_cache[m], &a1_cache[m], &a2_cache[m], raw_mlp_cache[m], d_v_buf[m] * inv_b, &mut grad);
                 }
             }
             adam.apply(&mut mdl, &grad, lrl, lrm, wd_lin, wd_mlp, ah1, ah2);
