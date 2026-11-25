@@ -2,8 +2,8 @@
 set -euo pipefail
 
 echo "================================================================"
-echo " Colab Run #6c: Fast T4/L4 ResNet (C=64, B=4, 15 ep, bs=128)"
-echo "                + Live Epoch Push + Immediate GPU Eval!"
+echo " Colab Run #6d: Fast T4/L4 ResNet (C=64, B=4, 15 ep, bs=128)"
+echo "                FIX cudnn.benchmark=False (~50x faster!) + Eval"
 echo "================================================================"
 
 if ! nvidia-smi >/dev/null 2>&1; then

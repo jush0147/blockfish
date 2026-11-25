@@ -372,7 +372,9 @@ def main():
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
     if torch.cuda.is_available():
-        torch.backends.cudnn.benchmark = True
+        # MUST be False: total_m (sum of legal moves per batch) varies every step,
+        # so cudnn.benchmark=True causes a ~2.4s cuDNN autotune miss on EVERY batch!
+        torch.backends.cudnn.benchmark = False
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     amp_dtype = torch.bfloat16 if (device.type == "cuda" and torch.cuda.is_bf16_supported()) else torch.float16
