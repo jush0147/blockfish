@@ -1021,8 +1021,8 @@ fn generate_dagger_decisions(
         let rem_g = 100usize.saturating_sub(ds_total) as u16;
         let cur_b = FastBoard::from_basic_matrix(&snap.matrix, g_rows);
 
-        // Query local WG_ds oracle on every 2nd step OR whenever h1 is covered (messy Legal state!)
-        if rem_g > 6 && (step % 2 == 0 || has_h1_cover(&cur_b)) {
+        // Query local WG_ds oracle on every 3rd step OR whenever h1 is covered (messy Legal state!)
+        if rem_g > 6 && (step % 3 == 0 || has_h1_cover(&cur_b)) {
             if let Some((fp_star, est_rem_pcs, q_map)) = solve_local_wg_ds_first_move(
                 &fst,
                 &mut pgen,

@@ -201,9 +201,12 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
               - `wide_c22_ds5_w12_b120_c25`: `192.40 [185..202]` (`cov=32.8, wide=27.8, 1377.8s`)
               - `wide_c22_ds8_w10_b100_c25`: `191.00 [185..200]` (`cov=35.6, cov_nxt=19.2%, 1532.6s`)
               - Decisively rules out `ew_cons22` DS-bucketed PIMC inside finite-horizon clairvoyant worlds (`+6.6` to `+8.6` pcs worse than `realmlp_prescreen 183.80`).
-          - **Round ExIt-2 (`models/spatial_exit2.txt`, True Legal Self-Play Q-Advantage Distillation)**:
-            - Upgraded [`train_exit.rs`](file:///home/antigravity/jush0147/blockfish/blockfish-engine/examples/train_exit.rs) fixing all 3 ExIt-1 flaws: (1) replaced opaque `0x3FF` spawns with **100% real CRN hole spawns** (`spawn_random_cheese`), (2) added `--v5-only` (compact V5 `374` sparse matching `spatial_bc4.txt`), (3) added **noise-free relative Legal PIMC Q-Advantage regression** (`--adv-w 0.30`) baking 8-ply legal uncertainty-aware foresight directly into `V_θ`.
-            - Next run (~52m total, strictly `< 60m`): train `models/spatial_exit2.txt` (`64` Legal self-play games from `spatial_bc4.txt` `w=6, h=8, b=20, r=10, cvar=25`) + immediate 5-seed REAL FULL-MLP `fullmlp_w16` verification.
+          - **Round ExIt-2 (`models/spatial_exit2.txt`, Actions Run `45517753392`, 1h23m)**:
+            - `64` Legal self-play games (`mean=188.89`, `11,930` decisions, `w=6, h=8, b=20, r=10, cvar=25`, 100% real-hole CRN spawns, `--v5-only`, `--adv-w 0.30`): `val_soft_ce` `1.4858 -> 1.3991`, `legal_v_mae` `12.71 -> 6.23`, `rem_g = 1.707`.
+            - Held-out 5-seed `fullmlp_w16`: **`191.60 [186..195]`** (`cov=34.4, avg_c=13.2, 1426.8s`) — regressed `+7.4` pcs vs `bc4 (184.20)` because distilling a weaker `188.89`-piece `w=6` teacher + pushing `rem_g` up to `1.707` made the evaluator greedier.
+          - **Round BC-8 (`models/spatial_bc8.txt`, Scaled Pure Compact V5 `64x32`)**:
+            - `spatial_bc4.txt` (`150 WG_ds B=1800 + 60 linear-skip DAgger`, compact V5 `374` sparse, clean `opaque` afterstates, pure Softmax CE) remains our undisputed #1 model (`183.80` 5-seed / `185.60` 10-seed), beating every newer variant that changed architecture (`V6 1591`), teacher quality (`B=900` / `ExIt`), or added spawn/advantage noise.
+            - Next (~48m total, strictly `< 60m`): scale the exact winning compact V5 `BC-4` recipe to **`220` `WG_ds (B=1800)` + `80` REAL-MLP DAgger games** (`~45,000` decisions, `--v5-only`, clean deterministic afterstates, ZERO `real_spawn`/`adv_w` noise) + immediate 5-seed `fullmlp_w16` verification.
 
 ---
 
