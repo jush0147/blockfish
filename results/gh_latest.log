@@ -1,4 +1,4 @@
-=== Part 1: Round BC-8 (Scaled Pure Compact V5 64x32: 220 WG_ds B=1800 + 80 REAL-MLP DAgger, ~30m) ===
+=== Part 1: Direct Legal REAL-MLP root_pimc ES (48 params from spatial_bc4.txt, strict 31m guard) ===
 [1m[33mwarning[0m[1m: unused build dependency `fontconfig`[0m
   [1m[94m--> [0mblockfish-client/Cargo.toml:29:1
    [1m[94m|[0m
@@ -97,42 +97,16 @@
    [1m[94m|[0m                                                         [92m++++[0m
 
 [1m[33mwarning[0m: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
-[1m[33mwarning[0m[1m: field `seed` is never read[0m
-  [1m[94m--> [0mblockfish-engine/examples/train_bc.rs:23:5
-   [1m[94m|[0m
-[1m[94m22[0m [1m[94m|[0m struct ExactSeedData {
-   [1m[94m|[0m        [1m[94m-------------[0m [1m[94mfield in this struct[0m
-[1m[94m23[0m [1m[94m|[0m     seed: u64,
-   [1m[94m|[0m     [1m[33m^^^^[0m
-   [1m[94m|[0m
-   [1m[94m= [0m[1mnote[0m: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+[1m[92m    Finished[0m `release` profile [optimized] target(s) in 6.74s
+[1m[92m     Running[0m `target/release/examples/opt_pimc --init models/spatial_bc4.txt --out models/spatial_pimc_es1.txt --gens 14 --pairs 3 --batch-seeds 8 --worlds 4 --width 14 --roots 8 --sigma-lin 0.045 --sigma-w3 0.015 --lr 0.015 --max-secs 1900`
+=== Direct Legal REAL-MLP root_pimc ES (opt_pimc) ===
+  init=models/spatial_bc4.txt out=models/spatial_pimc_es1.txt dim=48 (16 dense + 32 w3) gens=14 pairs=3 batch_seeds=8 w=4 b=14 r=8 lr=0.015 max_secs=1900s
+  [INIT val8] mean=196.00 top=0 dt=300.8s
+  [ES gen  1/14] tr_mean=193.33 | val8=195.00 (best=195.00, top=0) *NEW BEST* | dt=2317.7s
+  [TIME GUARD] Reached 2317s >= 1900s, stopping ES cleanly.
+Finished opt_pimc: init_val8=196.00 -> best_val8=195.00 (saved to models/spatial_pimc_es1.txt) in 2317.7s
 
-[1m[33mwarning[0m: `blockfish` (example "train_bc") generated 1 warning
-[1m[92m    Finished[0m `release` profile [optimized] target(s) in 6.96s
-[1m[92m     Running[0m `target/release/examples/train_bc --out models/spatial_bc8.txt --games 220 --wg-beam 1800 --dagger-init models/spatial_bc4.txt --dagger-games 80 --dagger-mlp --v5-only --lin-epochs 14 --mlp-epochs 20 --wd-mlp 0.015 --dropout 0.15 --label-smooth 0.02 --eval-legal 0`
-=== Full-Action-Space Afterstate BC + Multi-Move Q-Advantage (WG_ds -> SpatialValueModel 64x32) ===
-  out=models/spatial_bc8.txt games=220 wg_beam=1800 dagger_games=80 dagger_mlp=true mixed_spawn=false real_spawn=false v5_only=true clean_q=false adv_w=0 lin_ep=14 mlp_ep=20 batch=32 tau=0.5 cal_w=0.025 lr_lin=0.008 lr_mlp=0.0008 wd=0.002 wd_mlp=0.015 drop=0.15 ls=0.02 threads=4
-Phase 1A (Clean WG_ds): 220 games (mean=166.84 pcs) -> 36485 decisions (0 with multi-move Soft-Q)
-Phase 1B (BC-DAgger mlp=true): 80 Legal games (mean=198.30 pcs) -> 6977 recovery decisions (4261 with multi-move Soft-Q)
-Phase 1 Total: 220 clean WG_ds (mean=166.84) + 80 DAgger -> 43462 decisions (36485 clean, 36958 train, 6504 val), 2009680 legal moves in 4012.0s
-  [LIN ep  1/14] lr=0.00800 | val_ce=1.0439 top1=69.4% top3=90.0% v_mae=1.81
-  [LIN ep  3/14] lr=0.00764 | val_ce=1.0148 top1=69.7% top3=90.1% v_mae=1.78
-  [LIN ep  6/14] lr=0.00596 | val_ce=1.0144 top1=69.5% top3=90.4% v_mae=1.76
-  [LIN ep  9/14] lr=0.00360 | val_ce=0.9911 top1=70.1% top3=90.4% v_mae=1.74
-  [LIN ep 12/14] lr=0.00159 | val_ce=0.9810 top1=70.3% top3=90.8% v_mae=1.74
-  [LIN ep 14/14] lr=0.00089 | val_ce=0.9765 top1=70.6% top3=90.9% v_mae=1.74
-Saved pure-linear BC model (val_ce=0.9725, rem_g=1.680) to models/spatial_bc8_lin.txt
-  [MLP ep  1/20] lr=0.00080 | val_ce=0.9756 top1=70.6% top3=90.7% v_mae=1.74
-  [MLP ep  3/20] lr=0.00078 | val_ce=0.9711 top1=70.7% top3=91.0% v_mae=1.72
-  [MLP ep  6/20] lr=0.00069 | val_ce=0.9540 top1=70.8% top3=91.3% v_mae=1.74
-  [MLP ep  9/20] lr=0.00055 | val_ce=0.9536 top1=70.6% top3=91.2% v_mae=1.74
-  [MLP ep 12/20] lr=0.00038 | val_ce=0.9559 top1=70.6% top3=91.2% v_mae=1.75
-  [MLP ep 15/20] lr=0.00023 | val_ce=0.9651 top1=70.8% top3=91.0% v_mae=1.75
-  [MLP ep 18/20] lr=0.00012 | val_ce=0.9710 top1=70.2% top3=91.0% v_mae=1.76
-  [MLP ep 20/20] lr=0.00008 | val_ce=0.9730 top1=70.2% top3=91.0% v_mae=1.77
-Saved full-MLP BC model (val_ce=0.9533, needs_pe=false) to models/spatial_bc8.txt
-
-=== Part 2: Held-Out 5-Seed REAL FULL-MLP Legal Benchmark on models/spatial_bc8.txt (vs bc4 184.20, ~17m) ===
+=== Part 2: Held-Out 5-Seed REAL FULL-MLP Legal Verification on models/spatial_pimc_es1.txt (vs bc4 184.20, ~16m) ===
 [1m[33mwarning[0m[1m: unused build dependency `fontconfig`[0m
   [1m[94m--> [0mblockfish-client/Cargo.toml:29:1
    [1m[94m|[0m
@@ -230,13 +204,13 @@ Saved full-MLP BC model (val_ce=0.9533, needs_pe=false) to models/spatial_bc8.tx
 
 [1m[33mwarning[0m: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
 [1m[92m   Compiling[0m blockfish v0.1.0 (/home/runner/work/blockfish/blockfish/blockfish-engine)
-[1m[92m    Finished[0m `release` profile [optimized] target(s) in 1.72s
-[1m[92m     Running[0m `target/release/examples/bench_legal wg5_lin_sweep models/spatial_bc8.txt fullmlp_w16 5`
-=== Legal wg5_lin_sweep (models/spatial_bc8.txt, which=fullmlp_w16, n_seeds=5, full_has_mlp=true, ah=64x32) ===
-  [seed 101] pcs=187 nds=64 0ds=87 (cov=32 O=18 nar=11 wide=22 end= 4) cov_nxt=19.0% | 576.7s
-  [seed 102] pcs=183 nds=62 0ds=83 (cov=28 O=18 nar= 8 wide=25 end= 4) cov_nxt=17.0% | 592.7s
-  [seed 103] pcs=192 nds=66 0ds=92 (cov=33 O=16 nar= 7 wide=31 end= 5) cov_nxt=19.0% | 595.9s
-  [seed 104] pcs=191 nds=65 0ds=91 (cov=20 O=20 nar= 9 wide=39 end= 3) cov_nxt=12.0% | 610.9s
-  [seed 105] pcs=187 nds=64 0ds=87 (cov=32 O=19 nar=12 wide=20 end= 4) cov_nxt=16.0% | 955.4s
-fullmlp_w16_h8_b28_cvar25  n= 5 mean=188.00 min=183 max=192 <=166: 0 top= 0 | nds=64.20 0ds=88.00 (cov=29.0 O=18.2 nar=9.4 wide=27.4 g0=0.0 end=4.0) cov_nxt=16.6% avg_c=12.1 | 955.4s
-  seeds: [101:187, 102:183, 103:192, 104:191, 105:187]
+[1m[92m    Finished[0m `release` profile [optimized] target(s) in 2.13s
+[1m[92m     Running[0m `target/release/examples/bench_legal wg5_lin_sweep models/spatial_pimc_es1.txt fullmlp_w16 5`
+=== Legal wg5_lin_sweep (models/spatial_pimc_es1.txt, which=fullmlp_w16, n_seeds=5, full_has_mlp=true, ah=64x32) ===
+  [seed 103] pcs=181 nds=61 0ds=81 (cov=29 O=18 nar= 8 wide=24 end= 2) cov_nxt=18.0% | 784.4s
+  [seed 101] pcs=182 nds=62 0ds=82 (cov=25 O=20 nar= 6 wide=28 end= 3) cov_nxt=16.0% | 821.8s
+  [seed 104] pcs=184 nds=63 0ds=84 (cov=26 O=16 nar= 5 wide=31 end= 6) cov_nxt=15.0% | 824.7s
+  [seed 102] pcs=183 nds=62 0ds=83 (cov=27 O=17 nar= 8 wide=26 end= 5) cov_nxt=18.0% | 825.3s
+  [seed 105] pcs=191 nds=65 0ds=91 (cov=32 O=22 nar= 8 wide=27 end= 2) cov_nxt=15.0% | 1325.7s
+fullmlp_w16_h8_b28_cvar25  n= 5 mean=184.20 min=181 max=191 <=166: 0 top= 0 | nds=62.60 0ds=84.20 (cov=27.8 O=18.6 nar=7.0 wide=27.2 g0=0.0 end=3.6) cov_nxt=16.4% avg_c=12.1 | 1325.7s
+  seeds: [101:182, 102:183, 103:181, 104:184, 105:191]
