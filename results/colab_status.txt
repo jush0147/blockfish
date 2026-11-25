@@ -1,1 +1,17 @@
-RUNNING commit=e2575f3 started=2026-11-25T22:57:37Z cores=12
+RUNNING commit=e2575f3 heartbeat=2026-11-25T22:59:39Z cores=12
+--- tail results/colab_latest.log ---
+Downloading 'wg_ds_v1_400g.bin.gz' from release 'dataset-v1' -> /tmp/wg_ds_v1_400g.bin.gz...
+DOWNLOAD SUCCESS: /tmp/wg_ds_v1_400g.bin.gz (17.51 MB)
+
+--- Training BlockfishResNet (C=64, B=4, 15 epochs, batch=128, max-neg=11) ---
+Device: cuda | amp_dtype=torch.bfloat16
+GPU: NVIDIA L4
+Loading /tmp/wg_ds_v1_400g.bin.gz: 400 games, 66897 decisions (136.8 MB raw)...
+Loaded 3,090,045 moves in 0.72s (train_decs=60,215, val_decs=6,682)
+BlockfishResNet(C=64, B=4) | params=383,618
+  [ep 1 | batch 150/471 | 11.1s | tr_ce=0.5188]
+  [ep 1 | batch 300/471 | 19.9s | tr_ce=0.4641]
+  [ep 1 | batch 450/471 | 28.7s | tr_ce=0.4408]
+ep  1/15 | lr=0.00297 | tr_ce=0.4383 tr_top1=86.04% tr_vmae=9.32 | val_ce=0.9438 val_top1=71.30% val_top3=92.10% val_vmae=7.28 | 33.8s *BEST*
+ep  2/15 | lr=0.00287 | tr_ce=0.3681 tr_top1=87.72% tr_vmae=3.94 | val_ce=0.9072 val_top1=72.09% val_top3=92.86% val_vmae=2.67 | 31.5s *BEST*
+ep  3/15 | lr=0.00272 | tr_ce=0.3565 tr_top1=87.88% tr_vmae=3.01 | val_ce=0.8680 val_top1=72.88% val_top3=92.79% val_vmae=2.53 | 31.8s *BEST*
