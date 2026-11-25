@@ -15,6 +15,7 @@ echo " Cores  : $(nproc) | RAM: $(free -h | awk '/^Mem:/{print $2}')"
 echo " Poll   : every ${POLL_SECS}s for changes in scripts/colab_cmd.sh"
 echo "================================================================"
 
+IDLE_TICKS=0
 while true; do
   if ! git fetch origin "$BRANCH" --quiet 2>/dev/null; then
     echo "[$(date -u +%H:%M:%S)] git fetch failed, retrying in ${POLL_SECS}s..."
@@ -26,6 +27,7 @@ while true; do
   LAST_BLOB="$(cat "$STATE_FILE" 2>/dev/null || echo "")"
 
   if [ -n "$REMOTE_BLOB" ] && [ "$REMOTE_BLOB" != "$LAST_BLOB" ]; then
+    IDLE_TICKS=0
     echo ""
     echo "================================================================"
     echo "[$(date -u +%H:%M:%S)] NEW scripts/colab_cmd.sh detected ($REMOTE_BLOB)!"
@@ -35,6 +37,13 @@ while true; do
     git reset --hard "origin/${BRANCH}" --quiet
 
     SHORT_SHA="$(git rev-parse --short HEAD)"
+    echo "RUNNING commit=${SHORT_SHA} started=$(date -u +%Y-%m-%dT%H:%M:%SZ) cores=$(nproc)" > results/colab_status.txt
+    git add -f results/colab_status.txt
+    if ! git diff --cached --quiet; then
+      git commit -m "colab: started (${SHORT_SHA}) [skip ci]" --quiet
+      git push origin "$BRANCH" --quiet || true
+    fi
+
     echo "Running scripts/colab_cmd.sh at commit $SHORT_SHA..."
     set +e
     bash scripts/colab_cmd.sh 2>&1 | tee results/colab_latest.log
@@ -44,9 +53,10 @@ while true; do
     echo ""
     echo "[$(date -u +%H:%M:%S)] scripts/colab_cmd.sh finished (exit_code=$EXIT_CODE)"
     echo "$REMOTE_BLOB" > "$STATE_FILE"
+    echo "DONE commit=${SHORT_SHA} exit=${EXIT_CODE} finished=$(date -u +%Y-%m-%dT%H:%M:%SZ)" > results/colab_status.txt
 
     # Pull latest remote commits before committing results (in case code was pushed during run)
-    git add -f results/colab_latest.log
+    git add -f results/colab_latest.log results/colab_status.txt
     git add -f models/*.txt 2>/dev/null || true
 
     if ! git diff --cached --quiet; then
@@ -56,6 +66,11 @@ while true; do
       echo "=== DONE & PUSHED! Waiting for next scripts/colab_cmd.sh update... ==="
     else
       echo "=== DONE (no file changes to push). Waiting for next update... ==="
+    fi
+  else
+    IDLE_TICKS=$((IDLE_TICKS + 1))
+    if [ $((IDLE_TICKS % 20)) -eq 0 ]; then
+      echo "[$(date -u +%H:%M:%S)] worker alive, waiting for next scripts/colab_cmd.sh..."
     fi
   fi
 
