@@ -1,10 +1,6 @@
 name: Blockfish Research & Experiments
 
 on:
-  push:
-    branches: [rescue/independent-validation-20261116]
-    paths:
-      - 'scripts/actions_cmd.sh'
   workflow_dispatch:
     inputs:
       cmd:

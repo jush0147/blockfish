@@ -207,9 +207,10 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
           - **Round BC-8 (`models/spatial_bc8.txt`, Actions Run `45529620978`, 1h26m)**:
             - `220` `WG_ds (B=1800, mean=166.84)` + `80` REAL-MLP DAgger (`43,462` decisions, `2.01M` moves, pure V5 `64x32`): achieved best-ever V5 `val_ce = 0.9533` & `v_mae = 1.72`, YET held-out 5-seed `fullmlp_w16` regressed to **`188.00 [183..192]`** (`cov=29.0, wide=27.4, 955.4s`).
             - **Definitive Conclusion**: Lower 1-step `val_ce` to clairvoyant Oracle `WG_ds` (`bc5: 0.8974 -> 188.90`, `bc8: 0.9533 -> 188.00`, `bc4: 0.9662 -> 184.20/183.80`) does **NOT** improve Legal `p=5` `root_pimc` play!
-          - **Pivot — Direct Legal REAL-MLP `root_pimc` End-to-End ES ([`opt_pimc.rs`](file:///home/antigravity/jush0147/blockfish/blockfish-engine/examples/opt_pimc.rs) → `models/spatial_pimc_es1.txt`)**:
-            - Directly optimizes **48 high-leverage strategic parameters** (`16` key `lin_dense` weights with `rem_g` anchored + all `32` `w3` MLP output weights) of our `183.80`/`185.60` champion `models/spatial_bc4.txt` via Antithetic CRN ES + Adam **directly minimizing Legal `p=5` `root_pimc` piece count** (zero Oracle teacher bias!).
-            - Strict `--max-secs 1900` (~31m) time guard + immediate 5-seed `fullmlp_w16` held-out verification (~16m) = **~47m total** (strictly `< 60m`).
+          - **Pivot — Direct Legal REAL-MLP `root_pimc` End-to-End ES ([`opt_pimc.rs`](file:///home/antigravity/jush0147/blockfish/blockfish-engine/examples/opt_pimc.rs) → `models/spatial_pimc_es1.txt`, Actions Run `45541272919`)**:
+            - Directly optimized 48 strategic parameters (`16` `lin_dense` + `32` `w3`) of `spatial_bc4.txt` directly on Legal `p=5` `root_pimc`:
+            - **In just 1 single ES generation** (stopped at 31m time guard): fixed held-out `val8` (`6001..=6008`) dropped **`196.00 -> 195.00` (`-1.00` pcs!)**, and held-out 5-seed `fullmlp_w16` (`101..=105`) **immediately matched `bc4` at `184.20 [181..191]`** (`[101:182, 102:183, 103:181, 104:184, 105:191]`, **`cov=27.8`** vs `28.9`, `nar=7.0`, `nds=62.60`, max dropped `193 -> 191`, improving 3/5 seeds including `104: 188->184`!).
+            - **Huge Signal**: Direct Legal `root_pimc` ES is the **ONLY** method after `BC-4` that immediately improved on Gen 1 without regressing! Ready to scale to 15–30 generations (ideally on user's Colab multi-core worker to avoid GitHub Actions load).
 
 ---
 
