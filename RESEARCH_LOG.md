@@ -210,7 +210,11 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
           - **Pivot — Direct Legal REAL-MLP `root_pimc` End-to-End ES ([`opt_pimc.rs`](file:///home/antigravity/jush0147/blockfish/blockfish-engine/examples/opt_pimc.rs) → `models/spatial_pimc_es1.txt`, Actions Run `45541272919`)**:
             - Directly optimized 48 strategic parameters (`16` `lin_dense` + `32` `w3`) of `spatial_bc4.txt` directly on Legal `p=5` `root_pimc`:
             - **In just 1 single ES generation** (stopped at 31m time guard): fixed held-out `val8` (`6001..=6008`) dropped **`196.00 -> 195.00` (`-1.00` pcs!)**, and held-out 5-seed `fullmlp_w16` (`101..=105`) **immediately matched `bc4` at `184.20 [181..191]`** (`[101:182, 102:183, 103:181, 104:184, 105:191]`, **`cov=27.8`** vs `28.9`, `nar=7.0`, `nds=62.60`, max dropped `193 -> 191`, improving 3/5 seeds including `104: 188->184`!).
-            - **Huge Signal**: Direct Legal `root_pimc` ES is the **ONLY** method after `BC-4` that immediately improved on Gen 1 without regressing! Ready to scale to 15–30 generations (ideally on user's Colab multi-core worker to avoid GitHub Actions load).
+            - **Huge Signal**: Direct Legal `root_pimc` ES is the **ONLY** method after `BC-4` that immediately improved on Gen 1 without regressing!
+          - **Colab Run #1 (`models/spatial_pimc_es2.txt`, 8-core Colab Auto-Polling Worker, 0.36 CU, ZERO Actions minutes)**:
+            - `opt_pimc` Gen 1..3 held at `val8 = 193.12`; 10-seed (`101..=110`) `fullmlp_w16`: **`186.90 [181..194]`** (`[182, 183, 181, 184, 191, 193, 185, 190, 194, 186]`, `cov=29.4, cov_nxt=15.9%, 1373.5s` — 1.5× faster than Actions!).
+          - **Colab Run #2 (`realmlp_calib` + 10-seed `realmlp_prescreen`, ~35m on 8-core Colab)**:
+            - Previous `risk_calib` ran with the `w3=0` linear-skip bug and never tested REAL FULL MLP! Now testing `rem_g` × `0.92 / 0.86`, `cov` × `1.30`, and `stack_cells` conservation on intact `models/spatial_bc4.txt` REAL FULL MLP (5 seeds `101..=105`), plus 10-seed verification of `realmlp_prescreen`.
 
 ---
 
