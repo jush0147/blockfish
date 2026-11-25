@@ -1,1 +1,1 @@
-RUNNING commit=1dae30a started=2026-11-25T19:27:00Z cores=12
+ep 1/15 val_ce=0.8977 top1=72.2% vmae=3.41 (1132.4s)
