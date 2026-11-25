@@ -1,1 +1,1 @@
-DONE commit=61accf2 exit=0 finished=2026-11-25T14:10:02Z
+RUNNING commit=fc3545b started=2026-11-25T14:44:11Z cores=8
