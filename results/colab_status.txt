@@ -1,4 +1,4 @@
-RUNNING commit=e2575f3 heartbeat=2026-11-25T23:13:55Z cores=12
+RUNNING commit=e2575f3 heartbeat=2026-11-25T23:15:57Z cores=12
 --- tail results/colab_latest.log ---
   [seed 102] pcs=172 top=1 | 0.9s
   [seed 103] pcs= 27 top=1 | 0.1s
