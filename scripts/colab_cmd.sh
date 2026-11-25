@@ -2,35 +2,42 @@
 set -euo pipefail
 
 echo "================================================================"
-echo " Colab Run #5: Export 400 WG_ds (B=1200) games (BFDS0001)"
-echo "               and upload gzipped dataset to GitHub Release"
-echo " Cores: $(nproc) | RAM: $(free -h | awk '/^Mem:/{print $2}')"
+echo " Colab Run #6: Train FiLM+SE 2D Conv ResNet (C=96, B=6, 25 ep)"
+echo "               on 400 WG_ds games (dataset-v1) using GPU"
 echo "================================================================"
 
-echo "--- Building export_dataset (release) ---"
-cargo build --release --example export_dataset --features block-stacker
+if ! nvidia-smi >/dev/null 2>&1; then
+  echo "[SKIP] No GPU detected (still on CPU runtime). Switch Colab to L4/T4/A100 GPU and click Run all!"
+  exit 0
+fi
 
-OUT_BIN="/tmp/wg_ds_v1_400g.bin"
-OUT_GZ="${OUT_BIN}.gz"
+nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
+python3 -c "import torch; print('PyTorch:', torch.__version__, '| CUDA:', torch.cuda.is_available(), '| BF16:', torch.cuda.is_bf16_supported())"
 
-echo ""
-echo "--- Generating 360 train (1001..1361) + 40 val (201..241) games ---"
-target/release/examples/export_dataset \
-  --train-games 360 \
-  --val-games 40 \
-  --train-seed-start 1001 \
-  --val-seed-start 201 \
-  --wg-beam 1200 \
-  --out "$OUT_BIN"
-
-echo ""
-echo "--- Compressing dataset ---"
-gzip -f -6 "$OUT_BIN"
-ls -lh "$OUT_GZ"
+DATA_GZ="/tmp/wg_ds_v1_400g.bin.gz"
+if [ ! -f "$DATA_GZ" ]; then
+  echo ""
+  echo "--- Downloading wg_ds_v1_400g.bin.gz from GitHub Release dataset-v1 ---"
+  python3 scripts/download_release_asset.py dataset-v1 wg_ds_v1_400g.bin.gz "$DATA_GZ"
+fi
 
 echo ""
-echo "--- Uploading to GitHub Release (tag: dataset-v1) ---"
-python3 scripts/upload_release_asset.py dataset-v1 "$OUT_GZ" "Blockfish WG_ds Dataset v1"
+echo "--- Training BlockfishResNet (C=96, B=6, 25 epochs, batch=64) ---"
+python3 scripts/train_resnet.py \
+  --data "$DATA_GZ" \
+  --channels 96 \
+  --blocks 6 \
+  --epochs 25 \
+  --batch-size 64 \
+  --lr 2e-3 \
+  --wd 1e-4 \
+  --val-weight 0.02 \
+  --out /tmp/resnet_v1_c96b6.pt
 
-rm -f "$OUT_GZ"
-echo "=== Colab Run #5 COMPLETE ==="
+ls -lh /tmp/resnet_v1_c96b6.pt
+
+echo ""
+echo "--- Uploading trained checkpoint to GitHub Release (tag: model-resnet-v1) ---"
+python3 scripts/upload_release_asset.py model-resnet-v1 /tmp/resnet_v1_c96b6.pt "Blockfish 2D Conv ResNet v1"
+
+echo "=== Colab Run #6 COMPLETE ==="
