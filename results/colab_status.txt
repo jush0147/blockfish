@@ -1,17 +1,17 @@
-RUNNING commit=e2575f3 heartbeat=2026-11-25T23:05:45Z cores=12
+RUNNING commit=e2575f3 heartbeat=2026-11-25T23:07:48Z cores=12
 --- tail results/colab_latest.log ---
-  [ep 1 | batch 450/471 | 28.7s | tr_ce=0.4408]
-ep  1/15 | lr=0.00297 | tr_ce=0.4383 tr_top1=86.04% tr_vmae=9.32 | val_ce=0.9438 val_top1=71.30% val_top3=92.10% val_vmae=7.28 | 33.8s *BEST*
-ep  2/15 | lr=0.00287 | tr_ce=0.3681 tr_top1=87.72% tr_vmae=3.94 | val_ce=0.9072 val_top1=72.09% val_top3=92.86% val_vmae=2.67 | 31.5s *BEST*
-ep  3/15 | lr=0.00272 | tr_ce=0.3565 tr_top1=87.88% tr_vmae=3.01 | val_ce=0.8680 val_top1=72.88% val_top3=92.79% val_vmae=2.53 | 31.8s *BEST*
-ep  4/15 | lr=0.00251 | tr_ce=0.3467 tr_top1=88.11% tr_vmae=2.82 | val_ce=0.8787 val_top1=72.13% val_top3=92.52% val_vmae=3.21 | 32.0s
-ep  5/15 | lr=0.00227 | tr_ce=0.3343 tr_top1=88.66% tr_vmae=2.63 | val_ce=0.8782 val_top1=72.43% val_top3=92.49% val_vmae=3.23 | 32.0s
-ep  6/15 | lr=0.00198 | tr_ce=0.3280 tr_top1=88.73% tr_vmae=2.50 | val_ce=0.8490 val_top1=73.18% val_top3=92.82% val_vmae=4.11 | 32.0s *BEST*
-ep  7/15 | lr=0.00168 | tr_ce=0.3190 tr_top1=88.89% tr_vmae=2.29 | val_ce=0.8425 val_top1=73.09% val_top3=93.06% val_vmae=2.09 | 32.0s *BEST*
-ep  8/15 | lr=0.00138 | tr_ce=0.3111 tr_top1=89.25% tr_vmae=2.05 | val_ce=0.8361 val_top1=73.06% val_top3=93.15% val_vmae=2.06 | 32.0s *BEST*
-ep  9/15 | lr=0.00108 | tr_ce=0.3045 tr_top1=89.42% tr_vmae=1.96 | val_ce=0.8316 val_top1=73.23% val_top3=93.56% val_vmae=2.11 | 32.0s *BEST*
-ep 10/15 | lr=0.00080 | tr_ce=0.2941 tr_top1=89.61% tr_vmae=1.89 | val_ce=0.8238 val_top1=73.87% val_top3=93.48% val_vmae=2.13 | 32.0s *BEST*
-ep 11/15 | lr=0.00055 | tr_ce=0.2829 tr_top1=90.00% tr_vmae=1.84 | val_ce=0.8348 val_top1=72.87% val_top3=93.33% val_vmae=2.02 | 32.0s
-ep 12/15 | lr=0.00034 | tr_ce=0.2746 tr_top1=90.46% tr_vmae=1.80 | val_ce=0.8231 val_top1=73.75% val_top3=93.24% val_vmae=1.98 | 32.0s *BEST*
-ep 13/15 | lr=0.00019 | tr_ce=0.2603 tr_top1=90.77% tr_vmae=1.76 | val_ce=0.8232 val_top1=73.81% val_top3=93.37% val_vmae=1.93 | 32.0s
-ep 14/15 | lr=0.00009 | tr_ce=0.2546 tr_top1=90.97% tr_vmae=1.73 | val_ce=0.8223 val_top1=73.71% val_top3=93.46% val_vmae=1.93 | 32.0s *BEST*
+=== eval_resnet mode=greedy seeds=101..=110 (n=10) w=16 h=6 b=16 mpr=4 cvar=25 val_w=1.00 logit_w=0.50 ===
+  [seed 101] pcs=216 top=1 | 1.2s
+  [seed 102] pcs=172 top=1 | 0.9s
+  [seed 103] pcs= 27 top=1 | 0.1s
+  [seed 104] pcs= 30 top=1 | 0.2s
+  [seed 105] pcs= 71 top=1 | 0.4s
+  [seed 106] pcs= 68 top=1 | 0.3s
+  [seed 107] pcs=100 top=1 | 0.5s
+  [seed 108] pcs= 77 top=1 | 0.4s
+  [seed 109] pcs=350 top=1 | 1.8s
+  [seed 110] pcs=106 top=1 | 0.5s
+SUMMARY mode=greedy n=10 mean=121.70 min=27 max=350 <=166:7 <=161:7 top=10 | 6.3s
+
+--- Benchmark 2: Legal p=5 Lockstep GPU root_pimc (val_w=1.0, logit_w=0.5, 5 seeds 101..=105) ---
+=== eval_resnet mode=pimc seeds=101..=105 (n=5) w=16 h=6 b=16 mpr=4 cvar=25 val_w=1.00 logit_w=0.50 ===
