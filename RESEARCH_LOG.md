@@ -217,9 +217,12 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
             - **`realmlp_cov130` (5 seeds `101..=105`)**: **`184.20 [177..187]`** (`[101:187, 102:184, 103:186, 104:177, 105:187]`, `nds=62.40, nar=6.6, 632.2s`) — **all-time lowest worst-seed (`max=187`!)**, slashing `seed 104` by `-11` pcs (`188 -> 177`) and `seed 105` by `-6` pcs (`193 -> 187`)!
             - `realmlp_rg86`: `185.60 [173..195]` (`seed 103=173, seed 105=182, cov=24.2, cov_nxt=14.8%`); `realmlp_stk_low`: `187.40 [177..193]` (`cov=22.4, cov_nxt=12.8%`); `realmlp_rg92`: `188.40`.
             - `realmlp_prescreen` (10 seeds `101..=110`): `188.80 [176..200]` (`106..=110: 193.80`) — standard Stage-1 `fullmlp_w16` (`185.60 [176..193]`) remains 2× faster and `-3.20` pcs stronger on 10 seeds.
-          - **Colab Run #3 (`realmlp_cov130` 10-seed + `cov/nar` fine sweep, ~45m on 8-core Colab)**:
-            - Part 1: Verify `realmlp_cov130` on full 10 seeds (`101..=110`, targeting new all-time `< 185.60` 10-seed record!).
-            - Part 2: Sweep `cov115`, `cov145`, `cov130_nar130`, and `cov130_c0` on 5 seeds (`101..=105`).
+          - **Colab Run #3 (`realmlp_cov130` 10-seed + `cov/nar` fine sweep, 8-core Colab — NEW ALL-TIME 5-SEED LEGAL RECORD `183.00`!!)**:
+            - **`realmlp_cov115_c25` (5 seeds `101..=105`)**: **`183.00 [177..189]`** (**NEW ALL-TIME 5-SEED REAL FULL-MLP LEGAL RECORD**, `[101:187, 102:185, 103:177, 104:177, 105:189]`, **`nds=62.00`** all-time lowest, `wide=22.8`, `nar=7.2`, `653.0s` — `-1.20` pcs over `bc4 184.20` and `-0.80` pcs faster/stronger than `prescreen 183.80`!).
+            - `realmlp_cov130` (10 seeds `101..=110`): `185.90 [177..193]` (`104:177, 109:182, 110:188`); `cov130_c0` (5 seeds): `184.20 [173..191]` (`103:173`); `cov130_nar130`: `184.80`; `cov145`: `185.40`.
+          - **Colab Run #4 (10-seed `realmlp_cov115` record verification + 40-seed Legal PB/distribution audit, ~42m on 8-core Colab)**:
+            - Part 1 (~20m): Full 10-seed (`101..=110`) verification of `realmlp_cov115_c25` (targeting new `< 185.60` 10-seed record!).
+            - Part 2 (~22m): 40-seed (`101..=140`) fast `w=8, h=8, b=20` audit on `realmlp_cov115` to measure true 40-seed mean, variance, and current single-seed Legal PB distance to `<= 161`.
 
 ---
 

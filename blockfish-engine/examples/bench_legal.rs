@@ -1494,6 +1494,46 @@ fn main() {
                 }
             }));
         }
+        if which == "realmlp_cov115" {
+            let mut m = (*sm_full).clone();
+            for &j in &[23usize, 24, 25, 28, 36, 45, 70] {
+                m.lin_dense[j] *= 1.15;
+            }
+            m.prepare_fast();
+            let mut c = c_base.clone();
+            c.spatial_model = Some(Arc::new(m));
+            c.spatial_rerank_only = false;
+            c.beam_width = 80;
+            c.max_per_root = 16;
+            c.root_pimc_prescreen_worlds = 0;
+            c.root_pimc_roots = 12;
+            c.root_pimc_worlds = 16;
+            c.root_pimc_horizon = 8;
+            c.root_pimc_width = 28;
+            c.root_pimc_margin = 400;
+            c.root_pimc_cvar_pct = 25;
+            eval_seeds("realmlp_cov115_w16_h8_b28_c25", &seeds, &c);
+        }
+        if which == "realmlp_cov115_fast" {
+            let mut m = (*sm_full).clone();
+            for &j in &[23usize, 24, 25, 28, 36, 45, 70] {
+                m.lin_dense[j] *= 1.15;
+            }
+            m.prepare_fast();
+            let mut c = c_base.clone();
+            c.spatial_model = Some(Arc::new(m));
+            c.spatial_rerank_only = false;
+            c.beam_width = 64;
+            c.max_per_root = 14;
+            c.root_pimc_prescreen_worlds = 0;
+            c.root_pimc_roots = 10;
+            c.root_pimc_worlds = 8;
+            c.root_pimc_horizon = 8;
+            c.root_pimc_width = 20;
+            c.root_pimc_margin = 350;
+            c.root_pimc_cvar_pct = 25;
+            eval_seeds("realmlp_cov115_w8_h8_b20_c25", &seeds, &c);
+        }
         return;
     }
 
