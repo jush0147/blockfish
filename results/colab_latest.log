@@ -1,4 +1,4 @@
-=== Colab Run #1: Direct Legal REAL-MLP root_pimc ES Round 2 (from spatial_pimc_es1.txt, 12 gens, 45m guard) ===
+=== Colab Run #2: REAL FULL-MLP Risk/Cell Calibration Sweep on models/spatial_bc4.txt (5 seeds, ~28m) ===
 Hardware: 8 CPU cores
 warning: unused build dependency `fontconfig`
   --> blockfish-client/Cargo.toml:29:1
@@ -9,72 +9,7 @@ warning: unused build dependency `fontconfig`
    = note: `cargo::unused_dependencies` is set to `warn` by default
 help: consider removing the dependency on `fontconfig`
 warning: `blockfish-client` (manifest) generated 1 warning
-    Updating crates.io index
- Downloading crates ...
-  Downloaded cfg-if v0.1.10
-  Downloaded argh v0.1.4
-  Downloaded argh_shared v0.1.4
-  Downloaded autocfg v1.0.1
-  Downloaded argh_derive v0.1.4
-  Downloaded thiserror v1.0.22
-  Downloaded ppv-lite86 v0.2.10
-  Downloaded quote v1.0.7
-  Downloaded rand_chacha v0.2.2
-  Downloaded thiserror-impl v1.0.22
-  Downloaded unicode-xid v0.2.1
-  Downloaded rand_pcg v0.2.1
-  Downloaded rand_core v0.5.1
-  Downloaded signal-hook-registry v1.2.2
-  Downloaded itoa v0.4.6
-  Downloaded red_union_find v0.2.5
-  Downloaded getrandom v0.1.15
-  Downloaded num-integer v0.1.44
-  Downloaded num-traits v0.2.14
-  Downloaded proc-macro2 v1.0.24
-  Downloaded signal-hook v0.2.2
-  Downloaded heck v0.3.1
-  Downloaded log v0.4.11
-  Downloaded serde_derive v1.0.118
-  Downloaded ryu v1.0.5
-  Downloaded unicode-segmentation v1.7.1
-  Downloaded serde v1.0.118
-  Downloaded serde_json v1.0.60
-  Downloaded rand v0.7.3
-  Downloaded syn v1.0.48
-  Downloaded libc v0.2.119
-   Compiling proc-macro2 v1.0.24
-   Compiling unicode-xid v0.2.1
-   Compiling syn v1.0.48
-   Compiling libc v0.2.119
-   Compiling cfg-if v0.1.10
-   Compiling getrandom v0.1.15
-   Compiling autocfg v1.0.1
-   Compiling serde_derive v1.0.118
-   Compiling ryu v1.0.5
-   Compiling serde v1.0.118
-   Compiling unicode-segmentation v1.7.1
-   Compiling ppv-lite86 v0.2.10
-   Compiling serde_json v1.0.60
-   Compiling num-traits v0.2.14
-   Compiling num-integer v0.1.44
-   Compiling itoa v0.4.6
-   Compiling log v0.4.11
-   Compiling argh_shared v0.1.4
    Compiling blockfish v0.1.0 (/content/blockfish/blockfish-engine)
-   Compiling heck v0.3.1
-   Compiling quote v1.0.7
-   Compiling signal-hook-registry v1.2.2
-   Compiling rand_core v0.5.1
-   Compiling signal-hook v0.2.2
-   Compiling rand_chacha v0.2.2
-   Compiling rand_pcg v0.2.1
-   Compiling rand v0.7.3
-   Compiling red_union_find v0.2.5
-   Compiling argh_derive v0.1.4
-   Compiling thiserror-impl v1.0.22
-   Compiling argh v0.1.4
-   Compiling thiserror v1.0.22
-   Compiling block-stacker v0.1.0 (/content/blockfish/block-stacker)
 warning: unused imports: `Input` and `place::PlaceFinder`
  --> blockfish-engine/src/ai/fast.rs:2:5
   |
@@ -162,18 +97,39 @@ help: use `'_` for type paths
    |                                                         ++++
 
 warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
-    Finished `release` profile [optimized] target(s) in 16.03s
-     Running `target/release/examples/opt_pimc --init models/spatial_pimc_es1.txt --out models/spatial_pimc_es2.txt --gens 12 --pairs 3 --batch-seeds 8 --worlds 4 --width 12 --roots 8 --sigma-lin 0.045 --sigma-w3 0.015 --lr 0.014 --max-secs 2700`
-=== Direct Legal REAL-MLP root_pimc ES (opt_pimc) ===
-  init=models/spatial_pimc_es1.txt out=models/spatial_pimc_es2.txt dim=48 (16 dense + 32 w3) gens=12 pairs=3 batch_seeds=8 w=4 b=12 r=8 lr=0.014 max_secs=2700s
-  [INIT val8] mean=193.12 top=0 dt=130.7s
-  [ES gen  1/12] tr_mean=195.04 | dt=1062.7s
-  [ES gen  2/12] tr_mean=195.54 | val8=193.25 (best=193.12, top=0) | dt=2045.1s
-  [ES gen  3/12] tr_mean=193.40 | val8=193.62 (best=193.12, top=0) | dt=3038.9s
-  [TIME GUARD] Reached 3038s >= 2700s, stopping ES cleanly.
-Finished opt_pimc: init_val8=193.12 -> best_val8=193.12 (saved to models/spatial_pimc_es2.txt) in 3038.9s
+    Finished `release` profile [optimized] target(s) in 8.42s
+     Running `target/release/examples/bench_legal wg5_lin_sweep models/spatial_bc4.txt realmlp_calib 5`
+=== Legal wg5_lin_sweep (models/spatial_bc4.txt, which=realmlp_calib, n_seeds=5, full_has_mlp=true, ah=64x32) ===
+  [seed 103] pcs=176 nds=59 0ds=76 (cov=27 O=17 nar= 8 wide=18 end= 6) cov_nxt=13.0% | 552.5s
+  [seed 104] pcs=191 nds=66 0ds=91 (cov=27 O=19 nar=11 wide=31 end= 3) cov_nxt=16.0% | 577.5s
+  [seed 105] pcs=192 nds=66 0ds=92 (cov=31 O=22 nar=10 wide=25 end= 4) cov_nxt=14.0% | 614.2s
+  [seed 102] pcs=195 nds=67 0ds=95 (cov=27 O=22 nar= 7 wide=36 end= 3) cov_nxt=15.0% | 653.7s
+  [seed 101] pcs=188 nds=64 0ds=88 (cov=32 O=22 nar= 7 wide=20 end= 7) cov_nxt=24.0% | 674.1s
+realmlp_rg92               n= 5 mean=188.40 min=176 max=195 <=166: 0 top= 0 | nds=64.40 0ds=88.40 (cov=28.8 O=20.4 nar=8.6 wide=26.0 g0=0.0 end=4.6) cov_nxt=16.4% avg_c=12.1 | 674.1s
+  seeds: [101:188, 102:195, 103:176, 104:191, 105:192]
+  [seed 103] pcs=173 nds=58 0ds=73 (cov=25 O=17 nar=10 wide=16 end= 5) cov_nxt=14.0% | 571.8s
+  [seed 104] pcs=190 nds=65 0ds=90 (cov=30 O=18 nar=11 wide=25 end= 6) cov_nxt=19.0% | 614.2s
+  [seed 105] pcs=182 nds=62 0ds=82 (cov=21 O=21 nar= 8 wide=29 end= 3) cov_nxt=13.0% | 635.4s
+  [seed 102] pcs=195 nds=67 0ds=95 (cov=22 O=23 nar= 7 wide=38 end= 5) cov_nxt=16.0% | 651.0s
+  [seed 101] pcs=188 nds=64 0ds=88 (cov=23 O=17 nar= 5 wide=34 end= 9) cov_nxt=12.0% | 660.3s
+realmlp_rg86               n= 5 mean=185.60 min=173 max=195 <=166: 0 top= 0 | nds=63.20 0ds=85.60 (cov=24.2 O=19.2 nar=8.2 wide=28.4 g0=0.0 end=5.6) cov_nxt=14.8% avg_c=12.0 | 660.3s
+  seeds: [101:188, 102:195, 103:173, 104:190, 105:182]
+  [seed 104] pcs=177 nds=59 0ds=77 (cov=27 O=18 nar= 5 wide=24 end= 3) cov_nxt=14.0% | 495.3s
+  [seed 102] pcs=184 nds=63 0ds=84 (cov=31 O=17 nar=10 wide=23 end= 3) cov_nxt=18.0% | 527.8s
+  [seed 105] pcs=187 nds=63 0ds=87 (cov=32 O=19 nar= 9 wide=23 end= 4) cov_nxt=20.0% | 584.5s
+  [seed 103] pcs=186 nds=63 0ds=86 (cov=33 O=18 nar= 5 wide=26 end= 4) cov_nxt=19.0% | 631.0s
+  [seed 101] pcs=187 nds=64 0ds=87 (cov=33 O=19 nar= 4 wide=26 end= 5) cov_nxt=22.0% | 632.2s
+realmlp_cov130             n= 5 mean=184.20 min=177 max=187 <=166: 0 top= 0 | nds=62.40 0ds=84.20 (cov=31.2 O=18.2 nar=6.6 wide=24.4 g0=0.0 end=3.8) cov_nxt=18.6% avg_c=12.3 | 632.2s
+  seeds: [101:187, 102:184, 103:186, 104:177, 105:187]
+  [seed 104] pcs=192 nds=66 0ds=92 (cov=28 O=20 nar= 9 wide=28 end= 7) cov_nxt=19.0% | 585.0s
+  [seed 101] pcs=190 nds=65 0ds=90 (cov=18 O=21 nar= 9 wide=36 end= 6) cov_nxt=10.0% | 601.3s
+  [seed 102] pcs=193 nds=66 0ds=93 (cov=31 O=20 nar=11 wide=30 end= 1) cov_nxt=14.0% | 635.7s
+  [seed 103] pcs=177 nds=60 0ds=77 (cov=17 O=21 nar=19 wide=17 end= 3) cov_nxt=11.0% | 641.1s
+  [seed 105] pcs=185 nds=63 0ds=85 (cov=18 O=17 nar=11 wide=31 end= 8) cov_nxt=10.0% | 728.9s
+realmlp_stk_low            n= 5 mean=187.40 min=177 max=193 <=166: 0 top= 0 | nds=64.00 0ds=87.40 (cov=22.4 O=19.8 nar=11.8 wide=28.4 g0=0.0 end=5.0) cov_nxt=12.8% avg_c=13.0 | 728.9s
+  seeds: [101:190, 102:193, 103:177, 104:192, 105:185]
 
-=== Held-Out 10-Seed (101..=110) REAL FULL-MLP Legal Verification on models/spatial_pimc_es2.txt (vs bc4 185.60) ===
+=== Part 2: 10-Seed (101..=110) REAL FULL-MLP Verification of realmlp_prescreen (vs 185.60, ~18m) ===
 warning: unused build dependency `fontconfig`
   --> blockfish-client/Cargo.toml:29:1
    |
@@ -270,19 +226,18 @@ help: use `'_` for type paths
    |                                                         ++++
 
 warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
-   Compiling blockfish v0.1.0 (/content/blockfish/blockfish-engine)
-    Finished `release` profile [optimized] target(s) in 2.51s
-     Running `target/release/examples/bench_legal wg5_lin_sweep models/spatial_pimc_es2.txt fullmlp_w16 10`
-=== Legal wg5_lin_sweep (models/spatial_pimc_es2.txt, which=fullmlp_w16, n_seeds=10, full_has_mlp=true, ah=64x32) ===
-  [seed 103] pcs=181 nds=61 0ds=81 (cov=29 O=18 nar= 8 wide=24 end= 2) cov_nxt=18.0% | 826.0s
-  [seed 107] pcs=185 nds=63 0ds=85 (cov=34 O=17 nar= 5 wide=23 end= 6) cov_nxt=16.0% | 837.8s
-  [seed 101] pcs=182 nds=62 0ds=82 (cov=25 O=20 nar= 6 wide=28 end= 3) cov_nxt=16.0% | 862.8s
-  [seed 102] pcs=183 nds=62 0ds=83 (cov=27 O=17 nar= 8 wide=26 end= 5) cov_nxt=18.0% | 872.2s
-  [seed 104] pcs=184 nds=63 0ds=84 (cov=26 O=16 nar= 5 wide=31 end= 6) cov_nxt=15.0% | 873.0s
-  [seed 108] pcs=190 nds=64 0ds=90 (cov=30 O=20 nar=18 wide=20 end= 2) cov_nxt=15.0% | 888.5s
-  [seed 106] pcs=193 nds=66 0ds=93 (cov=27 O=20 nar= 7 wide=34 end= 5) cov_nxt=17.0% | 911.9s
-  [seed 105] pcs=191 nds=65 0ds=91 (cov=32 O=22 nar= 8 wide=27 end= 2) cov_nxt=15.0% | 912.0s
-  [seed 109] pcs=194 nds=67 0ds=94 (cov=33 O=16 nar= 8 wide=33 end= 4) cov_nxt=17.0% | 1358.8s
-  [seed 110] pcs=186 nds=63 0ds=86 (cov=31 O=20 nar= 4 wide=26 end= 5) cov_nxt=12.0% | 1373.5s
-fullmlp_w16_h8_b28_cvar25  n=10 mean=186.90 min=181 max=194 <=166: 0 top= 0 | nds=63.60 0ds=86.90 (cov=29.4 O=18.6 nar=7.7 wide=27.2 g0=0.0 end=4.0) cov_nxt=15.9% avg_c=12.4 | 1373.5s
-  seeds: [101:182, 102:183, 103:181, 104:184, 105:191, 106:193, 107:185, 108:190, 109:194, 110:186]
+    Finished `release` profile [optimized] target(s) in 0.06s
+     Running `target/release/examples/bench_legal wg5_lin_sweep models/spatial_bc4.txt realmlp_prescreen 10`
+=== Legal wg5_lin_sweep (models/spatial_bc4.txt, which=realmlp_prescreen, n_seeds=10, full_has_mlp=true, ah=64x32) ===
+  [seed 103] pcs=176 nds=59 0ds=76 (cov=26 O=19 nar= 7 wide=18 end= 6) cov_nxt=12.0% | 1596.9s
+  [seed 104] pcs=184 nds=63 0ds=84 (cov=27 O=17 nar=10 wide=24 end= 6) cov_nxt=14.0% | 1668.2s
+  [seed 101] pcs=182 nds=62 0ds=82 (cov=35 O=17 nar= 3 wide=23 end= 4) cov_nxt=18.0% | 1670.7s
+  [seed 102] pcs=185 nds=63 0ds=85 (cov=20 O=24 nar= 7 wide=33 end= 1) cov_nxt=10.0% | 1699.4s
+  [seed 106] pcs=188 nds=64 0ds=88 (cov=39 O=18 nar= 9 wide=19 end= 3) cov_nxt=23.0% | 1724.2s
+  [seed 108] pcs=192 nds=66 0ds=92 (cov=36 O=12 nar=13 wide=24 end= 7) cov_nxt=17.0% | 1725.3s
+  [seed 105] pcs=192 nds=65 0ds=92 (cov=36 O=22 nar= 8 wide=22 end= 4) cov_nxt=17.0% | 1750.4s
+  [seed 107] pcs=196 nds=67 0ds=96 (cov=35 O=17 nar=14 wide=22 end= 8) cov_nxt=19.0% | 1757.7s
+  [seed 109] pcs=193 nds=66 0ds=93 (cov=34 O=15 nar= 7 wide=30 end= 7) cov_nxt=21.0% | 2708.0s
+  [seed 110] pcs=200 nds=69 0ds=100 (cov=42 O=15 nar= 5 wide=32 end= 6) cov_nxt=20.0% | 2789.7s
+realmlp_pre4_r36_f12_w16_h8_c25 n=10 mean=188.80 min=176 max=200 <=166: 0 top= 0 | nds=64.40 0ds=88.80 (cov=33.0 O=17.6 nar=8.3 wide=24.7 g0=0.0 end=5.2) cov_nxt=17.1% avg_c=12.2 | 2789.7s
+  seeds: [101:182, 102:185, 103:176, 104:184, 105:192, 106:188, 107:196, 108:192, 109:193, 110:200]
