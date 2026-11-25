@@ -204,9 +204,12 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
           - **Round ExIt-2 (`models/spatial_exit2.txt`, Actions Run `45517753392`, 1h23m)**:
             - `64` Legal self-play games (`mean=188.89`, `11,930` decisions, `w=6, h=8, b=20, r=10, cvar=25`, 100% real-hole CRN spawns, `--v5-only`, `--adv-w 0.30`): `val_soft_ce` `1.4858 -> 1.3991`, `legal_v_mae` `12.71 -> 6.23`, `rem_g = 1.707`.
             - Held-out 5-seed `fullmlp_w16`: **`191.60 [186..195]`** (`cov=34.4, avg_c=13.2, 1426.8s`) — regressed `+7.4` pcs vs `bc4 (184.20)` because distilling a weaker `188.89`-piece `w=6` teacher + pushing `rem_g` up to `1.707` made the evaluator greedier.
-          - **Round BC-8 (`models/spatial_bc8.txt`, Scaled Pure Compact V5 `64x32`)**:
-            - `spatial_bc4.txt` (`150 WG_ds B=1800 + 60 linear-skip DAgger`, compact V5 `374` sparse, clean `opaque` afterstates, pure Softmax CE) remains our undisputed #1 model (`183.80` 5-seed / `185.60` 10-seed), beating every newer variant that changed architecture (`V6 1591`), teacher quality (`B=900` / `ExIt`), or added spawn/advantage noise.
-            - Next (~48m total, strictly `< 60m`): scale the exact winning compact V5 `BC-4` recipe to **`220` `WG_ds (B=1800)` + `80` REAL-MLP DAgger games** (`~45,000` decisions, `--v5-only`, clean deterministic afterstates, ZERO `real_spawn`/`adv_w` noise) + immediate 5-seed `fullmlp_w16` verification.
+          - **Round BC-8 (`models/spatial_bc8.txt`, Actions Run `45529620978`, 1h26m)**:
+            - `220` `WG_ds (B=1800, mean=166.84)` + `80` REAL-MLP DAgger (`43,462` decisions, `2.01M` moves, pure V5 `64x32`): achieved best-ever V5 `val_ce = 0.9533` & `v_mae = 1.72`, YET held-out 5-seed `fullmlp_w16` regressed to **`188.00 [183..192]`** (`cov=29.0, wide=27.4, 955.4s`).
+            - **Definitive Conclusion**: Lower 1-step `val_ce` to clairvoyant Oracle `WG_ds` (`bc5: 0.8974 -> 188.90`, `bc8: 0.9533 -> 188.00`, `bc4: 0.9662 -> 184.20/183.80`) does **NOT** improve Legal `p=5` `root_pimc` play!
+          - **Pivot — Direct Legal REAL-MLP `root_pimc` End-to-End ES ([`opt_pimc.rs`](file:///home/antigravity/jush0147/blockfish/blockfish-engine/examples/opt_pimc.rs) → `models/spatial_pimc_es1.txt`)**:
+            - Directly optimizes **48 high-leverage strategic parameters** (`16` key `lin_dense` weights with `rem_g` anchored + all `32` `w3` MLP output weights) of our `183.80`/`185.60` champion `models/spatial_bc4.txt` via Antithetic CRN ES + Adam **directly minimizing Legal `p=5` `root_pimc` piece count** (zero Oracle teacher bias!).
+            - Strict `--max-secs 1900` (~31m) time guard + immediate 5-seed `fullmlp_w16` held-out verification (~16m) = **~47m total** (strictly `< 60m`).
 
 ---
 
