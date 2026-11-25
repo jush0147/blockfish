@@ -220,9 +220,11 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
           - **Colab Run #3 (`realmlp_cov130` 10-seed + `cov/nar` fine sweep, 8-core Colab — NEW ALL-TIME 5-SEED LEGAL RECORD `183.00`!!)**:
             - **`realmlp_cov115_c25` (5 seeds `101..=105`)**: **`183.00 [177..189]`** (**NEW ALL-TIME 5-SEED REAL FULL-MLP LEGAL RECORD**, `[101:187, 102:185, 103:177, 104:177, 105:189]`, **`nds=62.00`** all-time lowest, `wide=22.8`, `nar=7.2`, `653.0s` — `-1.20` pcs over `bc4 184.20` and `-0.80` pcs faster/stronger than `prescreen 183.80`!).
             - `realmlp_cov130` (10 seeds `101..=110`): `185.90 [177..193]` (`104:177, 109:182, 110:188`); `cov130_c0` (5 seeds): `184.20 [173..191]` (`103:173`); `cov130_nar130`: `184.80`; `cov145`: `185.40`.
-          - **Colab Run #4 (10-seed `realmlp_cov115` record verification + 40-seed Legal PB/distribution audit, ~42m on 8-core Colab)**:
-            - Part 1 (~20m): Full 10-seed (`101..=110`) verification of `realmlp_cov115_c25` (targeting new `< 185.60` 10-seed record!).
-            - Part 2 (~22m): 40-seed (`101..=140`) fast `w=8, h=8, b=20` audit on `realmlp_cov115` to measure true 40-seed mean, variance, and current single-seed Legal PB distance to `<= 161`.
+          - **Colab Run #4 (`realmlp_cov115` 10-seed + 40-seed Legal PB/Distribution Audit, 8-core Colab, 49m, `0.21` CU)**:
+            - `realmlp_cov115_w16_h8_b28_c25` (10 seeds `101..=110`): **`186.70 [177..197]`** (`101..=105: 183.00`, `106..=110: 190.40`, `nds=63.70, 1343.0s`) — confirms original `models/spatial_bc4.txt` (`185.60 [176..193]`) remains the all-time 10-seed Legal champion.
+            - `realmlp_cov115_w8_h8_b20_c25` (40 seeds `101..=140`): **`mean=190.38 [180..200]`** (`nds=64.97, cov=30.3, wide=29.9, <=166: 0, 1559.5s`) — establishes that the `64x32` handcrafted-feature MLP architecture has fully saturated at `~185` mean / `~173` single-seed PB (`OR_p20 = 176.00`).
+          - **Phase 2 Architectural Breakthrough — Deep 2D Conv ResNet (`16×10` Full Board + Ordered `next5` Queue) on Colab L4/A100 GPU**:
+            - Replace the 4-row `64×32` MLP with a PyTorch 2D ResNet trained on `500–1000+` `WG_ds` games (`10×` data, `50×` capacity, exact ordered `next5` queue + full `16×10` 2D board geometry) to break the `OR_p20 = 176.00` evaluator ceiling down toward `< 168` and drag Legal `p=5` into `< 175` → `<= 161` territory.
 
 ---
 
