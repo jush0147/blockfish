@@ -1,6 +1,5 @@
-RUNNING commit=e2575f3 heartbeat=2026-11-25T23:15:57Z cores=12
+RUNNING commit=e2575f3 heartbeat=2026-11-25T23:18:00Z cores=12
 --- tail results/colab_latest.log ---
-  [seed 102] pcs=172 top=1 | 0.9s
   [seed 103] pcs= 27 top=1 | 0.1s
   [seed 104] pcs= 30 top=1 | 0.2s
   [seed 105] pcs= 71 top=1 | 0.4s
@@ -15,3 +14,4 @@ SUMMARY mode=greedy n=10 mean=121.70 min=27 max=350 <=166:7 <=161:7 top=10 | 6.3
 === eval_resnet mode=pimc seeds=101..=105 (n=5) w=16 h=6 b=16 mpr=4 cvar=25 val_w=1.00 logit_w=0.50 ===
   [seed 101] pcs=297 top=0 | 220.4s
   [seed 102] pcs=255 top=0 | 187.3s
+  [seed 103] pcs=241 top=0 | 177.0s
