@@ -2,8 +2,8 @@
 set -euo pipefail
 
 echo "================================================================"
-echo " Colab Run #6d: Fast T4/L4 ResNet (C=64, B=4, 15 ep, bs=128)"
-echo "                FIX cudnn.benchmark=False (~50x faster!) + Eval"
+echo " Colab Run #6e: Fast T4/L4 ResNet (C=64, B=4, 15 ep, max-neg=11)"
+echo "                4x Negative Sampling + 2-min Live Log Sync + Eval"
 echo "================================================================"
 
 if ! nvidia-smi >/dev/null 2>&1; then
@@ -23,17 +23,17 @@ fi
 
 CKPT="/tmp/resnet_v1_c64b4.pt"
 echo ""
-echo "--- Training BlockfishResNet (C=64, B=4, 15 epochs, batch=128) ---"
+echo "--- Training BlockfishResNet (C=64, B=4, 15 epochs, batch=128, max-neg=11) ---"
 python3 scripts/train_resnet.py \
   --data "$DATA_GZ" \
   --channels 64 \
   --blocks 4 \
   --epochs 15 \
   --batch-size 128 \
+  --max-neg 11 \
   --lr 3e-3 \
   --wd 1e-4 \
   --val-weight 0.02 \
-  --push-status \
   --out "$CKPT"
 
 ls -lh "$CKPT"

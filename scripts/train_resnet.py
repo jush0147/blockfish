@@ -241,21 +241,61 @@ class BlockfishResNet(nn.Module):
         return logit, val
 
 
-def pack_batch_indices(data, dec_indices: np.ndarray):
-    """Build flat raw_u8 + scatter indices for zero-sync GPU padded Cross-Entropy."""
+def pack_batch_indices(data, dec_indices: np.ndarray, max_neg: int = 0, rng=None):
+    """Build flat raw_u8 + scatter indices for zero-sync GPU padded Cross-Entropy.
+    If max_neg > 0, samples 1 positive + up to max_neg random negatives per decision (~4x faster).
+    """
     offsets = data["offsets"]
     moves_raw = data["moves_raw"]
-    counts = (offsets[dec_indices + 1] - offsets[dec_indices]).astype(np.int64)
+    raw_counts = (offsets[dec_indices + 1] - offsets[dec_indices]).astype(np.int64)
     B = len(dec_indices)
-    M_max = int(counts.max())
-    total_m = int(counts.sum())
+    orig_targets = data["targets"][dec_indices]
+    rem_pcs = data["rem_pcs"][dec_indices]
 
+    if max_neg > 0:
+        cap = max_neg + 1
+        counts = np.minimum(raw_counts, cap)
+        M_max = int(counts.max())
+        total_m = int(counts.sum())
+        raw_cat = np.empty((total_m, MOVE_BYTES), dtype=np.uint8)
+        dec_id = np.empty(total_m, dtype=np.int64)
+        pos_in_dec = np.empty(total_m, dtype=np.int64)
+        star_flat = np.empty(B, dtype=np.int64)
+        targets = np.zeros(B, dtype=np.int64)
+
+        cur = 0
+        for b in range(B):
+            di = dec_indices[b]
+            s, e = int(offsets[di]), int(offsets[di + 1])
+            c = e - s
+            ti = int(orig_targets[b])
+            if c <= cap:
+                raw_cat[cur : cur + c] = moves_raw[s:e]
+                dec_id[cur : cur + c] = b
+                pos_in_dec[cur : cur + c] = np.arange(c, dtype=np.int64)
+                star_flat[b] = cur + ti
+                targets[b] = ti
+                cur += c
+            else:
+                # Place positive target at slot 0, sample max_neg distinct negatives
+                raw_cat[cur] = moves_raw[s + ti]
+                neg_idx = rng.choice(c - 1, size=max_neg, replace=False)
+                neg_idx = neg_idx + (neg_idx >= ti)
+                raw_cat[cur + 1 : cur + cap] = moves_raw[s + neg_idx]
+                dec_id[cur : cur + cap] = b
+                pos_in_dec[cur : cur + cap] = np.arange(cap, dtype=np.int64)
+                star_flat[b] = cur
+                targets[b] = 0
+                cur += cap
+        return raw_cat, dec_id, pos_in_dec, star_flat, targets, rem_pcs, B, M_max
+
+    M_max = int(raw_counts.max())
+    total_m = int(raw_counts.sum())
     raw_cat = np.empty((total_m, MOVE_BYTES), dtype=np.uint8)
     dec_id = np.empty(total_m, dtype=np.int64)
     pos_in_dec = np.empty(total_m, dtype=np.int64)
     star_flat = np.empty(B, dtype=np.int64)
-    targets = data["targets"][dec_indices]
-    rem_pcs = data["rem_pcs"][dec_indices]
+    targets = orig_targets
 
     cur = 0
     for b in range(B):
@@ -352,6 +392,7 @@ def main():
     ap.add_argument("--wd", type=float, default=1e-4)
     ap.add_argument("--val-weight", type=float, default=0.02)
     ap.add_argument("--seed", type=int, default=42)
+    ap.add_argument("--max-neg", type=int, default=11, help="Max negative moves per decision during training (0=all)")
     ap.add_argument("--out", default="/tmp/resnet_v1_c64b4.pt")
     ap.add_argument("--push-status", action="store_true", help="Push live epoch metrics to results/colab_status.txt")
     args = ap.parse_args()
@@ -412,7 +453,9 @@ def main():
 
         for bi, start in enumerate(range(0, len(perm), args.batch_size), start=1):
             idx = perm[start : start + args.batch_size]
-            raw_cat, dec_id, pos_in_dec, star_flat, targets_np, rem_np, B, M_max = pack_batch_indices(data, idx)
+            raw_cat, dec_id, pos_in_dec, star_flat, targets_np, rem_np, B, M_max = pack_batch_indices(
+                data, idx, max_neg=args.max_neg, rng=rng
+            )
             raw_t = torch.from_numpy(raw_cat).to(device, non_blocking=True)
             dec_id_t = torch.from_numpy(dec_id).to(device, non_blocking=True)
             pos_t = torch.from_numpy(pos_in_dec).to(device, non_blocking=True)
