@@ -1,4 +1,4 @@
-=== Part 1: Round ExIt-2 (Real-Hole CRN Spawns + V5-Only + Relative Legal PIMC Q-Advantage adv_w=0.30, 64 games, ~35m) ===
+=== Part 1: Round BC-8 (Scaled Pure Compact V5 64x32: 220 WG_ds B=1800 + 80 REAL-MLP DAgger, ~30m) ===
 [1m[33mwarning[0m[1m: unused build dependency `fontconfig`[0m
   [1m[94m--> [0mblockfish-client/Cargo.toml:29:1
    [1m[94m|[0m
@@ -97,34 +97,42 @@
    [1m[94m|[0m                                                         [92m++++[0m
 
 [1m[33mwarning[0m: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
-[1m[92m    Finished[0m `release` profile [optimized] target(s) in 7.57s
-[1m[92m     Running[0m `target/release/examples/train_exit --init models/spatial_bc4.txt --out models/spatial_exit2.txt --games 64 --worlds 6 --horizon 8 --width 20 --roots 10 --cvar 25 --v5-only --adv-w 0.30 --cal-w 0.08 --epochs 20 --seed-base 7000`
-=== Legal Expert Iteration (ExIt-2): models/spatial_bc4.txt (64x32) -> models/spatial_exit2.txt ===
-  games=64 w=6 h=8 b=20 r=10 cvar=25 v5_only=true adv_w=0.3 ep=20 tau=0.45 tau_q=0.35 cal_w=0.08 lr_lin=0.00025 lr_mlp=0.0004 drop=0.1 threads=4
-  [Self-Play   8/64] last_pcs=187 dt=500.9s
-  [Self-Play  16/64] last_pcs=192 dt=939.9s
-  [Self-Play  24/64] last_pcs=194 dt=1385.0s
-  [Self-Play  32/64] last_pcs=191 dt=1800.5s
-  [Self-Play  40/64] last_pcs=200 dt=2272.2s
-  [Self-Play  48/64] last_pcs=195 dt=2684.9s
-  [Self-Play  56/64] last_pcs=180 dt=3134.8s
-  [Self-Play  64/64] last_pcs=195 dt=3480.8s
-Phase 1 Legal Self-Play: 64 games (mean=188.89 top=0) -> 11930 decisions (10047 train, 1883 val), 556904 moves in 3480.8s
-  [INIT ep  0/20] val_soft_ce=1.4858 top1=67.0% top3=87.1% legal_v_mae=12.71
-  [ExIt ep  1/20] lr=0.00040 | val_soft_ce=1.4259 top1=67.2% top3=87.1% legal_v_mae=8.32
-  [ExIt ep  2/20] lr=0.00040 | val_soft_ce=1.4203 top1=67.1% top3=87.4% legal_v_mae=7.40
-  [ExIt ep  4/20] lr=0.00038 | val_soft_ce=1.4155 top1=66.5% top3=87.8% legal_v_mae=6.85
-  [ExIt ep  6/20] lr=0.00035 | val_soft_ce=1.4070 top1=66.9% top3=88.1% legal_v_mae=6.65
-  [ExIt ep  8/20] lr=0.00030 | val_soft_ce=1.4046 top1=66.4% top3=88.1% legal_v_mae=6.52
-  [ExIt ep 10/20] lr=0.00025 | val_soft_ce=1.4029 top1=66.1% top3=88.0% legal_v_mae=6.44
-  [ExIt ep 12/20] lr=0.00019 | val_soft_ce=1.3997 top1=66.5% top3=88.1% legal_v_mae=6.35
-  [ExIt ep 14/20] lr=0.00014 | val_soft_ce=1.4042 top1=66.2% top3=87.8% legal_v_mae=6.31
-  [ExIt ep 16/20] lr=0.00009 | val_soft_ce=1.4065 top1=66.2% top3=88.1% legal_v_mae=6.27
-  [ExIt ep 18/20] lr=0.00006 | val_soft_ce=1.4057 top1=66.1% top3=88.0% legal_v_mae=6.24
-  [ExIt ep 20/20] lr=0.00004 | val_soft_ce=1.4073 top1=65.7% top3=88.0% legal_v_mae=6.23
-Saved Legal ExIt model (val_soft_ce=1.3991, rem_g=1.707, ah=64x32) to models/spatial_exit2.txt
+[1m[33mwarning[0m[1m: field `seed` is never read[0m
+  [1m[94m--> [0mblockfish-engine/examples/train_bc.rs:23:5
+   [1m[94m|[0m
+[1m[94m22[0m [1m[94m|[0m struct ExactSeedData {
+   [1m[94m|[0m        [1m[94m-------------[0m [1m[94mfield in this struct[0m
+[1m[94m23[0m [1m[94m|[0m     seed: u64,
+   [1m[94m|[0m     [1m[33m^^^^[0m
+   [1m[94m|[0m
+   [1m[94m= [0m[1mnote[0m: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
 
-=== Part 2: Held-Out 5-Seed REAL FULL-MLP Legal Verification on models/spatial_exit2.txt (vs bc4 184.20, ~17m) ===
+[1m[33mwarning[0m: `blockfish` (example "train_bc") generated 1 warning
+[1m[92m    Finished[0m `release` profile [optimized] target(s) in 6.96s
+[1m[92m     Running[0m `target/release/examples/train_bc --out models/spatial_bc8.txt --games 220 --wg-beam 1800 --dagger-init models/spatial_bc4.txt --dagger-games 80 --dagger-mlp --v5-only --lin-epochs 14 --mlp-epochs 20 --wd-mlp 0.015 --dropout 0.15 --label-smooth 0.02 --eval-legal 0`
+=== Full-Action-Space Afterstate BC + Multi-Move Q-Advantage (WG_ds -> SpatialValueModel 64x32) ===
+  out=models/spatial_bc8.txt games=220 wg_beam=1800 dagger_games=80 dagger_mlp=true mixed_spawn=false real_spawn=false v5_only=true clean_q=false adv_w=0 lin_ep=14 mlp_ep=20 batch=32 tau=0.5 cal_w=0.025 lr_lin=0.008 lr_mlp=0.0008 wd=0.002 wd_mlp=0.015 drop=0.15 ls=0.02 threads=4
+Phase 1A (Clean WG_ds): 220 games (mean=166.84 pcs) -> 36485 decisions (0 with multi-move Soft-Q)
+Phase 1B (BC-DAgger mlp=true): 80 Legal games (mean=198.30 pcs) -> 6977 recovery decisions (4261 with multi-move Soft-Q)
+Phase 1 Total: 220 clean WG_ds (mean=166.84) + 80 DAgger -> 43462 decisions (36485 clean, 36958 train, 6504 val), 2009680 legal moves in 4012.0s
+  [LIN ep  1/14] lr=0.00800 | val_ce=1.0439 top1=69.4% top3=90.0% v_mae=1.81
+  [LIN ep  3/14] lr=0.00764 | val_ce=1.0148 top1=69.7% top3=90.1% v_mae=1.78
+  [LIN ep  6/14] lr=0.00596 | val_ce=1.0144 top1=69.5% top3=90.4% v_mae=1.76
+  [LIN ep  9/14] lr=0.00360 | val_ce=0.9911 top1=70.1% top3=90.4% v_mae=1.74
+  [LIN ep 12/14] lr=0.00159 | val_ce=0.9810 top1=70.3% top3=90.8% v_mae=1.74
+  [LIN ep 14/14] lr=0.00089 | val_ce=0.9765 top1=70.6% top3=90.9% v_mae=1.74
+Saved pure-linear BC model (val_ce=0.9725, rem_g=1.680) to models/spatial_bc8_lin.txt
+  [MLP ep  1/20] lr=0.00080 | val_ce=0.9756 top1=70.6% top3=90.7% v_mae=1.74
+  [MLP ep  3/20] lr=0.00078 | val_ce=0.9711 top1=70.7% top3=91.0% v_mae=1.72
+  [MLP ep  6/20] lr=0.00069 | val_ce=0.9540 top1=70.8% top3=91.3% v_mae=1.74
+  [MLP ep  9/20] lr=0.00055 | val_ce=0.9536 top1=70.6% top3=91.2% v_mae=1.74
+  [MLP ep 12/20] lr=0.00038 | val_ce=0.9559 top1=70.6% top3=91.2% v_mae=1.75
+  [MLP ep 15/20] lr=0.00023 | val_ce=0.9651 top1=70.8% top3=91.0% v_mae=1.75
+  [MLP ep 18/20] lr=0.00012 | val_ce=0.9710 top1=70.2% top3=91.0% v_mae=1.76
+  [MLP ep 20/20] lr=0.00008 | val_ce=0.9730 top1=70.2% top3=91.0% v_mae=1.77
+Saved full-MLP BC model (val_ce=0.9533, needs_pe=false) to models/spatial_bc8.txt
+
+=== Part 2: Held-Out 5-Seed REAL FULL-MLP Legal Benchmark on models/spatial_bc8.txt (vs bc4 184.20, ~17m) ===
 [1m[33mwarning[0m[1m: unused build dependency `fontconfig`[0m
   [1m[94m--> [0mblockfish-client/Cargo.toml:29:1
    [1m[94m|[0m
@@ -222,13 +230,13 @@ Saved Legal ExIt model (val_soft_ce=1.3991, rem_g=1.707, ah=64x32) to models/spa
 
 [1m[33mwarning[0m: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
 [1m[92m   Compiling[0m blockfish v0.1.0 (/home/runner/work/blockfish/blockfish/blockfish-engine)
-[1m[92m    Finished[0m `release` profile [optimized] target(s) in 2.08s
-[1m[92m     Running[0m `target/release/examples/bench_legal wg5_lin_sweep models/spatial_exit2.txt fullmlp_w16 5`
-=== Legal wg5_lin_sweep (models/spatial_exit2.txt, which=fullmlp_w16, n_seeds=5, full_has_mlp=true, ah=64x32) ===
-  [seed 102] pcs=186 nds=63 0ds=86 (cov=32 O=19 nar=11 wide=21 end= 3) cov_nxt=19.0% | 820.0s
-  [seed 104] pcs=194 nds=67 0ds=94 (cov=44 O=17 nar= 7 wide=24 end= 2) cov_nxt=18.0% | 878.5s
-  [seed 101] pcs=195 nds=67 0ds=95 (cov=39 O=20 nar= 6 wide=26 end= 4) cov_nxt=18.0% | 900.2s
-  [seed 103] pcs=190 nds=65 0ds=90 (cov=31 O=17 nar= 6 wide=32 end= 4) cov_nxt=17.0% | 913.2s
-  [seed 105] pcs=193 nds=66 0ds=93 (cov=26 O=21 nar=14 wide=27 end= 5) cov_nxt=15.0% | 1426.8s
-fullmlp_w16_h8_b28_cvar25  n= 5 mean=191.60 min=186 max=195 <=166: 0 top= 0 | nds=65.60 0ds=91.60 (cov=34.4 O=18.8 nar=8.8 wide=26.0 g0=0.0 end=3.6) cov_nxt=17.4% avg_c=13.2 | 1426.8s
-  seeds: [101:195, 102:186, 103:190, 104:194, 105:193]
+[1m[92m    Finished[0m `release` profile [optimized] target(s) in 1.72s
+[1m[92m     Running[0m `target/release/examples/bench_legal wg5_lin_sweep models/spatial_bc8.txt fullmlp_w16 5`
+=== Legal wg5_lin_sweep (models/spatial_bc8.txt, which=fullmlp_w16, n_seeds=5, full_has_mlp=true, ah=64x32) ===
+  [seed 101] pcs=187 nds=64 0ds=87 (cov=32 O=18 nar=11 wide=22 end= 4) cov_nxt=19.0% | 576.7s
+  [seed 102] pcs=183 nds=62 0ds=83 (cov=28 O=18 nar= 8 wide=25 end= 4) cov_nxt=17.0% | 592.7s
+  [seed 103] pcs=192 nds=66 0ds=92 (cov=33 O=16 nar= 7 wide=31 end= 5) cov_nxt=19.0% | 595.9s
+  [seed 104] pcs=191 nds=65 0ds=91 (cov=20 O=20 nar= 9 wide=39 end= 3) cov_nxt=12.0% | 610.9s
+  [seed 105] pcs=187 nds=64 0ds=87 (cov=32 O=19 nar=12 wide=20 end= 4) cov_nxt=16.0% | 955.4s
+fullmlp_w16_h8_b28_cvar25  n= 5 mean=188.00 min=183 max=192 <=166: 0 top= 0 | nds=64.20 0ds=88.00 (cov=29.0 O=18.2 nar=9.4 wide=27.4 g0=0.0 end=4.0) cov_nxt=16.6% avg_c=12.1 | 955.4s
+  seeds: [101:187, 102:183, 103:192, 104:191, 105:187]
