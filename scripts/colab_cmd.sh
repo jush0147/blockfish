@@ -2,8 +2,8 @@
 set -euo pipefail
 
 echo "================================================================"
-echo " Colab Run #6: Train FiLM+SE 2D Conv ResNet (C=96, B=6, 25 ep)"
-echo "               on 400 WG_ds games (dataset-v1) using GPU"
+echo " Colab Run #6b: Train FiLM+SE 2D Conv ResNet (C=96, B=6, 25 ep)"
+echo "                Zero-Sync GPU Unpacking + Vectorized Batched CE"
 echo "================================================================"
 
 if ! nvidia-smi >/dev/null 2>&1; then
@@ -40,4 +40,4 @@ echo ""
 echo "--- Uploading trained checkpoint to GitHub Release (tag: model-resnet-v1) ---"
 python3 scripts/upload_release_asset.py model-resnet-v1 /tmp/resnet_v1_c96b6.pt "Blockfish 2D Conv ResNet v1"
 
-echo "=== Colab Run #6 COMPLETE ==="
+echo "=== Colab Run #6b COMPLETE ==="
