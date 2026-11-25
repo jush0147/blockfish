@@ -1434,6 +1434,66 @@ fn main() {
                 m.lin_dense[4] -= 0.04 / m.dense_inv_std[4].max(1e-4);
             }));
         }
+        if which == "realmlp_cov130" {
+            let mut m = (*sm_full).clone();
+            for &j in &[23usize, 24, 25, 28, 36, 45, 70] {
+                m.lin_dense[j] *= 1.30;
+            }
+            m.prepare_fast();
+            let mut c = c_base.clone();
+            c.spatial_model = Some(Arc::new(m));
+            c.spatial_rerank_only = false;
+            c.beam_width = 80;
+            c.max_per_root = 16;
+            c.root_pimc_prescreen_worlds = 0;
+            c.root_pimc_roots = 12;
+            c.root_pimc_worlds = 16;
+            c.root_pimc_horizon = 8;
+            c.root_pimc_width = 28;
+            c.root_pimc_margin = 400;
+            c.root_pimc_cvar_pct = 25;
+            eval_seeds("realmlp_cov130_w16_h8_b28_c25", &seeds, &c);
+        }
+        if which == "realmlp_cov_sweep" {
+            let make_cal = |cvar: i64, mod_fn: &dyn Fn(&mut SpatialValueModel)| {
+                let mut m = (*sm_full).clone();
+                mod_fn(&mut m);
+                m.prepare_fast();
+                let mut c = c_base.clone();
+                c.spatial_model = Some(Arc::new(m));
+                c.spatial_rerank_only = false;
+                c.beam_width = 80;
+                c.max_per_root = 16;
+                c.root_pimc_prescreen_worlds = 0;
+                c.root_pimc_roots = 12;
+                c.root_pimc_worlds = 16;
+                c.root_pimc_horizon = 8;
+                c.root_pimc_width = 28;
+                c.root_pimc_margin = 400;
+                c.root_pimc_cvar_pct = cvar;
+                c
+            };
+            eval_seeds("realmlp_cov115_c25", &seeds, &make_cal(25, &|m| {
+                for &j in &[23usize, 24, 25, 28, 36, 45, 70] {
+                    m.lin_dense[j] *= 1.15;
+                }
+            }));
+            eval_seeds("realmlp_cov145_c25", &seeds, &make_cal(25, &|m| {
+                for &j in &[23usize, 24, 25, 28, 36, 45, 70] {
+                    m.lin_dense[j] *= 1.45;
+                }
+            }));
+            eval_seeds("realmlp_cov130_nar130_c25", &seeds, &make_cal(25, &|m| {
+                for &j in &[23usize, 24, 25, 28, 36, 45, 70, 31, 32, 39, 40, 51, 52] {
+                    m.lin_dense[j] *= 1.30;
+                }
+            }));
+            eval_seeds("realmlp_cov130_c0", &seeds, &make_cal(0, &|m| {
+                for &j in &[23usize, 24, 25, 28, 36, 45, 70] {
+                    m.lin_dense[j] *= 1.30;
+                }
+            }));
+        }
         return;
     }
 
