@@ -352,8 +352,22 @@ def main():
     ap.add_argument("--wd", type=float, default=1e-4)
     ap.add_argument("--val-weight", type=float, default=0.02)
     ap.add_argument("--seed", type=int, default=42)
-    ap.add_argument("--out", default="/tmp/resnet_v1_c96b6.pt")
+    ap.add_argument("--out", default="/tmp/resnet_v1_c64b4.pt")
+    ap.add_argument("--push-status", action="store_true", help="Push live epoch metrics to results/colab_status.txt")
     args = ap.parse_args()
+
+    def push_live_status(msg: str):
+        if not args.push_status:
+            return
+        try:
+            import subprocess
+            with open("results/colab_status.txt", "w") as f:
+                f.write(msg + "\n")
+            subprocess.run(["git", "add", "-f", "results/colab_status.txt"], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run(["git", "commit", "-m", f"colab: {msg} [skip ci]", "--quiet"], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run(["git", "push", "origin", "rescue/independent-validation-20261116", "--quiet"], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except Exception:
+            pass
 
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
@@ -383,6 +397,7 @@ def main():
     os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
     best_val_ce = float("inf")
     rng = np.random.default_rng(args.seed)
+    total_batches = (len(train_idx) + args.batch_size - 1) // args.batch_size
 
     for ep in range(1, args.epochs + 1):
         t0 = time.time()
@@ -393,7 +408,7 @@ def main():
         tr_c1 = torch.zeros((), device=device, dtype=torch.int64)
         tr_n = 0
 
-        for start in range(0, len(perm), args.batch_size):
+        for bi, start in enumerate(range(0, len(perm), args.batch_size), start=1):
             idx = perm[start : start + args.batch_size]
             raw_cat, dec_id, pos_in_dec, star_flat, targets_np, rem_np, B, M_max = pack_batch_indices(data, idx)
             raw_t = torch.from_numpy(raw_cat).to(device, non_blocking=True)
@@ -420,6 +435,11 @@ def main():
             tr_vmae += vmae * B
             tr_c1 += c1
             tr_n += B
+            if ep == 1 and bi % 150 == 0:
+                print(
+                    f"  [ep 1 | batch {bi}/{total_batches} | {time.time()-t0:.1f}s | tr_ce={(tr_ce/tr_n).item():.4f}]",
+                    flush=True,
+                )
 
         sched.step()
         val_ce, val_vmae, val_top1, val_top3 = evaluate(
@@ -445,13 +465,15 @@ def main():
                 args.out,
             )
             marker = " *BEST*"
-        print(
+        line = (
             f"ep {ep:2d}/{args.epochs} | lr={sched.get_last_lr()[0]:.5f} | "
             f"tr_ce={(tr_ce/tr_n).item():.4f} tr_top1={100.0*tr_c1.item()/tr_n:5.2f}% tr_vmae={(tr_vmae/tr_n).item():4.2f} | "
             f"val_ce={val_ce:.4f} val_top1={val_top1:5.2f}% val_top3={val_top3:5.2f}% val_vmae={val_vmae:4.2f} | "
-            f"{dt:.1f}s{marker}",
-            flush=True,
+            f"{dt:.1f}s{marker}"
         )
+        print(line, flush=True)
+        if ep == 1 or ep % 3 == 0 or ep == args.epochs:
+            push_live_status(f"ep {ep}/{args.epochs} val_ce={val_ce:.4f} top1={val_top1:.1f}% vmae={val_vmae:.2f} ({dt:.1f}s)")
 
     print(f"DONE! Best val_ce={best_val_ce:.4f} saved to {args.out}", flush=True)
 
