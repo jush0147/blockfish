@@ -1,8 +1,5 @@
-RUNNING commit=e2575f3 heartbeat=2026-11-25T23:01:41Z cores=12
+RUNNING commit=e2575f3 heartbeat=2026-11-25T23:03:43Z cores=12
 --- tail results/colab_latest.log ---
-Device: cuda | amp_dtype=torch.bfloat16
-GPU: NVIDIA L4
-Loading /tmp/wg_ds_v1_400g.bin.gz: 400 games, 66897 decisions (136.8 MB raw)...
 Loaded 3,090,045 moves in 0.72s (train_decs=60,215, val_decs=6,682)
 BlockfishResNet(C=64, B=4) | params=383,618
   [ep 1 | batch 150/471 | 11.1s | tr_ce=0.5188]
@@ -15,3 +12,6 @@ ep  4/15 | lr=0.00251 | tr_ce=0.3467 tr_top1=88.11% tr_vmae=2.82 | val_ce=0.8787
 ep  5/15 | lr=0.00227 | tr_ce=0.3343 tr_top1=88.66% tr_vmae=2.63 | val_ce=0.8782 val_top1=72.43% val_top3=92.49% val_vmae=3.23 | 32.0s
 ep  6/15 | lr=0.00198 | tr_ce=0.3280 tr_top1=88.73% tr_vmae=2.50 | val_ce=0.8490 val_top1=73.18% val_top3=92.82% val_vmae=4.11 | 32.0s *BEST*
 ep  7/15 | lr=0.00168 | tr_ce=0.3190 tr_top1=88.89% tr_vmae=2.29 | val_ce=0.8425 val_top1=73.09% val_top3=93.06% val_vmae=2.09 | 32.0s *BEST*
+ep  8/15 | lr=0.00138 | tr_ce=0.3111 tr_top1=89.25% tr_vmae=2.05 | val_ce=0.8361 val_top1=73.06% val_top3=93.15% val_vmae=2.06 | 32.0s *BEST*
+ep  9/15 | lr=0.00108 | tr_ce=0.3045 tr_top1=89.42% tr_vmae=1.96 | val_ce=0.8316 val_top1=73.23% val_top3=93.56% val_vmae=2.11 | 32.0s *BEST*
+ep 10/15 | lr=0.00080 | tr_ce=0.2941 tr_top1=89.61% tr_vmae=1.89 | val_ce=0.8238 val_top1=73.87% val_top3=93.48% val_vmae=2.13 | 32.0s *BEST*
