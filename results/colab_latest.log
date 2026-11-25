@@ -1,4 +1,4 @@
-=== Colab Run #3 Part 1: 10-Seed (101..=110) REAL FULL-MLP Verification of realmlp_cov130 (vs bc4 185.60, ~18m) ===
+=== Colab Run #4 Part 1: 10-Seed (101..=110) REAL FULL-MLP Verification of NEW 5-Seed Champion realmlp_cov115 (vs 185.60, ~20m) ===
 Hardware: 8 CPU cores
 warning: unused build dependency `fontconfig`
   --> blockfish-client/Cargo.toml:29:1
@@ -9,7 +9,72 @@ warning: unused build dependency `fontconfig`
    = note: `cargo::unused_dependencies` is set to `warn` by default
 help: consider removing the dependency on `fontconfig`
 warning: `blockfish-client` (manifest) generated 1 warning
+    Updating crates.io index
+ Downloading crates ...
+  Downloaded argh v0.1.4
+  Downloaded autocfg v1.0.1
+  Downloaded cfg-if v0.1.10
+  Downloaded red_union_find v0.2.5
+  Downloaded unicode-segmentation v1.7.1
+  Downloaded rand_chacha v0.2.2
+  Downloaded itoa v0.4.6
+  Downloaded rand_pcg v0.2.1
+  Downloaded ppv-lite86 v0.2.10
+  Downloaded signal-hook-registry v1.2.2
+  Downloaded unicode-xid v0.2.1
+  Downloaded getrandom v0.1.15
+  Downloaded num-integer v0.1.44
+  Downloaded rand_core v0.5.1
+  Downloaded thiserror-impl v1.0.22
+  Downloaded log v0.4.11
+  Downloaded proc-macro2 v1.0.24
+  Downloaded quote v1.0.7
+  Downloaded serde_derive v1.0.118
+  Downloaded heck v0.3.1
+  Downloaded num-traits v0.2.14
+  Downloaded ryu v1.0.5
+  Downloaded serde v1.0.118
+  Downloaded syn v1.0.48
+  Downloaded rand v0.7.3
+  Downloaded serde_json v1.0.60
+  Downloaded libc v0.2.119
+  Downloaded argh_derive v0.1.4
+  Downloaded thiserror v1.0.22
+  Downloaded argh_shared v0.1.4
+  Downloaded signal-hook v0.2.2
+   Compiling proc-macro2 v1.0.24
+   Compiling unicode-xid v0.2.1
+   Compiling libc v0.2.119
+   Compiling syn v1.0.48
+   Compiling cfg-if v0.1.10
+   Compiling getrandom v0.1.15
+   Compiling autocfg v1.0.1
+   Compiling serde_derive v1.0.118
+   Compiling serde v1.0.118
+   Compiling ryu v1.0.5
+   Compiling ppv-lite86 v0.2.10
+   Compiling unicode-segmentation v1.7.1
+   Compiling serde_json v1.0.60
+   Compiling argh_shared v0.1.4
+   Compiling itoa v0.4.6
+   Compiling num-traits v0.2.14
+   Compiling num-integer v0.1.44
+   Compiling log v0.4.11
+   Compiling heck v0.3.1
    Compiling blockfish v0.1.0 (/content/blockfish/blockfish-engine)
+   Compiling quote v1.0.7
+   Compiling signal-hook-registry v1.2.2
+   Compiling rand_core v0.5.1
+   Compiling signal-hook v0.2.2
+   Compiling rand_chacha v0.2.2
+   Compiling rand_pcg v0.2.1
+   Compiling rand v0.7.3
+   Compiling red_union_find v0.2.5
+   Compiling argh_derive v0.1.4
+   Compiling thiserror-impl v1.0.22
+   Compiling thiserror v1.0.22
+   Compiling argh v0.1.4
+   Compiling block-stacker v0.1.0 (/content/blockfish/block-stacker)
 warning: unused imports: `Input` and `place::PlaceFinder`
  --> blockfish-engine/src/ai/fast.rs:2:5
   |
@@ -97,23 +162,23 @@ help: use `'_` for type paths
    |                                                         ++++
 
 warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
-    Finished `release` profile [optimized] target(s) in 8.69s
-     Running `target/release/examples/bench_legal wg5_lin_sweep models/spatial_bc4.txt realmlp_cov130 10`
-=== Legal wg5_lin_sweep (models/spatial_bc4.txt, which=realmlp_cov130, n_seeds=10, full_has_mlp=true, ah=64x32) ===
-  [seed 104] pcs=177 nds=59 0ds=77 (cov=27 O=18 nar= 5 wide=24 end= 3) cov_nxt=14.0% | 799.3s
-  [seed 108] pcs=190 nds=65 0ds=90 (cov=18 O=24 nar= 7 wide=39 end= 2) cov_nxt=10.0% | 821.0s
-  [seed 102] pcs=184 nds=63 0ds=84 (cov=31 O=17 nar=10 wide=23 end= 3) cov_nxt=18.0% | 832.8s
-  [seed 107] pcs=185 nds=63 0ds=85 (cov=32 O=19 nar= 6 wide=25 end= 3) cov_nxt=19.0% | 849.2s
-  [seed 105] pcs=187 nds=63 0ds=87 (cov=32 O=19 nar= 9 wide=23 end= 4) cov_nxt=20.0% | 867.7s
-  [seed 103] pcs=186 nds=63 0ds=86 (cov=33 O=18 nar= 5 wide=26 end= 4) cov_nxt=19.0% | 878.6s
-  [seed 101] pcs=187 nds=64 0ds=87 (cov=33 O=19 nar= 4 wide=26 end= 5) cov_nxt=22.0% | 910.5s
-  [seed 106] pcs=193 nds=66 0ds=93 (cov=26 O=22 nar= 8 wide=32 end= 5) cov_nxt=16.0% | 921.8s
-  [seed 109] pcs=182 nds=62 0ds=82 (cov=29 O=19 nar= 5 wide=25 end= 4) cov_nxt=14.0% | 1280.9s
-  [seed 110] pcs=188 nds=64 0ds=88 (cov=40 O=13 nar= 8 wide=22 end= 5) cov_nxt=22.0% | 1347.0s
-realmlp_cov130_w16_h8_b28_c25 n=10 mean=185.90 min=177 max=193 <=166: 0 top= 0 | nds=63.20 0ds=85.90 (cov=30.1 O=18.8 nar=6.7 wide=26.5 g0=0.0 end=3.8) cov_nxt=17.4% avg_c=12.3 | 1347.0s
-  seeds: [101:187, 102:184, 103:186, 104:177, 105:187, 106:193, 107:185, 108:190, 109:182, 110:188]
+    Finished `release` profile [optimized] target(s) in 19.42s
+     Running `target/release/examples/bench_legal wg5_lin_sweep models/spatial_bc4.txt realmlp_cov115 10`
+=== Legal wg5_lin_sweep (models/spatial_bc4.txt, which=realmlp_cov115, n_seeds=10, full_has_mlp=true, ah=64x32) ===
+  [seed 104] pcs=177 nds=59 0ds=77 (cov=27 O=18 nar= 5 wide=24 end= 3) cov_nxt=14.0% | 804.6s
+  [seed 103] pcs=177 nds=60 0ds=77 (cov=27 O=18 nar= 8 wide=17 end= 7) cov_nxt=12.0% | 812.2s
+  [seed 106] pcs=191 nds=66 0ds=91 (cov=26 O=24 nar=10 wide=27 end= 4) cov_nxt=15.0% | 846.5s
+  [seed 102] pcs=185 nds=62 0ds=85 (cov=34 O=18 nar= 8 wide=19 end= 6) cov_nxt=16.0% | 855.3s
+  [seed 107] pcs=185 nds=63 0ds=85 (cov=32 O=17 nar= 9 wide=21 end= 6) cov_nxt=18.0% | 864.7s
+  [seed 108] pcs=197 nds=68 0ds=97 (cov=25 O=19 nar= 6 wide=44 end= 3) cov_nxt=14.0% | 884.1s
+  [seed 105] pcs=189 nds=65 0ds=89 (cov=30 O=19 nar= 8 wide=30 end= 2) cov_nxt=19.0% | 889.0s
+  [seed 101] pcs=187 nds=64 0ds=87 (cov=34 O=17 nar= 7 wide=24 end= 5) cov_nxt=23.0% | 897.3s
+  [seed 109] pcs=187 nds=64 0ds=87 (cov=29 O=19 nar=10 wide=24 end= 5) cov_nxt=18.0% | 1325.1s
+  [seed 110] pcs=192 nds=66 0ds=92 (cov=35 O=18 nar= 7 wide=28 end= 4) cov_nxt=21.0% | 1343.0s
+realmlp_cov115_w16_h8_b28_c25 n=10 mean=186.70 min=177 max=197 <=166: 0 top= 0 | nds=63.70 0ds=86.70 (cov=29.9 O=18.7 nar=7.8 wide=25.8 g0=0.0 end=4.5) cov_nxt=17.0% avg_c=12.2 | 1343.0s
+  seeds: [101:187, 102:185, 103:177, 104:177, 105:189, 106:191, 107:185, 108:197, 109:187, 110:192]
 
-=== Colab Run #3 Part 2: Fine cov/nar Calibration Sweep (cov115, cov145, cov130_nar130, cov130_c0, 5 seeds, ~26m) ===
+=== Colab Run #4 Part 2: 40-Seed (101..=140) Legal PB & Distribution Audit (realmlp_cov115 w=8 h=8 b=20, ~22m) ===
 warning: unused build dependency `fontconfig`
   --> blockfish-client/Cargo.toml:29:1
    |
@@ -211,33 +276,46 @@ help: use `'_` for type paths
 
 warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
     Finished `release` profile [optimized] target(s) in 0.06s
-     Running `target/release/examples/bench_legal wg5_lin_sweep models/spatial_bc4.txt realmlp_cov_sweep 5`
-=== Legal wg5_lin_sweep (models/spatial_bc4.txt, which=realmlp_cov_sweep, n_seeds=5, full_has_mlp=true, ah=64x32) ===
-  [seed 104] pcs=177 nds=59 0ds=77 (cov=27 O=18 nar= 5 wide=24 end= 3) cov_nxt=14.0% | 574.2s
-  [seed 103] pcs=177 nds=60 0ds=77 (cov=27 O=18 nar= 8 wide=17 end= 7) cov_nxt=12.0% | 582.9s
-  [seed 105] pcs=189 nds=65 0ds=89 (cov=30 O=19 nar= 8 wide=30 end= 2) cov_nxt=19.0% | 597.9s
-  [seed 102] pcs=185 nds=62 0ds=85 (cov=34 O=18 nar= 8 wide=19 end= 6) cov_nxt=16.0% | 607.6s
-  [seed 101] pcs=187 nds=64 0ds=87 (cov=34 O=17 nar= 7 wide=24 end= 5) cov_nxt=23.0% | 653.0s
-realmlp_cov115_c25         n= 5 mean=183.00 min=177 max=189 <=166: 0 top= 0 | nds=62.00 0ds=83.00 (cov=30.4 O=18.0 nar=7.2 wide=22.8 g0=0.0 end=4.6) cov_nxt=16.8% avg_c=12.1 | 653.0s
-  seeds: [101:187, 102:185, 103:177, 104:177, 105:189]
-  [seed 103] pcs=177 nds=60 0ds=77 (cov=28 O=17 nar= 8 wide=17 end= 7) cov_nxt=13.0% | 475.8s
-  [seed 104] pcs=188 nds=64 0ds=88 (cov=28 O=16 nar=13 wide=27 end= 4) cov_nxt=18.0% | 512.9s
-  [seed 101] pcs=188 nds=64 0ds=88 (cov=34 O=18 nar= 5 wide=25 end= 6) cov_nxt=20.0% | 602.9s
-  [seed 105] pcs=190 nds=65 0ds=90 (cov=37 O=19 nar= 5 wide=29 end= 0) cov_nxt=17.0% | 613.0s
-  [seed 102] pcs=184 nds=62 0ds=84 (cov=23 O=20 nar= 9 wide=29 end= 3) cov_nxt=15.0% | 654.7s
-realmlp_cov145_c25         n= 5 mean=185.40 min=177 max=190 <=166: 0 top= 0 | nds=63.00 0ds=85.40 (cov=30.0 O=18.0 nar=8.0 wide=25.4 g0=0.0 end=4.0) cov_nxt=16.6% avg_c=12.0 | 654.7s
-  seeds: [101:188, 102:184, 103:177, 104:188, 105:190]
-  [seed 103] pcs=177 nds=60 0ds=77 (cov=25 O=19 nar= 9 wide=17 end= 7) cov_nxt=12.0% | 522.1s
-  [seed 102] pcs=184 nds=62 0ds=84 (cov=24 O=20 nar= 8 wide=29 end= 3) cov_nxt=15.0% | 560.0s
-  [seed 101] pcs=187 nds=64 0ds=87 (cov=34 O=19 nar= 4 wide=26 end= 4) cov_nxt=22.0% | 596.8s
-  [seed 104] pcs=183 nds=62 0ds=83 (cov=29 O=19 nar= 7 wide=25 end= 3) cov_nxt=15.0% | 645.9s
-  [seed 105] pcs=193 nds=66 0ds=93 (cov=47 O=16 nar=10 wide=17 end= 3) cov_nxt=23.0% | 671.9s
-realmlp_cov130_nar130_c25  n= 5 mean=184.80 min=177 max=193 <=166: 0 top= 0 | nds=62.80 0ds=84.80 (cov=31.8 O=18.6 nar=7.6 wide=22.8 g0=0.0 end=4.0) cov_nxt=17.4% avg_c=12.1 | 671.9s
-  seeds: [101:187, 102:184, 103:177, 104:183, 105:193]
-  [seed 103] pcs=173 nds=58 0ds=73 (cov=27 O=16 nar= 6 wide=21 end= 3) cov_nxt=18.0% | 510.0s
-  [seed 102] pcs=185 nds=63 0ds=85 (cov=34 O=17 nar= 9 wide=24 end= 1) cov_nxt=16.0% | 602.6s
-  [seed 105] pcs=191 nds=65 0ds=91 (cov=35 O=18 nar= 9 wide=26 end= 3) cov_nxt=18.0% | 610.4s
-  [seed 104] pcs=188 nds=64 0ds=88 (cov=36 O=15 nar=12 wide=20 end= 5) cov_nxt=19.0% | 623.7s
-  [seed 101] pcs=184 nds=63 0ds=84 (cov=32 O=19 nar= 5 wide=25 end= 3) cov_nxt=20.0% | 631.4s
-realmlp_cov130_c0          n= 5 mean=184.20 min=173 max=191 <=166: 0 top= 0 | nds=62.60 0ds=84.20 (cov=32.8 O=17.0 nar=8.2 wide=23.2 g0=0.0 end=3.0) cov_nxt=18.2% avg_c=12.2 | 631.4s
-  seeds: [101:184, 102:185, 103:173, 104:188, 105:191]
+     Running `target/release/examples/bench_legal wg5_lin_sweep models/spatial_bc4.txt realmlp_cov115_fast 40`
+=== Legal wg5_lin_sweep (models/spatial_bc4.txt, which=realmlp_cov115_fast, n_seeds=40, full_has_mlp=true, ah=64x32) ===
+  [seed 104] pcs=188 nds=64 0ds=88 (cov=34 O=18 nar= 4 wide=28 end= 4) cov_nxt=17.0% | 271.1s
+  [seed 106] pcs=191 nds=65 0ds=91 (cov=34 O=21 nar= 9 wide=22 end= 5) cov_nxt=20.0% | 276.9s
+  [seed 102] pcs=188 nds=64 0ds=88 (cov=32 O=19 nar= 6 wide=27 end= 4) cov_nxt=19.0% | 285.9s
+  [seed 101] pcs=190 nds=65 0ds=90 (cov=32 O=18 nar= 9 wide=27 end= 4) cov_nxt=20.0% | 301.0s
+  [seed 108] pcs=198 nds=68 0ds=98 (cov=43 O=17 nar= 8 wide=28 end= 2) cov_nxt=15.0% | 303.1s
+  [seed 105] pcs=193 nds=66 0ds=93 (cov=36 O=16 nar= 9 wide=30 end= 2) cov_nxt=17.0% | 330.5s
+  [seed 107] pcs=190 nds=65 0ds=90 (cov=34 O=20 nar= 7 wide=27 end= 2) cov_nxt=14.0% | 334.0s
+  [seed 103] pcs=187 nds=63 0ds=87 (cov=28 O=20 nar= 7 wide=27 end= 5) cov_nxt=17.0% | 335.6s
+  [seed 112] pcs=180 nds=61 0ds=80 (cov=37 O=16 nar=10 wide=16 end= 1) cov_nxt=18.0% | 587.8s
+  [seed 114] pcs=188 nds=64 0ds=88 (cov=21 O=21 nar= 7 wide=35 end= 4) cov_nxt=14.0% | 595.8s
+  [seed 109] pcs=193 nds=66 0ds=93 (cov=34 O=16 nar= 5 wide=31 end= 7) cov_nxt=18.0% | 596.6s
+  [seed 115] pcs=193 nds=66 0ds=93 (cov=32 O=15 nar= 8 wide=34 end= 4) cov_nxt=17.0% | 611.6s
+  [seed 113] pcs=200 nds=69 0ds=100 (cov=30 O=21 nar=10 wide=33 end= 6) cov_nxt=16.0% | 612.4s
+  [seed 110] pcs=190 nds=65 0ds=90 (cov=28 O=20 nar= 7 wide=29 end= 6) cov_nxt=16.0% | 613.7s
+  [seed 111] pcs=200 nds=69 0ds=100 (cov=31 O=20 nar= 9 wide=37 end= 3) cov_nxt=14.0% | 620.8s
+  [seed 116] pcs=183 nds=62 0ds=83 (cov=29 O=20 nar= 7 wide=23 end= 4) cov_nxt=17.0% | 630.3s
+  [seed 121] pcs=186 nds=63 0ds=86 (cov=36 O=16 nar= 5 wide=27 end= 2) cov_nxt=20.0% | 866.4s
+  [seed 123] pcs=186 nds=63 0ds=86 (cov=35 O=15 nar=10 wide=24 end= 2) cov_nxt=16.0% | 874.4s
+  [seed 117] pcs=195 nds=67 0ds=95 (cov=29 O=23 nar=11 wide=30 end= 2) cov_nxt=13.0% | 886.9s
+  [seed 119] pcs=184 nds=62 0ds=84 (cov=26 O=17 nar= 5 wide=34 end= 2) cov_nxt=12.0% | 916.8s
+  [seed 120] pcs=192 nds=66 0ds=92 (cov=30 O=21 nar=11 wide=27 end= 3) cov_nxt=16.0% | 918.8s
+  [seed 122] pcs=188 nds=64 0ds=88 (cov=24 O=19 nar= 6 wide=35 end= 4) cov_nxt=15.0% | 927.5s
+  [seed 118] pcs=198 nds=68 0ds=98 (cov=33 O=17 nar= 4 wide=39 end= 5) cov_nxt=19.0% | 940.8s
+  [seed 124] pcs=200 nds=69 0ds=100 (cov=35 O=20 nar= 8 wide=33 end= 4) cov_nxt=18.0% | 982.1s
+  [seed 125] pcs=192 nds=66 0ds=92 (cov=26 O=20 nar=13 wide=29 end= 4) cov_nxt=15.0% | 1138.9s
+  [seed 126] pcs=190 nds=65 0ds=90 (cov=28 O=17 nar= 9 wide=35 end= 1) cov_nxt=14.0% | 1172.1s
+  [seed 129] pcs=193 nds=66 0ds=93 (cov=25 O=20 nar= 2 wide=44 end= 2) cov_nxt=16.0% | 1179.4s
+  [seed 127] pcs=183 nds=62 0ds=83 (cov=20 O=16 nar=10 wide=29 end= 8) cov_nxt= 7.0% | 1183.2s
+  [seed 128] pcs=191 nds=66 0ds=91 (cov=32 O=17 nar= 8 wide=27 end= 7) cov_nxt=19.0% | 1227.1s
+  [seed 130] pcs=183 nds=62 0ds=83 (cov=19 O=17 nar=10 wide=34 end= 3) cov_nxt=17.0% | 1240.7s
+  [seed 131] pcs=192 nds=65 0ds=92 (cov=27 O=19 nar=11 wide=29 end= 6) cov_nxt=15.0% | 1265.9s
+  [seed 132] pcs=187 nds=64 0ds=87 (cov=22 O=20 nar= 8 wide=33 end= 4) cov_nxt=10.0% | 1271.3s
+  [seed 133] pcs=197 nds=67 0ds=97 (cov=36 O=19 nar= 7 wide=31 end= 4) cov_nxt=23.0% | 1486.7s
+  [seed 134] pcs=190 nds=65 0ds=90 (cov=32 O=18 nar=11 wide=25 end= 4) cov_nxt=20.0% | 1495.1s
+  [seed 136] pcs=195 nds=67 0ds=95 (cov=25 O=21 nar= 7 wide=37 end= 5) cov_nxt=14.0% | 1499.2s
+  [seed 137] pcs=184 nds=61 0ds=84 (cov=28 O=19 nar= 7 wide=23 end= 7) cov_nxt=18.0% | 1507.3s
+  [seed 135] pcs=190 nds=64 0ds=90 (cov=28 O=19 nar= 7 wide=31 end= 5) cov_nxt=17.0% | 1508.8s
+  [seed 139] pcs=180 nds=62 0ds=80 (cov=29 O=15 nar= 4 wide=27 end= 5) cov_nxt=20.0% | 1528.0s
+  [seed 138] pcs=191 nds=65 0ds=91 (cov=29 O=20 nar= 9 wide=30 end= 3) cov_nxt=14.0% | 1540.4s
+  [seed 140] pcs=196 nds=68 0ds=96 (cov=43 O=14 nar= 6 wide=28 end= 5) cov_nxt=20.0% | 1559.5s
+realmlp_cov115_w8_h8_b20_c25 n=40 mean=190.38 min=180 max=200 <=166: 0 top= 0 | nds=64.97 0ds=90.38 (cov=30.3 O=18.4 nar=7.8 wide=29.9 g0=0.0 end=4.0) cov_nxt=16.4% avg_c=12.3 | 1559.5s
