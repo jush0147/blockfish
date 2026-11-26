@@ -1,1 +1,17 @@
-RUNNING commit=dad8b80 started=2026-11-26T10:21:44Z cores=8
+RUNNING commit=dad8b80 heartbeat=2026-11-26T10:23:45Z cores=8
+--- tail results/colab_latest.log ---
+   |
+   = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+   = note: `#[warn(mismatched_lifetime_syntaxes)]` on by default
+help: use `'_` for type paths
+   |
+16 |     pub fn shape(&self, color: Color) -> Option<ShapeRef<'_>> {
+   |                                                         ++++
+
+warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
+    Finished `release` profile [optimized] target(s) in 19.50s
+
+--- Generating 64 train (6001..6065) + 8 val (301..309) strong root_pimc Legal RL games ---
+=== export_legal_rl (BFRL0001) ===
+  model=models/spatial_bc4.txt | train=64 (6001..6065), val=8 (301..309) | beam=32 pimc=(w=6 h=7 b=16) eps=5% threads=8
+  out=/tmp/legal_rl_v2_pimc72g.bin
