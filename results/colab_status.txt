@@ -1,7 +1,5 @@
-RUNNING commit=f8e418fc heartbeat=2026-11-26T13:46:51Z cores=12
+RUNNING commit=f8e418fc heartbeat=2026-11-26T13:48:53Z cores=12
 --- tail results/colab_latest.log ---
-resnet_eval_server READY on /tmp/blockfish_resnet.sock | device=cuda (torch.bfloat16) | C=64 B=4 val_ce=14.8770
-
 >>> [1/2] SAME-BINARY FULL-MLP BASE (spatial_bc4, delta_w=0.0, 5 seeds 101..=105):
 === eval_resnet mode=pimc_v2 seeds=101..=105 (n=5) w=12 h=8 b=20 k=8 l=4 cvar=25 hybrid=true delta_w=0.00 full_mlp=true ===
   [seed 101] pcs=196 top=0 | 62.2s
@@ -15,3 +13,5 @@ SUMMARY mode=pimc_v2 n=5 ok=5/5 mean=195.20 min=188 max=205 <=166:0 <=161:0 top=
 === eval_resnet mode=pimc_v2 seeds=101..=105 (n=5) w=12 h=8 b=20 k=8 l=4 cvar=25 hybrid=true delta_w=0.35 full_mlp=true ===
   [seed 101] pcs=200 top=0 | 67.2s
   [seed 102] pcs=196 top=0 | 63.0s
+  [seed 103] pcs=203 top=0 | 67.8s
+  [seed 104] pcs=204 top=0 | 65.1s
