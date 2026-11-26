@@ -1,4 +1,4 @@
-RUNNING commit=3d84ecb3 heartbeat=2026-11-26T15:27:32Z cores=8
+RUNNING commit=3d84ecb3 heartbeat=2026-11-26T15:29:33Z cores=8
 --- tail results/colab_latest.log ---
   seeds: [101:180, 102:184, 103:176, 104:188, 105:193]
   [seed 105] pcs=185 nds=63 0ds=85 (cov=32 O=16 nar= 7 wide=24 end= 6) cov_nxt=17.0% | 1076.0s
