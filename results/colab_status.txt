@@ -1,8 +1,5 @@
-RUNNING commit=93f305a heartbeat=2026-11-26T00:35:43Z cores=12
+RUNNING commit=93f305a heartbeat=2026-11-26T00:37:45Z cores=12
 --- tail results/colab_latest.log ---
---- Downloading wg_ds_v1_400g.bin.gz from GitHub Release dataset-v1 ---
-Downloading 'wg_ds_v1_400g.bin.gz' from release 'dataset-v1' -> /tmp/wg_ds_v1_400g.bin.gz...
-DOWNLOAD SUCCESS: /tmp/wg_ds_v1_400g.bin.gz (17.51 MB)
 
 --- Training Unified BlockfishResNet v2 (C=64, B=4, 20 ep, bs=128, max-neg=15) ---
 Device: cuda | amp_dtype=torch.bfloat16
@@ -15,3 +12,6 @@ BlockfishResNet(C=64, B=4, unified=True, temp=0.4) | params=367,105
   [ep 1 | batch 450/471 | 39.8s | tr_ce=0.5212]
 ep  1/20 | lr=0.00298 | tr_ce=0.5186 tr_top1=83.09% tr_vmae=1.86 | val_ce=0.9015 val_top1=72.13% val_top3=91.89% val_vmae=1.95 | 45.3s *BEST*
 ep  2/20 | lr=0.00293 | tr_ce=0.4494 tr_top1=84.69% tr_vmae=1.78 | val_ce=0.8902 val_top1=72.24% val_top3=92.65% val_vmae=1.91 | 42.7s *BEST*
+ep  3/20 | lr=0.00284 | tr_ce=0.4339 tr_top1=85.06% tr_vmae=1.77 | val_ce=0.8442 val_top1=73.23% val_top3=92.85% val_vmae=1.92 | 42.9s *BEST*
+ep  4/20 | lr=0.00272 | tr_ce=0.4151 tr_top1=85.68% tr_vmae=1.77 | val_ce=0.8504 val_top1=72.96% val_top3=92.92% val_vmae=1.92 | 43.2s
+ep  5/20 | lr=0.00257 | tr_ce=0.4100 tr_top1=85.71% tr_vmae=1.76 | val_ce=0.8340 val_top1=73.72% val_top3=92.94% val_vmae=1.92 | 43.4s *BEST*
