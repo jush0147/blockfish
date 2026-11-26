@@ -231,6 +231,10 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
             - Strict same-binary results: `fullmlp_base_w16_h8_b28 = 184.20 [176..193] (cov=25.0)` vs `opaque_d1 = 186.20 (cov=29.6)` vs `opaque_d2 = 188.60 (cov=34.6)` vs **`fullmlp_w24_h9_b36 = 186.40 [183..191] (cov=30.2)`**.
             - **Physics caveat on `opaque_d1/d2`**: `OPAQUE_GARBAGE_ROW` (`0xFBFF`) has no hole and is never materialized into a real clearable garbage row during `root_pimc_eval_world`, altering simulated physics rather than cleanly isolating Strategy Fusion.
             - **Key finding on `w24_h9_b36`**: Scaling search budget (`w=24, h=9, b=36, f=12`) worsened Legal play by `+2.20` pcs (`cov: 25.0 -> 30.2`), confirming `spatial_bc4.txt` + standard PIMC is saturated and motivating large-scale pure-Rust Legal `p=5` `TD(λ)` RL directly on `SpatialValueModel` (`train_spatial_td.rs`).
+          - **Colab Run #16-CPU (`train_spatial_td.rs`, 2,500 Legal `p=5` games, 5 iters × 500g, 8-core CPU)**:
+            - Fixed 60-seed greedy `beam=24` validation (`seeds 1..=60`, `top=0` on all iters): `Iter 0 BASE (spatial_bc4) = 203.10 [182..219]` → `Iter 1 = 206.37` → `Iter 2 = 206.72` → `Iter 3 = 208.43` → `Iter 4 = 212.93` → `Iter 5 = 212.25` (best checkpoint stayed `Iter 0`, `fullmlp_w16` same-binary A/B `184.20` vs `184.20`).
+            - **Metric caveats**: `train_spatial_td.rs`'s `cov_turns` counts all turns where the top garbage hole is covered (not restricted to `ds == 0` like `bench_legal.rs`'s `cov`), and per-iter `val_mc_rmse` (`22.059 -> 20.139`) is evaluated on each iteration's own policy trajectory distribution rather than a fixed state set.
+            - **Conclusion**: Absolute scalar `TD(λ)` regression on single-trajectory returns washes out `0.1`-piece sibling move rankings; pivoting to **100% Legal-Physics 2-Ply Shared-Prefix Expectimax** (`d2_top_k`) and/or **CRN Antithetic ES** directly on Legal `p=5` piece counts.
 
 ---
 

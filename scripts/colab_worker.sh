@@ -58,7 +58,7 @@ while true; do
         git add -f results/colab_status.txt 2>/dev/null || true
         if ! git diff --cached --quiet 2>/dev/null; then
           git commit -m "colab: live status (${SHORT_SHA}) [skip ci]" --quiet 2>/dev/null || true
-          git pull --rebase origin "$BRANCH" --quiet 2>/dev/null || true
+          git pull --rebase --autostash origin "$BRANCH" --quiet 2>/dev/null || true
           git push origin "$BRANCH" --quiet 2>/dev/null || true
         fi
       done

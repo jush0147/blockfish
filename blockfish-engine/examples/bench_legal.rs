@@ -2780,4 +2780,57 @@ fn main() {
         }
         return;
     }
+    if mode == "d2_expectimax" {
+        let n_seeds: u64 = std::env::args()
+            .nth(2)
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(5);
+        let model_path = std::env::args()
+            .nth(3)
+            .unwrap_or_else(|| "models/spatial_bc4.txt".to_string());
+        let seeds: Vec<u64> = (101..(101 + n_seeds)).collect();
+
+        let mut sm_val = SpatialValueModel::load_from_file(&model_path)
+            .expect("load spatial model for d2_expectimax");
+        sm_val.prepare_fast();
+
+        let mut sm_cov115 = sm_val.clone();
+        for &j in &[23usize, 24, 25, 28, 36, 45, 70] {
+            sm_cov115.lin_dense[j] *= 1.15;
+        }
+        sm_cov115.prepare_fast();
+
+        let mut c = BeamConfig::default();
+        c.spatial_model = Some(Arc::new(sm_val));
+        c.rollout_top_k = 0;
+        c.beam_width = 80;
+        c.max_per_root = 16;
+        c.bag_det_extend = true;
+        c.endgame_solver = true;
+        c.simulate_cheese_spawn = true;
+        c.spatial_rerank_only = false; // REAL FULL MLP
+        c.spatial_no_pe_internal = false;
+        c.root_pimc_prescreen_worlds = 0;
+        c.root_pimc_roots = 32;
+        c.root_pimc_fine_roots = 10;
+        c.root_pimc_worlds = 16;
+        c.root_pimc_horizon = 8;
+        c.root_pimc_width = 28;
+        c.root_pimc_margin = 500;
+        c.root_pimc_weight_pct = 100;
+        c.root_pimc_steady_g4 = false;
+        c.root_pimc_cvar_pct = 25;
+
+        eval_seeds("fullmlp_base_w16_h8_b28", &seeds, &c);
+
+        let mut c_d2k4 = c.clone();
+        c_d2k4.root_pimc_d2_top_k = 4;
+        eval_seeds("fullmlp_d2k4_w16_h8_b28", &seeds, &c_d2k4);
+
+        let mut c_d2k6_cov = c.clone();
+        c_d2k6_cov.spatial_model = Some(Arc::new(sm_cov115));
+        c_d2k6_cov.root_pimc_d2_top_k = 6;
+        eval_seeds("fullmlp_d2k6_cov115_w16_h8_b28", &seeds, &c_d2k6_cov);
+        return;
+    }
 }
