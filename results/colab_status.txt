@@ -1,1 +1,17 @@
-RUNNING commit=cf3ac09 started=2026-11-26T02:50:51Z cores=8
+RUNNING commit=cf3ac09 heartbeat=2026-11-26T02:52:52Z cores=8
+--- tail results/colab_latest.log ---
+   |
+   = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+   = note: `#[warn(mismatched_lifetime_syntaxes)]` on by default
+help: use `'_` for type paths
+   |
+16 |     pub fn shape(&self, color: Color) -> Option<ShapeRef<'_>> {
+   |                                                         ++++
+
+warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
+    Finished `release` profile [optimized] target(s) in 20.04s
+
+--- Generating 50 train (2001..2051) + 6 val (201..207) Legal p=5 games ---
+=== export_legal_selfplay (BFDS0002) ===
+  model=models/spatial_bc4.txt | train=50 (2001..2051), val=6 (201..207) | w=6 h=7 b=16 threads=8
+  out=/tmp/legal_sp_v1_56g.bin
