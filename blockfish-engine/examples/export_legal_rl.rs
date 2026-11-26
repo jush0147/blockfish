@@ -125,6 +125,21 @@ fn make_fast_legal_cfg(sm: Arc<SpatialValueModel>, beam_w: usize) -> BeamConfig 
     c
 }
 
+/// Reconstruct the remaining 7-bag mask at index 0 of `vis_q` from `after_vis_mask`
+/// (exact same semantics as `bmasks[nqc]` in `eval_resnet.rs` and `bag_mask_at` in `export_dataset.rs`).
+fn bag_mask_at_head(vis_q: &[u8], after_vis_mask: u8) -> u8 {
+    let mut bm = if after_vis_mask == 0x7F { 0u8 } else { after_vis_mask };
+    for &p in vis_q.iter().rev() {
+        let bit = 1u8 << p;
+        if (bm & bit) != 0 {
+            bm = bit;
+        } else {
+            bm |= bit;
+        }
+    }
+    if bm == 0 { 0x7F } else { bm }
+}
+
 fn play_rl_game(
     seed: u64,
     is_val: bool,
@@ -144,6 +159,11 @@ fn play_rl_game(
     game_cfg.prng_seed = Some(seed);
     let mut stacker = Stacker::new(Ruleset::guideline().into(), game_cfg);
 
+    // Observe initial snapshot ONCE before the loop so BagTracker is never double-called!
+    if let Some(snap0) = stacker.snapshot() {
+        let _ = tracker.observe(snap0.hold, &snap0.queue);
+    }
+
     let mut ds_total = 0usize;
     let mut pieces = 0usize;
     let mut rng = seed.wrapping_mul(0x9E3779B97F4A7C15).wrapping_add(31);
@@ -154,7 +174,6 @@ fn play_rl_game(
             Some(s) => s,
             None => break,
         };
-        let after_vis_mask = tracker.observe(snap.hold, &snap.queue);
         let g = garbage_rows(&stacker);
         let rem_g = 100usize.saturating_sub(ds_total) as u16;
 
@@ -216,9 +235,10 @@ fn play_rl_game(
         ds_total += ds_c;
         pieces += 1;
 
-        // Record the EXACT realized post-spawn Legal afterstate (s_{t+1})!
+        // Observe the post-move snapshot ONCE and record its exact synchronized bag_mask!
         if ds_total < 100 {
             if let Some(snap_a) = stacker.snapshot() {
+                let after_vis_a = tracker.observe(snap_a.hold, &snap_a.queue);
                 let g_a = garbage_rows(&stacker);
                 let rem_g_a = 100usize.saturating_sub(ds_total) as u16;
                 let b_a = FastBoard::from_basic_matrix(&snap_a.matrix, g_a);
@@ -229,12 +249,13 @@ fn play_rl_game(
                     let av_a = avail_mask_5(held_a, &vis_a, 0);
                     let raw_bv = sm.evaluate_board_with_bag(&b_a, rem_g_a, in_h_a, av_a);
                     let base_v = ((raw_bv as f32) / 100.0).clamp(-50.0, 500.0);
+                    let bag_head = bag_mask_at_head(&vis_a, after_vis_a);
                     let raw44 = pack_raw44(
                         &b_a,
                         rem_g_a,
                         held_a,
                         next5_at(&vis_a, 0),
-                        after_vis_mask,
+                        bag_head,
                         lines_c.min(4) as u8,
                         ds_c.min(4) as u8,
                     );
