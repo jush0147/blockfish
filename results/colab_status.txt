@@ -1,4 +1,4 @@
-RUNNING commit=dad8b80 heartbeat=2026-11-26T10:44:01Z cores=8
+RUNNING commit=dad8b80 heartbeat=2026-11-26T10:46:02Z cores=8
 --- tail results/colab_latest.log ---
 
 warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
