@@ -1,17 +1,17 @@
-RUNNING commit=5312142 heartbeat=2026-11-26T05:27:51Z cores=12
+RUNNING commit=5312142 heartbeat=2026-11-26T05:29:53Z cores=12
 --- tail results/colab_latest.log ---
-Loaded 503,747 moves in 0.18s (train_decs=9,608, val_decs=1,144)
-MERGED 2 datasets: 77,649 decisions (69,823 train, 7,826 val), 3,593,792 moves
-BlockfishHybridResNet(C=64, B=4, max_delta=8.0, temp=0.5) | params=367,106
-BASE (spatial_bc4, delta=0) | val_ce=0.9342 val_top1=71.43% val_top3=91.89% val_vmae= 3.72
-ep  1/12 | lr=0.00197 | tr_ce=0.4823 tr_top1=84.19% tr_vmae= 3.39 | val_ce=0.9176 val_top1=71.93% val_top3=91.90% val_vmae= 3.65 |d|=0.20 | 51.7s *BEST*
-ep  2/12 | lr=0.00187 | tr_ce=0.4743 tr_top1=84.39% tr_vmae= 3.36 | val_ce=0.9144 val_top1=71.86% val_top3=91.98% val_vmae= 3.64 |d|=0.24 | 50.5s *BEST*
-ep  3/12 | lr=0.00171 | tr_ce=0.4636 tr_top1=84.55% tr_vmae= 3.34 | val_ce=0.8966 val_top1=71.97% val_top3=92.31% val_vmae= 3.65 |d|=0.53 | 50.4s *BEST*
-ep  4/12 | lr=0.00151 | tr_ce=0.4484 tr_top1=85.13% tr_vmae= 3.33 | val_ce=0.8862 val_top1=72.54% val_top3=92.42% val_vmae= 3.62 |d|=0.44 | 50.4s *BEST*
-ep  5/12 | lr=0.00127 | tr_ce=0.4403 tr_top1=85.23% tr_vmae= 3.31 | val_ce=0.8794 val_top1=72.50% val_top3=92.79% val_vmae= 3.60 |d|=0.47 | 50.4s *BEST*
-ep  6/12 | lr=0.00102 | tr_ce=0.4273 tr_top1=85.50% tr_vmae= 3.30 | val_ce=0.8725 val_top1=72.67% val_top3=92.63% val_vmae= 3.61 |d|=0.61 | 50.4s *BEST*
-ep  7/12 | lr=0.00077 | tr_ce=0.4169 tr_top1=85.82% tr_vmae= 3.29 | val_ce=0.8574 val_top1=73.22% val_top3=93.05% val_vmae= 3.59 |d|=0.64 | 50.5s *BEST*
-ep  8/12 | lr=0.00053 | tr_ce=0.3974 tr_top1=86.29% tr_vmae= 3.27 | val_ce=0.8537 val_top1=73.18% val_top3=92.93% val_vmae= 3.59 |d|=0.68 | 50.5s *BEST*
-ep  9/12 | lr=0.00033 | tr_ce=0.3791 tr_top1=87.05% tr_vmae= 3.27 | val_ce=0.8515 val_top1=73.41% val_top3=92.93% val_vmae= 3.58 |d|=0.72 | 50.5s *BEST*
-ep 10/12 | lr=0.00017 | tr_ce=0.3684 tr_top1=87.24% tr_vmae= 3.26 | val_ce=0.8559 val_top1=72.66% val_top3=92.88% val_vmae= 3.57 |d|=0.72 | 50.5s
-ep 11/12 | lr=0.00007 | tr_ce=0.3523 tr_top1=87.80% tr_vmae= 3.25 | val_ce=0.8643 val_top1=72.60% val_top3=92.79% val_vmae= 3.58 |d|=0.79 | 50.5s
+ep 12/12 | lr=0.00004 | tr_ce=0.3439 tr_top1=88.07% tr_vmae= 3.25 | val_ce=0.8701 val_top1=72.45% val_top3=92.79% val_vmae= 3.57 |d|=0.82 | 50.5s
+DONE! Base val_ce=0.9342 -> Best hybrid val_ce=0.8515 saved to /tmp/hybrid_resnet_v2.pt
+-rw-r--r-- 1 root root 1.5M Nov 26 05:25 /tmp/hybrid_resnet_v2.pt
+
+--- Uploading hybrid_resnet_v2.pt to GitHub Release (tag: model-hybrid-v2) ---
+Uploading hybrid_resnet_v2.pt (1.43 MB) to release tag 'model-hybrid-v2'...
+Created release id=458997584 (https://github.com/jush0147/blockfish/releases/tag/model-hybrid-v2)
+UPLOAD SUCCESS: https://github.com/jush0147/blockfish/releases/download/model-hybrid-v2/hybrid_resnet_v2.pt (1503843 bytes)
+
+--- Starting GPU Hybrid ResNet v2 eval server ---
+resnet_eval_server READY on /tmp/blockfish_resnet.sock | device=cuda (torch.bfloat16) | C=64 B=4 val_ce=0.8515
+
+>>> [1/2] HYBRID v2 (delta_w=0.5) pimc_v2 (5 seeds 101..=105, vs BASE 193.20):
+=== eval_resnet mode=pimc_v2 seeds=101..=105 (n=5) w=12 h=8 b=20 k=10 l=4 cvar=25 hybrid=true delta_w=0.50 ===
+  [seed 101] pcs=188 top=0 | 41.2s
