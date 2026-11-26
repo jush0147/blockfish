@@ -1,7 +1,5 @@
-RUNNING commit=5312142 heartbeat=2026-11-26T05:21:44Z cores=12
+RUNNING commit=5312142 heartbeat=2026-11-26T05:23:46Z cores=12
 --- tail results/colab_latest.log ---
-
---- Training Hybrid Residual ResNet v2 (456 games, 12 epochs, bs=128) ---
 Device: cuda | amp_dtype=torch.bfloat16
 GPU: NVIDIA L4
 Loading /tmp/wg_ds_v1_400g_bv.bin: 400 games, 66897 decisions (149.1 MB raw)...
@@ -15,3 +13,5 @@ ep  1/12 | lr=0.00197 | tr_ce=0.4823 tr_top1=84.19% tr_vmae= 3.39 | val_ce=0.917
 ep  2/12 | lr=0.00187 | tr_ce=0.4743 tr_top1=84.39% tr_vmae= 3.36 | val_ce=0.9144 val_top1=71.86% val_top3=91.98% val_vmae= 3.64 |d|=0.24 | 50.5s *BEST*
 ep  3/12 | lr=0.00171 | tr_ce=0.4636 tr_top1=84.55% tr_vmae= 3.34 | val_ce=0.8966 val_top1=71.97% val_top3=92.31% val_vmae= 3.65 |d|=0.53 | 50.4s *BEST*
 ep  4/12 | lr=0.00151 | tr_ce=0.4484 tr_top1=85.13% tr_vmae= 3.33 | val_ce=0.8862 val_top1=72.54% val_top3=92.42% val_vmae= 3.62 |d|=0.44 | 50.4s *BEST*
+ep  5/12 | lr=0.00127 | tr_ce=0.4403 tr_top1=85.23% tr_vmae= 3.31 | val_ce=0.8794 val_top1=72.50% val_top3=92.79% val_vmae= 3.60 |d|=0.47 | 50.4s *BEST*
+ep  6/12 | lr=0.00102 | tr_ce=0.4273 tr_top1=85.50% tr_vmae= 3.30 | val_ce=0.8725 val_top1=72.67% val_top3=92.63% val_vmae= 3.61 |d|=0.61 | 50.4s *BEST*
