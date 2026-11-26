@@ -1,1 +1,1 @@
-RUNNING commit=fdc184e started=2026-11-26T11:32:29Z cores=8
+DONE commit=fdc184e exit=0 finished=2026-11-26T11:32:30Z
