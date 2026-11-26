@@ -1054,7 +1054,7 @@ fn main() {
         worlds, horizon, beam_w, max_per_root, cvar_pct, val_w, logit_w
     );
 
-    let mut pcs_list = Vec::with_capacity(n_seeds);
+    let mut ok_pcs = Vec::with_capacity(n_seeds);
     let mut topouts = 0usize;
     for k in 0..n_seeds {
         let s = seed_start + k as u64;
@@ -1069,18 +1069,24 @@ fn main() {
         };
         if top {
             topouts += 1;
+        } else {
+            ok_pcs.push(pcs);
         }
-        pcs_list.push(pcs);
         println!("  [seed {:3}] pcs={:3} top={} | {:.1}s", s, pcs, top as u8, ts.elapsed().as_secs_f64());
     }
 
-    let mean = pcs_list.iter().sum::<usize>() as f64 / pcs_list.len().max(1) as f64;
-    let min_p = pcs_list.iter().copied().min().unwrap_or(0);
-    let max_p = pcs_list.iter().copied().max().unwrap_or(0);
-    let le166 = pcs_list.iter().filter(|&&p| p <= 166).count();
-    let le161 = pcs_list.iter().filter(|&&p| p <= 161).count();
+    let ok_n = ok_pcs.len();
+    let mean = if ok_n > 0 {
+        ok_pcs.iter().sum::<usize>() as f64 / ok_n as f64
+    } else {
+        0.0
+    };
+    let min_p = ok_pcs.iter().copied().min().unwrap_or(0);
+    let max_p = ok_pcs.iter().copied().max().unwrap_or(0);
+    let le166 = ok_pcs.iter().filter(|&&p| p <= 166).count();
+    let le161 = ok_pcs.iter().filter(|&&p| p <= 161).count();
     println!(
-        "SUMMARY mode={} n={} mean={:.2} min={} max={} <=166:{} <=161:{} top={} | {:.1}s",
-        mode, n_seeds, mean, min_p, max_p, le166, le161, topouts, t0.elapsed().as_secs_f64()
+        "SUMMARY mode={} n={} ok={}/{} mean={:.2} min={} max={} <=166:{} <=161:{} top={} | {:.1}s",
+        mode, n_seeds, ok_n, n_seeds, mean, min_p, max_p, le166, le161, topouts, t0.elapsed().as_secs_f64()
     );
 }
