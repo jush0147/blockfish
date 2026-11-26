@@ -1,17 +1,17 @@
-RUNNING commit=89e3751b heartbeat=2026-11-26T16:34:46Z cores=8
+RUNNING commit=89e3751b heartbeat=2026-11-26T16:36:46Z cores=8
 --- tail results/colab_latest.log ---
- lambda=0.92 epochs=3 batch=256 lr_lin=3.0e-4 lr_mlp=1.5e-4 anchor_wd=1.0e-3 huber=4.0 threads=8
-================================================================
-[Iter 0 BASE] val=60/60 top=0 mean=203.10 [182..219] cov=39.9 val_mc_rmse=22.059 (31.7s)
-[Iter 1/5 GEN] ok=500/500 top=0 mean=221.04 [190..261] cov=48.6 mc_rmse=32.506 states=107413 (276.4s, 1.8 g/s)
-  [Train ep=3/3] huber=1.247 td_rmse=1.587 lr_lin=3.0e-4 lr_mlp=1.5e-4 (3.2s)
-[Iter 1/5 VAL] val=60/60 top=0 mean=206.37 [189..231] cov=47.2 val_mc_rmse=22.738 (32.5s) 
-[Iter 2/5 GEN] ok=499/500 top=1 mean=227.38 [193..272] cov=59.0 mc_rmse=35.322 states=110323 (286.8s, 1.7 g/s)
-  [Train ep=3/3] huber=1.390 td_rmse=1.783 lr_lin=2.7e-4 lr_mlp=1.4e-4 (4.0s)
-[Iter 2/5 VAL] val=60/60 top=0 mean=206.72 [187..228] cov=44.2 val_mc_rmse=20.638 (33.5s) 
-[Iter 3/5 GEN] ok=498/500 top=2 mean=227.57 [192..284] cov=58.5 mc_rmse=33.838 states=110365 (288.5s, 1.7 g/s)
-  [Train ep=3/3] huber=1.456 td_rmse=1.916 lr_lin=2.0e-4 lr_mlp=9.8e-5 (4.6s)
-[Iter 3/5 VAL] val=60/60 top=0 mean=208.43 [190..233] cov=46.1 val_mc_rmse=20.437 (33.4s) 
-[Iter 4/5 GEN] ok=499/500 top=1 mean=226.92 [191..269] cov=58.6 mc_rmse=31.778 states=110127 (289.2s, 1.7 g/s)
-  [Train ep=3/3] huber=1.485 td_rmse=1.904 lr_lin=1.0e-4 lr_mlp=5.2e-5 (5.0s)
 [Iter 4/5 VAL] val=60/60 top=0 mean=212.93 [194..247] cov=48.8 val_mc_rmse=22.168 (34.8s) 
+[Iter 5/5 GEN] ok=498/500 top=2 mean=231.45 [193..313] cov=61.4 mc_rmse=33.559 states=112277 (297.4s, 1.7 g/s)
+  [Train ep=3/3] huber=1.832 td_rmse=2.012 lr_lin=2.9e-5 lr_mlp=1.4e-5 (5.6s)
+[Iter 5/5 VAL] val=60/60 top=0 mean=212.25 [191..234] cov=50.4 val_mc_rmse=20.139 (34.2s) 
+=== DONE: base_val=203.10 (top=0) -> best_val=203.10 (top=0) | saved /tmp/spatial_td_v1.txt and /tmp/spatial_td_v1_last.txt ===
+
+--- [2/3] Uploading spatial_td_v1 checkpoints to GitHub Release model-spatial-td-v1 ---
+Uploading spatial_td_v1.txt (1.08 MB) to release tag 'model-spatial-td-v1'...
+Created release id=459668010 (https://github.com/jush0147/blockfish/releases/tag/model-spatial-td-v1)
+UPLOAD SUCCESS: https://github.com/jush0147/blockfish/releases/download/model-spatial-td-v1/spatial_td_v1.txt (1133787 bytes)
+Uploading spatial_td_v1_last.txt (1.08 MB) to release tag 'model-spatial-td-v1'...
+Found existing release id=459668010 (https://github.com/jush0147/blockfish/releases/tag/model-spatial-td-v1)
+UPLOAD SUCCESS: https://github.com/jush0147/blockfish/releases/download/model-spatial-td-v1/spatial_td_v1_last.txt (1132055 bytes)
+
+--- [3/3] STRICT SAME-BINARY fullmlp_w16 A/B (5 seeds 101..=105): bc4 vs td_v1 ---
