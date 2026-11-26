@@ -1,6 +1,5 @@
-RUNNING commit=78801b7 heartbeat=2026-11-26T03:46:19Z cores=8
+RUNNING commit=78801b7 heartbeat=2026-11-26T03:48:21Z cores=8
 --- tail results/colab_latest.log ---
---- Downloading legal_sp_v1_56g.bin.gz from GitHub Release legal-selfplay-v1 ---
 Downloading 'legal_sp_v1_56g.bin.gz' from release 'legal-selfplay-v1' -> /tmp/legal_sp_v1_56g.bin.gz...
 DOWNLOAD SUCCESS: /tmp/legal_sp_v1_56g.bin.gz (4.61 MB)
 
@@ -15,3 +14,4 @@ ep  1/20 | lr=0.00199 | tr_ce=0.6584 tr_top1=80.08% tr_vmae= 8.54 | val_ce=1.239
 ep  2/20 | lr=0.00195 | tr_ce=0.6427 tr_top1=80.94% tr_vmae= 6.53 | val_ce=1.2070 val_top1=66.43% val_top3=88.37% val_vmae= 6.92 |d|=7.79 | 151.2s *BEST*
 ep  3/20 | lr=0.00189 | tr_ce=0.6396 tr_top1=80.46% tr_vmae= 6.31 | val_ce=1.2044 val_top1=66.87% val_top3=88.11% val_vmae= 6.90 |d|=7.75 | 151.1s *BEST*
 ep  4/20 | lr=0.00181 | tr_ce=0.6386 tr_top1=80.63% tr_vmae= 6.36 | val_ce=1.2105 val_top1=66.78% val_top3=87.94% val_vmae= 6.70 |d|=8.03 | 151.1s
+ep  5/20 | lr=0.00171 | tr_ce=0.6382 tr_top1=80.42% tr_vmae= 6.34 | val_ce=1.2140 val_top1=65.82% val_top3=87.59% val_vmae= 7.16 |d|=7.24 | 151.1s
