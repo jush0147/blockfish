@@ -1,7 +1,5 @@
-RUNNING commit=89e3751b heartbeat=2026-11-26T16:28:44Z cores=8
+RUNNING commit=89e3751b heartbeat=2026-11-26T16:30:45Z cores=8
 --- tail results/colab_latest.log ---
-================================================================
- Pure Rust Legal p=5 Iterative Watkins TD(lambda) Self-Play RL
  init=models/spatial_bc4.txt out=/tmp/spatial_td_v1.txt iters=5 games/iter=500 val=60 beam=24 eps=3%
  lambda=0.92 epochs=3 batch=256 lr_lin=3.0e-4 lr_mlp=1.5e-4 anchor_wd=1.0e-3 huber=4.0 threads=8
 ================================================================
@@ -15,3 +13,5 @@ RUNNING commit=89e3751b heartbeat=2026-11-26T16:28:44Z cores=8
 [Iter 3/5 GEN] ok=498/500 top=2 mean=227.57 [192..284] cov=58.5 mc_rmse=33.838 states=110365 (288.5s, 1.7 g/s)
   [Train ep=3/3] huber=1.456 td_rmse=1.916 lr_lin=2.0e-4 lr_mlp=9.8e-5 (4.6s)
 [Iter 3/5 VAL] val=60/60 top=0 mean=208.43 [190..233] cov=46.1 val_mc_rmse=20.437 (33.4s) 
+[Iter 4/5 GEN] ok=499/500 top=1 mean=226.92 [191..269] cov=58.6 mc_rmse=31.778 states=110127 (289.2s, 1.7 g/s)
+  [Train ep=3/3] huber=1.485 td_rmse=1.904 lr_lin=1.0e-4 lr_mlp=5.2e-5 (5.0s)
