@@ -1,14 +1,9 @@
 ================================================================
- Colab Run #10: Full-Strength Parallel Per-Root GPU root_pimc
-                pimc_v2 (w=12, h=8, b=20, k=10, l=4, cvar=25)
-                BASE (spatial_bc4) vs HYBRID (hybrid_resnet_v1)
-                ~5-8 min total on 12-core L4 GPU!
+ Colab Run #10b: Full-Strength Parallel Per-Root GPU root_pimc
+                 FIX strict=False + consistent CRN world holes!
+                 BASE (spatial_bc4) vs HYBRID (hybrid_resnet_v1)
 ================================================================
 Tesla T4, 15360 MiB
-
---- Downloading hybrid_resnet_v1.pt from GitHub Release model-hybrid-v1 ---
-Downloading 'hybrid_resnet_v1.pt' from release 'model-hybrid-v1' -> /tmp/hybrid_resnet_v1.pt...
-DOWNLOAD SUCCESS: /tmp/hybrid_resnet_v1.pt (1.43 MB)
 
 --- Building eval_resnet (release) ---
 warning: unused build dependency `fontconfig`
@@ -20,84 +15,7 @@ warning: unused build dependency `fontconfig`
    = note: `cargo::unused_dependencies` is set to `warn` by default
 help: consider removing the dependency on `fontconfig`
 warning: `blockfish-client` (manifest) generated 1 warning
-    Updating crates.io index
- Downloading crates ...
-  Downloaded version-compare v0.1.0
-  Downloaded argh v0.1.4
-  Downloaded argh_derive v0.1.4
-  Downloaded atty v0.2.14
-  Downloaded argh_shared v0.1.4
-  Downloaded fontconfig v0.2.0
-  Downloaded rand_pcg v0.2.1
-  Downloaded rand_core v0.5.1
-  Downloaded bitflags v1.2.1
-  Downloaded termcolor v1.1.1
-  Downloaded itoa v0.4.6
-  Downloaded aho-corasick v0.7.15
-  Downloaded cfg-if v1.0.0
-  Downloaded unicode-xid v0.2.1
-  Downloaded const-cstr v0.3.0
-  Downloaded cfg-if v0.1.10
-  Downloaded pretty_env_logger v0.4.0
-  Downloaded quick-error v1.2.3
-  Downloaded red_union_find v0.2.5
-  Downloaded thread_local v1.0.1
-  Downloaded lazy_static v1.4.0
-  Downloaded rand_chacha v0.2.2
-  Downloaded thiserror-impl v1.0.22
-  Downloaded autocfg v1.0.1
-  Downloaded pkg-config v0.3.19
-  Downloaded quote v1.0.7
-  Downloaded env_logger v0.7.1
-  Downloaded humantime v1.3.0
-  Downloaded getrandom v0.1.15
-  Downloaded memchr v2.3.4
-  Downloaded ppv-lite86 v0.2.10
-  Downloaded proc-macro2 v1.0.24
-  Downloaded thiserror v1.0.22
-  Downloaded num-integer v0.1.44
-  Downloaded log v0.4.11
-  Downloaded ryu v1.0.5
-  Downloaded serde_derive v1.0.118
-  Downloaded heck v0.3.1
-  Downloaded num-traits v0.2.14
-  Downloaded serde v1.0.118
-  Downloaded unicode-segmentation v1.7.1
-  Downloaded rand v0.7.3
-  Downloaded serde_json v1.0.60
-  Downloaded sdl2 v0.35.2
-  Downloaded regex v1.4.2
-  Downloaded syn v1.0.48
-  Downloaded regex-syntax v0.6.21
-  Downloaded libc v0.2.119
-  Downloaded sdl2-sys v0.35.2
-  Downloaded yeslogic-fontconfig-sys v2.11.1
-   Compiling proc-macro2 v1.0.24
-   Compiling unicode-xid v0.2.1
-   Compiling syn v1.0.48
-   Compiling libc v0.2.119
-   Compiling cfg-if v0.1.10
-   Compiling getrandom v0.1.15
-   Compiling autocfg v1.0.1
-   Compiling serde_derive v1.0.118
-   Compiling serde v1.0.118
-   Compiling ryu v1.0.5
-   Compiling serde_json v1.0.60
-   Compiling ppv-lite86 v0.2.10
-   Compiling log v0.4.11
-   Compiling itoa v0.4.6
-   Compiling num-traits v0.2.14
-   Compiling num-integer v0.1.44
    Compiling blockfish v0.1.0 (/content/blockfish/blockfish-engine)
-   Compiling quote v1.0.7
-   Compiling rand_core v0.5.1
-   Compiling rand_chacha v0.2.2
-   Compiling rand_pcg v0.2.1
-   Compiling rand v0.7.3
-   Compiling red_union_find v0.2.5
-   Compiling thiserror-impl v1.0.22
-   Compiling thiserror v1.0.22
-   Compiling block-stacker v0.1.0 (/content/blockfish/block-stacker)
 warning: unused imports: `Input` and `place::PlaceFinder`
  --> blockfish-engine/src/ai/fast.rs:2:5
   |
@@ -185,34 +103,35 @@ help: use `'_` for type paths
    |                                                         ++++
 
 warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
-    Finished `release` profile [optimized] target(s) in 19.42s
+    Finished `release` profile [optimized] target(s) in 9.83s
 
 --- Starting GPU Hybrid ResNet eval server ---
-Traceback (most recent call last):
-  File "/content/blockfish/scripts/resnet_eval_server.py", line 149, in <module>
-    main()
-    ~~~~^^
-  File "/content/blockfish/scripts/resnet_eval_server.py", line 76, in main
-    model.load_state_dict(ckpt["state_dict"])
-    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
-  File "/usr/local/lib/python3.13/dist-packages/torch/nn/modules/module.py", line 2643, in load_state_dict
-    raise RuntimeError(
-    ...<3 lines>...
-    )
-RuntimeError: Error(s) in loading state_dict for BlockfishHybridResNet:
-	Missing key(s) in state_dict: "v_bias". 
+resnet_eval_server READY on /tmp/blockfish_resnet.sock | device=cuda (torch.float16) | C=64 B=4 val_ce=1.2044
 
 >>> [1/3] BASE (spatial_bc4, delta_w=0.0) pimc_v2 (5 seeds 101..=105):
 === eval_resnet mode=pimc_v2 seeds=101..=105 (n=5) w=12 h=8 b=20 k=10 l=4 cvar=25 hybrid=true delta_w=0.00 ===
-  [seed 101] pcs=204 top=0 | 66.3s
-  [seed 102] pcs=200 top=0 | 63.9s
-  [seed 103] pcs=188 top=0 | 61.5s
-  [seed 104] pcs=189 top=0 | 60.6s
+  [seed 101] pcs=188 top=0 | 59.0s
+  [seed 102] pcs=195 top=0 | 60.7s
+  [seed 103] pcs=203 top=0 | 64.0s
+  [seed 104] pcs=185 top=0 | 57.2s
   [seed 105] pcs=195 top=0 | 63.1s
-SUMMARY mode=pimc_v2 n=5 ok=5/5 mean=195.20 min=188 max=204 <=166:0 <=161:0 top=0 | 315.4s
+SUMMARY mode=pimc_v2 n=5 ok=5/5 mean=193.20 min=185 max=203 <=166:0 <=161:0 top=0 | 303.9s
 
 >>> [2/3] HYBRID (delta_w=0.5) pimc_v2 (5 seeds 101..=105):
+=== eval_resnet mode=pimc_v2 seeds=101..=105 (n=5) w=12 h=8 b=20 k=10 l=4 cvar=25 hybrid=true delta_w=0.50 ===
+  [seed 101] pcs=185 top=0 | 64.3s
+  [seed 102] pcs=199 top=0 | 69.9s
+  [seed 103] pcs=199 top=0 | 66.8s
+  [seed 104] pcs=200 top=0 | 67.9s
+  [seed 105] pcs=197 top=0 | 65.8s
+SUMMARY mode=pimc_v2 n=5 ok=5/5 mean=196.00 min=185 max=200 <=166:0 <=161:0 top=0 | 334.7s
 
-thread 'main' (14638) panicked at blockfish-engine/examples/eval_resnet.rs:31:33:
-Failed to connect to /tmp/blockfish_resnet.sock: No such file or directory (os error 2)
-note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+>>> [3/3] HYBRID (delta_w=1.0) pimc_v2 (5 seeds 101..=105):
+=== eval_resnet mode=pimc_v2 seeds=101..=105 (n=5) w=12 h=8 b=20 k=10 l=4 cvar=25 hybrid=true delta_w=1.00 ===
+  [seed 101] pcs=185 top=0 | 63.1s
+  [seed 102] pcs=197 top=0 | 65.2s
+  [seed 103] pcs=203 top=0 | 69.8s
+  [seed 104] pcs=199 top=0 | 68.8s
+  [seed 105] pcs=185 top=0 | 60.4s
+SUMMARY mode=pimc_v2 n=5 ok=5/5 mean=193.80 min=185 max=203 <=166:0 <=161:0 top=0 | 327.2s
+=== Colab Run #10 COMPLETE ===
