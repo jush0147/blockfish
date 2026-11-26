@@ -1,6 +1,5 @@
-RUNNING commit=89e3751b heartbeat=2026-11-26T16:54:50Z cores=8
+RUNNING commit=89e3751b heartbeat=2026-11-26T16:56:50Z cores=8
 --- tail results/colab_latest.log ---
-[Iter 5/5 VAL] val=60/60 top=0 mean=212.25 [191..234] cov=50.4 val_mc_rmse=20.139 (34.2s) 
 === DONE: base_val=203.10 (top=0) -> best_val=203.10 (top=0) | saved /tmp/spatial_td_v1.txt and /tmp/spatial_td_v1_last.txt ===
 
 --- [2/3] Uploading spatial_td_v1 checkpoints to GitHub Release model-spatial-td-v1 ---
@@ -15,3 +14,4 @@ UPLOAD SUCCESS: https://github.com/jush0147/blockfish/releases/download/model-sp
   [seed 103] pcs=176 nds=59 0ds=76 (cov=25 O=19 nar= 7 wide=19 end= 6) cov_nxt=12.0% | 935.3s
   [seed 104] pcs=188 nds=64 0ds=88 (cov=24 O=21 nar=11 wide=28 end= 4) cov_nxt=18.0% | 1079.6s
   [seed 102] pcs=184 nds=62 0ds=84 (cov=24 O=20 nar= 7 wide=30 end= 3) cov_nxt=15.0% | 1084.0s
+  [seed 101] pcs=180 nds=61 0ds=80 (cov=25 O=19 nar= 9 wide=24 end= 3) cov_nxt=17.0% | 1102.0s
