@@ -195,12 +195,22 @@ class FiLMResBlock(nn.Module):
 
 
 class BlockfishResNet(nn.Module):
-    def __init__(self, in_ch: int = 8, g_dim: int = 61, channels: int = 96, blocks: int = 6):
+    def __init__(
+        self,
+        in_ch: int = 8,
+        g_dim: int = 61,
+        channels: int = 96,
+        blocks: int = 6,
+        unified: bool = False,
+        temp: float = 0.4,
+    ):
         super().__init__()
         self.in_ch = in_ch
         self.g_dim = g_dim
         self.channels = channels
         self.blocks_n = blocks
+        self.unified = unified
+        self.temp = temp
 
         self.stem = nn.Sequential(
             nn.Conv2d(in_ch, channels, kernel_size=3, padding=1, bias=False),
@@ -216,11 +226,14 @@ class BlockfishResNet(nn.Module):
         self.res_blocks = nn.ModuleList([FiLMResBlock(channels) for _ in range(blocks)])
 
         head_in = channels * 4
-        self.policy_head = nn.Sequential(
-            nn.Linear(head_in, channels),
-            nn.SiLU(inplace=True),
-            nn.Linear(channels, 1),
-        )
+        if not unified:
+            self.policy_head = nn.Sequential(
+                nn.Linear(head_in, channels),
+                nn.SiLU(inplace=True),
+                nn.Linear(channels, 1),
+            )
+        else:
+            self.policy_head = None
         self.value_head = nn.Sequential(
             nn.Linear(head_in, channels),
             nn.SiLU(inplace=True),
@@ -236,6 +249,11 @@ class BlockfishResNet(nn.Module):
         p_max = x.amax(dim=(2, 3))
         p_bot4 = x[:, :, :4, :].mean(dim=(2, 3))
         feat = torch.cat([p_mean, p_max, p_bot4, g_emb], dim=-1)
+        if self.unified:
+            rem_g = gvec[:, 55] * 100.0
+            val = 1.65 * rem_g + self.value_head(feat).squeeze(-1)
+            logit = -val / self.temp
+            return logit, val
         logit = self.policy_head(feat).squeeze(-1)
         val = self.value_head(feat).squeeze(-1)
         return logit, val
@@ -393,7 +411,9 @@ def main():
     ap.add_argument("--val-weight", type=float, default=0.02)
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--max-neg", type=int, default=11, help="Max negative moves per decision during training (0=all)")
-    ap.add_argument("--out", default="/tmp/resnet_v1_c64b4.pt")
+    ap.add_argument("--unified", action="store_true", help="Use single unified V(s') head anchored at 1.65*rem_g")
+    ap.add_argument("--temp", type=float, default=0.4, help="Softmax temperature for unified head (logit = -V/temp)")
+    ap.add_argument("--out", default="/tmp/resnet_v2_unified.pt")
     ap.add_argument("--push-status", action="store_true", help="Push live epoch metrics to results/colab_status.txt")
     args = ap.parse_args()
 
@@ -429,9 +449,14 @@ def main():
     val_idx = all_idx[data["is_val"]]
 
     unpacker = GPUUnpacker().to(device)
-    model = BlockfishResNet(channels=args.channels, blocks=args.blocks).to(device)
+    model = BlockfishResNet(
+        channels=args.channels, blocks=args.blocks, unified=args.unified, temp=args.temp
+    ).to(device)
     n_params = sum(p.numel() for p in model.parameters())
-    print(f"BlockfishResNet(C={args.channels}, B={args.blocks}) | params={n_params:,}", flush=True)
+    print(
+        f"BlockfishResNet(C={args.channels}, B={args.blocks}, unified={args.unified}, temp={args.temp}) | params={n_params:,}",
+        flush=True,
+    )
 
     opt = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.wd)
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=args.epochs, eta_min=args.lr * 0.02)
@@ -501,6 +526,8 @@ def main():
                     "blocks": args.blocks,
                     "in_ch": 8,
                     "g_dim": 61,
+                    "unified": args.unified,
+                    "temp": args.temp,
                     "val_ce": val_ce,
                     "val_vmae": val_vmae,
                     "val_top1": val_top1,

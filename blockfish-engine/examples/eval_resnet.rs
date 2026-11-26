@@ -5,7 +5,7 @@ use blockfish::{
         fast::{color_to_idx, FastBoard, FastPlace, FastPlaceGen, FastShapeTable},
         BagTracker, BeamConfig, FastAI,
     },
-    StackerExt as _,
+    Color, Input, StackerExt as _,
 };
 use std::collections::HashSet;
 use std::convert::TryInto;
@@ -658,6 +658,356 @@ fn run_pimc_game(
     (pieces, ds_total < 100)
 }
 
+fn extended_queue(stacker: &Stacker, n: usize) -> Vec<Color> {
+    let mut st = stacker.clone();
+    let mut out = Vec::with_capacity(n);
+    while out.len() < n {
+        let snap = match st.snapshot() {
+            Some(s) => s,
+            None => break,
+        };
+        if let Some(&c) = snap.queue.first() {
+            out.push(c);
+        } else {
+            break;
+        }
+        st.hard_drop();
+    }
+    out
+}
+
+fn collect_exact_seed(s: u64) -> Option<(Vec<u16>, Vec<u8>)> {
+    let hole_at_row = |st: &Stacker, target_r: u16| -> u16 {
+        let mut present = [false; 10];
+        for ((r, c), _) in st.matrix() {
+            if r == target_r {
+                present[c as usize] = true;
+            }
+        }
+        (0..10u16).find(|&c| !present[c as usize]).unwrap()
+    };
+    let mut game_cfg = BSConfig::default();
+    game_cfg.garbage.total_lines = Some(100);
+    game_cfg.prng_seed = Some(s);
+    let mut stacker = Stacker::new(Ruleset::guideline().into(), game_cfg);
+    let mut holes = Vec::with_capacity(100);
+    let g0 = garbage_rows(&stacker);
+    for r in (0..g0).rev() {
+        holes.push(hole_at_row(&stacker, r));
+    }
+    let mut pieces = Vec::with_capacity(340);
+    pieces.push(color_to_idx(stacker.current_piece_type().unwrap().try_into().unwrap()) as u8);
+    for &ch in stacker.next() {
+        pieces.push(color_to_idx(ch.try_into().unwrap()) as u8);
+    }
+    let mut c = BeamConfig::default();
+    c.beam_width = 24;
+    c.max_per_root = 6;
+    c.rollout_top_k = 0;
+    let mut ai = FastAI::new(c);
+    let mut ds_total = 0usize;
+    while ds_total < 100 && stacker.current_piece_type().is_some() {
+        let snap = stacker.snapshot()?;
+        let g_before = garbage_rows(&stacker);
+        let rem_g = 100usize.saturating_sub(ds_total) as u16;
+        let res = ai.best_move(&snap, Some(g_before), Some(rem_g))?;
+        let had_hold = stacker.held().is_some();
+        let did_hold = res.inputs.first() == Some(&Input::Hold);
+        let mut inputs = res.inputs;
+        inputs.pop();
+        stacker.run(inputs);
+        let (_, ds) = stacker.hard_drop();
+        ds_total += ds;
+        let g_after = garbage_rows(&stacker);
+        let new_g = g_after.saturating_sub(g_before.saturating_sub(ds as u16));
+        for r in (0..new_g).rev() {
+            holes.push(hole_at_row(&stacker, r));
+        }
+        let nx = stacker.next();
+        if did_hold && !had_hold && nx.len() >= 2 {
+            pieces.push(color_to_idx(nx[nx.len() - 2].try_into().unwrap()) as u8);
+            pieces.push(color_to_idx(nx[nx.len() - 1].try_into().unwrap()) as u8);
+        } else if !nx.is_empty() {
+            pieces.push(color_to_idx(nx[nx.len() - 1].try_into().unwrap()) as u8);
+        }
+    }
+    if holes.len() != 100 {
+        return None;
+    }
+    let skip_n = stacker.snapshot().map_or(0, |sn| sn.queue.len());
+    if stacker.current_piece_type().is_some() {
+        for &col in extended_queue(&stacker, 260).iter().skip(skip_n) {
+            pieces.push(color_to_idx(col) as u8);
+        }
+    }
+    Some((holes, pieces))
+}
+
+fn spawn_exact_cheese(b: &mut FastBoard, rem_g: u16, lines_cleared: u8, holes: &[u16]) -> bool {
+    let target_g: usize = if lines_cleared > 0 { 4 } else { 9 };
+    let g = b.garbage_rows as usize;
+    let unspawned = (rem_g as usize).saturating_sub(g);
+    let num = target_g.saturating_sub(g).min(unspawned);
+    if num == 0 {
+        return true;
+    }
+    let old_rows = b.rows as usize;
+    if old_rows + num >= 32 {
+        return false;
+    }
+    let spawned_so_far = 100usize - unspawned;
+    if spawned_so_far + num > holes.len() {
+        return false;
+    }
+    for r in (0..old_rows).rev() {
+        b.data[r + num] = b.data[r];
+    }
+    for k in 0..num {
+        let hole = holes[spawned_so_far + k];
+        b.data[num - 1 - k] = 0xFC00 | (0x3FF & !(1u16 << hole));
+    }
+    b.rows = (old_rows + num) as u8;
+    b.garbage_rows = (g + num) as u8;
+    true
+}
+
+fn bag_mask_at(qc: usize, pieces: &[u8]) -> u8 {
+    let bag_end = ((qc / 7) + 1) * 7;
+    let mut m = 0u8;
+    for idx in qc..bag_end.min(pieces.len()) {
+        m |= 1u8 << pieces[idx];
+    }
+    if m == 0 { 0x7F } else { m }
+}
+
+/// Diagnostic-only Oracle 20-preview + exact holes beam search to measure evaluator ceiling.
+fn run_or_p20_game(
+    seed: u64,
+    client: &mut ResNetClient,
+    fst: &FastShapeTable,
+    horizon: usize,
+    beam_w: usize,
+    max_per_root: usize,
+    val_w: f32,
+    logit_w: f32,
+) -> (usize, bool) {
+    let (holes, ed_pieces) = match collect_exact_seed(seed) {
+        Some(x) => x,
+        None => return (0, true),
+    };
+    let mut game_cfg = BSConfig::default();
+    game_cfg.garbage.total_lines = Some(100);
+    game_cfg.prng_seed = Some(seed);
+    let stacker = Stacker::new(Ruleset::guideline().into(), game_cfg);
+    let snap0 = stacker.snapshot().unwrap();
+    let mut cur_b = FastBoard::from_basic_matrix(&snap0.matrix, garbage_rows(&stacker));
+    let mut cur_held: Option<u8> = None;
+    let mut cur_qc: usize = 0;
+    let mut cur_rem_g: u16 = 100;
+    let mut pieces = 0usize;
+
+    let mut pgen = FastPlaceGen::new();
+    let mut tmp_places = Vec::with_capacity(64);
+    let mut packed = Vec::with_capacity(beam_w * 48 * MOVE_BYTES);
+    let mut seen: HashSet<DedupKey, FxBuild> =
+        HashSet::with_capacity_and_hasher(beam_w * 32, FxBuild::default());
+
+    while cur_rem_g > 0 && pieces < 350 {
+        let (c_nh0, c_h0) = if cur_held.is_some() {
+            (ed_pieces.get(cur_qc).copied(), cur_held)
+        } else {
+            (ed_pieces.get(cur_qc).copied(), ed_pieces.get(cur_qc + 1).copied())
+        };
+        pgen.generate_for_state(fst, &cur_b, c_nh0, c_h0, &mut tmp_places);
+        if tmp_places.is_empty() {
+            return (pieces, true);
+        }
+        let root_places = tmp_places.clone();
+        let n_roots = root_places.len();
+
+        let mut best_win: Option<(f32, usize)> = None;
+        packed.clear();
+        let mut beam: Vec<BeamState> = Vec::with_capacity(beam_w);
+        let mut cand_meta: Vec<BeamState> = Vec::with_capacity(n_roots);
+
+        for (ri, &fp) in root_places.iter().enumerate() {
+            let mut b = cur_b;
+            let o = &fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
+            let (lines, ds_d, _) = b.place_and_sift(o, fp.norm_i, fp.norm_j);
+            let nrem = cur_rem_g.saturating_sub(ds_d as u16);
+            if nrem == 0 && b.rows < 20 {
+                best_win = Some((-1000.0 + 1.0, ri));
+                break;
+            }
+            if !spawn_exact_cheese(&mut b, nrem, lines, &holes) || b.rows >= 20 {
+                continue;
+            }
+            let (nh, nqc) = if cur_held.is_some() {
+                if fp.did_hold { (c_nh0, cur_qc + 1) } else { (cur_held, cur_qc + 1) }
+            } else if fp.did_hold {
+                (c_nh0, cur_qc + 2)
+            } else {
+                (None, cur_qc + 1)
+            };
+            pack_move_rec(
+                &mut packed,
+                &b,
+                nrem,
+                nh,
+                next5_at(&ed_pieces, nqc),
+                bag_mask_at(nqc, &ed_pieces),
+                lines,
+                ds_d,
+            );
+            cand_meta.push(BeamState {
+                board: b,
+                held: nh,
+                qc: (nqc - cur_qc) as u8,
+                rem_g: nrem,
+                root_idx: ri as u8,
+                score: 0.0,
+                won: false,
+            });
+        }
+
+        let chosen_ri = if let Some((_, ri)) = best_win {
+            ri
+        } else {
+            let evals = client.eval_batch(&packed);
+            for (mut st, (logit, val)) in cand_meta.into_iter().zip(evals.into_iter()) {
+                st.score = 1.0 + val_w * val - logit_w * logit;
+                beam.push(st);
+            }
+            beam.sort_unstable_by(|a, b| a.score.total_cmp(&b.score));
+            if beam.len() > beam_w {
+                beam.truncate(beam_w);
+            }
+
+            for depth in 2..=horizon {
+                packed.clear();
+                let mut next_meta: Vec<BeamState> = Vec::with_capacity(beam_w * 40);
+                for &parent in &beam {
+                    let qc = cur_qc + parent.qc as usize;
+                    let (c_nh, c_h) = if parent.held.is_some() {
+                        (ed_pieces.get(qc).copied(), parent.held)
+                    } else {
+                        (ed_pieces.get(qc).copied(), ed_pieces.get(qc + 1).copied())
+                    };
+                    if c_nh.is_none() && c_h.is_none() {
+                        continue;
+                    }
+                    pgen.generate_for_state(fst, &parent.board, c_nh, c_h, &mut tmp_places);
+                    for &fp in &tmp_places {
+                        let mut b = parent.board;
+                        let o = &fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
+                        let (lines, ds_d, _) = b.place_and_sift(o, fp.norm_i, fp.norm_j);
+                        let nrem = parent.rem_g.saturating_sub(ds_d as u16);
+                        if nrem == 0 && b.rows < 20 {
+                            let ws = -1000.0 + depth as f32;
+                            if best_win.map_or(true, |(bw, _)| ws < bw) {
+                                best_win = Some((ws, parent.root_idx as usize));
+                            }
+                            continue;
+                        }
+                        if !spawn_exact_cheese(&mut b, nrem, lines, &holes) || b.rows >= 20 {
+                            continue;
+                        }
+                        let (nh, nqc) = if parent.held.is_some() {
+                            if fp.did_hold { (c_nh, qc + 1) } else { (parent.held, qc + 1) }
+                        } else if fp.did_hold {
+                            (c_nh, qc + 2)
+                        } else {
+                            (None, qc + 1)
+                        };
+                        pack_move_rec(
+                            &mut packed,
+                            &b,
+                            nrem,
+                            nh,
+                            next5_at(&ed_pieces, nqc),
+                            bag_mask_at(nqc, &ed_pieces),
+                            lines,
+                            ds_d,
+                        );
+                        next_meta.push(BeamState {
+                            board: b,
+                            held: nh,
+                            qc: (nqc - cur_qc) as u8,
+                            rem_g: nrem,
+                            root_idx: parent.root_idx,
+                            score: 0.0,
+                            won: false,
+                        });
+                    }
+                }
+                if next_meta.is_empty() {
+                    break;
+                }
+                let evals = client.eval_batch(&packed);
+                let mut scored: Vec<BeamState> = next_meta
+                    .into_iter()
+                    .zip(evals.into_iter())
+                    .map(|(mut st, (logit, val))| {
+                        st.score = (depth as f32) + val_w * val - logit_w * logit;
+                        st
+                    })
+                    .collect();
+                scored.sort_unstable_by(|a, b| a.score.total_cmp(&b.score));
+                seen.clear();
+                let mut root_cnt = vec![0usize; n_roots];
+                beam.clear();
+                for st in scored {
+                    if beam.len() >= beam_w {
+                        break;
+                    }
+                    let ri = st.root_idx as usize;
+                    if root_cnt[ri] >= max_per_root {
+                        continue;
+                    }
+                    let dk = DedupKey {
+                        board: st.board,
+                        held: st.held,
+                        qc: st.qc,
+                        root_idx: st.root_idx,
+                    };
+                    if seen.insert(dk) {
+                        root_cnt[ri] += 1;
+                        beam.push(st);
+                    }
+                }
+            }
+
+            if let Some((_, ri)) = best_win {
+                ri
+            } else {
+                beam.first().map(|st| st.root_idx as usize).unwrap_or(0)
+            }
+        };
+
+        let chosen = root_places[chosen_ri];
+        let o = &fst.shapes[chosen.color_idx as usize].orients[chosen.tf.2 as usize];
+        let (lines, ds_d, _) = cur_b.place_and_sift(o, chosen.norm_i, chosen.norm_j);
+        cur_rem_g = cur_rem_g.saturating_sub(ds_d as u16);
+        pieces += 1;
+        if cur_rem_g == 0 {
+            break;
+        }
+        if !spawn_exact_cheese(&mut cur_b, cur_rem_g, lines, &holes) || cur_b.rows >= 20 {
+            return (pieces, true);
+        }
+        let (nh, nqc) = if cur_held.is_some() {
+            if chosen.did_hold { (c_nh0, cur_qc + 1) } else { (cur_held, cur_qc + 1) }
+        } else if chosen.did_hold {
+            (c_nh0, cur_qc + 2)
+        } else {
+            (None, cur_qc + 1)
+        };
+        cur_held = nh;
+        cur_qc = nqc;
+    }
+    (pieces, cur_rem_g > 0)
+}
+
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     let mut mode = String::from("greedy");
@@ -670,7 +1020,7 @@ fn main() {
     let mut max_per_root: usize = 4;
     let mut cvar_pct: usize = 25;
     let mut val_w: f32 = 1.0;
-    let mut logit_w: f32 = 0.5;
+    let mut logit_w: f32 = 0.0;
 
     let mut i = 1;
     while i < args.len() {
@@ -711,6 +1061,7 @@ fn main() {
         let ts = Instant::now();
         let (pcs, top) = match mode.as_str() {
             "greedy" => run_greedy_game(s, &mut client, &fst),
+            "or_p20" => run_or_p20_game(s, &mut client, &fst, horizon, beam_w, max_per_root, val_w, logit_w),
             "pimc" => run_pimc_game(
                 s, &mut client, &fst, worlds, horizon, beam_w, max_per_root, cvar_pct, val_w, logit_w
             ),

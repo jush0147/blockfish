@@ -61,6 +61,8 @@ def main():
         g_dim=ckpt.get("g_dim", 61),
         channels=ckpt["channels"],
         blocks=ckpt["blocks"],
+        unified=ckpt.get("unified", False),
+        temp=ckpt.get("temp", 0.4),
     ).to(device)
     model.load_state_dict(ckpt["state_dict"])
     model.eval()
