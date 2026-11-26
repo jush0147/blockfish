@@ -1,10 +1,10 @@
 ================================================================
- Colab Run #15-CPU: Anti-Strategy-Fusion Opaque-Future-Hole PIMC
-                    + High-Budget w=24 h=9 b=36 on beam.rs (185.60)
-                    Pure Rust CPU! 5 seeds 101..=105 (~18 min)
+ Colab Run #16-CPU: Pure Rust Legal p=5 Iterative Watkins TD(λ)
+                    2,500 Legal games (5 iters x 500g) on spatial_bc4
+                    + Strict Same-Binary fullmlp_w16 A/B (5 seeds)
  Cores: 8 | RAM: 50Gi
 ================================================================
---- Building bench_legal (release) ---
+--- Building train_spatial_td and bench_legal (release) ---
 warning: unused build dependency `fontconfig`
   --> blockfish-client/Cargo.toml:29:1
    |
@@ -14,84 +14,7 @@ warning: unused build dependency `fontconfig`
    = note: `cargo::unused_dependencies` is set to `warn` by default
 help: consider removing the dependency on `fontconfig`
 warning: `blockfish-client` (manifest) generated 1 warning
-    Updating crates.io index
- Downloading crates ...
-  Downloaded ppv-lite86 v0.2.10
-  Downloaded const-cstr v0.3.0
-  Downloaded log v0.4.11
-  Downloaded quick-error v1.2.3
-  Downloaded num-traits v0.2.14
-  Downloaded cfg-if v0.1.10
-  Downloaded version-compare v0.1.0
-  Downloaded quote v1.0.7
-  Downloaded cfg-if v1.0.0
-  Downloaded pkg-config v0.3.19
-  Downloaded fontconfig v0.2.0
-  Downloaded rand_chacha v0.2.2
-  Downloaded aho-corasick v0.7.15
-  Downloaded ryu v1.0.5
-  Downloaded itoa v0.4.6
-  Downloaded pretty_env_logger v0.4.0
-  Downloaded humantime v1.3.0
-  Downloaded termcolor v1.1.1
-  Downloaded atty v0.2.14
-  Downloaded num-integer v0.1.44
-  Downloaded rand_pcg v0.2.1
-  Downloaded regex-syntax v0.6.21
-  Downloaded unicode-xid v0.2.1
-  Downloaded yeslogic-fontconfig-sys v2.11.1
-  Downloaded argh_shared v0.1.4
-  Downloaded rand v0.7.3
-  Downloaded heck v0.3.1
-  Downloaded serde v1.0.118
-  Downloaded argh_derive v0.1.4
-  Downloaded memchr v2.3.4
-  Downloaded thread_local v1.0.1
-  Downloaded red_union_find v0.2.5
-  Downloaded argh v0.1.4
-  Downloaded autocfg v1.0.1
-  Downloaded lazy_static v1.4.0
-  Downloaded serde_json v1.0.60
-  Downloaded rand_core v0.5.1
-  Downloaded env_logger v0.7.1
-  Downloaded proc-macro2 v1.0.24
-  Downloaded bitflags v1.2.1
-  Downloaded thiserror v1.0.22
-  Downloaded serde_derive v1.0.118
-  Downloaded unicode-segmentation v1.7.1
-  Downloaded getrandom v0.1.15
-  Downloaded regex v1.4.2
-  Downloaded sdl2 v0.35.2
-  Downloaded syn v1.0.48
-  Downloaded libc v0.2.119
-  Downloaded sdl2-sys v0.35.2
-  Downloaded thiserror-impl v1.0.22
-   Compiling proc-macro2 v1.0.24
-   Compiling unicode-xid v0.2.1
-   Compiling syn v1.0.48
-   Compiling libc v0.2.119
-   Compiling getrandom v0.1.15
-   Compiling autocfg v1.0.1
-   Compiling cfg-if v0.1.10
-   Compiling serde_derive v1.0.118
-   Compiling serde v1.0.118
-   Compiling ryu v1.0.5
-   Compiling ppv-lite86 v0.2.10
-   Compiling serde_json v1.0.60
-   Compiling log v0.4.11
-   Compiling itoa v0.4.6
-   Compiling num-traits v0.2.14
-   Compiling num-integer v0.1.44
    Compiling blockfish v0.1.0 (/content/blockfish/blockfish-engine)
-   Compiling quote v1.0.7
-   Compiling rand_core v0.5.1
-   Compiling rand_chacha v0.2.2
-   Compiling rand_pcg v0.2.1
-   Compiling rand v0.7.3
-   Compiling red_union_find v0.2.5
-   Compiling thiserror-impl v1.0.22
-   Compiling thiserror v1.0.22
-   Compiling block-stacker v0.1.0 (/content/blockfish/block-stacker)
 warning: unused imports: `Input` and `place::PlaceFinder`
  --> blockfish-engine/src/ai/fast.rs:2:5
   |
@@ -179,35 +102,65 @@ help: use `'_` for type paths
    |                                                         ++++
 
 warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
-    Finished `release` profile [optimized] target(s) in 22.50s
+warning: value assigned to `best_mdl` is never read
+    --> blockfish-engine/examples/train_spatial_td.rs:951:24
+     |
+ 951 |     let mut best_mdl = mdl.clone();
+     |                        ^^^^^^^^^^^ this value is reassigned later and never used
+...
+1088 |             best_mdl = mdl.clone();
+     |             -------- `best_mdl` is overwritten here before the previous value is read
+     |
+     = note: `#[warn(unused_assignments)]` (part of `#[warn(unused)]`) on by default
 
---- Running opaque_pimc (same-binary base, d1, d2, w24_h9_b36) ---
-  [seed 103] pcs=176 nds=59 0ds=76 (cov=25 O=19 nar= 7 wide=19 end= 6) cov_nxt=12.0% | 1020.9s
-  [seed 102] pcs=184 nds=62 0ds=84 (cov=24 O=20 nar= 7 wide=30 end= 3) cov_nxt=15.0% | 1031.0s
-  [seed 101] pcs=180 nds=61 0ds=80 (cov=25 O=19 nar= 9 wide=24 end= 3) cov_nxt=17.0% | 1092.3s
-  [seed 104] pcs=188 nds=64 0ds=88 (cov=24 O=21 nar=11 wide=28 end= 4) cov_nxt=18.0% | 1128.5s
-  [seed 105] pcs=193 nds=66 0ds=93 (cov=27 O=21 nar= 9 wide=34 end= 2) cov_nxt=13.0% | 1217.2s
-fullmlp_base_w16_h8_b28    n= 5 mean=184.20 min=176 max=193 <=166: 0 top= 0 | nds=62.40 0ds=84.20 (cov=25.0 O=20.0 nar=8.6 wide=27.0 g0=0.0 end=3.6) cov_nxt=15.0% avg_c=12.4 | 1217.2s
+warning: `blockfish` (example "train_spatial_td") generated 1 warning
+    Finished `release` profile [optimized] target(s) in 12.15s
+
+--- [1/3] Training SpatialValueModel with 2,500 Legal p=5 TD(0.92) games ---
+================================================================
+ Pure Rust Legal p=5 Iterative Watkins TD(lambda) Self-Play RL
+ init=models/spatial_bc4.txt out=/tmp/spatial_td_v1.txt iters=5 games/iter=500 val=60 beam=24 eps=3%
+ lambda=0.92 epochs=3 batch=256 lr_lin=3.0e-4 lr_mlp=1.5e-4 anchor_wd=1.0e-3 huber=4.0 threads=8
+================================================================
+[Iter 0 BASE] val=60/60 top=0 mean=203.10 [182..219] cov=39.9 val_mc_rmse=22.059 (31.7s)
+[Iter 1/5 GEN] ok=500/500 top=0 mean=221.04 [190..261] cov=48.6 mc_rmse=32.506 states=107413 (276.4s, 1.8 g/s)
+  [Train ep=3/3] huber=1.247 td_rmse=1.587 lr_lin=3.0e-4 lr_mlp=1.5e-4 (3.2s)
+[Iter 1/5 VAL] val=60/60 top=0 mean=206.37 [189..231] cov=47.2 val_mc_rmse=22.738 (32.5s) 
+[Iter 2/5 GEN] ok=499/500 top=1 mean=227.38 [193..272] cov=59.0 mc_rmse=35.322 states=110323 (286.8s, 1.7 g/s)
+  [Train ep=3/3] huber=1.390 td_rmse=1.783 lr_lin=2.7e-4 lr_mlp=1.4e-4 (4.0s)
+[Iter 2/5 VAL] val=60/60 top=0 mean=206.72 [187..228] cov=44.2 val_mc_rmse=20.638 (33.5s) 
+[Iter 3/5 GEN] ok=498/500 top=2 mean=227.57 [192..284] cov=58.5 mc_rmse=33.838 states=110365 (288.5s, 1.7 g/s)
+  [Train ep=3/3] huber=1.456 td_rmse=1.916 lr_lin=2.0e-4 lr_mlp=9.8e-5 (4.6s)
+[Iter 3/5 VAL] val=60/60 top=0 mean=208.43 [190..233] cov=46.1 val_mc_rmse=20.437 (33.4s) 
+[Iter 4/5 GEN] ok=499/500 top=1 mean=226.92 [191..269] cov=58.6 mc_rmse=31.778 states=110127 (289.2s, 1.7 g/s)
+  [Train ep=3/3] huber=1.485 td_rmse=1.904 lr_lin=1.0e-4 lr_mlp=5.2e-5 (5.0s)
+[Iter 4/5 VAL] val=60/60 top=0 mean=212.93 [194..247] cov=48.8 val_mc_rmse=22.168 (34.8s) 
+[Iter 5/5 GEN] ok=498/500 top=2 mean=231.45 [193..313] cov=61.4 mc_rmse=33.559 states=112277 (297.4s, 1.7 g/s)
+  [Train ep=3/3] huber=1.832 td_rmse=2.012 lr_lin=2.9e-5 lr_mlp=1.4e-5 (5.6s)
+[Iter 5/5 VAL] val=60/60 top=0 mean=212.25 [191..234] cov=50.4 val_mc_rmse=20.139 (34.2s) 
+=== DONE: base_val=203.10 (top=0) -> best_val=203.10 (top=0) | saved /tmp/spatial_td_v1.txt and /tmp/spatial_td_v1_last.txt ===
+
+--- [2/3] Uploading spatial_td_v1 checkpoints to GitHub Release model-spatial-td-v1 ---
+Uploading spatial_td_v1.txt (1.08 MB) to release tag 'model-spatial-td-v1'...
+Created release id=459668010 (https://github.com/jush0147/blockfish/releases/tag/model-spatial-td-v1)
+UPLOAD SUCCESS: https://github.com/jush0147/blockfish/releases/download/model-spatial-td-v1/spatial_td_v1.txt (1133787 bytes)
+Uploading spatial_td_v1_last.txt (1.08 MB) to release tag 'model-spatial-td-v1'...
+Found existing release id=459668010 (https://github.com/jush0147/blockfish/releases/tag/model-spatial-td-v1)
+UPLOAD SUCCESS: https://github.com/jush0147/blockfish/releases/download/model-spatial-td-v1/spatial_td_v1_last.txt (1132055 bytes)
+
+--- [3/3] STRICT SAME-BINARY fullmlp_w16 A/B (5 seeds 101..=105): bc4 vs td_v1 ---
+  [seed 103] pcs=176 nds=59 0ds=76 (cov=25 O=19 nar= 7 wide=19 end= 6) cov_nxt=12.0% | 935.3s
+  [seed 104] pcs=188 nds=64 0ds=88 (cov=24 O=21 nar=11 wide=28 end= 4) cov_nxt=18.0% | 1079.6s
+  [seed 102] pcs=184 nds=62 0ds=84 (cov=24 O=20 nar= 7 wide=30 end= 3) cov_nxt=15.0% | 1084.0s
+  [seed 101] pcs=180 nds=61 0ds=80 (cov=25 O=19 nar= 9 wide=24 end= 3) cov_nxt=17.0% | 1102.0s
+  [seed 105] pcs=193 nds=66 0ds=93 (cov=27 O=21 nar= 9 wide=34 end= 2) cov_nxt=13.0% | 1219.5s
+fullmlp_w16 [models/spatial_bc4.txt] n= 5 mean=184.20 min=176 max=193 <=166: 0 top= 0 | nds=62.40 0ds=84.20 (cov=25.0 O=20.0 nar=8.6 wide=27.0 g0=0.0 end=3.6) cov_nxt=15.0% avg_c=12.4 | 1219.5s
   seeds: [101:180, 102:184, 103:176, 104:188, 105:193]
-  [seed 105] pcs=185 nds=63 0ds=85 (cov=32 O=16 nar= 7 wide=24 end= 6) cov_nxt=17.0% | 1076.0s
-  [seed 103] pcs=189 nds=64 0ds=89 (cov=25 O=20 nar=17 wide=25 end= 2) cov_nxt=15.0% | 1093.6s
-  [seed 104] pcs=184 nds=63 0ds=84 (cov=29 O=17 nar=11 wide=21 end= 6) cov_nxt=19.0% | 1123.4s
-  [seed 101] pcs=188 nds=64 0ds=88 (cov=31 O=18 nar= 6 wide=30 end= 3) cov_nxt=14.0% | 1139.0s
-  [seed 102] pcs=185 nds=62 0ds=85 (cov=31 O=15 nar= 8 wide=27 end= 4) cov_nxt=21.0% | 1162.1s
-fullmlp_opaque_d1          n= 5 mean=186.20 min=184 max=189 <=166: 0 top= 0 | nds=63.20 0ds=86.20 (cov=29.6 O=17.2 nar=9.8 wide=25.4 g0=0.0 end=4.2) cov_nxt=17.2% avg_c=12.2 | 1162.1s
-  seeds: [101:188, 102:185, 103:189, 104:184, 105:185]
-  [seed 102] pcs=185 nds=63 0ds=85 (cov=34 O=17 nar= 7 wide=22 end= 5) cov_nxt=20.0% | 1017.9s
-  [seed 101] pcs=183 nds=62 0ds=83 (cov=35 O=17 nar= 6 wide=21 end= 4) cov_nxt=20.0% | 1103.8s
-  [seed 105] pcs=190 nds=65 0ds=90 (cov=31 O=19 nar=10 wide=25 end= 5) cov_nxt=17.0% | 1149.7s
-  [seed 103] pcs=192 nds=66 0ds=92 (cov=37 O=16 nar=13 wide=20 end= 6) cov_nxt=20.0% | 1155.0s
-  [seed 104] pcs=193 nds=66 0ds=93 (cov=36 O=16 nar= 8 wide=28 end= 5) cov_nxt=20.0% | 1160.5s
-fullmlp_opaque_d2          n= 5 mean=188.60 min=183 max=193 <=166: 0 top= 0 | nds=64.40 0ds=88.60 (cov=34.6 O=17.0 nar=8.8 wide=23.2 g0=0.0 end=5.0) cov_nxt=19.4% avg_c=12.7 | 1160.5s
-  seeds: [101:183, 102:185, 103:192, 104:193, 105:190]
-  [seed 102] pcs=185 nds=63 0ds=85 (cov=29 O=19 nar= 6 wide=30 end= 1) cov_nxt=16.0% | 2200.1s
-  [seed 105] pcs=191 nds=65 0ds=91 (cov=30 O=20 nar=16 wide=22 end= 3) cov_nxt=15.0% | 2355.6s
-  [seed 104] pcs=183 nds=62 0ds=83 (cov=27 O=17 nar= 7 wide=29 end= 3) cov_nxt=13.0% | 2382.2s
-  [seed 103] pcs=185 nds=63 0ds=85 (cov=33 O=16 nar=11 wide=22 end= 3) cov_nxt=17.0% | 2412.8s
-  [seed 101] pcs=188 nds=65 0ds=88 (cov=32 O=18 nar= 7 wide=27 end= 4) cov_nxt=20.0% | 2471.9s
-fullmlp_w24_h9_b36         n= 5 mean=186.40 min=183 max=191 <=166: 0 top= 0 | nds=63.60 0ds=86.40 (cov=30.2 O=18.0 nar=9.4 wide=26.0 g0=0.0 end=2.8) cov_nxt=16.2% avg_c=12.5 | 2471.9s
-  seeds: [101:188, 102:185, 103:185, 104:183, 105:191]
-=== Colab Run #15-CPU COMPLETE ===
+  [seed 103] pcs=176 nds=59 0ds=76 (cov=25 O=19 nar= 7 wide=19 end= 6) cov_nxt=12.0% | 945.4s
+  [seed 104] pcs=188 nds=64 0ds=88 (cov=24 O=21 nar=11 wide=28 end= 4) cov_nxt=18.0% | 1051.6s
+  [seed 102] pcs=184 nds=62 0ds=84 (cov=24 O=20 nar= 7 wide=30 end= 3) cov_nxt=15.0% | 1118.6s
+  [seed 101] pcs=180 nds=61 0ds=80 (cov=25 O=19 nar= 9 wide=24 end= 3) cov_nxt=17.0% | 1162.6s
+  [seed 105] pcs=193 nds=66 0ds=93 (cov=27 O=21 nar= 9 wide=34 end= 2) cov_nxt=13.0% | 1192.9s
+fullmlp_w16 [/tmp/spatial_td_v1.txt] n= 5 mean=184.20 min=176 max=193 <=166: 0 top= 0 | nds=62.40 0ds=84.20 (cov=25.0 O=20.0 nar=8.6 wide=27.0 g0=0.0 end=3.6) cov_nxt=15.0% avg_c=12.4 | 1192.9s
+  seeds: [101:180, 102:184, 103:176, 104:188, 105:193]
+=== Colab Run #16-CPU COMPLETE ===
