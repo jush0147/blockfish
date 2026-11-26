@@ -1,6 +1,5 @@
-RUNNING commit=6b38d69 heartbeat=2026-11-26T04:28:50Z cores=12
+RUNNING commit=6b38d69 heartbeat=2026-11-26T04:30:52Z cores=12
 --- tail results/colab_latest.log ---
-  [seed 103] pcs=200 top=0 | 22.1s
   [seed 104] pcs=205 top=0 | 22.5s
   [seed 105] pcs=205 top=0 | 22.9s
 SUMMARY mode=pimc n=5 ok=5/5 mean=206.60 min=200 max=218 <=166:0 <=161:0 top=0 | 113.9s
@@ -15,3 +14,4 @@ SUMMARY mode=pimc n=5 ok=5/5 mean=209.00 min=201 max=221 <=166:0 <=161:0 top=0 |
 >>> HYBRID (delta_w=1.0):
 === eval_resnet mode=pimc seeds=101..=105 (n=5) w=8 h=6 b=16 mpr=4 cvar=25 val_w=1.00 logit_w=0.00 hybrid=true delta_w=1.00 ===
   [seed 101] pcs=215 top=0 | 103.0s
+  [seed 102] pcs=212 top=0 | 101.2s
