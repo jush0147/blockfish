@@ -189,6 +189,7 @@ pub struct BeamConfig {
     pub nds_pen: i64,
     pub stage1_weights: Option<EvalWeights>,
     pub root_pimc_d2_top_k: usize,
+    pub root_pimc_opaque_after_d: usize,
 }
 
 impl Default for BeamConfig {
@@ -244,6 +245,7 @@ impl Default for BeamConfig {
             nds_pen: 0,
             stage1_weights: None,
             root_pimc_d2_top_k: 0,
+            root_pimc_opaque_after_d: 0,
         }
     }
 }
@@ -1716,7 +1718,7 @@ impl BeamSearcher {
         cfg: &BeamConfig,
         allow_spatial: bool,
     ) -> i64 {
-        if cfg.fog_spawn && board.has_opaque_top_garbage() {
+        if (cfg.fog_spawn || cfg.root_pimc_opaque_after_d > 0) && board.has_opaque_top_garbage() {
             let g = board.garbage_rows as usize;
             let mut sum: i64 = 0;
             let mut b_tmp = *board;
@@ -1761,7 +1763,9 @@ impl BeamSearcher {
     ) -> i64 {
         if let Some(ref s1w) = cfg.stage1_weights {
             if cfg.spatial_rerank_only || cfg.spatial_model.is_none() {
-                if cfg.fog_spawn && board.has_opaque_top_garbage() {
+                if (cfg.fog_spawn || cfg.root_pimc_opaque_after_d > 0)
+                    && board.has_opaque_top_garbage()
+                {
                     let g = board.garbage_rows as usize;
                     let mut sum: i64 = 0;
                     let mut b_tmp = *board;
@@ -3829,17 +3833,24 @@ impl BeamSearcher {
                         }
                     }
 
-                    if rem2 > 0
-                        && !Self::spawn_cheese_from_stream(
-                            &mut b2,
-                            rem2,
-                            lines,
-                            cfg.root_pimc_steady_g4,
-                            unspawned_0,
-                            world_holes,
-                        )
-                    {
-                        continue;
+                    if rem2 > 0 {
+                        let spawn_ok = if cfg.root_pimc_opaque_after_d > 0
+                            && step >= cfg.root_pimc_opaque_after_d
+                        {
+                            b2.spawn_fog_rows(rem2, lines)
+                        } else {
+                            Self::spawn_cheese_from_stream(
+                                &mut b2,
+                                rem2,
+                                lines,
+                                cfg.root_pimc_steady_g4,
+                                unspawned_0,
+                                world_holes,
+                            )
+                        };
+                        if !spawn_ok {
+                            continue;
+                        }
                     }
 
                     let (new_held, next_qc) = if node.held.is_some() {
