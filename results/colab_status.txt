@@ -1,8 +1,5 @@
-RUNNING commit=89e3751b heartbeat=2026-11-26T16:12:40Z cores=8
+RUNNING commit=89e3751b heartbeat=2026-11-26T16:14:41Z cores=8
 --- tail results/colab_latest.log ---
-1088 |             best_mdl = mdl.clone();
-     |             -------- `best_mdl` is overwritten here before the previous value is read
-     |
      = note: `#[warn(unused_assignments)]` (part of `#[warn(unused)]`) on by default
 
 warning: `blockfish` (example "train_spatial_td") generated 1 warning
@@ -15,3 +12,6 @@ warning: `blockfish` (example "train_spatial_td") generated 1 warning
  lambda=0.92 epochs=3 batch=256 lr_lin=3.0e-4 lr_mlp=1.5e-4 anchor_wd=1.0e-3 huber=4.0 threads=8
 ================================================================
 [Iter 0 BASE] val=60/60 top=0 mean=203.10 [182..219] cov=39.9 val_mc_rmse=22.059 (31.7s)
+[Iter 1/5 GEN] ok=500/500 top=0 mean=221.04 [190..261] cov=48.6 mc_rmse=32.506 states=107413 (276.4s, 1.8 g/s)
+  [Train ep=3/3] huber=1.247 td_rmse=1.587 lr_lin=3.0e-4 lr_mlp=1.5e-4 (3.2s)
+[Iter 1/5 VAL] val=60/60 top=0 mean=206.37 [189..231] cov=47.2 val_mc_rmse=22.738 (32.5s) 
