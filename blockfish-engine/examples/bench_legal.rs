@@ -2727,4 +2727,57 @@ fn main() {
         eval_seeds("fullmlp_w24_h9_b36", &seeds, &c_big);
         return;
     }
+    if mode == "compare_spatial" {
+        let n_seeds: u64 = std::env::args()
+            .nth(2)
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(5);
+        let model_a = std::env::args()
+            .nth(3)
+            .unwrap_or_else(|| "models/spatial_bc4.txt".to_string());
+        let model_b = std::env::args()
+            .nth(4)
+            .unwrap_or_else(|| "models/spatial_td_v1.txt".to_string());
+        let seeds: Vec<u64> = (101..(101 + n_seeds)).collect();
+
+        let make_fullmlp = |path: &str| -> BeamConfig {
+            let mut sm_val = SpatialValueModel::load_from_file(path)
+                .unwrap_or_else(|e| panic!("load spatial model {}: {}", path, e));
+            sm_val.prepare_fast();
+            let mut c = BeamConfig::default();
+            c.spatial_model = Some(Arc::new(sm_val));
+            c.rollout_top_k = 0;
+            c.beam_width = 80;
+            c.max_per_root = 16;
+            c.bag_det_extend = true;
+            c.endgame_solver = true;
+            c.simulate_cheese_spawn = true;
+            c.spatial_rerank_only = false; // REAL FULL MLP
+            c.spatial_no_pe_internal = false;
+            c.root_pimc_prescreen_worlds = 0;
+            c.root_pimc_roots = 32;
+            c.root_pimc_fine_roots = 10;
+            c.root_pimc_worlds = 16;
+            c.root_pimc_horizon = 8;
+            c.root_pimc_width = 28;
+            c.root_pimc_margin = 500;
+            c.root_pimc_weight_pct = 100;
+            c.root_pimc_steady_g4 = false;
+            c.root_pimc_cvar_pct = 25;
+            c
+        };
+
+        let c_a = make_fullmlp(&model_a);
+        eval_seeds(&format!("fullmlp_w16 [{}]", model_a), &seeds, &c_a);
+
+        let c_b = make_fullmlp(&model_b);
+        eval_seeds(&format!("fullmlp_w16 [{}]", model_b), &seeds, &c_b);
+
+        if std::env::args().nth(5).as_deref() == Some("--ens") {
+            let mut c_ens = c_a.clone();
+            c_ens.spatial_model_2 = c_b.spatial_model.clone();
+            eval_seeds("fullmlp_w16 [50/50 ensemble A+B]", &seeds, &c_ens);
+        }
+        return;
+    }
 }

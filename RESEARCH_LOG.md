@@ -223,8 +223,14 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
           - **Colab Run #4 (`realmlp_cov115` 10-seed + 40-seed Legal PB/Distribution Audit, 8-core Colab, 49m, `0.21` CU)**:
             - `realmlp_cov115_w16_h8_b28_c25` (10 seeds `101..=110`): **`186.70 [177..197]`** (`101..=105: 183.00`, `106..=110: 190.40`, `nds=63.70, 1343.0s`) — confirms original `models/spatial_bc4.txt` (`185.60 [176..193]`) remains the all-time 10-seed Legal champion.
             - `realmlp_cov115_w8_h8_b20_c25` (40 seeds `101..=140`): **`mean=190.38 [180..200]`** (`nds=64.97, cov=30.3, wide=29.9, <=166: 0, 1559.5s`) — establishes that the `64x32` handcrafted-feature MLP architecture has fully saturated at `~185` mean / `~173` single-seed PB (`OR_p20 = 176.00`).
-          - **Phase 2 Architectural Breakthrough — Deep 2D Conv ResNet (`16×10` Full Board + Ordered `next5` Queue) on Colab L4/A100 GPU**:
-            - Replace the 4-row `64×32` MLP with a PyTorch 2D ResNet trained on `500–1000+` `WG_ds` games (`10×` data, `50×` capacity, exact ordered `next5` queue + full `16×10` 2D board geometry) to break the `OR_p20 = 176.00` evaluator ceiling down toward `< 168` and drag Legal `p=5` into `< 175` → `<= 161` territory.
+          - **Phase 2–4 Colab Pro GPU/CPU Runs (#5–#14, `2026-11-25`–`11-26`)**:
+            - **Run #5–#7 (`ResNet v1/v2`, 400 `WG_ds` games, L4 GPU)**: Achieved `val_ce = 0.7717` (`top1=75.26%`), yet `OR_p20 = 189.80` (vs `spatial_bc4` `176.00`) and Legal `p=5` `205` — confirming clairvoyant `WG_ds` BC hurts Legal play.
+            - **Run #8–#11 (`Hybrid ResNet v1/v2`, L4/T4 GPU)**: Adding `WG_ds` to Legal self-play lowered mixed `val_ce` (`0.934 -> 0.852`) while monotonically worsening Legal `pimc_v2` (`193.20 -> 194.80 -> 199.00`), providing final proof that imitating clairvoyant `WG_ds` actively harms Legal `p=5`.
+            - **Run #12–#14 (Pure Legal `p=5` `TD(λ)` Hybrid ResNet v1/v2, T4/L4 GPU)**: 72 strong Legal `root_pimc` games improved unbiased `val_mc_rmse` (`15.384 -> 14.877`) and `pimc_v2` linear-internal (`191.80 -> 190.00`), but full-MLP-internal `pimc_v2` regressed (`195.20 -> 199.00`) — 64–200 games is too noisy for a 367k-param ResNet, and `pimc_v2` trails `beam.rs` (`184.20`) by 8–11 pcs.
+          - **Colab Run #15-CPU (`beam.rs` `opaque_pimc` + `w24_h9_b36`, 8-core CPU, 5 seeds `101..=105`)**:
+            - Strict same-binary results: `fullmlp_base_w16_h8_b28 = 184.20 [176..193] (cov=25.0)` vs `opaque_d1 = 186.20 (cov=29.6)` vs `opaque_d2 = 188.60 (cov=34.6)` vs **`fullmlp_w24_h9_b36 = 186.40 [183..191] (cov=30.2)`**.
+            - **Physics caveat on `opaque_d1/d2`**: `OPAQUE_GARBAGE_ROW` (`0xFBFF`) has no hole and is never materialized into a real clearable garbage row during `root_pimc_eval_world`, altering simulated physics rather than cleanly isolating Strategy Fusion.
+            - **Key finding on `w24_h9_b36`**: Scaling search budget (`w=24, h=9, b=36, f=12`) worsened Legal play by `+2.20` pcs (`cov: 25.0 -> 30.2`), confirming `spatial_bc4.txt` + standard PIMC is saturated and motivating large-scale pure-Rust Legal `p=5` `TD(λ)` RL directly on `SpatialValueModel` (`train_spatial_td.rs`).
 
 ---
 
