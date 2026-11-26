@@ -27,6 +27,7 @@ import torch
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from train_resnet import BlockfishResNet, GPUUnpacker, MOVE_BYTES
+from train_hybrid_resnet import BlockfishHybridResNet
 
 
 def recv_exact(conn: socket.socket, n: int) -> bytes:
@@ -56,14 +57,25 @@ def main():
     )
 
     ckpt = torch.load(args.ckpt, map_location=device, weights_only=True)
-    model = BlockfishResNet(
-        in_ch=ckpt.get("in_ch", 8),
-        g_dim=ckpt.get("g_dim", 61),
-        channels=ckpt["channels"],
-        blocks=ckpt["blocks"],
-        unified=ckpt.get("unified", False),
-        temp=ckpt.get("temp", 0.4),
-    ).to(device)
+    arch = ckpt.get("arch", "resnet")
+    if arch == "hybrid_v1":
+        model = BlockfishHybridResNet(
+            in_ch=ckpt.get("in_ch", 8),
+            g_dim=ckpt.get("g_dim", 61),
+            channels=ckpt["channels"],
+            blocks=ckpt["blocks"],
+            max_delta=ckpt.get("max_delta", 12.0),
+            temp=ckpt.get("temp", 0.5),
+        ).to(device)
+    else:
+        model = BlockfishResNet(
+            in_ch=ckpt.get("in_ch", 8),
+            g_dim=ckpt.get("g_dim", 61),
+            channels=ckpt["channels"],
+            blocks=ckpt["blocks"],
+            unified=ckpt.get("unified", False),
+            temp=ckpt.get("temp", 0.4),
+        ).to(device)
     model.load_state_dict(ckpt["state_dict"])
     model.eval()
     unpacker = GPUUnpacker().to(device)

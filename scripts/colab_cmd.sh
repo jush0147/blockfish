@@ -2,39 +2,89 @@
 set -euo pipefail
 
 echo "================================================================"
-echo " Colab Run #8: Export 56 Legal p=5 Self-Play Games (BFDS0002)"
-echo "               spatial_bc4 root_pimc (w=6, h=7, b=16, cvar=25)"
-echo "               ~8-12 min on 8-12 cores -> GH Release legal-selfplay-v1"
-echo " Cores: $(nproc) | RAM: $(free -h | awk '/^Mem:/{print $2}')"
+echo " Colab Run #9: Hybrid Residual 2D Conv ResNet (Phase 3B)"
+echo "               V_hybrid = spatial_bc4 + ResNet_delta (Legal RL)"
+echo "               ~8-10 min total on L4/T4 GPU -> Release model-hybrid-v1"
 echo "================================================================"
 
-echo "--- Building export_legal_selfplay (release) ---"
-cargo build --release --example export_legal_selfplay --features block-stacker
+if ! nvidia-smi >/dev/null 2>&1; then
+  echo "[SKIP] No GPU detected (still on CPU runtime). Switch Colab to L4/T4 GPU and click Run all!"
+  exit 0
+fi
 
-OUT_BIN="/tmp/legal_sp_v1_56g.bin"
-OUT_GZ="${OUT_BIN}.gz"
+nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
+python3 -c "import torch; print('PyTorch:', torch.__version__, '| CUDA:', torch.cuda.is_available(), '| BF16:', torch.cuda.is_bf16_supported())"
+
+DATA_GZ="/tmp/legal_sp_v1_56g.bin.gz"
+if [ ! -f "$DATA_GZ" ]; then
+  echo ""
+  echo "--- Downloading legal_sp_v1_56g.bin.gz from GitHub Release legal-selfplay-v1 ---"
+  python3 scripts/download_release_asset.py legal-selfplay-v1 legal_sp_v1_56g.bin.gz "$DATA_GZ"
+fi
+
+CKPT="/tmp/hybrid_resnet_v1.pt"
+echo ""
+echo "--- Training BlockfishHybridResNet (C=64, B=4, 20 ep, bs=64, max-neg=15) ---"
+python3 scripts/train_hybrid_resnet.py \
+  --data "$DATA_GZ" \
+  --channels 64 \
+  --blocks 4 \
+  --epochs 20 \
+  --batch-size 64 \
+  --max-neg 15 \
+  --max-delta 12.0 \
+  --temp 0.5 \
+  --lr 2e-3 \
+  --wd 2e-4 \
+  --val-weight 0.05 \
+  --reg-weight 0.002 \
+  --out "$CKPT"
+
+ls -lh "$CKPT"
 
 echo ""
-echo "--- Generating 50 train (2001..2051) + 6 val (201..207) Legal p=5 games ---"
-target/release/examples/export_legal_selfplay \
-  --model models/spatial_bc4.txt \
-  --train-games 50 \
-  --val-games 6 \
-  --train-seed-start 2001 \
-  --val-seed-start 201 \
-  --worlds 6 \
-  --horizon 7 \
-  --width 16 \
-  --out "$OUT_BIN"
+echo "--- Uploading trained checkpoint to GitHub Release (tag: model-hybrid-v1) ---"
+python3 scripts/upload_release_asset.py model-hybrid-v1 "$CKPT" "Blockfish Hybrid Residual ResNet v1"
 
 echo ""
-echo "--- Compressing dataset ---"
-gzip -f -6 "$OUT_BIN"
-ls -lh "$OUT_GZ"
+echo "--- Building eval_resnet (release) ---"
+cargo build --release --example eval_resnet --features block-stacker
+
+SOCK="/tmp/blockfish_resnet.sock"
+rm -f "$SOCK"
+echo ""
+echo "--- Starting GPU Hybrid ResNet eval server ---"
+python3 scripts/resnet_eval_server.py --ckpt "$CKPT" --sock "$SOCK" &
+SRV_PID=$!
+trap 'kill $SRV_PID 2>/dev/null || true' EXIT
+
+for _ in $(seq 1 30); do
+  if [ -S "$SOCK" ]; then break; fi
+  sleep 0.5
+done
 
 echo ""
-echo "--- Uploading to GitHub Release (tag: legal-selfplay-v1) ---"
-python3 scripts/upload_release_asset.py legal-selfplay-v1 "$OUT_GZ" "Blockfish Legal p=5 Self-Play Dataset v1"
+echo "--- A/B 1: Legal p=5 1-ply Greedy (10 seeds 101..=110) BASE (delta_w=0.0) vs HYBRID (delta_w=1.0) ---"
+target/release/examples/eval_resnet --mode greedy --seed-start 101 --n-seeds 10 \
+  --hybrid-model models/spatial_bc4.txt --delta-w 0.0
+target/release/examples/eval_resnet --mode greedy --sock "$SOCK" --seed-start 101 --n-seeds 10 \
+  --hybrid-model models/spatial_bc4.txt --delta-w 1.0
 
-rm -f "$OUT_GZ"
-echo "=== Colab Run #8 COMPLETE ==="
+echo ""
+echo "--- A/B 2: Legal p=5 Lockstep root_pimc (w=8, h=6, b=16, cvar=25, 5 seeds 101..=105) ---"
+echo ">>> BASE (spatial_bc4, delta_w=0.0):"
+target/release/examples/eval_resnet --mode pimc --seed-start 101 --n-seeds 5 \
+  --worlds 8 --horizon 6 --beam 16 --max-per-root 4 --cvar 25 \
+  --hybrid-model models/spatial_bc4.txt --delta-w 0.0
+
+echo ">>> HYBRID (delta_w=0.5):"
+target/release/examples/eval_resnet --mode pimc --sock "$SOCK" --seed-start 101 --n-seeds 5 \
+  --worlds 8 --horizon 6 --beam 16 --max-per-root 4 --cvar 25 \
+  --hybrid-model models/spatial_bc4.txt --delta-w 0.5
+
+echo ">>> HYBRID (delta_w=1.0):"
+target/release/examples/eval_resnet --mode pimc --sock "$SOCK" --seed-start 101 --n-seeds 5 \
+  --worlds 8 --horizon 6 --beam 16 --max-per-root 4 --cvar 25 \
+  --hybrid-model models/spatial_bc4.txt --delta-w 1.0
+
+echo "=== Colab Run #9 COMPLETE ==="

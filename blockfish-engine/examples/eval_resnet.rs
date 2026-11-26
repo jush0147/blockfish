@@ -3,6 +3,7 @@ use blockfish::{
     ai::{
         beam::FxHasher,
         fast::{color_to_idx, FastBoard, FastPlace, FastPlaceGen, FastShapeTable},
+        spatial_val::SpatialValueModel,
         BagTracker, BeamConfig, FastAI,
     },
     Color, Input, StackerExt as _,
@@ -213,10 +214,24 @@ fn next5_at(q: &[u8], qc: usize) -> [u8; 5] {
     out
 }
 
+fn avail_mask_from_q(held: Option<u8>, q: &[u8], nqc: usize) -> u8 {
+    let mut m = 0u8;
+    if let Some(h) = held {
+        m |= 1u8 << h;
+    }
+    let end = (nqc + 6).min(q.len());
+    for &p in &q[nqc.min(q.len())..end] {
+        m |= 1u8 << p;
+    }
+    if m == 0 { 0x7F } else { m }
+}
+
 fn run_greedy_game(
     seed: u64,
-    client: &mut ResNetClient,
+    client: &mut Option<ResNetClient>,
     fst: &FastShapeTable,
+    hybrid_sm: Option<&SpatialValueModel>,
+    delta_w: f32,
 ) -> (usize, bool) {
     let mut game_cfg = BSConfig::default();
     game_cfg.garbage.total_lines = Some(100);
@@ -258,6 +273,7 @@ fn run_greedy_game(
 
         packed.clear();
         let mut cands: Vec<FastPlace> = Vec::with_capacity(tmp_places.len());
+        let mut base_vs: Vec<f32> = Vec::with_capacity(tmp_places.len());
         let mut win_fp: Option<FastPlace> = None;
         let step_rng = next_rng(&mut rng);
 
@@ -281,16 +297,24 @@ fn run_greedy_game(
             } else {
                 (None, 1)
             };
-            pack_move_rec(
-                &mut packed,
-                &b,
-                nrem,
-                nh,
-                next5_at(&wq, nqc),
-                bmasks[nqc.min(bmasks.len() - 1)],
-                lines,
-                ds_d,
-            );
+            if let Some(sm) = hybrid_sm {
+                let in_h = nh.or_else(|| wq.get(nqc).copied());
+                let av = avail_mask_from_q(nh, &wq, nqc);
+                let bv = ((sm.evaluate_board_with_bag(&b, nrem, in_h, av) as f32) / 100.0).clamp(-50.0, 500.0);
+                base_vs.push(bv);
+            }
+            if hybrid_sm.is_none() || delta_w != 0.0 {
+                pack_move_rec(
+                    &mut packed,
+                    &b,
+                    nrem,
+                    nh,
+                    next5_at(&wq, nqc),
+                    bmasks[nqc.min(bmasks.len() - 1)],
+                    lines,
+                    ds_d,
+                );
+            }
             cands.push(fp);
         }
 
@@ -298,8 +322,31 @@ fn run_greedy_game(
             wfp
         } else if cands.is_empty() {
             tmp_places[0]
+        } else if hybrid_sm.is_some() {
+            let best_i = if delta_w == 0.0 {
+                base_vs
+                    .iter()
+                    .enumerate()
+                    .min_by(|a, b| a.1.total_cmp(b.1))
+                    .map(|(i, _)| i)
+                    .unwrap_or(0)
+            } else {
+                let evals = client.as_mut().unwrap().eval_batch(&packed);
+                base_vs
+                    .iter()
+                    .zip(evals.iter())
+                    .enumerate()
+                    .min_by(|a, b| {
+                        let sa = a.1 .0 + delta_w * a.1 .1 .1;
+                        let sb = b.1 .0 + delta_w * b.1 .1 .1;
+                        sa.total_cmp(&sb)
+                    })
+                    .map(|(i, _)| i)
+                    .unwrap_or(0)
+            };
+            cands[best_i]
         } else {
-            let scores = client.eval_batch(&packed);
+            let scores = client.as_mut().unwrap().eval_batch(&packed);
             let best_i = scores
                 .iter()
                 .enumerate()
@@ -345,7 +392,7 @@ struct DedupKey {
 /// Steps all W worlds in lockstep at depth d = 0..H so every ply is ONE single GPU batch!
 fn run_pimc_game(
     seed: u64,
-    client: &mut ResNetClient,
+    client: &mut Option<ResNetClient>,
     fst: &FastShapeTable,
     worlds: usize,
     horizon: usize,
@@ -354,6 +401,8 @@ fn run_pimc_game(
     cvar_pct: usize,
     val_w: f32,
     logit_w: f32,
+    hybrid_sm: Option<&SpatialValueModel>,
+    delta_w: f32,
 ) -> (usize, bool) {
     let mut game_cfg = BSConfig::default();
     game_cfg.garbage.total_lines = Some(100);
@@ -422,10 +471,9 @@ fn run_pimc_game(
                 w_rngs.push(next_rng(&mut rng));
             }
 
-            // World beams: beam[w] holds active states for world w
             let mut beams: Vec<Vec<BeamState>> = vec![Vec::new(); worlds];
-            // Best terminal win score per (world, root_idx)
             let mut best_win_score: Vec<Vec<f32>> = vec![vec![f32::INFINITY; n_roots]; worlds];
+            let need_gpu = hybrid_sm.is_none() || delta_w != 0.0;
 
             // Depth 1: expand all root_places in all W worlds in lockstep
             packed.clear();
@@ -453,16 +501,25 @@ fn run_pimc_game(
                     } else {
                         (None, 1usize)
                     };
-                    pack_move_rec(
-                        &mut packed,
-                        &b,
-                        nrem,
-                        nh,
-                        next5_at(&w_queues[w], nqc),
-                        w_bmasks[w][nqc.min(w_bmasks[w].len() - 1)],
-                        lines,
-                        ds_d,
-                    );
+                    let bv = if let Some(sm) = hybrid_sm {
+                        let in_h = nh.or_else(|| w_queues[w].get(nqc).copied());
+                        let av = avail_mask_from_q(nh, &w_queues[w], nqc);
+                        ((sm.evaluate_board_with_bag(&b, nrem, in_h, av) as f32) / 100.0).clamp(-50.0, 500.0)
+                    } else {
+                        0.0
+                    };
+                    if need_gpu {
+                        pack_move_rec(
+                            &mut packed,
+                            &b,
+                            nrem,
+                            nh,
+                            next5_at(&w_queues[w], nqc),
+                            w_bmasks[w][nqc.min(w_bmasks[w].len() - 1)],
+                            lines,
+                            ds_d,
+                        );
+                    }
                     cand_meta.push((
                         w,
                         BeamState {
@@ -471,17 +528,28 @@ fn run_pimc_game(
                             qc: nqc as u8,
                             rem_g: nrem,
                             root_idx: ri as u8,
-                            score: 0.0,
+                            score: bv,
                             won: false,
                         },
                     ));
                 }
             }
 
-            let evals = client.eval_batch(&packed);
-            for ((w, mut st), (logit, val)) in cand_meta.into_iter().zip(evals.into_iter()) {
-                st.score = 1.0 + val_w * val - logit_w * logit;
-                beams[w].push(st);
+            if need_gpu {
+                let evals = client.as_mut().unwrap().eval_batch(&packed);
+                for ((w, mut st), (logit, val)) in cand_meta.into_iter().zip(evals.into_iter()) {
+                    if hybrid_sm.is_some() {
+                        st.score = 1.0 + st.score + delta_w * val;
+                    } else {
+                        st.score = 1.0 + val_w * val - logit_w * logit;
+                    }
+                    beams[w].push(st);
+                }
+            } else {
+                for (w, mut st) in cand_meta {
+                    st.score = 1.0 + st.score;
+                    beams[w].push(st);
+                }
             }
 
             // Prune depth 1 beam per world
@@ -538,16 +606,25 @@ fn run_pimc_game(
                             } else {
                                 (None, qc + 1)
                             };
-                            pack_move_rec(
-                                &mut packed,
-                                &b,
-                                nrem,
-                                nh,
-                                next5_at(&w_queues[w], nqc),
-                                w_bmasks[w][nqc.min(w_bmasks[w].len() - 1)],
-                                lines,
-                                ds_d,
-                            );
+                            let bv = if let Some(sm) = hybrid_sm {
+                                let in_h = nh.or_else(|| w_queues[w].get(nqc).copied());
+                                let av = avail_mask_from_q(nh, &w_queues[w], nqc);
+                                ((sm.evaluate_board_with_bag(&b, nrem, in_h, av) as f32) / 100.0).clamp(-50.0, 500.0)
+                            } else {
+                                0.0
+                            };
+                            if need_gpu {
+                                pack_move_rec(
+                                    &mut packed,
+                                    &b,
+                                    nrem,
+                                    nh,
+                                    next5_at(&w_queues[w], nqc),
+                                    w_bmasks[w][nqc.min(w_bmasks[w].len() - 1)],
+                                    lines,
+                                    ds_d,
+                                );
+                            }
                             next_meta.push((
                                 w,
                                 BeamState {
@@ -556,7 +633,7 @@ fn run_pimc_game(
                                     qc: nqc as u8,
                                     rem_g: nrem,
                                     root_idx: parent.root_idx,
-                                    score: 0.0,
+                                    score: bv,
                                     won: false,
                                 },
                             ));
@@ -567,11 +644,22 @@ fn run_pimc_game(
                 if next_meta.is_empty() {
                     break;
                 }
-                let evals = client.eval_batch(&packed);
                 let mut per_w: Vec<Vec<BeamState>> = vec![Vec::new(); worlds];
-                for ((w, mut st), (logit, val)) in next_meta.into_iter().zip(evals.into_iter()) {
-                    st.score = (depth as f32) + val_w * val - logit_w * logit;
-                    per_w[w].push(st);
+                if need_gpu {
+                    let evals = client.as_mut().unwrap().eval_batch(&packed);
+                    for ((w, mut st), (logit, val)) in next_meta.into_iter().zip(evals.into_iter()) {
+                        if hybrid_sm.is_some() {
+                            st.score = (depth as f32) + st.score + delta_w * val;
+                        } else {
+                            st.score = (depth as f32) + val_w * val - logit_w * logit;
+                        }
+                        per_w[w].push(st);
+                    }
+                } else {
+                    for (w, mut st) in next_meta {
+                        st.score = (depth as f32) + st.score;
+                        per_w[w].push(st);
+                    }
                 }
 
                 for w in 0..worlds {
@@ -1021,6 +1109,8 @@ fn main() {
     let mut cvar_pct: usize = 25;
     let mut val_w: f32 = 1.0;
     let mut logit_w: f32 = 0.0;
+    let mut hybrid_model_path: Option<String> = None;
+    let mut delta_w: f32 = 1.0;
 
     let mut i = 1;
     while i < args.len() {
@@ -1036,6 +1126,8 @@ fn main() {
             "--cvar" => { i += 1; cvar_pct = args[i].parse().unwrap(); }
             "--val-w" => { i += 1; val_w = args[i].parse().unwrap(); }
             "--logit-w" => { i += 1; logit_w = args[i].parse().unwrap(); }
+            "--hybrid-model" => { i += 1; hybrid_model_path = Some(args[i].clone()); }
+            "--delta-w" => { i += 1; delta_w = args[i].parse().unwrap(); }
             other => {
                 eprintln!("Unknown arg: {}", other);
                 std::process::exit(1);
@@ -1045,13 +1137,22 @@ fn main() {
     }
 
     let fst = FastShapeTable::srs();
-    let mut client = ResNetClient::connect(&sock);
+    let hybrid_sm = hybrid_model_path
+        .as_deref()
+        .map(|p| SpatialValueModel::load_from_file(p).expect("load hybrid spatial model"));
+    let need_client = hybrid_sm.is_none() || delta_w != 0.0 || mode == "or_p20";
+    let mut client = if need_client {
+        Some(ResNetClient::connect(&sock))
+    } else {
+        None
+    };
     let t0 = Instant::now();
 
     println!(
-        "=== eval_resnet mode={} seeds={}..={} (n={}) w={} h={} b={} mpr={} cvar={} val_w={:.2} logit_w={:.2} ===",
+        "=== eval_resnet mode={} seeds={}..={} (n={}) w={} h={} b={} mpr={} cvar={} val_w={:.2} logit_w={:.2} hybrid={} delta_w={:.2} ===",
         mode, seed_start, seed_start + n_seeds as u64 - 1, n_seeds,
-        worlds, horizon, beam_w, max_per_root, cvar_pct, val_w, logit_w
+        worlds, horizon, beam_w, max_per_root, cvar_pct, val_w, logit_w,
+        hybrid_sm.is_some(), delta_w
     );
 
     let mut ok_pcs = Vec::with_capacity(n_seeds);
@@ -1060,10 +1161,13 @@ fn main() {
         let s = seed_start + k as u64;
         let ts = Instant::now();
         let (pcs, top) = match mode.as_str() {
-            "greedy" => run_greedy_game(s, &mut client, &fst),
-            "or_p20" => run_or_p20_game(s, &mut client, &fst, horizon, beam_w, max_per_root, val_w, logit_w),
+            "greedy" => run_greedy_game(s, &mut client, &fst, hybrid_sm.as_ref(), delta_w),
+            "or_p20" => run_or_p20_game(
+                s, client.as_mut().unwrap(), &fst, horizon, beam_w, max_per_root, val_w, logit_w
+            ),
             "pimc" => run_pimc_game(
-                s, &mut client, &fst, worlds, horizon, beam_w, max_per_root, cvar_pct, val_w, logit_w
+                s, &mut client, &fst, worlds, horizon, beam_w, max_per_root, cvar_pct, val_w, logit_w,
+                hybrid_sm.as_ref(), delta_w
             ),
             other => panic!("Unknown mode: {}", other),
         };
