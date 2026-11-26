@@ -1,4 +1,4 @@
-RUNNING commit=89e3751b heartbeat=2026-11-26T16:32:45Z cores=8
+RUNNING commit=89e3751b heartbeat=2026-11-26T16:34:46Z cores=8
 --- tail results/colab_latest.log ---
  lambda=0.92 epochs=3 batch=256 lr_lin=3.0e-4 lr_mlp=1.5e-4 anchor_wd=1.0e-3 huber=4.0 threads=8
 ================================================================
