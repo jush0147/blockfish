@@ -1,6 +1,5 @@
-RUNNING commit=78801b7 heartbeat=2026-11-26T03:50:23Z cores=8
+RUNNING commit=78801b7 heartbeat=2026-11-26T03:52:24Z cores=8
 --- tail results/colab_latest.log ---
-DOWNLOAD SUCCESS: /tmp/legal_sp_v1_56g.bin.gz (4.61 MB)
 
 --- Training BlockfishHybridResNet (C=64, B=4, 20 ep, bs=64, max-neg=15) ---
 Device: cuda | amp_dtype=torch.bfloat16
@@ -15,3 +14,4 @@ ep  3/20 | lr=0.00189 | tr_ce=0.6396 tr_top1=80.46% tr_vmae= 6.31 | val_ce=1.204
 ep  4/20 | lr=0.00181 | tr_ce=0.6386 tr_top1=80.63% tr_vmae= 6.36 | val_ce=1.2105 val_top1=66.78% val_top3=87.94% val_vmae= 6.70 |d|=8.03 | 151.1s
 ep  5/20 | lr=0.00171 | tr_ce=0.6382 tr_top1=80.42% tr_vmae= 6.34 | val_ce=1.2140 val_top1=65.82% val_top3=87.59% val_vmae= 7.16 |d|=7.24 | 151.1s
 ep  6/20 | lr=0.00160 | tr_ce=0.6373 tr_top1=80.60% tr_vmae= 6.27 | val_ce=1.2188 val_top1=66.26% val_top3=87.59% val_vmae= 7.29 |d|=6.92 | 151.1s
+ep  7/20 | lr=0.00146 | tr_ce=0.6331 tr_top1=81.01% tr_vmae= 6.26 | val_ce=1.2101 val_top1=66.87% val_top3=87.76% val_vmae= 7.17 |d|=7.13 | 151.1s
