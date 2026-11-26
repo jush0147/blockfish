@@ -1,12 +1,5 @@
-RUNNING commit=3d84ecb3 heartbeat=2026-11-26T14:47:02Z cores=8
+RUNNING commit=3d84ecb3 heartbeat=2026-11-26T14:49:03Z cores=8
 --- tail results/colab_latest.log ---
-   |
-16 |     pub fn shape(&self, color: Color) -> Option<ShapeRef<'_>> {
-   |                                                         ++++
-
-warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
-    Finished `release` profile [optimized] target(s) in 22.50s
-
 --- Running opaque_pimc (same-binary base, d1, d2, w24_h9_b36) ---
   [seed 103] pcs=176 nds=59 0ds=76 (cov=25 O=19 nar= 7 wide=19 end= 6) cov_nxt=12.0% | 1020.9s
   [seed 102] pcs=184 nds=62 0ds=84 (cov=24 O=20 nar= 7 wide=30 end= 3) cov_nxt=15.0% | 1031.0s
@@ -15,3 +8,10 @@ warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockf
   [seed 105] pcs=193 nds=66 0ds=93 (cov=27 O=21 nar= 9 wide=34 end= 2) cov_nxt=13.0% | 1217.2s
 fullmlp_base_w16_h8_b28    n= 5 mean=184.20 min=176 max=193 <=166: 0 top= 0 | nds=62.40 0ds=84.20 (cov=25.0 O=20.0 nar=8.6 wide=27.0 g0=0.0 end=3.6) cov_nxt=15.0% avg_c=12.4 | 1217.2s
   seeds: [101:180, 102:184, 103:176, 104:188, 105:193]
+  [seed 105] pcs=185 nds=63 0ds=85 (cov=32 O=16 nar= 7 wide=24 end= 6) cov_nxt=17.0% | 1076.0s
+  [seed 103] pcs=189 nds=64 0ds=89 (cov=25 O=20 nar=17 wide=25 end= 2) cov_nxt=15.0% | 1093.6s
+  [seed 104] pcs=184 nds=63 0ds=84 (cov=29 O=17 nar=11 wide=21 end= 6) cov_nxt=19.0% | 1123.4s
+  [seed 101] pcs=188 nds=64 0ds=88 (cov=31 O=18 nar= 6 wide=30 end= 3) cov_nxt=14.0% | 1139.0s
+  [seed 102] pcs=185 nds=62 0ds=85 (cov=31 O=15 nar= 8 wide=27 end= 4) cov_nxt=21.0% | 1162.1s
+fullmlp_opaque_d1          n= 5 mean=186.20 min=184 max=189 <=166: 0 top= 0 | nds=63.20 0ds=86.20 (cov=29.6 O=17.2 nar=9.8 wide=25.4 g0=0.0 end=4.2) cov_nxt=17.2% avg_c=12.2 | 1162.1s
+  seeds: [101:188, 102:185, 103:189, 104:184, 105:185]
