@@ -1,7 +1,5 @@
-RUNNING commit=4aba791 heartbeat=2026-11-26T09:47:28Z cores=8
+RUNNING commit=4aba791 heartbeat=2026-11-26T09:49:30Z cores=8
 --- tail results/colab_latest.log ---
-resnet_eval_server READY on /tmp/blockfish_resnet.sock | device=cuda (torch.float16) | C=64 B=4 val_ce=5.9947
-
 >>> [1/2] PURE-LEGAL TD HYBRID (delta_w=0.5) pimc_v2 (5 seeds 101..=105, vs BASE 193.20):
 === eval_resnet mode=pimc_v2 seeds=101..=105 (n=5) w=12 h=8 b=20 k=10 l=4 cvar=25 hybrid=true delta_w=0.50 ===
   [seed 101] pcs=191 top=0 | 62.2s
@@ -15,3 +13,5 @@ SUMMARY mode=pimc_v2 n=5 ok=5/5 mean=193.00 min=190 max=196 <=166:0 <=161:0 top=
 === eval_resnet mode=pimc_v2 seeds=101..=105 (n=5) w=12 h=8 b=20 k=10 l=4 cvar=25 hybrid=true delta_w=1.00 ===
   [seed 101] pcs=196 top=0 | 64.4s
   [seed 102] pcs=191 top=0 | 63.6s
+  [seed 103] pcs=184 top=0 | 62.7s
+  [seed 104] pcs=192 top=0 | 62.5s
