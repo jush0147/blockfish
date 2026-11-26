@@ -1,11 +1,5 @@
-RUNNING commit=16984802 heartbeat=2026-11-26T11:43:34Z cores=8
+RUNNING commit=16984802 heartbeat=2026-11-26T11:45:36Z cores=8
 --- tail results/colab_latest.log ---
-16 |     pub fn shape(&self, color: Color) -> Option<ShapeRef<'_>> {
-   |                                                         ++++
-
-warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
-    Finished `release` profile [optimized] target(s) in 18.52s
-
 --- Starting GPU Strong-Legal TD Hybrid ResNet v2 eval server ---
 resnet_eval_server READY on /tmp/blockfish_resnet.sock | device=cuda (torch.float16) | C=64 B=4 val_ce=14.8770
 
@@ -15,3 +9,9 @@ resnet_eval_server READY on /tmp/blockfish_resnet.sock | device=cuda (torch.floa
   [seed 102] pcs=198 top=0 | 61.1s
   [seed 103] pcs=185 top=0 | 58.7s
   [seed 104] pcs=190 top=0 | 57.2s
+  [seed 105] pcs=189 top=0 | 58.5s
+SUMMARY mode=pimc_v2 n=5 ok=5/5 mean=191.80 min=185 max=198 <=166:0 <=161:0 top=0 | 299.0s
+
+>>> [2/3] STRONG-LEGAL TD-v2 HYBRID (delta_w=0.5) pimc_v2 (5 seeds 101..=105):
+=== eval_resnet mode=pimc_v2 seeds=101..=105 (n=5) w=12 h=8 b=20 k=10 l=4 cvar=25 hybrid=true delta_w=0.50 ===
+  [seed 101] pcs=183 top=0 | 58.6s
