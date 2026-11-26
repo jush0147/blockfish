@@ -286,16 +286,14 @@ fn play_legal_episode(
         let mut g_lambda = vec![0.0f32; t_len];
         let mut next_g = terminal_val;
         for t in (0..t_len).rev() {
-            if t == t_len - 1 {
+            if step_explore[t] {
+                // Exploratory step (including terminal topout): cut trace for predecessor t-1
+                g_lambda[t] = step_v_tgt[t];
+            } else if t == t_len - 1 {
                 g_lambda[t] = 1.0 + terminal_val;
             } else {
                 let v_next = step_v_tgt[t + 1];
-                if step_explore[t] {
-                    // Exploratory step: cut trace for predecessor t-1 by passing V_tgt(s_t)
-                    g_lambda[t] = step_v_tgt[t];
-                } else {
-                    g_lambda[t] = 1.0 + (1.0 - lambda) * v_next + lambda * next_g;
-                }
+                g_lambda[t] = 1.0 + (1.0 - lambda) * v_next + lambda * next_g;
             }
             next_g = g_lambda[t];
         }
