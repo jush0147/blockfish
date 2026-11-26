@@ -1,7 +1,5 @@
-RUNNING commit=4aba791 heartbeat=2026-11-26T09:41:21Z cores=8
+RUNNING commit=4aba791 heartbeat=2026-11-26T09:43:23Z cores=8
 --- tail results/colab_latest.log ---
-   = note: `#[warn(mismatched_lifetime_syntaxes)]` on by default
-help: use `'_` for type paths
    |
 16 |     pub fn shape(&self, color: Color) -> Option<ShapeRef<'_>> {
    |                                                         ++++
@@ -15,3 +13,5 @@ resnet_eval_server READY on /tmp/blockfish_resnet.sock | device=cuda (torch.floa
 >>> [1/2] PURE-LEGAL TD HYBRID (delta_w=0.5) pimc_v2 (5 seeds 101..=105, vs BASE 193.20):
 === eval_resnet mode=pimc_v2 seeds=101..=105 (n=5) w=12 h=8 b=20 k=10 l=4 cvar=25 hybrid=true delta_w=0.50 ===
   [seed 101] pcs=191 top=0 | 62.2s
+  [seed 102] pcs=195 top=0 | 66.3s
+  [seed 103] pcs=190 top=0 | 63.2s
