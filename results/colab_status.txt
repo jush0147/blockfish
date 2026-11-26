@@ -1,11 +1,5 @@
-RUNNING commit=93f305a heartbeat=2026-11-26T00:49:58Z cores=12
+RUNNING commit=93f305a heartbeat=2026-11-26T00:52:00Z cores=12
 --- tail results/colab_latest.log ---
-  [seed 103] pcs=277 top=0 | 1.4s
-  [seed 104] pcs=283 top=1 | 1.5s
-  [seed 105] pcs= 54 top=1 | 0.3s
-  [seed 106] pcs=261 top=1 | 1.3s
-  [seed 107] pcs=177 top=1 | 0.9s
-  [seed 108] pcs= 58 top=1 | 0.3s
   [seed 109] pcs=115 top=1 | 0.6s
   [seed 110] pcs=350 top=1 | 1.8s
 SUMMARY mode=greedy n=10 ok=1/10 mean=277.00 min=277 max=277 <=166:0 <=161:0 top=9 | 11.8s
@@ -15,3 +9,9 @@ SUMMARY mode=greedy n=10 ok=1/10 mean=277.00 min=277 max=277 <=166:0 <=161:0 top
   [seed 101] pcs=179 top=0 | 14.5s
   [seed 102] pcs=195 top=0 | 15.2s
   [seed 103] pcs=194 top=0 | 14.7s
+  [seed 104] pcs=186 top=0 | 14.5s
+  [seed 105] pcs=195 top=0 | 15.0s
+SUMMARY mode=or_p20 n=5 ok=5/5 mean=189.80 min=179 max=195 <=166:0 <=161:0 top=0 | 73.8s
+
+--- Benchmark 3: Legal p=5 Lockstep GPU root_pimc (w=16, h=6, b=16, cvar=25, 10 seeds 101..=110) ---
+=== eval_resnet mode=pimc seeds=101..=110 (n=10) w=16 h=6 b=16 mpr=4 cvar=25 val_w=1.00 logit_w=0.00 ===
