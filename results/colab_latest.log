@@ -1,47 +1,10 @@
 ================================================================
- Colab Run #6e: Fast T4/L4 ResNet (C=64, B=4, 15 ep, max-neg=11)
-                4x Negative Sampling + 2-min Live Log Sync + Eval
+ Colab Run #8: Export 56 Legal p=5 Self-Play Games (BFDS0002)
+               spatial_bc4 root_pimc (w=6, h=7, b=16, cvar=25)
+               ~8-12 min on 8-12 cores -> GH Release legal-selfplay-v1
+ Cores: 8 | RAM: 50Gi
 ================================================================
-NVIDIA L4, 23034 MiB
-PyTorch: 2.14.1+cu130 | CUDA: True | BF16: True
-
---- Downloading wg_ds_v1_400g.bin.gz from GitHub Release dataset-v1 ---
-Downloading 'wg_ds_v1_400g.bin.gz' from release 'dataset-v1' -> /tmp/wg_ds_v1_400g.bin.gz...
-DOWNLOAD SUCCESS: /tmp/wg_ds_v1_400g.bin.gz (17.51 MB)
-
---- Training BlockfishResNet (C=64, B=4, 15 epochs, batch=128, max-neg=11) ---
-Device: cuda | amp_dtype=torch.bfloat16
-GPU: NVIDIA L4
-Loading /tmp/wg_ds_v1_400g.bin.gz: 400 games, 66897 decisions (136.8 MB raw)...
-Loaded 3,090,045 moves in 0.72s (train_decs=60,215, val_decs=6,682)
-BlockfishResNet(C=64, B=4) | params=383,618
-  [ep 1 | batch 150/471 | 11.1s | tr_ce=0.5188]
-  [ep 1 | batch 300/471 | 19.9s | tr_ce=0.4641]
-  [ep 1 | batch 450/471 | 28.7s | tr_ce=0.4408]
-ep  1/15 | lr=0.00297 | tr_ce=0.4383 tr_top1=86.04% tr_vmae=9.32 | val_ce=0.9438 val_top1=71.30% val_top3=92.10% val_vmae=7.28 | 33.8s *BEST*
-ep  2/15 | lr=0.00287 | tr_ce=0.3681 tr_top1=87.72% tr_vmae=3.94 | val_ce=0.9072 val_top1=72.09% val_top3=92.86% val_vmae=2.67 | 31.5s *BEST*
-ep  3/15 | lr=0.00272 | tr_ce=0.3565 tr_top1=87.88% tr_vmae=3.01 | val_ce=0.8680 val_top1=72.88% val_top3=92.79% val_vmae=2.53 | 31.8s *BEST*
-ep  4/15 | lr=0.00251 | tr_ce=0.3467 tr_top1=88.11% tr_vmae=2.82 | val_ce=0.8787 val_top1=72.13% val_top3=92.52% val_vmae=3.21 | 32.0s
-ep  5/15 | lr=0.00227 | tr_ce=0.3343 tr_top1=88.66% tr_vmae=2.63 | val_ce=0.8782 val_top1=72.43% val_top3=92.49% val_vmae=3.23 | 32.0s
-ep  6/15 | lr=0.00198 | tr_ce=0.3280 tr_top1=88.73% tr_vmae=2.50 | val_ce=0.8490 val_top1=73.18% val_top3=92.82% val_vmae=4.11 | 32.0s *BEST*
-ep  7/15 | lr=0.00168 | tr_ce=0.3190 tr_top1=88.89% tr_vmae=2.29 | val_ce=0.8425 val_top1=73.09% val_top3=93.06% val_vmae=2.09 | 32.0s *BEST*
-ep  8/15 | lr=0.00138 | tr_ce=0.3111 tr_top1=89.25% tr_vmae=2.05 | val_ce=0.8361 val_top1=73.06% val_top3=93.15% val_vmae=2.06 | 32.0s *BEST*
-ep  9/15 | lr=0.00108 | tr_ce=0.3045 tr_top1=89.42% tr_vmae=1.96 | val_ce=0.8316 val_top1=73.23% val_top3=93.56% val_vmae=2.11 | 32.0s *BEST*
-ep 10/15 | lr=0.00080 | tr_ce=0.2941 tr_top1=89.61% tr_vmae=1.89 | val_ce=0.8238 val_top1=73.87% val_top3=93.48% val_vmae=2.13 | 32.0s *BEST*
-ep 11/15 | lr=0.00055 | tr_ce=0.2829 tr_top1=90.00% tr_vmae=1.84 | val_ce=0.8348 val_top1=72.87% val_top3=93.33% val_vmae=2.02 | 32.0s
-ep 12/15 | lr=0.00034 | tr_ce=0.2746 tr_top1=90.46% tr_vmae=1.80 | val_ce=0.8231 val_top1=73.75% val_top3=93.24% val_vmae=1.98 | 32.0s *BEST*
-ep 13/15 | lr=0.00019 | tr_ce=0.2603 tr_top1=90.77% tr_vmae=1.76 | val_ce=0.8232 val_top1=73.81% val_top3=93.37% val_vmae=1.93 | 32.0s
-ep 14/15 | lr=0.00009 | tr_ce=0.2546 tr_top1=90.97% tr_vmae=1.73 | val_ce=0.8223 val_top1=73.71% val_top3=93.46% val_vmae=1.93 | 32.0s *BEST*
-ep 15/15 | lr=0.00006 | tr_ce=0.2456 tr_top1=91.27% tr_vmae=1.71 | val_ce=0.8282 val_top1=74.03% val_top3=93.31% val_vmae=1.91 | 32.0s
-DONE! Best val_ce=0.8223 saved to /tmp/resnet_v1_c64b4.pt
--rw-r--r-- 1 root root 1.5M Nov 25 23:05 /tmp/resnet_v1_c64b4.pt
-
---- Uploading trained checkpoint to GitHub Release (tag: model-resnet-v1) ---
-Uploading resnet_v1_c64b4.pt (1.50 MB) to release tag 'model-resnet-v1'...
-Created release id=458746057 (https://github.com/jush0147/blockfish/releases/tag/model-resnet-v1)
-UPLOAD SUCCESS: https://github.com/jush0147/blockfish/releases/download/model-resnet-v1/resnet_v1_c64b4.pt (1570901 bytes)
-
---- Building eval_resnet (release) ---
+--- Building export_legal_selfplay (release) ---
 warning: unused build dependency `fontconfig`
   --> blockfish-client/Cargo.toml:29:1
    |
@@ -53,56 +16,56 @@ help: consider removing the dependency on `fontconfig`
 warning: `blockfish-client` (manifest) generated 1 warning
     Updating crates.io index
  Downloading crates ...
-  Downloaded atty v0.2.14
   Downloaded argh_shared v0.1.4
-  Downloaded argh v0.1.4
-  Downloaded argh_derive v0.1.4
   Downloaded aho-corasick v0.7.15
-  Downloaded unicode-xid v0.2.1
-  Downloaded const-cstr v0.3.0
-  Downloaded pkg-config v0.3.19
-  Downloaded rand_core v0.5.1
-  Downloaded pretty_env_logger v0.4.0
-  Downloaded lazy_static v1.4.0
-  Downloaded quick-error v1.2.3
-  Downloaded rand_pcg v0.2.1
-  Downloaded thiserror-impl v1.0.22
-  Downloaded version-compare v0.1.0
-  Downloaded autocfg v1.0.1
-  Downloaded cfg-if v1.0.0
-  Downloaded itoa v0.4.6
-  Downloaded rand_chacha v0.2.2
-  Downloaded thread_local v1.0.1
-  Downloaded memchr v2.3.4
-  Downloaded num-integer v0.1.44
-  Downloaded quote v1.0.7
-  Downloaded bitflags v1.2.1
-  Downloaded getrandom v0.1.15
-  Downloaded ppv-lite86 v0.2.10
   Downloaded cfg-if v0.1.10
+  Downloaded memchr v2.3.4
   Downloaded humantime v1.3.0
+  Downloaded ryu v1.0.5
+  Downloaded atty v0.2.14
+  Downloaded pretty_env_logger v0.4.0
+  Downloaded red_union_find v0.2.5
+  Downloaded argh v0.1.4
+  Downloaded lazy_static v1.4.0
+  Downloaded rand_pcg v0.2.1
+  Downloaded ppv-lite86 v0.2.10
+  Downloaded heck v0.3.1
+  Downloaded cfg-if v1.0.0
+  Downloaded pkg-config v0.3.19
+  Downloaded version-compare v0.1.0
+  Downloaded unicode-xid v0.2.1
+  Downloaded num-integer v0.1.44
+  Downloaded quick-error v1.2.3
+  Downloaded yeslogic-fontconfig-sys v2.11.1
+  Downloaded autocfg v1.0.1
+  Downloaded const-cstr v0.3.0
+  Downloaded thread_local v1.0.1
+  Downloaded rand_chacha v0.2.2
+  Downloaded thiserror-impl v1.0.22
+  Downloaded itoa v0.4.6
+  Downloaded proc-macro2 v1.0.24
+  Downloaded bitflags v1.2.1
   Downloaded thiserror v1.0.22
+  Downloaded rand_core v0.5.1
+  Downloaded termcolor v1.1.1
   Downloaded env_logger v0.7.1
   Downloaded log v0.4.11
-  Downloaded proc-macro2 v1.0.24
   Downloaded num-traits v0.2.14
-  Downloaded ryu v1.0.5
+  Downloaded getrandom v0.1.15
+  Downloaded quote v1.0.7
   Downloaded serde_derive v1.0.118
-  Downloaded heck v0.3.1
   Downloaded serde v1.0.118
   Downloaded unicode-segmentation v1.7.1
   Downloaded rand v0.7.3
   Downloaded serde_json v1.0.60
-  Downloaded sdl2 v0.35.2
   Downloaded regex v1.4.2
-  Downloaded syn v1.0.48
+  Downloaded sdl2 v0.35.2
   Downloaded regex-syntax v0.6.21
+  Downloaded syn v1.0.48
   Downloaded libc v0.2.119
   Downloaded sdl2-sys v0.35.2
-  Downloaded termcolor v1.1.1
+  Downloaded argh_derive v0.1.4
   Downloaded fontconfig v0.2.0
-  Downloaded red_union_find v0.2.5
-  Downloaded yeslogic-fontconfig-sys v2.11.1
    Compiling proc-macro2 v1.0.24
    Compiling unicode-xid v0.2.1
    Compiling syn v1.0.48
@@ -115,11 +78,11 @@ warning: `blockfish-client` (manifest) generated 1 warning
    Compiling serde v1.0.118
    Compiling ppv-lite86 v0.2.10
    Compiling serde_json v1.0.60
-   Compiling log v0.4.11
    Compiling itoa v0.4.6
-   Compiling blockfish v0.1.0 (/content/blockfish/blockfish-engine)
+   Compiling log v0.4.11
    Compiling num-traits v0.2.14
    Compiling num-integer v0.1.44
+   Compiling blockfish v0.1.0 (/content/blockfish/blockfish-engine)
    Compiling quote v1.0.7
    Compiling rand_core v0.5.1
    Compiling rand_chacha v0.2.2
@@ -216,40 +179,26 @@ help: use `'_` for type paths
    |                                                         ++++
 
 warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
-    Finished `release` profile [optimized] target(s) in 20.34s
+    Finished `release` profile [optimized] target(s) in 20.04s
 
---- Starting GPU ResNet eval server ---
-resnet_eval_server READY on /tmp/blockfish_resnet.sock | device=cuda (torch.bfloat16) | C=64 B=4 val_ce=0.8223
+--- Generating 50 train (2001..2051) + 6 val (201..207) Legal p=5 games ---
+=== export_legal_selfplay (BFDS0002) ===
+  model=models/spatial_bc4.txt | train=50 (2001..2051), val=6 (201..207) | w=6 h=7 b=16 threads=8
+  out=/tmp/legal_sp_v1_56g.bin
+  [  8/56] elapsed= 185.0s rate=0.04 games/s ETA=1109.7s
+  [ 16/56] elapsed= 367.0s rate=0.04 games/s ETA= 917.6s
+  [ 24/56] elapsed= 539.4s rate=0.04 games/s ETA= 719.2s
+  [ 32/56] elapsed= 728.3s rate=0.04 games/s ETA= 546.2s
+  [ 40/56] elapsed= 914.9s rate=0.04 games/s ETA= 366.0s
+  [ 48/56] elapsed=1091.6s rate=0.04 games/s ETA= 181.9s
+  [ 56/56] elapsed=1233.8s rate=0.05 games/s ETA=   0.0s
+DONE in 1233.8s | games=56 mean_pcs=193.00 | decisions=10752 (val=1144) | moves=503747 (46.9/dec) | size=23.18 MB
 
---- Benchmark 1: Legal p=5 1-ply Greedy (10 seeds 101..=110) ---
-=== eval_resnet mode=greedy seeds=101..=110 (n=10) w=16 h=6 b=16 mpr=4 cvar=25 val_w=1.00 logit_w=0.50 ===
-  [seed 101] pcs=216 top=1 | 1.2s
-  [seed 102] pcs=172 top=1 | 0.9s
-  [seed 103] pcs= 27 top=1 | 0.1s
-  [seed 104] pcs= 30 top=1 | 0.2s
-  [seed 105] pcs= 71 top=1 | 0.4s
-  [seed 106] pcs= 68 top=1 | 0.3s
-  [seed 107] pcs=100 top=1 | 0.5s
-  [seed 108] pcs= 77 top=1 | 0.4s
-  [seed 109] pcs=350 top=1 | 1.8s
-  [seed 110] pcs=106 top=1 | 0.5s
-SUMMARY mode=greedy n=10 mean=121.70 min=27 max=350 <=166:7 <=161:7 top=10 | 6.3s
+--- Compressing dataset ---
+-rw-r--r-- 1 root root 4.7M Nov 26 03:11 /tmp/legal_sp_v1_56g.bin.gz
 
---- Benchmark 2: Legal p=5 Lockstep GPU root_pimc (val_w=1.0, logit_w=0.5, 5 seeds 101..=105) ---
-=== eval_resnet mode=pimc seeds=101..=105 (n=5) w=16 h=6 b=16 mpr=4 cvar=25 val_w=1.00 logit_w=0.50 ===
-  [seed 101] pcs=297 top=0 | 220.4s
-  [seed 102] pcs=255 top=0 | 187.3s
-  [seed 103] pcs=241 top=0 | 177.0s
-  [seed 104] pcs=211 top=1 | 120.5s
-  [seed 105] pcs= 34 top=1 | 9.0s
-SUMMARY mode=pimc n=5 mean=207.60 min=34 max=297 <=166:1 <=161:1 top=2 | 714.3s
-
---- Benchmark 3: Legal p=5 Lockstep GPU root_pimc (val_w=1.0, logit_w=0.0, 5 seeds 101..=105) ---
-=== eval_resnet mode=pimc seeds=101..=105 (n=5) w=16 h=6 b=16 mpr=4 cvar=25 val_w=1.00 logit_w=0.00 ===
-  [seed 101] pcs= 27 top=1 | 7.0s
-  [seed 102] pcs= 14 top=1 | 6.4s
-  [seed 103] pcs= 21 top=1 | 6.9s
-  [seed 104] pcs= 47 top=1 | 7.0s
-  [seed 105] pcs= 13 top=1 | 4.6s
-SUMMARY mode=pimc n=5 mean=24.40 min=13 max=47 <=166:5 <=161:5 top=5 | 32.0s
-=== Colab Run #6c COMPLETE ===
+--- Uploading to GitHub Release (tag: legal-selfplay-v1) ---
+Uploading legal_sp_v1_56g.bin.gz (4.61 MB) to release tag 'legal-selfplay-v1'...
+Created release id=458899530 (https://github.com/jush0147/blockfish/releases/tag/legal-selfplay-v1)
+UPLOAD SUCCESS: https://github.com/jush0147/blockfish/releases/download/legal-selfplay-v1/legal_sp_v1_56g.bin.gz (4828854 bytes)
+=== Colab Run #8 COMPLETE ===

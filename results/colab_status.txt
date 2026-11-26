@@ -1,17 +1,1 @@
-RUNNING commit=cf3ac09 heartbeat=2026-11-26T03:11:05Z cores=8
---- tail results/colab_latest.log ---
-   |                                                         ++++
-
-warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
-    Finished `release` profile [optimized] target(s) in 20.04s
-
---- Generating 50 train (2001..2051) + 6 val (201..207) Legal p=5 games ---
-=== export_legal_selfplay (BFDS0002) ===
-  model=models/spatial_bc4.txt | train=50 (2001..2051), val=6 (201..207) | w=6 h=7 b=16 threads=8
-  out=/tmp/legal_sp_v1_56g.bin
-  [  8/56] elapsed= 185.0s rate=0.04 games/s ETA=1109.7s
-  [ 16/56] elapsed= 367.0s rate=0.04 games/s ETA= 917.6s
-  [ 24/56] elapsed= 539.4s rate=0.04 games/s ETA= 719.2s
-  [ 32/56] elapsed= 728.3s rate=0.04 games/s ETA= 546.2s
-  [ 40/56] elapsed= 914.9s rate=0.04 games/s ETA= 366.0s
-  [ 48/56] elapsed=1091.6s rate=0.04 games/s ETA= 181.9s
+DONE commit=cf3ac09 exit=0 finished=2026-11-26T03:11:50Z
