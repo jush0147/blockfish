@@ -2,9 +2,9 @@
 set -euo pipefail
 
 echo "================================================================"
-echo " Colab Run #9: Hybrid Residual 2D Conv ResNet (Phase 3B)"
-echo "               V_hybrid = spatial_bc4 + ResNet_delta (Legal RL)"
-echo "               ~8-10 min total on L4/T4 GPU -> Release model-hybrid-v1"
+echo " Colab Run #9b: Hybrid Residual 2D Conv ResNet (T4 FP16 20x Fix)"
+echo "                V_hybrid = spatial_bc4 + ResNet_delta + v_bias"
+echo "                ~5-6 min total on T4/L4 GPU -> Release model-hybrid-v1"
 echo "================================================================"
 
 if ! nvidia-smi >/dev/null 2>&1; then
@@ -13,7 +13,7 @@ if ! nvidia-smi >/dev/null 2>&1; then
 fi
 
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
-python3 -c "import torch; print('PyTorch:', torch.__version__, '| CUDA:', torch.cuda.is_available(), '| BF16:', torch.cuda.is_bf16_supported())"
+python3 -c "import torch; print('PyTorch:', torch.__version__, '| CUDA:', torch.cuda.is_available(), '| Cap:', torch.cuda.get_device_capability(0))"
 
 DATA_GZ="/tmp/legal_sp_v1_56g.bin.gz"
 if [ ! -f "$DATA_GZ" ]; then
@@ -24,20 +24,20 @@ fi
 
 CKPT="/tmp/hybrid_resnet_v1.pt"
 echo ""
-echo "--- Training BlockfishHybridResNet (C=64, B=4, 20 ep, bs=64, max-neg=15) ---"
+echo "--- Training BlockfishHybridResNet (C=64, B=4, 10 ep, bs=64, max-neg=15, v_bias) ---"
 python3 scripts/train_hybrid_resnet.py \
   --data "$DATA_GZ" \
   --channels 64 \
   --blocks 4 \
-  --epochs 20 \
+  --epochs 10 \
   --batch-size 64 \
   --max-neg 15 \
-  --max-delta 12.0 \
+  --max-delta 6.0 \
   --temp 0.5 \
-  --lr 2e-3 \
-  --wd 2e-4 \
+  --lr 1e-3 \
+  --wd 5e-4 \
   --val-weight 0.05 \
-  --reg-weight 0.002 \
+  --reg-weight 0.01 \
   --out "$CKPT"
 
 ls -lh "$CKPT"

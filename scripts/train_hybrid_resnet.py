@@ -133,6 +133,7 @@ class BlockfishHybridResNet(nn.Module):
         head_in = channels * 4
         self.delta_fc1 = nn.Linear(head_in, channels)
         self.delta_fc2 = nn.Linear(channels, 1)
+        self.v_bias = nn.Parameter(torch.zeros(()))
         # Zero-init final layer so epoch 0 == exact spatial_bc4.txt baseline!
         nn.init.zeros_(self.delta_fc2.weight)
         nn.init.zeros_(self.delta_fc2.bias)
@@ -230,6 +231,7 @@ def pack_batch_v2(data, dec_indices: np.ndarray, max_neg: int = 0, rng=None):
 def compute_hybrid_loss(
     base_v: torch.Tensor,
     delta_v: torch.Tensor,
+    v_bias: torch.Tensor,
     dec_id: torch.Tensor,
     pos_in_dec: torch.Tensor,
     star_flat: torch.Tensor,
@@ -247,7 +249,7 @@ def compute_hybrid_loss(
     padded[dec_id, pos_in_dec] = logits
     ce_loss = F.cross_entropy(padded, targets)
 
-    pred_star_v = v_hyb[star_flat]
+    pred_star_v = v_hyb[star_flat] + v_bias
     v_loss = F.smooth_l1_loss(pred_star_v, rem_pcs, beta=2.0)
     v_mae = (pred_star_v - rem_pcs).abs().mean()
     reg_loss = (delta_v * delta_v).mean()
@@ -286,13 +288,15 @@ def evaluate_hybrid(model, unpacker, data, val_indices: np.ndarray, batch_size: 
 
         if zero_delta:
             delta_v = torch.zeros_like(bv_t)
+            vb = torch.zeros((), device=device)
         else:
             boards, gvec = unpacker(raw_t)
             with torch.amp.autocast("cuda", dtype=amp_dtype, enabled=(device.type == "cuda")):
                 delta_v = model.forward_delta(boards, gvec).float()
+            vb = model.v_bias
 
         _, ce, vmae, c1, c3, dabs = compute_hybrid_loss(
-            bv_t, delta_v, dec_id_t, pos_t, star_t, targets_t, rem_t, B, M_max, model.temp, 0.05, 0.0
+            bv_t, delta_v, vb, dec_id_t, pos_t, star_t, targets_t, rem_t, B, M_max, model.temp, 0.05, 0.0
         )
         total_ce += ce * B
         total_vmae += vmae * B
@@ -315,15 +319,15 @@ def main():
     ap.add_argument("--data", required=True, help="Path to BFDS0002 .bin or .bin.gz")
     ap.add_argument("--channels", type=int, default=64)
     ap.add_argument("--blocks", type=int, default=4)
-    ap.add_argument("--epochs", type=int, default=20)
+    ap.add_argument("--epochs", type=int, default=10)
     ap.add_argument("--batch-size", type=int, default=64)
     ap.add_argument("--max-neg", type=int, default=15)
-    ap.add_argument("--max-delta", type=float, default=12.0)
+    ap.add_argument("--max-delta", type=float, default=6.0)
     ap.add_argument("--temp", type=float, default=0.5)
-    ap.add_argument("--lr", type=float, default=2e-3)
-    ap.add_argument("--wd", type=float, default=2e-4)
+    ap.add_argument("--lr", type=float, default=1e-3)
+    ap.add_argument("--wd", type=float, default=5e-4)
     ap.add_argument("--val-weight", type=float, default=0.05)
-    ap.add_argument("--reg-weight", type=float, default=0.002)
+    ap.add_argument("--reg-weight", type=float, default=0.01)
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--out", default="/tmp/hybrid_resnet_v1.pt")
     args = ap.parse_args()
@@ -334,7 +338,8 @@ def main():
         torch.backends.cudnn.benchmark = False
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    amp_dtype = torch.bfloat16 if (device.type == "cuda" and torch.cuda.is_bf16_supported()) else torch.float16
+    use_bf16 = device.type == "cuda" and torch.cuda.get_device_capability(0)[0] >= 8 and torch.cuda.is_bf16_supported()
+    amp_dtype = torch.bfloat16 if use_bf16 else torch.float16
     print(f"Device: {device} | amp_dtype={amp_dtype}", flush=True)
     if device.type == "cuda":
         print(f"GPU: {torch.cuda.get_device_name(0)}", flush=True)
@@ -396,7 +401,7 @@ def main():
             with torch.amp.autocast("cuda", dtype=amp_dtype, enabled=(device.type == "cuda")):
                 delta_v = model.forward_delta(boards, gvec)
                 loss, ce, vmae, c1, _, _ = compute_hybrid_loss(
-                    bv_t, delta_v.float(), dec_id_t, pos_t, star_t, targets_t, rem_t,
+                    bv_t, delta_v.float(), model.v_bias, dec_id_t, pos_t, star_t, targets_t, rem_t,
                     B, M_max, args.temp, args.val_weight, args.reg_weight
                 )
             scaler.scale(loss).backward()

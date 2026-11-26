@@ -50,11 +50,8 @@ def main():
     args = ap.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    amp_dtype = (
-        torch.bfloat16
-        if (device.type == "cuda" and torch.cuda.is_bf16_supported())
-        else torch.float16
-    )
+    use_bf16 = device.type == "cuda" and torch.cuda.get_device_capability(0)[0] >= 8 and torch.cuda.is_bf16_supported()
+    amp_dtype = torch.bfloat16 if use_bf16 else torch.float16
 
     ckpt = torch.load(args.ckpt, map_location=device, weights_only=True)
     arch = ckpt.get("arch", "resnet")
