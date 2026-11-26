@@ -1,8 +1,5 @@
-RUNNING commit=8adac28c heartbeat=2026-11-26T17:41:36Z cores=8
+RUNNING commit=8adac28c heartbeat=2026-11-26T17:43:38Z cores=8
 --- tail results/colab_latest.log ---
-   |                  ^^^^^                          ^^^^^^^^ the same lifetime is hidden here
-   |                  |
-   |                  the lifetime is elided here
    |
    = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
    = note: `#[warn(mismatched_lifetime_syntaxes)]` on by default
@@ -15,3 +12,6 @@ warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockf
     Finished `release` profile [optimized] target(s) in 12.00s
 
 --- Running d2_expectimax (base, d2k4_w16, d2k6_cov115_w16) ---
+  [seed 103] pcs=176 nds=59 0ds=76 (cov=25 O=19 nar= 7 wide=19 end= 6) cov_nxt=12.0% | 980.4s
+  [seed 101] pcs=180 nds=61 0ds=80 (cov=25 O=19 nar= 9 wide=24 end= 3) cov_nxt=17.0% | 1055.3s
+  [seed 102] pcs=184 nds=62 0ds=84 (cov=24 O=20 nar= 7 wide=30 end= 3) cov_nxt=15.0% | 1075.3s
