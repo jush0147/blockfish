@@ -1,17 +1,1 @@
-RUNNING commit=93f305a heartbeat=2026-11-26T00:54:02Z cores=12
---- tail results/colab_latest.log ---
-  [seed 110] pcs=350 top=1 | 1.8s
-SUMMARY mode=greedy n=10 ok=1/10 mean=277.00 min=277 max=277 <=166:0 <=161:0 top=9 | 11.8s
-
---- Benchmark 2: Oracle OR_p20 Ceiling (h=8, b=24, mpr=6, 5 seeds 101..=105) ---
-=== eval_resnet mode=or_p20 seeds=101..=105 (n=5) w=16 h=8 b=24 mpr=6 cvar=25 val_w=1.00 logit_w=0.00 ===
-  [seed 101] pcs=179 top=0 | 14.5s
-  [seed 102] pcs=195 top=0 | 15.2s
-  [seed 103] pcs=194 top=0 | 14.7s
-  [seed 104] pcs=186 top=0 | 14.5s
-  [seed 105] pcs=195 top=0 | 15.0s
-SUMMARY mode=or_p20 n=5 ok=5/5 mean=189.80 min=179 max=195 <=166:0 <=161:0 top=0 | 73.8s
-
---- Benchmark 3: Legal p=5 Lockstep GPU root_pimc (w=16, h=6, b=16, cvar=25, 10 seeds 101..=110) ---
-=== eval_resnet mode=pimc seeds=101..=110 (n=10) w=16 h=6 b=16 mpr=4 cvar=25 val_w=1.00 logit_w=0.00 ===
-  [seed 101] pcs=205 top=0 | 151.9s
+RUNNING commit=cf3ac09 started=2026-11-26T02:50:51Z cores=8
