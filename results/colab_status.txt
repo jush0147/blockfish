@@ -1,7 +1,5 @@
-RUNNING commit=8adac28c heartbeat=2026-11-26T19:02:33Z cores=8
+RUNNING commit=8adac28c heartbeat=2026-11-26T19:04:35Z cores=8
 --- tail results/colab_latest.log ---
---- Running d2_expectimax (base, d2k4_w16, d2k6_cov115_w16) ---
-  [seed 103] pcs=176 nds=59 0ds=76 (cov=25 O=19 nar= 7 wide=19 end= 6) cov_nxt=12.0% | 980.4s
   [seed 101] pcs=180 nds=61 0ds=80 (cov=25 O=19 nar= 9 wide=24 end= 3) cov_nxt=17.0% | 1055.3s
   [seed 102] pcs=184 nds=62 0ds=84 (cov=24 O=20 nar= 7 wide=30 end= 3) cov_nxt=15.0% | 1075.3s
   [seed 104] pcs=188 nds=64 0ds=88 (cov=24 O=21 nar=11 wide=28 end= 4) cov_nxt=18.0% | 1169.8s
@@ -15,3 +13,5 @@ fullmlp_base_w16_h8_b28    n= 5 mean=184.20 min=176 max=193 <=166: 0 top= 0 | nd
   [seed 105] pcs=197 nds=68 0ds=97 (cov=39 O=20 nar= 8 wide=24 end= 6) cov_nxt=24.0% | 2453.8s
 fullmlp_d2k4_w16_h8_b28    n= 5 mean=192.00 min=186 max=197 <=166: 0 top= 0 | nds=66.00 0ds=92.00 (cov=36.6 O=16.6 nar=8.2 wide=26.4 g0=0.0 end=4.2) cov_nxt=19.0% avg_c=12.3 | 2453.8s
   seeds: [101:195, 102:186, 103:189, 104:193, 105:197]
+  [seed 102] pcs=185 nds=63 0ds=85 (cov=34 O=13 nar=11 wide=24 end= 3) cov_nxt=18.0% | 2227.7s
+  [seed 103] pcs=177 nds=59 0ds=77 (cov=23 O=16 nar= 9 wide=24 end= 5) cov_nxt=15.0% | 2240.7s
