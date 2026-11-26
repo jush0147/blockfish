@@ -1,1 +1,17 @@
-RUNNING commit=5312142 started=2026-11-26T05:17:40Z cores=12
+RUNNING commit=5312142 heartbeat=2026-11-26T05:19:42Z cores=12
+--- tail results/colab_latest.log ---
+
+--- Annotating 400 WG_ds games with spatial_bc4.txt base_v ---
+Annotated 400 games, 66897 decs, 3090045 moves -> /tmp/wg_ds_v1_400g_bv.bin in 1.66s
+
+--- Training Hybrid Residual ResNet v2 (456 games, 12 epochs, bs=128) ---
+Device: cuda | amp_dtype=torch.bfloat16
+GPU: NVIDIA L4
+Loading /tmp/wg_ds_v1_400g_bv.bin: 400 games, 66897 decisions (149.1 MB raw)...
+Loaded 3,090,045 moves in 0.52s (train_decs=60,215, val_decs=6,682)
+Loading /tmp/legal_sp_v1_56g.bin.gz: 56 games, 10752 decisions (24.3 MB raw)...
+Loaded 503,747 moves in 0.18s (train_decs=9,608, val_decs=1,144)
+MERGED 2 datasets: 77,649 decisions (69,823 train, 7,826 val), 3,593,792 moves
+BlockfishHybridResNet(C=64, B=4, max_delta=8.0, temp=0.5) | params=367,106
+BASE (spatial_bc4, delta=0) | val_ce=0.9342 val_top1=71.43% val_top3=91.89% val_vmae= 3.72
+ep  1/12 | lr=0.00197 | tr_ce=0.4823 tr_top1=84.19% tr_vmae= 3.39 | val_ce=0.9176 val_top1=71.93% val_top3=91.90% val_vmae= 3.65 |d|=0.20 | 51.7s *BEST*
