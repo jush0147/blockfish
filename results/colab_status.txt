@@ -1,6 +1,5 @@
-RUNNING commit=89e3751b heartbeat=2026-11-26T16:50:49Z cores=8
+RUNNING commit=89e3751b heartbeat=2026-11-26T16:52:49Z cores=8
 --- tail results/colab_latest.log ---
-[Iter 4/5 VAL] val=60/60 top=0 mean=212.93 [194..247] cov=48.8 val_mc_rmse=22.168 (34.8s) 
 [Iter 5/5 GEN] ok=498/500 top=2 mean=231.45 [193..313] cov=61.4 mc_rmse=33.559 states=112277 (297.4s, 1.7 g/s)
   [Train ep=3/3] huber=1.832 td_rmse=2.012 lr_lin=2.9e-5 lr_mlp=1.4e-5 (5.6s)
 [Iter 5/5 VAL] val=60/60 top=0 mean=212.25 [191..234] cov=50.4 val_mc_rmse=20.139 (34.2s) 
@@ -15,3 +14,4 @@ Found existing release id=459668010 (https://github.com/jush0147/blockfish/relea
 UPLOAD SUCCESS: https://github.com/jush0147/blockfish/releases/download/model-spatial-td-v1/spatial_td_v1_last.txt (1132055 bytes)
 
 --- [3/3] STRICT SAME-BINARY fullmlp_w16 A/B (5 seeds 101..=105): bc4 vs td_v1 ---
+  [seed 103] pcs=176 nds=59 0ds=76 (cov=25 O=19 nar= 7 wide=19 end= 6) cov_nxt=12.0% | 935.3s
