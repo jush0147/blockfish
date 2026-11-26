@@ -1,17 +1,17 @@
-RUNNING commit=93f305a heartbeat=2026-11-26T00:47:56Z cores=12
+RUNNING commit=93f305a heartbeat=2026-11-26T00:49:58Z cores=12
 --- tail results/colab_latest.log ---
-ep  5/20 | lr=0.00257 | tr_ce=0.4100 tr_top1=85.71% tr_vmae=1.76 | val_ce=0.8340 val_top1=73.72% val_top3=92.94% val_vmae=1.92 | 43.4s *BEST*
-ep  6/20 | lr=0.00239 | tr_ce=0.3941 tr_top1=86.24% tr_vmae=1.75 | val_ce=0.8231 val_top1=73.65% val_top3=93.49% val_vmae=1.93 | 43.5s *BEST*
-ep  7/20 | lr=0.00220 | tr_ce=0.3734 tr_top1=86.76% tr_vmae=1.75 | val_ce=0.7896 val_top1=74.63% val_top3=93.61% val_vmae=1.92 | 43.6s *BEST*
-ep  8/20 | lr=0.00198 | tr_ce=0.3627 tr_top1=87.20% tr_vmae=1.74 | val_ce=0.7774 val_top1=74.83% val_top3=93.67% val_vmae=1.91 | 43.6s *BEST*
-ep  9/20 | lr=0.00176 | tr_ce=0.3453 tr_top1=87.61% tr_vmae=1.74 | val_ce=0.7870 val_top1=74.57% val_top3=93.52% val_vmae=1.89 | 43.6s
-ep 10/20 | lr=0.00153 | tr_ce=0.3283 tr_top1=88.24% tr_vmae=1.73 | val_ce=0.7717 val_top1=75.26% val_top3=93.85% val_vmae=1.91 | 43.7s *BEST*
-ep 11/20 | lr=0.00130 | tr_ce=0.3067 tr_top1=88.89% tr_vmae=1.73 | val_ce=0.7736 val_top1=75.05% val_top3=93.80% val_vmae=1.89 | 43.7s
-ep 12/20 | lr=0.00108 | tr_ce=0.2811 tr_top1=89.83% tr_vmae=1.72 | val_ce=0.8038 val_top1=75.32% val_top3=94.00% val_vmae=1.98 | 43.6s
-ep 13/20 | lr=0.00086 | tr_ce=0.2581 tr_top1=90.45% tr_vmae=1.71 | val_ce=0.8029 val_top1=74.47% val_top3=93.62% val_vmae=1.95 | 43.7s
-ep 14/20 | lr=0.00067 | tr_ce=0.2331 tr_top1=91.34% tr_vmae=1.71 | val_ce=0.8543 val_top1=74.68% val_top3=93.64% val_vmae=2.00 | 43.7s
-ep 15/20 | lr=0.00049 | tr_ce=0.1998 tr_top1=92.67% tr_vmae=1.70 | val_ce=0.8778 val_top1=72.87% val_top3=93.67% val_vmae=1.97 | 43.7s
-ep 16/20 | lr=0.00034 | tr_ce=0.1709 tr_top1=93.88% tr_vmae=1.70 | val_ce=0.9215 val_top1=72.72% val_top3=93.52% val_vmae=2.00 | 43.7s
-ep 17/20 | lr=0.00022 | tr_ce=0.1479 tr_top1=94.78% tr_vmae=1.69 | val_ce=0.9752 val_top1=72.54% val_top3=93.48% val_vmae=2.04 | 43.7s
-ep 18/20 | lr=0.00013 | tr_ce=0.1252 tr_top1=95.73% tr_vmae=1.68 | val_ce=1.0183 val_top1=72.18% val_top3=93.21% val_vmae=2.06 | 43.6s
-ep 19/20 | lr=0.00008 | tr_ce=0.1112 tr_top1=96.29% tr_vmae=1.68 | val_ce=1.0659 val_top1=71.94% val_top3=93.06% val_vmae=2.10 | 43.6s
+  [seed 103] pcs=277 top=0 | 1.4s
+  [seed 104] pcs=283 top=1 | 1.5s
+  [seed 105] pcs= 54 top=1 | 0.3s
+  [seed 106] pcs=261 top=1 | 1.3s
+  [seed 107] pcs=177 top=1 | 0.9s
+  [seed 108] pcs= 58 top=1 | 0.3s
+  [seed 109] pcs=115 top=1 | 0.6s
+  [seed 110] pcs=350 top=1 | 1.8s
+SUMMARY mode=greedy n=10 ok=1/10 mean=277.00 min=277 max=277 <=166:0 <=161:0 top=9 | 11.8s
+
+--- Benchmark 2: Oracle OR_p20 Ceiling (h=8, b=24, mpr=6, 5 seeds 101..=105) ---
+=== eval_resnet mode=or_p20 seeds=101..=105 (n=5) w=16 h=8 b=24 mpr=6 cvar=25 val_w=1.00 logit_w=0.00 ===
+  [seed 101] pcs=179 top=0 | 14.5s
+  [seed 102] pcs=195 top=0 | 15.2s
+  [seed 103] pcs=194 top=0 | 14.7s
