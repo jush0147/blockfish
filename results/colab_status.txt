@@ -1,7 +1,5 @@
-RUNNING commit=16984802 heartbeat=2026-11-26T11:39:29Z cores=8
+RUNNING commit=16984802 heartbeat=2026-11-26T11:41:31Z cores=8
 --- tail results/colab_latest.log ---
-   = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
-   = note: `#[warn(mismatched_lifetime_syntaxes)]` on by default
 help: use `'_` for type paths
    |
 16 |     pub fn shape(&self, color: Color) -> Option<ShapeRef<'_>> {
@@ -15,3 +13,5 @@ resnet_eval_server READY on /tmp/blockfish_resnet.sock | device=cuda (torch.floa
 
 >>> [1/3] SAME-BINARY BASE (spatial_bc4, held+5, delta_w=0.0) pimc_v2 (5 seeds 101..=105):
 === eval_resnet mode=pimc_v2 seeds=101..=105 (n=5) w=12 h=8 b=20 k=10 l=4 cvar=25 hybrid=true delta_w=0.00 ===
+  [seed 101] pcs=197 top=0 | 63.5s
+  [seed 102] pcs=198 top=0 | 61.1s
