@@ -1,4 +1,4 @@
-RUNNING commit=89e3751b heartbeat=2026-11-26T16:40:47Z cores=8
+RUNNING commit=89e3751b heartbeat=2026-11-26T16:42:47Z cores=8
 --- tail results/colab_latest.log ---
 [Iter 4/5 VAL] val=60/60 top=0 mean=212.93 [194..247] cov=48.8 val_mc_rmse=22.168 (34.8s) 
 [Iter 5/5 GEN] ok=498/500 top=2 mean=231.45 [193..313] cov=61.4 mc_rmse=33.559 states=112277 (297.4s, 1.7 g/s)
