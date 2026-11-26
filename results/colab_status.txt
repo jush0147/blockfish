@@ -1,17 +1,1 @@
-RUNNING commit=dad8b80 heartbeat=2026-11-26T10:48:04Z cores=8
---- tail results/colab_latest.log ---
-warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
-    Finished `release` profile [optimized] target(s) in 19.50s
-
---- Generating 64 train (6001..6065) + 8 val (301..309) strong root_pimc Legal RL games ---
-=== export_legal_rl (BFRL0001) ===
-  model=models/spatial_bc4.txt | train=64 (6001..6065), val=8 (301..309) | beam=32 pimc=(w=6 h=7 b=16) eps=5% threads=8
-  out=/tmp/legal_rl_v2_pimc72g.bin
-  [   8/72] elapsed= 187.9s rate=0.04 games/s ETA=1503.4s
-  [  16/72] elapsed= 374.0s rate=0.04 games/s ETA=1309.1s
-  [  24/72] elapsed= 582.9s rate=0.04 games/s ETA=1165.9s
-  [  32/72] elapsed= 764.5s rate=0.04 games/s ETA=955.6s
-  [  40/72] elapsed= 944.3s rate=0.04 games/s ETA=755.4s
-  [  48/72] elapsed=1132.1s rate=0.04 games/s ETA=566.1s
-  [  56/72] elapsed=1305.8s rate=0.04 games/s ETA=373.1s
-  [  64/72] elapsed=1463.2s rate=0.04 games/s ETA=182.9s
+DONE commit=dad8b80 exit=0 finished=2026-11-26T10:49:17Z
