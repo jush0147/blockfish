@@ -1,6 +1,5 @@
-RUNNING commit=78801b7 heartbeat=2026-11-26T03:40:14Z cores=8
+RUNNING commit=78801b7 heartbeat=2026-11-26T03:42:16Z cores=8
 --- tail results/colab_latest.log ---
-PyTorch: 2.14.1+cu130 | CUDA: True | BF16: True
 
 --- Downloading legal_sp_v1_56g.bin.gz from GitHub Release legal-selfplay-v1 ---
 Downloading 'legal_sp_v1_56g.bin.gz' from release 'legal-selfplay-v1' -> /tmp/legal_sp_v1_56g.bin.gz...
@@ -15,3 +14,4 @@ BlockfishHybridResNet(C=64, B=4, max_delta=12.0, temp=0.5) | params=367,105
 BASE (spatial_bc4, delta=0) | val_ce=1.2163 val_top1=66.96% val_top3=88.02% val_vmae=13.82
 ep  1/20 | lr=0.00199 | tr_ce=0.6584 tr_top1=80.08% tr_vmae= 8.54 | val_ce=1.2390 val_top1=65.56% val_top3=87.67% val_vmae= 7.65 |d|=6.79 | 152.0s
 ep  2/20 | lr=0.00195 | tr_ce=0.6427 tr_top1=80.94% tr_vmae= 6.53 | val_ce=1.2070 val_top1=66.43% val_top3=88.37% val_vmae= 6.92 |d|=7.79 | 151.2s *BEST*
+ep  3/20 | lr=0.00189 | tr_ce=0.6396 tr_top1=80.46% tr_vmae= 6.31 | val_ce=1.2044 val_top1=66.87% val_top3=88.11% val_vmae= 6.90 |d|=7.75 | 151.1s *BEST*
