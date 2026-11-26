@@ -110,18 +110,33 @@ fn pack_raw44(
     rec
 }
 
-fn make_fast_legal_cfg(sm: Arc<SpatialValueModel>, beam_w: usize) -> BeamConfig {
+fn make_legal_cfg(
+    sm: Arc<SpatialValueModel>,
+    beam_w: usize,
+    pimc_worlds: usize,
+    pimc_horizon: usize,
+    pimc_width: usize,
+) -> BeamConfig {
     let mut c = BeamConfig::default();
     c.spatial_model = Some(sm);
     c.rollout_top_k = 0;
-    c.beam_width = beam_w;
-    c.max_per_root = (beam_w / 4).max(4);
+    c.beam_width = if pimc_worlds > 0 { 80 } else { beam_w };
+    c.max_per_root = if pimc_worlds > 0 { 16 } else { (beam_w / 4).max(4) };
     c.bag_det_extend = true;
     c.endgame_solver = true;
     c.simulate_cheese_spawn = true;
     c.spatial_rerank_only = true;
     c.spatial_no_pe_internal = true;
-    c.root_pimc_worlds = 0;
+    c.root_pimc_prescreen_worlds = 0;
+    c.root_pimc_roots = 32;
+    c.root_pimc_fine_roots = 10;
+    c.root_pimc_worlds = pimc_worlds;
+    c.root_pimc_horizon = pimc_horizon;
+    c.root_pimc_width = pimc_width;
+    c.root_pimc_margin = 500;
+    c.root_pimc_weight_pct = 100;
+    c.root_pimc_steady_g4 = false;
+    c.root_pimc_cvar_pct = 25;
     c
 }
 
@@ -145,10 +160,13 @@ fn play_rl_game(
     is_val: bool,
     sm: Arc<SpatialValueModel>,
     beam_w: usize,
+    pimc_worlds: usize,
+    pimc_horizon: usize,
+    pimc_width: usize,
     eps_pct: usize,
 ) -> (usize, bool, Vec<RlStateRec>) {
     let fst = FastShapeTable::srs();
-    let cfg = make_fast_legal_cfg(sm.clone(), beam_w);
+    let cfg = make_legal_cfg(sm.clone(), beam_w, pimc_worlds, pimc_horizon, pimc_width);
     let mut ai = FastAI::new(cfg);
     let mut tracker = BagTracker::new();
     let mut pgen = FastPlaceGen::new();
@@ -299,9 +317,12 @@ fn main() {
     let mut train_seed_start: u64 = 5001;
     let mut val_seed_start: u64 = 301;
     let mut beam_w: usize = 32;
-    let mut eps_pct: usize = 12;
+    let mut pimc_worlds: usize = 0;
+    let mut pimc_horizon: usize = 7;
+    let mut pimc_width: usize = 16;
+    let mut eps_pct: usize = 5;
     let mut threads: usize = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(4);
-    let mut out_path = String::from("/tmp/legal_rl_v1.bin");
+    let mut out_path = String::from("/tmp/legal_rl_v2.bin");
 
     let mut i = 1;
     while i < args.len() {
@@ -312,6 +333,9 @@ fn main() {
             "--train-seed-start" => { i += 1; train_seed_start = args[i].parse().unwrap(); }
             "--val-seed-start" => { i += 1; val_seed_start = args[i].parse().unwrap(); }
             "--beam" => { i += 1; beam_w = args[i].parse().unwrap(); }
+            "--pimc-worlds" => { i += 1; pimc_worlds = args[i].parse().unwrap(); }
+            "--pimc-horizon" => { i += 1; pimc_horizon = args[i].parse().unwrap(); }
+            "--pimc-width" => { i += 1; pimc_width = args[i].parse().unwrap(); }
             "--eps" => { i += 1; eps_pct = args[i].parse().unwrap(); }
             "--threads" => { i += 1; threads = args[i].parse().unwrap(); }
             "--out" => { i += 1; out_path = args[i].clone(); }
@@ -336,16 +360,17 @@ fn main() {
     }
     let total_jobs = jobs.len();
     println!(
-        "=== export_legal_rl (BFRL0001) ===\n  model={} | train={} ({}..{}), val={} ({}..{}) | beam={} eps={}% threads={}\n  out={}",
+        "=== export_legal_rl (BFRL0001) ===\n  model={} | train={} ({}..{}), val={} ({}..{}) | beam={} pimc=(w={} h={} b={}) eps={}% threads={}\n  out={}",
         model_path, train_games, train_seed_start, train_seed_start + train_games as u64,
         val_games, val_seed_start, val_seed_start + val_games as u64,
-        beam_w, eps_pct, threads, out_path
+        beam_w, pimc_worlds, pimc_horizon, pimc_width, eps_pct, threads, out_path
     );
 
     let t0 = Instant::now();
     let next_idx = AtomicUsize::new(0);
     let done_cnt = AtomicUsize::new(0);
     let results: Mutex<Vec<(u64, usize, bool, Vec<RlStateRec>)>> = Mutex::new(Vec::with_capacity(total_jobs));
+    let log_every = if pimc_worlds > 0 { 8 } else { 50 };
 
     std::thread::scope(|s| {
         for _ in 0..threads.max(1) {
@@ -361,10 +386,12 @@ fn main() {
                         break;
                     }
                     let (seed, is_val) = jobs_ref[idx];
-                    let (pcs, top, traj) = play_rl_game(seed, is_val, sm_c.clone(), beam_w, eps_pct);
+                    let (pcs, top, traj) = play_rl_game(
+                        seed, is_val, sm_c.clone(), beam_w, pimc_worlds, pimc_horizon, pimc_width, eps_pct
+                    );
                     res_ref.lock().unwrap().push((seed, pcs, top, traj));
                     let d = done_ref.fetch_add(1, Ordering::Relaxed) + 1;
-                    if d % 100 == 0 || d == total_jobs {
+                    if d % log_every == 0 || d == total_jobs {
                         let elapsed = t0.elapsed().as_secs_f64();
                         let rate = d as f64 / elapsed.max(0.001);
                         let eta = (total_jobs - d) as f64 / rate.max(1e-6);

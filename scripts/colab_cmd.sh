@@ -2,70 +2,37 @@
 set -euo pipefail
 
 echo "================================================================"
-echo " Colab Run #12-GPU: Pure 100% Legal p=5 TD(0.85) Hybrid ResNet"
-echo "                    ZERO WG_ds! ~15s train + ~6m pimc_v2 eval"
+echo " Colab Run #13-CPU: Phase 4B - Strong root_pimc Legal RL (72g)"
+echo "                    64 train + 8 val (w=6, h=7, b=16, eps=5%)"
+echo "                    ~22-25 min on cheap 8-core CPU (~0.10 CU)"
+echo " Cores: $(nproc) | RAM: $(free -h | awk '/^Mem:/{print $2}')"
 echo "================================================================"
 
-if ! nvidia-smi >/dev/null 2>&1; then
-  echo "[SKIP] No GPU detected (still on CPU runtime). Switch Colab to L4/T4 GPU and click Run all!"
-  exit 0
-fi
+echo "--- Building export_legal_rl (release) ---"
+cargo build --release --example export_legal_rl --features block-stacker
 
-nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
-
-RL_GZ="/tmp/legal_rl_v1_200g.bin.gz"
-if [ ! -f "$RL_GZ" ]; then
-  echo ""
-  echo "--- Downloading legal_rl_v1_200g.bin.gz from GitHub Release legal-rl-v1 ---"
-  python3 scripts/download_release_asset.py legal-rl-v1 legal_rl_v1_200g.bin.gz "$RL_GZ"
-fi
-
-CKPT="/tmp/hybrid_td_v1.pt"
-echo ""
-echo "--- Training Pure Legal TD(0.85) Hybrid ResNet (25 epochs, ZERO WG_ds!) ---"
-python3 scripts/train_legal_td.py \
-  --data "$RL_GZ" \
-  --lam 0.85 \
-  --channels 64 \
-  --blocks 4 \
-  --epochs 25 \
-  --batch-size 1024 \
-  --max-delta 8.0 \
-  --lr 1.5e-3 \
-  --wd 5e-4 \
-  --reg-weight 0.01 \
-  --out "$CKPT"
-
-ls -lh "$CKPT"
-python3 scripts/upload_release_asset.py model-hybrid-td-v1 "$CKPT" "Blockfish Pure Legal TD(0.85) Hybrid ResNet v1"
+RL_BIN="/tmp/legal_rl_v2_pimc72g.bin"
+RL_GZ="${RL_BIN}.gz"
 
 echo ""
-echo "--- Building eval_resnet (release) ---"
-cargo build --release --example eval_resnet --features block-stacker
-
-SOCK="/tmp/blockfish_resnet.sock"
-rm -f "$SOCK"
-echo ""
-echo "--- Starting GPU Pure-Legal TD Hybrid ResNet eval server ---"
-python3 scripts/resnet_eval_server.py --ckpt "$CKPT" --sock "$SOCK" &
-SRV_PID=$!
-trap 'kill $SRV_PID 2>/dev/null || true' EXIT
-
-for _ in $(seq 1 30); do
-  if [ -S "$SOCK" ]; then break; fi
-  sleep 0.5
-done
+echo "--- Generating 64 train (6001..6065) + 8 val (301..309) strong root_pimc Legal RL games ---"
+target/release/examples/export_legal_rl \
+  --model models/spatial_bc4.txt \
+  --train-games 64 \
+  --val-games 8 \
+  --train-seed-start 6001 \
+  --val-seed-start 301 \
+  --pimc-worlds 6 \
+  --pimc-horizon 7 \
+  --pimc-width 16 \
+  --eps 5 \
+  --out "$RL_BIN"
 
 echo ""
-echo ">>> [1/2] PURE-LEGAL TD HYBRID (delta_w=0.5) pimc_v2 (5 seeds 101..=105, vs BASE 193.20):"
-target/release/examples/eval_resnet --mode pimc_v2 --sock "$SOCK" --seed-start 101 --n-seeds 5 \
-  --worlds 12 --horizon 8 --beam 20 --top-roots 10 --leaf-top 4 --cvar 25 \
-  --hybrid-model models/spatial_bc4.txt --delta-w 0.5
+echo "--- Compressing & Uploading to GitHub Release (tag: legal-rl-v2) ---"
+gzip -f -6 "$RL_BIN"
+ls -lh "$RL_GZ"
+python3 scripts/upload_release_asset.py legal-rl-v2 "$RL_GZ" "Blockfish Strong root_pimc Legal RL Dataset v2 (72g)"
 
-echo ""
-echo ">>> [2/2] PURE-LEGAL TD HYBRID (delta_w=1.0) pimc_v2 (5 seeds 101..=105, vs BASE 193.20):"
-target/release/examples/eval_resnet --mode pimc_v2 --sock "$SOCK" --seed-start 101 --n-seeds 5 \
-  --worlds 12 --horizon 8 --beam 20 --top-roots 10 --leaf-top 4 --cvar 25 \
-  --hybrid-model models/spatial_bc4.txt --delta-w 1.0
-
-echo "=== Colab Run #12-GPU COMPLETE ==="
+rm -f "$RL_GZ"
+echo "=== Colab Run #13-CPU COMPLETE ==="
