@@ -96,6 +96,7 @@ def evaluate_td(model, unpacker, data, val_idx, batch_size, device, amp_dtype, z
 
     se_td = 0.0
     ae_td = 0.0
+    se_mc = 0.0
     ae_mc = 0.0
     dabs_sum = 0.0
     n = 0
@@ -119,6 +120,7 @@ def evaluate_td(model, unpacker, data, val_idx, batch_size, device, amp_dtype, z
         b = len(idx)
         se_td += (diff_td * diff_td).sum().item()
         ae_td += diff_td.abs().sum().item()
+        se_mc += (diff_mc * diff_mc).sum().item()
         ae_mc += diff_mc.abs().sum().item()
         dabs_sum += dv.abs().sum().item()
         n += b
@@ -126,6 +128,7 @@ def evaluate_td(model, unpacker, data, val_idx, batch_size, device, amp_dtype, z
         ae_td / max(n, 1),
         (se_td / max(n, 1)) ** 0.5,
         ae_mc / max(n, 1),
+        (se_mc / max(n, 1)) ** 0.5,
         dabs_sum / max(n, 1),
     )
 
@@ -171,9 +174,10 @@ def main():
     with torch.no_grad():
         model.v_bias.fill_(data["base_offset"])
 
-    b_mae, b_rmse, b_mc, _ = evaluate_td(model, unpacker, data, val_idx, 2048, device, amp_dtype, zero_delta=True)
+    b_mae, b_rmse, b_mc_mae, b_mc_rmse, _ = evaluate_td(model, unpacker, data, val_idx, 2048, device, amp_dtype, zero_delta=True)
     print(
-        f"BASE (spatial_bc4 + offset, delta=0) | val_td_mae={b_mae:.4f} val_td_rmse={b_rmse:.4f} val_mc_mae={b_mc:.4f}",
+        f"BASE (spatial_bc4 + offset, delta=0) | val_td_mae={b_mae:.4f} val_td_rmse={b_rmse:.4f} | "
+        f"val_mc_mae={b_mc_mae:.4f} val_mc_rmse={b_mc_rmse:.4f}",
         flush=True,
     )
 
@@ -182,7 +186,7 @@ def main():
     scaler = torch.amp.GradScaler("cuda", enabled=(device.type == "cuda" and amp_dtype == torch.float16))
 
     os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
-    best_rmse = b_rmse
+    best_mc_rmse = b_mc_rmse
     rng = np.random.default_rng(args.seed)
 
     raw44 = data["raw44"]
@@ -219,11 +223,11 @@ def main():
             tr_n += b
 
         sched.step()
-        v_mae, v_rmse, v_mc, dabs = evaluate_td(model, unpacker, data, val_idx, 2048, device, amp_dtype)
+        v_mae, v_rmse, v_mc_mae, v_mc_rmse, dabs = evaluate_td(model, unpacker, data, val_idx, 2048, device, amp_dtype)
         dt = time.time() - t0
         marker = ""
-        if v_rmse < best_rmse:
-            best_rmse = v_rmse
+        if v_mc_rmse < best_mc_rmse:
+            best_mc_rmse = v_mc_rmse
             torch.save(
                 {
                     "arch": "hybrid_v1",
@@ -236,9 +240,10 @@ def main():
                     "temp": 0.5,
                     "val_td_mae": v_mae,
                     "val_td_rmse": v_rmse,
-                    "val_mc_mae": v_mc,
-                    "base_val_td_rmse": b_rmse,
-                    "val_ce": v_rmse,
+                    "val_mc_mae": v_mc_mae,
+                    "val_mc_rmse": v_mc_rmse,
+                    "base_val_mc_rmse": b_mc_rmse,
+                    "val_ce": v_mc_rmse,
                     "epoch": ep,
                 },
                 args.out,
@@ -246,11 +251,11 @@ def main():
             marker = " *BEST*"
         print(
             f"ep {ep:2d}/{args.epochs} | lr={sched.get_last_lr()[0]:.5f} | tr_loss={tr_loss/tr_n:.4f} | "
-            f"val_td_mae={v_mae:.4f} val_td_rmse={v_rmse:.4f} val_mc_mae={v_mc:.4f} |d|={dabs:.2f} | {dt:.1f}s{marker}",
+            f"td_mae={v_mae:.3f} td_rmse={v_rmse:.3f} | mc_mae={v_mc_mae:.3f} mc_rmse={v_mc_rmse:.3f} |d|={dabs:.2f} | {dt:.1f}s{marker}",
             flush=True,
         )
 
-    print(f"DONE! Base val_td_rmse={b_rmse:.4f} -> Best TD hybrid val_td_rmse={best_rmse:.4f} saved to {args.out}", flush=True)
+    print(f"DONE! Base val_mc_rmse={b_mc_rmse:.4f} -> Best val_mc_rmse={best_mc_rmse:.4f} saved to {args.out}", flush=True)
 
 
 if __name__ == "__main__":
