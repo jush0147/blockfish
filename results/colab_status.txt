@@ -1,8 +1,5 @@
-RUNNING commit=93f305a heartbeat=2026-11-26T00:41:50Z cores=12
+RUNNING commit=93f305a heartbeat=2026-11-26T00:43:52Z cores=12
 --- tail results/colab_latest.log ---
-Loaded 3,090,045 moves in 0.73s (train_decs=60,215, val_decs=6,682)
-BlockfishResNet(C=64, B=4, unified=True, temp=0.4) | params=367,105
-  [ep 1 | batch 150/471 | 15.1s | tr_ce=0.5921]
   [ep 1 | batch 300/471 | 27.4s | tr_ce=0.5453]
   [ep 1 | batch 450/471 | 39.8s | tr_ce=0.5212]
 ep  1/20 | lr=0.00298 | tr_ce=0.5186 tr_top1=83.09% tr_vmae=1.86 | val_ce=0.9015 val_top1=72.13% val_top3=91.89% val_vmae=1.95 | 45.3s *BEST*
@@ -15,3 +12,6 @@ ep  7/20 | lr=0.00220 | tr_ce=0.3734 tr_top1=86.76% tr_vmae=1.75 | val_ce=0.7896
 ep  8/20 | lr=0.00198 | tr_ce=0.3627 tr_top1=87.20% tr_vmae=1.74 | val_ce=0.7774 val_top1=74.83% val_top3=93.67% val_vmae=1.91 | 43.6s *BEST*
 ep  9/20 | lr=0.00176 | tr_ce=0.3453 tr_top1=87.61% tr_vmae=1.74 | val_ce=0.7870 val_top1=74.57% val_top3=93.52% val_vmae=1.89 | 43.6s
 ep 10/20 | lr=0.00153 | tr_ce=0.3283 tr_top1=88.24% tr_vmae=1.73 | val_ce=0.7717 val_top1=75.26% val_top3=93.85% val_vmae=1.91 | 43.7s *BEST*
+ep 11/20 | lr=0.00130 | tr_ce=0.3067 tr_top1=88.89% tr_vmae=1.73 | val_ce=0.7736 val_top1=75.05% val_top3=93.80% val_vmae=1.89 | 43.7s
+ep 12/20 | lr=0.00108 | tr_ce=0.2811 tr_top1=89.83% tr_vmae=1.72 | val_ce=0.8038 val_top1=75.32% val_top3=94.00% val_vmae=1.98 | 43.6s
+ep 13/20 | lr=0.00086 | tr_ce=0.2581 tr_top1=90.45% tr_vmae=1.71 | val_ce=0.8029 val_top1=74.47% val_top3=93.62% val_vmae=1.95 | 43.7s
