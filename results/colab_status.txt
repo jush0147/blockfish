@@ -1,6 +1,5 @@
-RUNNING commit=cf3ac09 heartbeat=2026-11-26T03:02:59Z cores=8
+RUNNING commit=cf3ac09 heartbeat=2026-11-26T03:05:01Z cores=8
 --- tail results/colab_latest.log ---
-help: use `'_` for type paths
    |
 16 |     pub fn shape(&self, color: Color) -> Option<ShapeRef<'_>> {
    |                                                         ++++
@@ -15,3 +14,4 @@ warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockf
   [  8/56] elapsed= 185.0s rate=0.04 games/s ETA=1109.7s
   [ 16/56] elapsed= 367.0s rate=0.04 games/s ETA= 917.6s
   [ 24/56] elapsed= 539.4s rate=0.04 games/s ETA= 719.2s
+  [ 32/56] elapsed= 728.3s rate=0.04 games/s ETA= 546.2s
