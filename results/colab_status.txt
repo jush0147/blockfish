@@ -1,6 +1,5 @@
-RUNNING commit=cf3ac09 heartbeat=2026-11-26T03:09:04Z cores=8
+RUNNING commit=cf3ac09 heartbeat=2026-11-26T03:11:05Z cores=8
 --- tail results/colab_latest.log ---
-16 |     pub fn shape(&self, color: Color) -> Option<ShapeRef<'_>> {
    |                                                         ++++
 
 warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
@@ -15,3 +14,4 @@ warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockf
   [ 24/56] elapsed= 539.4s rate=0.04 games/s ETA= 719.2s
   [ 32/56] elapsed= 728.3s rate=0.04 games/s ETA= 546.2s
   [ 40/56] elapsed= 914.9s rate=0.04 games/s ETA= 366.0s
+  [ 48/56] elapsed=1091.6s rate=0.04 games/s ETA= 181.9s
