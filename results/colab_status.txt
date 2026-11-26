@@ -1,8 +1,5 @@
-RUNNING commit=8adac28c heartbeat=2026-11-26T18:26:08Z cores=8
+RUNNING commit=8adac28c heartbeat=2026-11-26T18:28:09Z cores=8
 --- tail results/colab_latest.log ---
-warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
-    Finished `release` profile [optimized] target(s) in 12.00s
-
 --- Running d2_expectimax (base, d2k4_w16, d2k6_cov115_w16) ---
   [seed 103] pcs=176 nds=59 0ds=76 (cov=25 O=19 nar= 7 wide=19 end= 6) cov_nxt=12.0% | 980.4s
   [seed 101] pcs=180 nds=61 0ds=80 (cov=25 O=19 nar= 9 wide=24 end= 3) cov_nxt=17.0% | 1055.3s
@@ -15,3 +12,6 @@ fullmlp_base_w16_h8_b28    n= 5 mean=184.20 min=176 max=193 <=166: 0 top= 0 | nd
   [seed 104] pcs=193 nds=67 0ds=93 (cov=31 O=20 nar= 9 wide=28 end= 5) cov_nxt=16.0% | 2200.4s
   [seed 102] pcs=186 nds=63 0ds=86 (cov=44 O=11 nar= 8 wide=20 end= 3) cov_nxt=22.0% | 2229.0s
   [seed 101] pcs=195 nds=67 0ds=95 (cov=40 O=16 nar= 6 wide=29 end= 4) cov_nxt=18.0% | 2327.8s
+  [seed 105] pcs=197 nds=68 0ds=97 (cov=39 O=20 nar= 8 wide=24 end= 6) cov_nxt=24.0% | 2453.8s
+fullmlp_d2k4_w16_h8_b28    n= 5 mean=192.00 min=186 max=197 <=166: 0 top= 0 | nds=66.00 0ds=92.00 (cov=36.6 O=16.6 nar=8.2 wide=26.4 g0=0.0 end=4.2) cov_nxt=19.0% avg_c=12.3 | 2453.8s
+  seeds: [101:195, 102:186, 103:189, 104:193, 105:197]
