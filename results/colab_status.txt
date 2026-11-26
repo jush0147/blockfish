@@ -1,4 +1,4 @@
-RUNNING commit=89e3751b heartbeat=2026-11-26T16:26:44Z cores=8
+RUNNING commit=89e3751b heartbeat=2026-11-26T16:28:44Z cores=8
 --- tail results/colab_latest.log ---
 ================================================================
  Pure Rust Legal p=5 Iterative Watkins TD(lambda) Self-Play RL
