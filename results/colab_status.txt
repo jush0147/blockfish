@@ -1,1 +1,17 @@
-RUNNING commit=f8e418fc started=2026-11-26T13:38:44Z cores=12
+RUNNING commit=f8e418fc heartbeat=2026-11-26T13:40:45Z cores=12
+--- tail results/colab_latest.log ---
+   = note: `#[warn(mismatched_lifetime_syntaxes)]` on by default
+help: use `'_` for type paths
+   |
+16 |     pub fn shape(&self, color: Color) -> Option<ShapeRef<'_>> {
+   |                                                         ++++
+
+warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
+    Finished `release` profile [optimized] target(s) in 19.09s
+
+--- Starting GPU Strong-Legal TD Hybrid ResNet v2 eval server ---
+resnet_eval_server READY on /tmp/blockfish_resnet.sock | device=cuda (torch.bfloat16) | C=64 B=4 val_ce=14.8770
+
+>>> [1/2] SAME-BINARY FULL-MLP BASE (spatial_bc4, delta_w=0.0, 5 seeds 101..=105):
+=== eval_resnet mode=pimc_v2 seeds=101..=105 (n=5) w=12 h=8 b=20 k=8 l=4 cvar=25 hybrid=true delta_w=0.00 full_mlp=true ===
+  [seed 101] pcs=196 top=0 | 62.2s
