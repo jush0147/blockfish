@@ -1,1 +1,1 @@
-RUNNING commit=c9417b3 started=2026-11-26T03:25:29Z cores=8
+DONE commit=c9417b3 exit=0 finished=2026-11-26T03:25:30Z
