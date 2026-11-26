@@ -1,7 +1,5 @@
-RUNNING commit=5312142 heartbeat=2026-11-26T05:23:46Z cores=12
+RUNNING commit=5312142 heartbeat=2026-11-26T05:25:49Z cores=12
 --- tail results/colab_latest.log ---
-Device: cuda | amp_dtype=torch.bfloat16
-GPU: NVIDIA L4
 Loading /tmp/wg_ds_v1_400g_bv.bin: 400 games, 66897 decisions (149.1 MB raw)...
 Loaded 3,090,045 moves in 0.52s (train_decs=60,215, val_decs=6,682)
 Loading /tmp/legal_sp_v1_56g.bin.gz: 56 games, 10752 decisions (24.3 MB raw)...
@@ -15,3 +13,5 @@ ep  3/12 | lr=0.00171 | tr_ce=0.4636 tr_top1=84.55% tr_vmae= 3.34 | val_ce=0.896
 ep  4/12 | lr=0.00151 | tr_ce=0.4484 tr_top1=85.13% tr_vmae= 3.33 | val_ce=0.8862 val_top1=72.54% val_top3=92.42% val_vmae= 3.62 |d|=0.44 | 50.4s *BEST*
 ep  5/12 | lr=0.00127 | tr_ce=0.4403 tr_top1=85.23% tr_vmae= 3.31 | val_ce=0.8794 val_top1=72.50% val_top3=92.79% val_vmae= 3.60 |d|=0.47 | 50.4s *BEST*
 ep  6/12 | lr=0.00102 | tr_ce=0.4273 tr_top1=85.50% tr_vmae= 3.30 | val_ce=0.8725 val_top1=72.67% val_top3=92.63% val_vmae= 3.61 |d|=0.61 | 50.4s *BEST*
+ep  7/12 | lr=0.00077 | tr_ce=0.4169 tr_top1=85.82% tr_vmae= 3.29 | val_ce=0.8574 val_top1=73.22% val_top3=93.05% val_vmae= 3.59 |d|=0.64 | 50.5s *BEST*
+ep  8/12 | lr=0.00053 | tr_ce=0.3974 tr_top1=86.29% tr_vmae= 3.27 | val_ce=0.8537 val_top1=73.18% val_top3=92.93% val_vmae= 3.59 |d|=0.68 | 50.5s *BEST*
