@@ -1,4 +1,4 @@
-RUNNING commit=3d84ecb3 heartbeat=2026-11-26T14:55:07Z cores=8
+RUNNING commit=3d84ecb3 heartbeat=2026-11-26T14:57:09Z cores=8
 --- tail results/colab_latest.log ---
 --- Running opaque_pimc (same-binary base, d1, d2, w24_h9_b36) ---
   [seed 103] pcs=176 nds=59 0ds=76 (cov=25 O=19 nar= 7 wide=19 end= 6) cov_nxt=12.0% | 1020.9s
