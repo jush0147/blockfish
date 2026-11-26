@@ -1,17 +1,1 @@
-RUNNING commit=16984802 heartbeat=2026-11-26T11:53:45Z cores=8
---- tail results/colab_latest.log ---
->>> [2/3] STRONG-LEGAL TD-v2 HYBRID (delta_w=0.5) pimc_v2 (5 seeds 101..=105):
-=== eval_resnet mode=pimc_v2 seeds=101..=105 (n=5) w=12 h=8 b=20 k=10 l=4 cvar=25 hybrid=true delta_w=0.50 ===
-  [seed 101] pcs=183 top=0 | 58.6s
-  [seed 102] pcs=197 top=0 | 63.3s
-  [seed 103] pcs=187 top=0 | 59.0s
-  [seed 104] pcs=190 top=0 | 59.5s
-  [seed 105] pcs=193 top=0 | 61.1s
-SUMMARY mode=pimc_v2 n=5 ok=5/5 mean=190.00 min=183 max=197 <=166:0 <=161:0 top=0 | 301.6s
-
->>> [3/3] STRONG-LEGAL TD-v2 HYBRID (delta_w=1.0) pimc_v2 (5 seeds 101..=105):
-=== eval_resnet mode=pimc_v2 seeds=101..=105 (n=5) w=12 h=8 b=20 k=10 l=4 cvar=25 hybrid=true delta_w=1.00 ===
-  [seed 101] pcs=204 top=0 | 65.0s
-  [seed 102] pcs=208 top=0 | 68.6s
-  [seed 103] pcs=199 top=0 | 64.3s
-  [seed 104] pcs=197 top=0 | 62.5s
+DONE commit=16984802 exit=0 finished=2026-11-26T11:54:05Z
