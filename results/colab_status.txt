@@ -1,1 +1,1 @@
-RUNNING commit=d8567e72 started=2026-11-26T14:07:18Z cores=12
+RUNNING commit=3d84ecb3 started=2026-11-26T14:08:33Z cores=8
