@@ -1,17 +1,1 @@
-RUNNING commit=5312142 heartbeat=2026-11-26T05:33:57Z cores=12
---- tail results/colab_latest.log ---
-resnet_eval_server READY on /tmp/blockfish_resnet.sock | device=cuda (torch.bfloat16) | C=64 B=4 val_ce=0.8515
-
->>> [1/2] HYBRID v2 (delta_w=0.5) pimc_v2 (5 seeds 101..=105, vs BASE 193.20):
-=== eval_resnet mode=pimc_v2 seeds=101..=105 (n=5) w=12 h=8 b=20 k=10 l=4 cvar=25 hybrid=true delta_w=0.50 ===
-  [seed 101] pcs=188 top=0 | 41.2s
-  [seed 102] pcs=191 top=0 | 43.1s
-  [seed 103] pcs=192 top=0 | 41.9s
-  [seed 104] pcs=202 top=0 | 47.3s
-  [seed 105] pcs=201 top=0 | 46.9s
-SUMMARY mode=pimc_v2 n=5 ok=5/5 mean=194.80 min=188 max=202 <=166:0 <=161:0 top=0 | 220.3s
-
->>> [2/2] HYBRID v2 (delta_w=1.0) pimc_v2 (5 seeds 101..=105, vs BASE 193.20):
-=== eval_resnet mode=pimc_v2 seeds=101..=105 (n=5) w=12 h=8 b=20 k=10 l=4 cvar=25 hybrid=true delta_w=1.00 ===
-  [seed 101] pcs=202 top=0 | 48.1s
-  [seed 102] pcs=196 top=0 | 42.8s
+DONE commit=5312142 exit=0 finished=2026-11-26T05:35:58Z
