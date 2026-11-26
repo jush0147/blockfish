@@ -1,6 +1,5 @@
-RUNNING commit=886fc72 heartbeat=2026-11-26T07:27:35Z cores=8
+RUNNING commit=886fc72 heartbeat=2026-11-26T07:29:37Z cores=8
 --- tail results/colab_latest.log ---
-   |
    = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
    = note: `#[warn(mismatched_lifetime_syntaxes)]` on by default
 help: use `'_` for type paths
@@ -15,3 +14,4 @@ warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockf
 === export_legal_rl (BFRL0001) ===
   model=models/spatial_bc4.txt | train=180 (5001..5181), val=20 (301..321) | beam=16 eps=10% threads=8
   out=/tmp/legal_rl_v1_200g.bin
+  [ 100/200] elapsed= 418.8s rate=0.24 games/s ETA=418.8s
