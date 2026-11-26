@@ -1,4 +1,4 @@
-RUNNING commit=8adac28c heartbeat=2026-11-26T18:36:15Z cores=8
+RUNNING commit=8adac28c heartbeat=2026-11-26T18:38:16Z cores=8
 --- tail results/colab_latest.log ---
 --- Running d2_expectimax (base, d2k4_w16, d2k6_cov115_w16) ---
   [seed 103] pcs=176 nds=59 0ds=76 (cov=25 O=19 nar= 7 wide=19 end= 6) cov_nxt=12.0% | 980.4s
