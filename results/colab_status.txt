@@ -1,10 +1,5 @@
-RUNNING commit=6b38d69 heartbeat=2026-11-26T04:24:47Z cores=12
+RUNNING commit=6b38d69 heartbeat=2026-11-26T04:26:49Z cores=12
 --- tail results/colab_latest.log ---
-
---- A/B 2: Legal p=5 Lockstep root_pimc (w=8, h=6, b=16, cvar=25, 5 seeds 101..=105) ---
->>> BASE (spatial_bc4, delta_w=0.0):
-=== eval_resnet mode=pimc seeds=101..=105 (n=5) w=8 h=6 b=16 mpr=4 cvar=25 val_w=1.00 logit_w=0.00 hybrid=true delta_w=0.00 ===
-  [seed 101] pcs=205 top=0 | 22.4s
   [seed 102] pcs=218 top=0 | 24.1s
   [seed 103] pcs=200 top=0 | 22.1s
   [seed 104] pcs=205 top=0 | 22.5s
@@ -15,3 +10,8 @@ SUMMARY mode=pimc n=5 ok=5/5 mean=206.60 min=200 max=218 <=166:0 <=161:0 top=0 |
   [seed 101] pcs=221 top=0 | 105.4s
   [seed 102] pcs=201 top=0 | 95.3s
   [seed 103] pcs=203 top=0 | 97.5s
+  [seed 104] pcs=210 top=0 | 100.1s
+  [seed 105] pcs=210 top=0 | 98.3s
+SUMMARY mode=pimc n=5 ok=5/5 mean=209.00 min=201 max=221 <=166:0 <=161:0 top=0 | 496.6s
+>>> HYBRID (delta_w=1.0):
+=== eval_resnet mode=pimc seeds=101..=105 (n=5) w=8 h=6 b=16 mpr=4 cvar=25 val_w=1.00 logit_w=0.00 hybrid=true delta_w=1.00 ===
