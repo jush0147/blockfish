@@ -1,6 +1,5 @@
-RUNNING commit=dad8b80 heartbeat=2026-11-26T10:41:59Z cores=8
+RUNNING commit=dad8b80 heartbeat=2026-11-26T10:44:01Z cores=8
 --- tail results/colab_latest.log ---
-   |                                                         ++++
 
 warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
     Finished `release` profile [optimized] target(s) in 19.50s
@@ -15,3 +14,4 @@ warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockf
   [  32/72] elapsed= 764.5s rate=0.04 games/s ETA=955.6s
   [  40/72] elapsed= 944.3s rate=0.04 games/s ETA=755.4s
   [  48/72] elapsed=1132.1s rate=0.04 games/s ETA=566.1s
+  [  56/72] elapsed=1305.8s rate=0.04 games/s ETA=373.1s
