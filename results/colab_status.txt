@@ -1,7 +1,5 @@
-RUNNING commit=16984802 heartbeat=2026-11-26T11:41:31Z cores=8
+RUNNING commit=16984802 heartbeat=2026-11-26T11:43:34Z cores=8
 --- tail results/colab_latest.log ---
-help: use `'_` for type paths
-   |
 16 |     pub fn shape(&self, color: Color) -> Option<ShapeRef<'_>> {
    |                                                         ++++
 
@@ -15,3 +13,5 @@ resnet_eval_server READY on /tmp/blockfish_resnet.sock | device=cuda (torch.floa
 === eval_resnet mode=pimc_v2 seeds=101..=105 (n=5) w=12 h=8 b=20 k=10 l=4 cvar=25 hybrid=true delta_w=0.00 ===
   [seed 101] pcs=197 top=0 | 63.5s
   [seed 102] pcs=198 top=0 | 61.1s
+  [seed 103] pcs=185 top=0 | 58.7s
+  [seed 104] pcs=190 top=0 | 57.2s
