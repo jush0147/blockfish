@@ -1,4 +1,4 @@
-RUNNING commit=281ad8b heartbeat=2026-11-26T05:57:44Z cores=12
+RUNNING commit=281ad8b heartbeat=2026-11-26T05:59:46Z cores=12
 --- tail results/colab_latest.log ---
    |
    = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
