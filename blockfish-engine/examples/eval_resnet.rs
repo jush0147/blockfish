@@ -1096,6 +1096,451 @@ fn run_or_p20_game(
     (pieces, cur_rem_g > 0)
 }
 
+/// Full-strength Per-Root Leaf-Batched GPU root_pimc:
+/// 1. Endgame solver via FastAI when rem_g <= 5.
+/// 2. Fast depth-4 spatial_bc4 beam prescreen to select top K roots (preserving multi-ply setups).
+/// 3. For each (world in 0..W, root in 0..K), run dedicated H-ply beam (width B) with spatial_bc4.
+/// 4. Batch ALL W * K * L top leaves into ONE SINGLE GPU call for ResNet residual delta_v!
+fn run_pimc_v2_game(
+    seed: u64,
+    client: &mut Option<ResNetClient>,
+    fst: &FastShapeTable,
+    worlds: usize,
+    horizon: usize,
+    beam_w: usize,
+    top_roots: usize,
+    leaf_top: usize,
+    cvar_pct: usize,
+    sm: &SpatialValueModel,
+    delta_w: f32,
+) -> (usize, bool) {
+    let mut game_cfg = BSConfig::default();
+    game_cfg.garbage.total_lines = Some(100);
+    game_cfg.prng_seed = Some(seed);
+    let mut stacker = Stacker::new(Ruleset::guideline().into(), game_cfg);
+
+    let mut eg_cfg = BeamConfig::default();
+    eg_cfg.beam_width = 80;
+    eg_cfg.max_per_root = 16;
+    eg_cfg.endgame_solver = true;
+    eg_cfg.bag_det_extend = true;
+    eg_cfg.simulate_cheese_spawn = true;
+    let mut ai = FastAI::new(eg_cfg);
+
+    let mut tracker = BagTracker::new();
+    let mut pgen = FastPlaceGen::new();
+    let mut tmp_places = Vec::with_capacity(64);
+    let mut seen: HashSet<DedupKey, FxBuild> =
+        HashSet::with_capacity_and_hasher(beam_w * 16, FxBuild::default());
+    let mut packed: Vec<u8> = Vec::with_capacity(worlds * top_roots * leaf_top * MOVE_BYTES);
+
+    let mut ds_total = 0usize;
+    let mut pieces = 0usize;
+    let mut rng = seed.wrapping_mul(0xD1B54A32D192ED03).wrapping_add(17);
+
+    while ds_total < 100 && pieces < 350 && stacker.current_piece_type().is_some() {
+        let snap = match stacker.snapshot() {
+            Some(s) => s,
+            None => return (pieces, true),
+        };
+        let after_vis_mask = tracker.observe(snap.hold, &snap.queue);
+        let g = garbage_rows(&stacker);
+        let rem_g = 100usize.saturating_sub(ds_total) as u16;
+
+        // Exact endgame solver for rem_g <= 5
+        if rem_g <= 5 {
+            if let Some(res) = ai.best_move(&snap, Some(g), Some(rem_g)) {
+                let mut inputs = res.inputs;
+                inputs.pop();
+                stacker.run(inputs);
+                let (_, ds) = stacker.hard_drop();
+                ds_total += ds;
+                pieces += 1;
+                continue;
+            }
+        }
+
+        let b0 = FastBoard::from_basic_matrix(&snap.matrix, g);
+        let vis_q: Vec<u8> = snap.queue.iter().map(|&c| color_to_idx(c) as u8).collect();
+        let cur_held: Option<u8> = snap.hold.map(|c| color_to_idx(c) as u8);
+        let (c_nh0, c_h0) = if cur_held.is_some() {
+            (vis_q.get(0).copied(), cur_held)
+        } else {
+            (vis_q.get(0).copied(), vis_q.get(1).copied())
+        };
+        pgen.generate_for_state(fst, &b0, c_nh0, c_h0, &mut tmp_places);
+        if tmp_places.is_empty() {
+            return (pieces, true);
+        }
+        let root_places = tmp_places.clone();
+        let n_roots = root_places.len();
+
+        // Immediate 1-ply terminal win check
+        let mut instant_win: Option<FastPlace> = None;
+        for &fp in &root_places {
+            let mut b = b0;
+            let o = &fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
+            let (_, ds_d, _) = b.place_and_sift(o, fp.norm_i, fp.norm_j);
+            if rem_g.saturating_sub(ds_d as u16) == 0 && b.rows < 20 {
+                instant_win = Some(fp);
+                break;
+            }
+        }
+
+        let chosen = if let Some(wfp) = instant_win {
+            wfp
+        } else {
+            // Step 1: Fast depth-4 spatial_bc4 prescreen to select top K roots (with CRN holes)
+            let mut root_best_pre = vec![f32::INFINITY; n_roots];
+            {
+                let mut pre_rng = next_rng(&mut rng);
+                let (pq, _) = sample_world_queue(&vis_q, after_vis_mask, 8, &mut pre_rng);
+                let mut pbeam: Vec<BeamState> = Vec::with_capacity(64);
+                let s1 = next_rng(&mut pre_rng);
+                for (ri, &fp) in root_places.iter().enumerate() {
+                    let mut b = b0;
+                    let o = &fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
+                    let (lines, ds_d, _) = b.place_and_sift(o, fp.norm_i, fp.norm_j);
+                    let nrem = rem_g.saturating_sub(ds_d as u16);
+                    let mut rl = s1;
+                    if !spawn_random_cheese(&mut b, nrem, lines, &mut rl) || b.rows >= 20 {
+                        continue;
+                    }
+                    let (nh, nqc) = if cur_held.is_some() {
+                        if fp.did_hold { (c_nh0, 1usize) } else { (cur_held, 1usize) }
+                    } else if fp.did_hold {
+                        (c_nh0, 2usize)
+                    } else {
+                        (None, 1usize)
+                    };
+                    let in_h = nh.or_else(|| pq.get(nqc).copied());
+                    let av = avail_mask_from_q(nh, &pq, nqc);
+                    let sc = 1.0 + ((sm.evaluate_linear_board_with_bag_no_pe(&b, nrem, in_h, av) as f32) / 100.0).clamp(-50.0, 500.0);
+                    if sc < root_best_pre[ri] {
+                        root_best_pre[ri] = sc;
+                    }
+                    pbeam.push(BeamState {
+                        board: b,
+                        held: nh,
+                        qc: nqc as u8,
+                        rem_g: nrem,
+                        root_idx: ri as u8,
+                        score: sc,
+                        won: false,
+                    });
+                }
+                pbeam.sort_unstable_by(|a, b| a.score.total_cmp(&b.score));
+                pbeam.truncate(64);
+                for d in 2..=4usize {
+                    let sd = next_rng(&mut pre_rng);
+                    let mut nxt: Vec<BeamState> = Vec::with_capacity(64 * 32);
+                    for &par in &pbeam {
+                        let qc = par.qc as usize;
+                        let (c_nh, c_h) = if par.held.is_some() {
+                            (pq.get(qc).copied(), par.held)
+                        } else {
+                            (pq.get(qc).copied(), pq.get(qc + 1).copied())
+                        };
+                        if c_nh.is_none() && c_h.is_none() { continue; }
+                        pgen.generate_for_state(fst, &par.board, c_nh, c_h, &mut tmp_places);
+                        for &fp in &tmp_places {
+                            let mut b = par.board;
+                            let o = &fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
+                            let (lines, ds_d, _) = b.place_and_sift(o, fp.norm_i, fp.norm_j);
+                            let nrem = par.rem_g.saturating_sub(ds_d as u16);
+                            if nrem == 0 && b.rows < 20 {
+                                let ws = -1000.0 + d as f32;
+                                if ws < root_best_pre[par.root_idx as usize] {
+                                    root_best_pre[par.root_idx as usize] = ws;
+                                }
+                                continue;
+                            }
+                            let mut rl = sd;
+                            if !spawn_random_cheese(&mut b, nrem, lines, &mut rl) || b.rows >= 20 {
+                                continue;
+                            }
+                            let (nh, nqc) = if par.held.is_some() {
+                                if fp.did_hold { (c_nh, qc + 1) } else { (par.held, qc + 1) }
+                            } else if fp.did_hold {
+                                (c_nh, qc + 2)
+                            } else {
+                                (None, qc + 1)
+                            };
+                            let in_h = nh.or_else(|| pq.get(nqc).copied());
+                            let av = avail_mask_from_q(nh, &pq, nqc);
+                            let sc = (d as f32) + ((sm.evaluate_linear_board_with_bag_no_pe(&b, nrem, in_h, av) as f32) / 100.0).clamp(-50.0, 500.0);
+                            if d == 4 && sc < root_best_pre[par.root_idx as usize] {
+                                root_best_pre[par.root_idx as usize] = sc;
+                            }
+                            nxt.push(BeamState {
+                                board: b,
+                                held: nh,
+                                qc: nqc as u8,
+                                rem_g: nrem,
+                                root_idx: par.root_idx,
+                                score: sc,
+                                won: false,
+                            });
+                        }
+                    }
+                    nxt.sort_unstable_by(|a, b| a.score.total_cmp(&b.score));
+                    seen.clear();
+                    let mut rc = vec![0usize; n_roots];
+                    pbeam.clear();
+                    for st in nxt {
+                        if pbeam.len() >= 64 { break; }
+                        let ri = st.root_idx as usize;
+                        if rc[ri] >= 8 { continue; }
+                        if seen.insert(DedupKey { board: st.board, held: st.held, qc: st.qc, root_idx: st.root_idx }) {
+                            rc[ri] += 1;
+                            pbeam.push(st);
+                        }
+                    }
+                }
+            }
+
+            let mut root_order: Vec<usize> = (0..n_roots).filter(|&ri| root_best_pre[ri].is_finite()).collect();
+            root_order.sort_unstable_by(|&a, &b| root_best_pre[a].total_cmp(&root_best_pre[b]));
+            if root_order.is_empty() {
+                root_order.push(0);
+            }
+            root_order.truncate(top_roots.min(root_order.len()));
+            let k_roots = root_order.len();
+
+            // Pre-generate deterministic world queues & step seeds so parallel threads are 100% deterministic
+            let mut world_inputs: Vec<(Vec<u8>, Vec<u8>, Vec<u64>)> = Vec::with_capacity(worlds);
+            for _ in 0..worlds {
+                let (wq, bmasks) = sample_world_queue(&vis_q, after_vis_mask, horizon + 8, &mut rng);
+                let mut step_seeds = Vec::with_capacity(horizon);
+                for _ in 0..horizon {
+                    step_seeds.push(next_rng(&mut rng));
+                }
+                world_inputs.push((wq, bmasks, step_seeds));
+            }
+
+            // Step 2: Parallelize all W worlds across CPU cores!
+            // Internal depths use fast linear_no_pe; leaf depth uses full MLP + batched GPU ResNet delta_v.
+            let mut per_world_out: Vec<(Vec<f32>, Vec<u8>, Vec<(usize, f32)>)> =
+                vec![(vec![f32::INFINITY; k_roots], Vec::new(), Vec::new()); worlds];
+
+            let root_places_ref = &root_places;
+            let root_order_ref = &root_order;
+            let world_inputs_ref = &world_inputs;
+
+            std::thread::scope(|scope| {
+                for (w, out_slot) in per_world_out.iter_mut().enumerate() {
+                    scope.spawn(move || {
+                        let (wq, bmasks, step_seeds) = &world_inputs_ref[w];
+                        let mut pgen_w = FastPlaceGen::new();
+                        let mut tmp_w = Vec::with_capacity(64);
+                        let mut seen_w: HashSet<DedupKey, FxBuild> =
+                            HashSet::with_capacity_and_hasher(beam_w * 16, FxBuild::default());
+                        let mut cur_beam: Vec<(BeamState, u8, u8)> = Vec::with_capacity(beam_w);
+                        let mut nxt_beam: Vec<(BeamState, u8, u8)> = Vec::with_capacity(beam_w * 40);
+
+                        for (ki, &ri) in root_order_ref.iter().enumerate() {
+                            let fp0 = root_places_ref[ri];
+                            let mut b1 = b0;
+                            let o0 = &fst.shapes[fp0.color_idx as usize].orients[fp0.tf.2 as usize];
+                            let (lines1, ds1, _) = b1.place_and_sift(o0, fp0.norm_i, fp0.norm_j);
+                            let nrem1 = rem_g.saturating_sub(ds1 as u16);
+                            if nrem1 == 0 && b1.rows < 20 {
+                                out_slot.0[ki] = -1000.0 + 1.0;
+                                continue;
+                            }
+                            let mut rl1 = step_seeds[0];
+                            if !spawn_random_cheese(&mut b1, nrem1, lines1, &mut rl1) || b1.rows >= 20 {
+                                continue;
+                            }
+                            let (nh1, nqc1) = if cur_held.is_some() {
+                                if fp0.did_hold { (c_nh0, 1usize) } else { (cur_held, 1usize) }
+                            } else if fp0.did_hold {
+                                (c_nh0, 2usize)
+                            } else {
+                                (None, 1usize)
+                            };
+                            let in_h1 = nh1.or_else(|| wq.get(nqc1).copied());
+                            let av1 = avail_mask_from_q(nh1, wq, nqc1);
+                            let sc1 = 1.0 + ((sm.evaluate_linear_board_with_bag_no_pe(&b1, nrem1, in_h1, av1) as f32) / 100.0).clamp(-50.0, 500.0);
+
+                            cur_beam.clear();
+                            cur_beam.push((
+                                BeamState {
+                                    board: b1,
+                                    held: nh1,
+                                    qc: nqc1 as u8,
+                                    rem_g: nrem1,
+                                    root_idx: ki as u8,
+                                    score: sc1,
+                                    won: false,
+                                },
+                                lines1,
+                                ds1,
+                            ));
+
+                            let mut best_win_w = f32::INFINITY;
+                            for d in 2..=horizon {
+                                let sd = step_seeds[d - 1];
+                                let is_leaf = d == horizon;
+                                nxt_beam.clear();
+                                for &(par, _, _) in &cur_beam {
+                                    let qc = par.qc as usize;
+                                    let (c_nh, c_h) = if par.held.is_some() {
+                                        (wq.get(qc).copied(), par.held)
+                                    } else {
+                                        (wq.get(qc).copied(), wq.get(qc + 1).copied())
+                                    };
+                                    if c_nh.is_none() && c_h.is_none() { continue; }
+                                    pgen_w.generate_for_state(fst, &par.board, c_nh, c_h, &mut tmp_w);
+                                    for &fp in &tmp_w {
+                                        let mut b = par.board;
+                                        let o = &fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
+                                        let (lines, ds_d, _) = b.place_and_sift(o, fp.norm_i, fp.norm_j);
+                                        let nrem = par.rem_g.saturating_sub(ds_d as u16);
+                                        if nrem == 0 && b.rows < 20 {
+                                            let ws = -1000.0 + d as f32;
+                                            if ws < best_win_w { best_win_w = ws; }
+                                            continue;
+                                        }
+                                        let mut rl = sd;
+                                        if !spawn_random_cheese(&mut b, nrem, lines, &mut rl) || b.rows >= 20 {
+                                            continue;
+                                        }
+                                        let (nh, nqc) = if par.held.is_some() {
+                                            if fp.did_hold { (c_nh, qc + 1) } else { (par.held, qc + 1) }
+                                        } else if fp.did_hold {
+                                            (c_nh, qc + 2)
+                                        } else {
+                                            (None, qc + 1)
+                                        };
+                                        let in_h = nh.or_else(|| wq.get(nqc).copied());
+                                        let av = avail_mask_from_q(nh, wq, nqc);
+                                        let raw_ev = if is_leaf {
+                                            sm.evaluate_board_with_bag(&b, nrem, in_h, av)
+                                        } else {
+                                            sm.evaluate_linear_board_with_bag_no_pe(&b, nrem, in_h, av)
+                                        };
+                                        let sc = (d as f32) + ((raw_ev as f32) / 100.0).clamp(-50.0, 500.0);
+                                        nxt_beam.push((
+                                            BeamState {
+                                                board: b,
+                                                held: nh,
+                                                qc: nqc as u8,
+                                                rem_g: nrem,
+                                                root_idx: ki as u8,
+                                                score: sc,
+                                                won: false,
+                                            },
+                                            lines,
+                                            ds_d,
+                                        ));
+                                    }
+                                }
+                                if nxt_beam.is_empty() {
+                                    cur_beam.clear();
+                                    break;
+                                }
+                                nxt_beam.sort_unstable_by(|a, b| a.0.score.total_cmp(&b.0.score));
+                                seen_w.clear();
+                                cur_beam.clear();
+                                for item in nxt_beam.drain(..) {
+                                    if cur_beam.len() >= beam_w { break; }
+                                    let st = item.0;
+                                    if seen_w.insert(DedupKey { board: st.board, held: st.held, qc: st.qc, root_idx: 0 }) {
+                                        cur_beam.push(item);
+                                    }
+                                }
+                            }
+
+                            if best_win_w.is_finite() {
+                                out_slot.0[ki] = best_win_w;
+                            } else if delta_w == 0.0 {
+                                if let Some((st, _, _)) = cur_beam.first() {
+                                    out_slot.0[ki] = st.score;
+                                }
+                            } else {
+                                for &(st, ln, dd) in cur_beam.iter().take(leaf_top) {
+                                    let nqc = st.qc as usize;
+                                    pack_move_rec(
+                                        &mut out_slot.1,
+                                        &st.board,
+                                        st.rem_g,
+                                        st.held,
+                                        next5_at(wq, nqc),
+                                        bmasks[nqc.min(bmasks.len() - 1)],
+                                        ln,
+                                        dd,
+                                    );
+                                    out_slot.2.push((ki, st.score));
+                                }
+                            }
+                        }
+                    });
+                }
+            });
+
+            // Merge per-world outputs into ONE single GPU batch
+            let mut w_root_best: Vec<Vec<f32>> = Vec::with_capacity(worlds);
+            packed.clear();
+            let mut leaf_meta: Vec<(usize, usize, f32)> = Vec::with_capacity(worlds * k_roots * leaf_top);
+            for (w, (rb, pbuf, metas)) in per_world_out.into_iter().enumerate() {
+                w_root_best.push(rb);
+                packed.extend_from_slice(&pbuf);
+                for (ki, sc) in metas {
+                    leaf_meta.push((w, ki, sc));
+                }
+            }
+
+            // Step 3: ONE single GPU batch call for all W * K * L leaves!
+            if delta_w != 0.0 && !leaf_meta.is_empty() {
+                let evals = client.as_mut().unwrap().eval_batch(&packed);
+                for ((w, ki, base_sc), (_, delta_v)) in leaf_meta.into_iter().zip(evals.into_iter()) {
+                    let sc = base_sc + delta_w * delta_v;
+                    if sc < w_root_best[w][ki] {
+                        w_root_best[w][ki] = sc;
+                    }
+                }
+            }
+
+            // Step 4: CVaR aggregation across W worlds
+            let mut best_ki = 0usize;
+            let mut best_agg = f32::INFINITY;
+            let mut ws_buf = Vec::with_capacity(worlds);
+            for ki in 0..k_roots {
+                ws_buf.clear();
+                for w in 0..worlds {
+                    let sc = w_root_best[w][ki];
+                    ws_buf.push(if sc.is_finite() { sc } else { 500.0 });
+                }
+                ws_buf.sort_unstable_by(|a, b| a.total_cmp(b));
+                let agg = if cvar_pct > 0 && cvar_pct < 100 {
+                    let tail_n = ((worlds * cvar_pct + 99) / 100).max(1);
+                    let start = worlds - tail_n;
+                    ws_buf[start..].iter().sum::<f32>() / (tail_n as f32)
+                } else {
+                    ws_buf.iter().sum::<f32>() / (worlds as f32)
+                };
+                if agg < best_agg {
+                    best_agg = agg;
+                    best_ki = ki;
+                }
+            }
+            root_places[root_order[best_ki]]
+        };
+
+        let mut inputs = match ai.inputs_for_place(&snap.matrix, chosen) {
+            Some(inp) => inp,
+            None => return (pieces, true),
+        };
+        inputs.pop();
+        stacker.run(inputs);
+        let (_, ds) = stacker.hard_drop();
+        ds_total += ds;
+        pieces += 1;
+    }
+    (pieces, ds_total < 100)
+}
+
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     let mut mode = String::from("greedy");
@@ -1106,6 +1551,8 @@ fn main() {
     let mut horizon: usize = 6;
     let mut beam_w: usize = 16;
     let mut max_per_root: usize = 4;
+    let mut top_roots: usize = 10;
+    let mut leaf_top: usize = 4;
     let mut cvar_pct: usize = 25;
     let mut val_w: f32 = 1.0;
     let mut logit_w: f32 = 0.0;
@@ -1123,6 +1570,8 @@ fn main() {
             "--horizon" => { i += 1; horizon = args[i].parse().unwrap(); }
             "--beam" => { i += 1; beam_w = args[i].parse().unwrap(); }
             "--max-per-root" => { i += 1; max_per_root = args[i].parse().unwrap(); }
+            "--top-roots" => { i += 1; top_roots = args[i].parse().unwrap(); }
+            "--leaf-top" => { i += 1; leaf_top = args[i].parse().unwrap(); }
             "--cvar" => { i += 1; cvar_pct = args[i].parse().unwrap(); }
             "--val-w" => { i += 1; val_w = args[i].parse().unwrap(); }
             "--logit-w" => { i += 1; logit_w = args[i].parse().unwrap(); }
@@ -1137,9 +1586,11 @@ fn main() {
     }
 
     let fst = FastShapeTable::srs();
-    let hybrid_sm = hybrid_model_path
-        .as_deref()
-        .map(|p| SpatialValueModel::load_from_file(p).expect("load hybrid spatial model"));
+    let hybrid_sm = hybrid_model_path.as_deref().map(|p| {
+        let mut sm = SpatialValueModel::load_from_file(p).expect("load hybrid spatial model");
+        sm.prepare_fast();
+        sm
+    });
     let need_client = hybrid_sm.is_none() || delta_w != 0.0 || mode == "or_p20";
     let mut client = if need_client {
         Some(ResNetClient::connect(&sock))
@@ -1149,9 +1600,9 @@ fn main() {
     let t0 = Instant::now();
 
     println!(
-        "=== eval_resnet mode={} seeds={}..={} (n={}) w={} h={} b={} mpr={} cvar={} val_w={:.2} logit_w={:.2} hybrid={} delta_w={:.2} ===",
+        "=== eval_resnet mode={} seeds={}..={} (n={}) w={} h={} b={} k={} l={} cvar={} hybrid={} delta_w={:.2} ===",
         mode, seed_start, seed_start + n_seeds as u64 - 1, n_seeds,
-        worlds, horizon, beam_w, max_per_root, cvar_pct, val_w, logit_w,
+        worlds, horizon, beam_w, top_roots, leaf_top, cvar_pct,
         hybrid_sm.is_some(), delta_w
     );
 
@@ -1168,6 +1619,10 @@ fn main() {
             "pimc" => run_pimc_game(
                 s, &mut client, &fst, worlds, horizon, beam_w, max_per_root, cvar_pct, val_w, logit_w,
                 hybrid_sm.as_ref(), delta_w
+            ),
+            "pimc_v2" => run_pimc_v2_game(
+                s, &mut client, &fst, worlds, horizon, beam_w, top_roots, leaf_top, cvar_pct,
+                hybrid_sm.as_ref().expect("--hybrid-model required for pimc_v2"), delta_w
             ),
             other => panic!("Unknown mode: {}", other),
         };
