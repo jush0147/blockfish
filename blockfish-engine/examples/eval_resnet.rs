@@ -1113,6 +1113,7 @@ fn run_pimc_v2_game(
     cvar_pct: usize,
     sm: &SpatialValueModel,
     delta_w: f32,
+    full_mlp_internal: bool,
 ) -> (usize, bool) {
     let mut game_cfg = BSConfig::default();
     game_cfg.garbage.total_lines = Some(100);
@@ -1450,7 +1451,7 @@ fn run_pimc_v2_game(
                                         };
                                         let in_h = nh.or_else(|| wq.get(nqc).copied());
                                         let av = avail_mask_from_q(nh, wq, nqc);
-                                        let raw_ev = if is_leaf {
+                                        let raw_ev = if is_leaf || full_mlp_internal {
                                             sm.evaluate_board_with_bag(&b, nrem, in_h, av)
                                         } else {
                                             sm.evaluate_linear_board_with_bag_no_pe(&b, nrem, in_h, av)
@@ -1593,6 +1594,7 @@ fn main() {
     let mut logit_w: f32 = 0.0;
     let mut hybrid_model_path: Option<String> = None;
     let mut delta_w: f32 = 1.0;
+    let mut full_mlp_internal: bool = false;
 
     let mut i = 1;
     while i < args.len() {
@@ -1612,6 +1614,7 @@ fn main() {
             "--logit-w" => { i += 1; logit_w = args[i].parse().unwrap(); }
             "--hybrid-model" => { i += 1; hybrid_model_path = Some(args[i].clone()); }
             "--delta-w" => { i += 1; delta_w = args[i].parse().unwrap(); }
+            "--full-mlp-internal" => { full_mlp_internal = true; }
             other => {
                 eprintln!("Unknown arg: {}", other);
                 std::process::exit(1);
@@ -1635,10 +1638,10 @@ fn main() {
     let t0 = Instant::now();
 
     println!(
-        "=== eval_resnet mode={} seeds={}..={} (n={}) w={} h={} b={} k={} l={} cvar={} hybrid={} delta_w={:.2} ===",
+        "=== eval_resnet mode={} seeds={}..={} (n={}) w={} h={} b={} k={} l={} cvar={} hybrid={} delta_w={:.2} full_mlp={} ===",
         mode, seed_start, seed_start + n_seeds as u64 - 1, n_seeds,
         worlds, horizon, beam_w, top_roots, leaf_top, cvar_pct,
-        hybrid_sm.is_some(), delta_w
+        hybrid_sm.is_some(), delta_w, full_mlp_internal
     );
 
     let mut ok_pcs = Vec::with_capacity(n_seeds);
@@ -1657,7 +1660,7 @@ fn main() {
             ),
             "pimc_v2" => run_pimc_v2_game(
                 s, &mut client, &fst, worlds, horizon, beam_w, top_roots, leaf_top, cvar_pct,
-                hybrid_sm.as_ref().expect("--hybrid-model required for pimc_v2"), delta_w
+                hybrid_sm.as_ref().expect("--hybrid-model required for pimc_v2"), delta_w, full_mlp_internal
             ),
             other => panic!("Unknown mode: {}", other),
         };
