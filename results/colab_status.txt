@@ -1,4 +1,4 @@
-RUNNING commit=78801b7 heartbeat=2026-11-26T03:42:16Z cores=8
+RUNNING commit=78801b7 heartbeat=2026-11-26T03:44:17Z cores=8
 --- tail results/colab_latest.log ---
 
 --- Downloading legal_sp_v1_56g.bin.gz from GitHub Release legal-selfplay-v1 ---
