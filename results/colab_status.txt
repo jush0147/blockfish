@@ -1,7 +1,5 @@
-RUNNING commit=16984802 heartbeat=2026-11-26T11:45:36Z cores=8
+RUNNING commit=16984802 heartbeat=2026-11-26T11:47:38Z cores=8
 --- tail results/colab_latest.log ---
---- Starting GPU Strong-Legal TD Hybrid ResNet v2 eval server ---
-resnet_eval_server READY on /tmp/blockfish_resnet.sock | device=cuda (torch.float16) | C=64 B=4 val_ce=14.8770
 
 >>> [1/3] SAME-BINARY BASE (spatial_bc4, held+5, delta_w=0.0) pimc_v2 (5 seeds 101..=105):
 === eval_resnet mode=pimc_v2 seeds=101..=105 (n=5) w=12 h=8 b=20 k=10 l=4 cvar=25 hybrid=true delta_w=0.00 ===
@@ -15,3 +13,5 @@ SUMMARY mode=pimc_v2 n=5 ok=5/5 mean=191.80 min=185 max=198 <=166:0 <=161:0 top=
 >>> [2/3] STRONG-LEGAL TD-v2 HYBRID (delta_w=0.5) pimc_v2 (5 seeds 101..=105):
 === eval_resnet mode=pimc_v2 seeds=101..=105 (n=5) w=12 h=8 b=20 k=10 l=4 cvar=25 hybrid=true delta_w=0.50 ===
   [seed 101] pcs=183 top=0 | 58.6s
+  [seed 102] pcs=197 top=0 | 63.3s
+  [seed 103] pcs=187 top=0 | 59.0s
