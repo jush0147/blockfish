@@ -1,13 +1,5 @@
-RUNNING commit=6b38d69 heartbeat=2026-11-26T04:16:41Z cores=12
+RUNNING commit=6b38d69 heartbeat=2026-11-26T04:18:42Z cores=12
 --- tail results/colab_latest.log ---
-  [seed 101] pcs=187 top=1 | 1.1s
-  [seed 102] pcs=350 top=1 | 1.9s
-  [seed 103] pcs=328 top=0 | 1.7s
-  [seed 104] pcs=183 top=1 | 1.0s
-  [seed 105] pcs=350 top=1 | 1.9s
-  [seed 106] pcs=288 top=1 | 1.5s
-  [seed 107] pcs=195 top=1 | 1.0s
-  [seed 108] pcs=271 top=1 | 1.5s
   [seed 109] pcs=350 top=1 | 1.9s
   [seed 110] pcs=263 top=1 | 1.4s
 SUMMARY mode=greedy n=10 ok=1/10 mean=328.00 min=328 max=328 <=166:0 <=161:0 top=9 | 15.0s
@@ -15,3 +7,11 @@ SUMMARY mode=greedy n=10 ok=1/10 mean=328.00 min=328 max=328 <=166:0 <=161:0 top
 --- A/B 2: Legal p=5 Lockstep root_pimc (w=8, h=6, b=16, cvar=25, 5 seeds 101..=105) ---
 >>> BASE (spatial_bc4, delta_w=0.0):
 === eval_resnet mode=pimc seeds=101..=105 (n=5) w=8 h=6 b=16 mpr=4 cvar=25 val_w=1.00 logit_w=0.00 hybrid=true delta_w=0.00 ===
+  [seed 101] pcs=205 top=0 | 22.4s
+  [seed 102] pcs=218 top=0 | 24.1s
+  [seed 103] pcs=200 top=0 | 22.1s
+  [seed 104] pcs=205 top=0 | 22.5s
+  [seed 105] pcs=205 top=0 | 22.9s
+SUMMARY mode=pimc n=5 ok=5/5 mean=206.60 min=200 max=218 <=166:0 <=161:0 top=0 | 113.9s
+>>> HYBRID (delta_w=0.5):
+=== eval_resnet mode=pimc seeds=101..=105 (n=5) w=8 h=6 b=16 mpr=4 cvar=25 val_w=1.00 logit_w=0.00 hybrid=true delta_w=0.50 ===
