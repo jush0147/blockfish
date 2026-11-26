@@ -2,9 +2,8 @@
 set -euo pipefail
 
 echo "================================================================"
-echo " Colab Run #12: Phase 4 - Pure 100% Legal p=5 TD(lambda) RL"
-echo "                ZERO WG_ds! 400 eps-explored Legal games ->"
-echo "                TD(0.85) Hybrid ResNet + pimc_v2 A/B Benchmark"
+echo " Colab Run #12b: Phase 4 - Pure 100% Legal p=5 TD(lambda) RL"
+echo "                 Fixed bag_mask + beam=16 (~10 min total!)"
 echo "================================================================"
 
 if ! nvidia-smi >/dev/null 2>&1; then
@@ -22,14 +21,14 @@ RL_BIN="/tmp/legal_rl_v1_400g.bin"
 RL_GZ="${RL_BIN}.gz"
 
 echo ""
-echo "--- Generating 360 train + 40 val eps-explored Legal p=5 games (beam=24, eps=10%) ---"
+echo "--- Generating 360 train + 40 val eps-explored Legal p=5 games (beam=16, eps=10%) ---"
 target/release/examples/export_legal_rl \
   --model models/spatial_bc4.txt \
   --train-games 360 \
   --val-games 40 \
   --train-seed-start 5001 \
   --val-seed-start 301 \
-  --beam 24 \
+  --beam 16 \
   --eps 10 \
   --out "$RL_BIN"
 
