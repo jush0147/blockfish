@@ -2,4 +2,244 @@
  Colab Run #12-GPU: Pure 100% Legal p=5 TD(0.85) Hybrid ResNet
                     ZERO WG_ds! ~15s train + ~6m pimc_v2 eval
 ================================================================
-[SKIP] No GPU detected (still on CPU runtime). Switch Colab to L4/T4 GPU and click Run all!
+Tesla T4, 15360 MiB
+
+--- Downloading legal_rl_v1_200g.bin.gz from GitHub Release legal-rl-v1 ---
+Downloading 'legal_rl_v1_200g.bin.gz' from release 'legal-rl-v1' -> /tmp/legal_rl_v1_200g.bin.gz...
+DOWNLOAD SUCCESS: /tmp/legal_rl_v1_200g.bin.gz (1.06 MB)
+
+--- Training Pure Legal TD(0.85) Hybrid ResNet (25 epochs, ZERO WG_ds!) ---
+Device: cuda | amp_dtype=torch.float16
+GPU: Tesla T4
+Loaded /tmp/legal_rl_v1_200g.bin.gz: 200 games, 53,216 states (train=49,063, val=4,153) in 0.05s | base_offset=+56.95 pcs | lam=0.85
+BASE (spatial_bc4 + offset, delta=0) | val_td_mae=3.1281 val_td_rmse=7.6379 val_mc_mae=37.1433
+ep  1/25 | lr=0.00149 | tr_loss=2.5936 | val_td_mae=2.8436 val_td_rmse=7.3851 val_mc_mae=39.1431 |d|=2.10 | 5.4s *BEST*
+ep  2/25 | lr=0.00148 | tr_loss=2.1421 | val_td_mae=2.5883 val_td_rmse=6.1355 val_mc_mae=38.9154 |d|=2.72 | 2.8s *BEST*
+ep  3/25 | lr=0.00145 | tr_loss=2.1051 | val_td_mae=2.6955 val_td_rmse=6.2725 val_mc_mae=39.0706 |d|=2.67 | 2.8s
+ep  4/25 | lr=0.00141 | tr_loss=2.0887 | val_td_mae=2.5206 val_td_rmse=6.0648 val_mc_mae=38.7483 |d|=2.83 | 2.8s *BEST*
+ep  5/25 | lr=0.00136 | tr_loss=2.0722 | val_td_mae=2.3987 val_td_rmse=6.0325 val_mc_mae=38.5264 |d|=2.61 | 2.8s *BEST*
+ep  6/25 | lr=0.00130 | tr_loss=2.0575 | val_td_mae=2.2750 val_td_rmse=5.9947 val_mc_mae=38.3180 |d|=2.31 | 2.8s *BEST*
+ep  7/25 | lr=0.00123 | tr_loss=2.0339 | val_td_mae=2.4590 val_td_rmse=6.0432 val_mc_mae=38.6434 |d|=2.73 | 2.8s
+ep  8/25 | lr=0.00116 | tr_loss=2.0061 | val_td_mae=2.5155 val_td_rmse=6.0883 val_mc_mae=38.7871 |d|=2.65 | 2.8s
+ep  9/25 | lr=0.00108 | tr_loss=1.9645 | val_td_mae=3.0357 val_td_rmse=6.3151 val_mc_mae=39.4860 |d|=3.20 | 2.8s
+ep 10/25 | lr=0.00099 | tr_loss=1.9245 | val_td_mae=2.7286 val_td_rmse=6.1869 val_mc_mae=39.0097 |d|=2.82 | 2.8s
+ep 11/25 | lr=0.00090 | tr_loss=1.8705 | val_td_mae=2.4986 val_td_rmse=6.1070 val_mc_mae=38.6517 |d|=2.48 | 2.8s
+ep 12/25 | lr=0.00081 | tr_loss=1.8107 | val_td_mae=3.2032 val_td_rmse=6.3891 val_mc_mae=39.5830 |d|=3.30 | 2.8s
+ep 13/25 | lr=0.00072 | tr_loss=1.7533 | val_td_mae=2.6235 val_td_rmse=6.1417 val_mc_mae=38.7371 |d|=2.62 | 2.9s
+ep 14/25 | lr=0.00063 | tr_loss=1.6927 | val_td_mae=2.8713 val_td_rmse=6.3064 val_mc_mae=39.0756 |d|=2.75 | 2.8s
+ep 15/25 | lr=0.00054 | tr_loss=1.6445 | val_td_mae=3.0858 val_td_rmse=6.3681 val_mc_mae=39.3993 |d|=3.09 | 2.9s
+ep 16/25 | lr=0.00045 | tr_loss=1.5849 | val_td_mae=2.7598 val_td_rmse=6.2821 val_mc_mae=38.7714 |d|=2.48 | 2.9s
+ep 17/25 | lr=0.00037 | tr_loss=1.5374 | val_td_mae=2.8318 val_td_rmse=6.2628 val_mc_mae=38.9286 |d|=2.71 | 2.9s
+ep 18/25 | lr=0.00030 | tr_loss=1.5007 | val_td_mae=2.9519 val_td_rmse=6.2957 val_mc_mae=39.1884 |d|=2.95 | 2.9s
+ep 19/25 | lr=0.00023 | tr_loss=1.4618 | val_td_mae=2.8170 val_td_rmse=6.2187 val_mc_mae=38.9181 |d|=2.78 | 2.9s
+ep 20/25 | lr=0.00017 | tr_loss=1.4351 | val_td_mae=3.0261 val_td_rmse=6.3401 val_mc_mae=39.2437 |d|=2.98 | 2.9s
+ep 21/25 | lr=0.00012 | tr_loss=1.4112 | val_td_mae=2.9141 val_td_rmse=6.3044 val_mc_mae=39.0464 |d|=2.79 | 2.9s
+ep 22/25 | lr=0.00008 | tr_loss=1.3976 | val_td_mae=2.9522 val_td_rmse=6.3160 val_mc_mae=39.0857 |d|=2.83 | 2.9s
+ep 23/25 | lr=0.00005 | tr_loss=1.3805 | val_td_mae=2.9431 val_td_rmse=6.3105 val_mc_mae=39.0787 |d|=2.83 | 2.9s
+ep 24/25 | lr=0.00004 | tr_loss=1.3717 | val_td_mae=2.9558 val_td_rmse=6.3141 val_mc_mae=39.1061 |d|=2.86 | 2.9s
+ep 25/25 | lr=0.00003 | tr_loss=1.3660 | val_td_mae=2.9534 val_td_rmse=6.3069 val_mc_mae=39.0919 |d|=2.86 | 2.9s
+DONE! Base val_td_rmse=7.6379 -> Best TD hybrid val_td_rmse=5.9947 saved to /tmp/hybrid_td_v1.pt
+-rw-r--r-- 1 root root 1.5M Nov 26 09:37 /tmp/hybrid_td_v1.pt
+Uploading hybrid_td_v1.pt (1.43 MB) to release tag 'model-hybrid-td-v1'...
+Found existing release id=459036521 (https://github.com/jush0147/blockfish/releases/tag/model-hybrid-td-v1)
+Replaced existing asset 'hybrid_td_v1.pt' (id=794602493)
+UPLOAD SUCCESS: https://github.com/jush0147/blockfish/releases/download/model-hybrid-td-v1/hybrid_td_v1.pt (1503535 bytes)
+
+--- Building eval_resnet (release) ---
+warning: unused build dependency `fontconfig`
+  --> blockfish-client/Cargo.toml:29:1
+   |
+29 | fontconfig = "0.2"
+   | ^^^^^^^^^^^^^^^^^^
+   |
+   = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `fontconfig`
+warning: `blockfish-client` (manifest) generated 1 warning
+    Updating crates.io index
+ Downloading crates ...
+  Downloaded aho-corasick v0.7.15
+  Downloaded quick-error v1.2.3
+  Downloaded const-cstr v0.3.0
+  Downloaded heck v0.3.1
+  Downloaded lazy_static v1.4.0
+  Downloaded pkg-config v0.3.19
+  Downloaded argh v0.1.4
+  Downloaded red_union_find v0.2.5
+  Downloaded argh_shared v0.1.4
+  Downloaded atty v0.2.14
+  Downloaded humantime v1.3.0
+  Downloaded bitflags v1.2.1
+  Downloaded ryu v1.0.5
+  Downloaded rand_core v0.5.1
+  Downloaded thiserror-impl v1.0.22
+  Downloaded thread_local v1.0.1
+  Downloaded log v0.4.11
+  Downloaded version-compare v0.1.0
+  Downloaded yeslogic-fontconfig-sys v2.11.1
+  Downloaded fontconfig v0.2.0
+  Downloaded pretty_env_logger v0.4.0
+  Downloaded getrandom v0.1.15
+  Downloaded autocfg v1.0.1
+  Downloaded rand_pcg v0.2.1
+  Downloaded itoa v0.4.6
+  Downloaded ppv-lite86 v0.2.10
+  Downloaded quote v1.0.7
+  Downloaded termcolor v1.1.1
+  Downloaded argh_derive v0.1.4
+  Downloaded cfg-if v1.0.0
+  Downloaded rand_chacha v0.2.2
+  Downloaded unicode-xid v0.2.1
+  Downloaded env_logger v0.7.1
+  Downloaded num-integer v0.1.44
+  Downloaded proc-macro2 v1.0.24
+  Downloaded cfg-if v0.1.10
+  Downloaded num-traits v0.2.14
+  Downloaded thiserror v1.0.22
+  Downloaded memchr v2.3.4
+  Downloaded serde_derive v1.0.118
+  Downloaded unicode-segmentation v1.7.1
+  Downloaded serde v1.0.118
+  Downloaded serde_json v1.0.60
+  Downloaded rand v0.7.3
+  Downloaded sdl2 v0.35.2
+  Downloaded syn v1.0.48
+  Downloaded regex v1.4.2
+  Downloaded regex-syntax v0.6.21
+  Downloaded libc v0.2.119
+  Downloaded sdl2-sys v0.35.2
+   Compiling proc-macro2 v1.0.24
+   Compiling unicode-xid v0.2.1
+   Compiling syn v1.0.48
+   Compiling libc v0.2.119
+   Compiling cfg-if v0.1.10
+   Compiling getrandom v0.1.15
+   Compiling autocfg v1.0.1
+   Compiling serde_derive v1.0.118
+   Compiling serde v1.0.118
+   Compiling ryu v1.0.5
+   Compiling serde_json v1.0.60
+   Compiling ppv-lite86 v0.2.10
+   Compiling log v0.4.11
+   Compiling itoa v0.4.6
+   Compiling blockfish v0.1.0 (/content/blockfish/blockfish-engine)
+   Compiling num-traits v0.2.14
+   Compiling num-integer v0.1.44
+   Compiling quote v1.0.7
+   Compiling rand_core v0.5.1
+   Compiling rand_chacha v0.2.2
+   Compiling rand_pcg v0.2.1
+   Compiling rand v0.7.3
+   Compiling red_union_find v0.2.5
+   Compiling thiserror-impl v1.0.22
+   Compiling thiserror v1.0.22
+   Compiling block-stacker v0.1.0 (/content/blockfish/block-stacker)
+warning: unused imports: `Input` and `place::PlaceFinder`
+ --> blockfish-engine/src/ai/fast.rs:2:5
+  |
+2 |     place::PlaceFinder,
+  |     ^^^^^^^^^^^^^^^^^^
+3 |     shape::{ShapeRef, ShapeTable},
+4 |     BasicMatrix, Color, Input, Orientation,
+  |                         ^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: use of deprecated constant `std::u16::MAX`: replaced by the `MAX` associated constant on this type
+  --> blockfish-engine/src/matrix.rs:41:15
+   |
+41 |     std::u16::MAX.overflowing_shl(cols.into()).0
+   |               ^^^
+   |
+   = note: `#[warn(deprecated)]` on by default
+
+warning: use of deprecated constant `std::u16::MAX`: replaced by the `MAX` associated constant on this type
+  --> blockfish-engine/src/matrix.rs:46:15
+   |
+46 |     std::u16::MAX
+   |               ^^^
+
+warning: use of deprecated constant `std::usize::MAX`: replaced by the `MAX` associated constant on this type
+  --> blockfish-engine/src/place.rs:27:30
+   |
+27 |             idx: std::usize::MAX,
+   |                              ^^^
+
+warning: use of deprecated constant `std::i64::MAX`: replaced by the `MAX` associated constant on this type
+   --> blockfish-engine/src/ai/analysis.rs:169:36
+    |
+169 |     let mut global_min = std::i64::MAX;
+    |                                    ^^^
+
+warning: use of deprecated constant `std::i64::MAX`: replaced by the `MAX` associated constant on this type
+   --> blockfish-engine/src/ai/b_star.rs:195:67
+    |
+195 |             .min_by_key(|&i| self.lvls[i].peek().map_or(std::i64::MAX, |n| n.f))
+    |                                                                   ^^^
+
+warning: use of deprecated constant `std::i64::MAX`: replaced by the `MAX` associated constant on this type
+   --> blockfish-engine/src/ai/b_star.rs:206:75
+    |
+206 |                 let best = self.move_best.entry(m_id).or_insert(std::i64::MAX);
+    |                                                                           ^^^
+
+warning: use of deprecated constant `std::usize::MAX`: replaced by the `MAX` associated constant on this type
+   --> blockfish-engine/src/ai/eval.rs:118:32
+    |
+118 |     let mut idx0 = std::usize::MAX;
+    |                                ^^^
+
+warning: use of deprecated constant `std::usize::MAX`: replaced by the `MAX` associated constant on this type
+   --> blockfish-engine/src/ai/eval.rs:121:31
+    |
+121 |         if idx0 < std::usize::MAX {
+    |                               ^^^
+
+warning: variable does not need to be mutable
+   --> blockfish-engine/src/ai/fast.rs:338:13
+    |
+338 |         let mut shapes_opt: [Option<FastShape>; 7] = [None, None, None, None, None, None, None];
+    |             ----^^^^^^^^^^
+    |             |
+    |             help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+warning: hiding a lifetime that's elided elsewhere is confusing
+  --> blockfish-engine/src/shape.rs:16:18
+   |
+16 |     pub fn shape(&self, color: Color) -> Option<ShapeRef> {
+   |                  ^^^^^                          ^^^^^^^^ the same lifetime is hidden here
+   |                  |
+   |                  the lifetime is elided here
+   |
+   = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+   = note: `#[warn(mismatched_lifetime_syntaxes)]` on by default
+help: use `'_` for type paths
+   |
+16 |     pub fn shape(&self, color: Color) -> Option<ShapeRef<'_>> {
+   |                                                         ++++
+
+warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
+    Finished `release` profile [optimized] target(s) in 19.58s
+
+--- Starting GPU Pure-Legal TD Hybrid ResNet eval server ---
+resnet_eval_server READY on /tmp/blockfish_resnet.sock | device=cuda (torch.float16) | C=64 B=4 val_ce=5.9947
+
+>>> [1/2] PURE-LEGAL TD HYBRID (delta_w=0.5) pimc_v2 (5 seeds 101..=105, vs BASE 193.20):
+=== eval_resnet mode=pimc_v2 seeds=101..=105 (n=5) w=12 h=8 b=20 k=10 l=4 cvar=25 hybrid=true delta_w=0.50 ===
+  [seed 101] pcs=191 top=0 | 62.2s
+  [seed 102] pcs=195 top=0 | 66.3s
+  [seed 103] pcs=190 top=0 | 63.2s
+  [seed 104] pcs=196 top=0 | 64.1s
+  [seed 105] pcs=193 top=0 | 63.6s
+SUMMARY mode=pimc_v2 n=5 ok=5/5 mean=193.00 min=190 max=196 <=166:0 <=161:0 top=0 | 319.5s
+
+>>> [2/2] PURE-LEGAL TD HYBRID (delta_w=1.0) pimc_v2 (5 seeds 101..=105, vs BASE 193.20):
+=== eval_resnet mode=pimc_v2 seeds=101..=105 (n=5) w=12 h=8 b=20 k=10 l=4 cvar=25 hybrid=true delta_w=1.00 ===
+  [seed 101] pcs=196 top=0 | 64.4s
+  [seed 102] pcs=191 top=0 | 63.6s
+  [seed 103] pcs=184 top=0 | 62.7s
+  [seed 104] pcs=192 top=0 | 62.5s
+  [seed 105] pcs=201 top=0 | 68.5s
+SUMMARY mode=pimc_v2 n=5 ok=5/5 mean=192.80 min=184 max=201 <=166:0 <=161:0 top=0 | 321.6s
+=== Colab Run #12-GPU COMPLETE ===
