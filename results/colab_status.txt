@@ -1,8 +1,5 @@
-RUNNING commit=5312142 heartbeat=2026-11-26T05:29:53Z cores=12
+RUNNING commit=5312142 heartbeat=2026-11-26T05:31:55Z cores=12
 --- tail results/colab_latest.log ---
-ep 12/12 | lr=0.00004 | tr_ce=0.3439 tr_top1=88.07% tr_vmae= 3.25 | val_ce=0.8701 val_top1=72.45% val_top3=92.79% val_vmae= 3.57 |d|=0.82 | 50.5s
-DONE! Base val_ce=0.9342 -> Best hybrid val_ce=0.8515 saved to /tmp/hybrid_resnet_v2.pt
--rw-r--r-- 1 root root 1.5M Nov 26 05:25 /tmp/hybrid_resnet_v2.pt
 
 --- Uploading hybrid_resnet_v2.pt to GitHub Release (tag: model-hybrid-v2) ---
 Uploading hybrid_resnet_v2.pt (1.43 MB) to release tag 'model-hybrid-v2'...
@@ -15,3 +12,6 @@ resnet_eval_server READY on /tmp/blockfish_resnet.sock | device=cuda (torch.bflo
 >>> [1/2] HYBRID v2 (delta_w=0.5) pimc_v2 (5 seeds 101..=105, vs BASE 193.20):
 === eval_resnet mode=pimc_v2 seeds=101..=105 (n=5) w=12 h=8 b=20 k=10 l=4 cvar=25 hybrid=true delta_w=0.50 ===
   [seed 101] pcs=188 top=0 | 41.2s
+  [seed 102] pcs=191 top=0 | 43.1s
+  [seed 103] pcs=192 top=0 | 41.9s
+  [seed 104] pcs=202 top=0 | 47.3s
