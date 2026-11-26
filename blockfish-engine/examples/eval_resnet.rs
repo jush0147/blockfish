@@ -1307,16 +1307,54 @@ fn run_pimc_v2_game(
             root_order.truncate(top_roots.min(root_order.len()));
             let k_roots = root_order.len();
 
-            // Pre-generate deterministic world queues & step seeds so parallel threads are 100% deterministic
-            let mut world_inputs: Vec<(Vec<u8>, Vec<u8>, Vec<u64>)> = Vec::with_capacity(worlds);
+            // Pre-generate deterministic world queues & consistent 24-hole Jstris sequences (true CRN per world!)
+            let init_unspawned = (rem_g as usize).saturating_sub(b0.garbage_rows as usize);
+            let bottom_hole0: usize = if b0.garbage_rows > 0 {
+                let m = (!b0.data[0]) & 0x3FF;
+                if m != 0 { m.trailing_zeros() as usize } else { 10 }
+            } else {
+                10
+            };
+            let mut world_inputs: Vec<(Vec<u8>, Vec<u8>, [u16; 24])> = Vec::with_capacity(worlds);
             for _ in 0..worlds {
                 let (wq, bmasks) = sample_world_queue(&vis_q, after_vis_mask, horizon + 8, &mut rng);
-                let mut step_seeds = Vec::with_capacity(horizon);
-                for _ in 0..horizon {
-                    step_seeds.push(next_rng(&mut rng));
+                let mut wh = [0u16; 24];
+                let mut prev = bottom_hole0;
+                for k in 0..24 {
+                    let r = next_rng(&mut rng);
+                    let h = if prev < 10 {
+                        let mut x = ((r >> 33) as usize) % 9;
+                        if x >= prev { x += 1; }
+                        x
+                    } else {
+                        ((r >> 33) as usize) % 10
+                    };
+                    prev = h;
+                    wh[k] = h as u16;
                 }
-                world_inputs.push((wq, bmasks, step_seeds));
+                world_inputs.push((wq, bmasks, wh));
             }
+
+            let spawn_world_cheese = |b: &mut FastBoard, nrem: u16, lines: u8, wh: &[u16; 24]| -> bool {
+                let target_g: usize = if lines > 0 { 4 } else { 9 };
+                let g_cur = b.garbage_rows as usize;
+                let unspawned = (nrem as usize).saturating_sub(g_cur);
+                let num = target_g.saturating_sub(g_cur).min(unspawned);
+                if num == 0 { return true; }
+                let old_rows = b.rows as usize;
+                if old_rows + num >= 32 { return false; }
+                let spawned_rel = init_unspawned.saturating_sub(unspawned);
+                for r in (0..old_rows).rev() {
+                    b.data[r + num] = b.data[r];
+                }
+                for k in 0..num {
+                    let hole = wh[(spawned_rel + k).min(23)];
+                    b.data[num - 1 - k] = 0xFC00 | (0x3FF & !(1u16 << hole));
+                }
+                b.rows = (old_rows + num) as u8;
+                b.garbage_rows = (g_cur + num) as u8;
+                true
+            };
 
             // Step 2: Parallelize all W worlds across CPU cores!
             // Internal depths use fast linear_no_pe; leaf depth uses full MLP + batched GPU ResNet delta_v.
@@ -1330,7 +1368,7 @@ fn run_pimc_v2_game(
             std::thread::scope(|scope| {
                 for (w, out_slot) in per_world_out.iter_mut().enumerate() {
                     scope.spawn(move || {
-                        let (wq, bmasks, step_seeds) = &world_inputs_ref[w];
+                        let (wq, bmasks, wh) = &world_inputs_ref[w];
                         let mut pgen_w = FastPlaceGen::new();
                         let mut tmp_w = Vec::with_capacity(64);
                         let mut seen_w: HashSet<DedupKey, FxBuild> =
@@ -1348,8 +1386,7 @@ fn run_pimc_v2_game(
                                 out_slot.0[ki] = -1000.0 + 1.0;
                                 continue;
                             }
-                            let mut rl1 = step_seeds[0];
-                            if !spawn_random_cheese(&mut b1, nrem1, lines1, &mut rl1) || b1.rows >= 20 {
+                            if !spawn_world_cheese(&mut b1, nrem1, lines1, wh) || b1.rows >= 20 {
                                 continue;
                             }
                             let (nh1, nqc1) = if cur_held.is_some() {
@@ -1380,7 +1417,6 @@ fn run_pimc_v2_game(
 
                             let mut best_win_w = f32::INFINITY;
                             for d in 2..=horizon {
-                                let sd = step_seeds[d - 1];
                                 let is_leaf = d == horizon;
                                 nxt_beam.clear();
                                 for &(par, _, _) in &cur_beam {
@@ -1402,8 +1438,7 @@ fn run_pimc_v2_game(
                                             if ws < best_win_w { best_win_w = ws; }
                                             continue;
                                         }
-                                        let mut rl = sd;
-                                        if !spawn_random_cheese(&mut b, nrem, lines, &mut rl) || b.rows >= 20 {
+                                        if !spawn_world_cheese(&mut b, nrem, lines, wh) || b.rows >= 20 {
                                             continue;
                                         }
                                         let (nh, nqc) = if par.held.is_some() {

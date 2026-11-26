@@ -73,7 +73,7 @@ def main():
             unified=ckpt.get("unified", False),
             temp=ckpt.get("temp", 0.4),
         ).to(device)
-    model.load_state_dict(ckpt["state_dict"])
+    model.load_state_dict(ckpt["state_dict"], strict=False)
     model.eval()
     unpacker = GPUUnpacker().to(device)
 

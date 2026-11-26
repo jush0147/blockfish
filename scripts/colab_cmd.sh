@@ -2,10 +2,9 @@
 set -euo pipefail
 
 echo "================================================================"
-echo " Colab Run #10: Full-Strength Parallel Per-Root GPU root_pimc"
-echo "                pimc_v2 (w=12, h=8, b=20, k=10, l=4, cvar=25)"
-echo "                BASE (spatial_bc4) vs HYBRID (hybrid_resnet_v1)"
-echo "                ~5-8 min total on 12-core L4 GPU!"
+echo " Colab Run #10b: Full-Strength Parallel Per-Root GPU root_pimc"
+echo "                 FIX strict=False + consistent CRN world holes!"
+echo "                 BASE (spatial_bc4) vs HYBRID (hybrid_resnet_v1)"
 echo "================================================================"
 
 if ! nvidia-smi >/dev/null 2>&1; then
