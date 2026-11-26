@@ -97,6 +97,37 @@ def load_bfds0002(path: str):
     }
 
 
+def load_bfds0002_multi(paths):
+    if len(paths) == 1:
+        return load_bfds0002(paths[0])
+    parts = [load_bfds0002(p) for p in paths]
+    moves_raw = np.concatenate([d["moves_raw"] for d in parts], axis=0)
+    base_v = np.concatenate([d["base_v"] for d in parts], axis=0)
+    targets = np.concatenate([d["targets"] for d in parts], axis=0)
+    rem_pcs = np.concatenate([d["rem_pcs"] for d in parts], axis=0)
+    is_val = np.concatenate([d["is_val"] for d in parts], axis=0)
+    offs_list = []
+    shift = 0
+    for d in parts:
+        offs_list.append(d["offsets"][:-1] + shift)
+        shift += int(d["offsets"][-1])
+    offs_list.append(np.array([shift], dtype=np.int64))
+    offsets = np.concatenate(offs_list, axis=0)
+    print(
+        f"MERGED {len(paths)} datasets: {len(targets):,} decisions ({(~is_val).sum():,} train, {is_val.sum():,} val), "
+        f"{len(moves_raw):,} moves",
+        flush=True,
+    )
+    return {
+        "moves_raw": moves_raw,
+        "base_v": base_v,
+        "offsets": offsets,
+        "targets": targets,
+        "rem_pcs": rem_pcs,
+        "is_val": is_val,
+    }
+
+
 class BlockfishHybridResNet(nn.Module):
     """Zero-initialized bounded residual delta_v(board, queue) added on top of spatial_bc4 base_v."""
 
@@ -316,7 +347,7 @@ def evaluate_hybrid(model, unpacker, data, val_indices: np.ndarray, batch_size: 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--data", required=True, help="Path to BFDS0002 .bin or .bin.gz")
+    ap.add_argument("--data", nargs="+", required=True, help="One or more BFDS0002 .bin/.bin.gz paths")
     ap.add_argument("--channels", type=int, default=64)
     ap.add_argument("--blocks", type=int, default=4)
     ap.add_argument("--epochs", type=int, default=10)
@@ -344,7 +375,7 @@ def main():
     if device.type == "cuda":
         print(f"GPU: {torch.cuda.get_device_name(0)}", flush=True)
 
-    data = load_bfds0002(args.data)
+    data = load_bfds0002_multi(args.data)
     all_idx = np.arange(len(data["targets"]))
     train_idx = all_idx[~data["is_val"]]
     val_idx = all_idx[data["is_val"]]
