@@ -1,51 +1,15 @@
 ================================================================
- Colab Run #13-GPU: Phase 4B Strong root_pimc Legal TD(0.95) RL
-                    Select best by unbiased val_mc_rmse +
-                    STRICT SAME-BINARY A/B (BASE vs HYBRID)!
+ Colab Run #14-GPU: Full-MLP Internal pimc_v2 (w=12, h=8, b=20, k=8)
+                    STRICT SAME-BINARY A/B: BASE (0.0) vs TD-v2 (0.35)
+                    No retraining! ~12-14 min total on GPU
 ================================================================
-Tesla T4, 15360 MiB
+NVIDIA L4, 23034 MiB
 
---- Downloading legal_rl_v2_pimc72g.bin.gz from GitHub Release legal-rl-v2 ---
-Downloading 'legal_rl_v2_pimc72g.bin.gz' from release 'legal-rl-v2' -> /tmp/legal_rl_v2_pimc72g.bin.gz...
-DOWNLOAD SUCCESS: /tmp/legal_rl_v2_pimc72g.bin.gz (0.31 MB)
+--- Downloading hybrid_td_v2.pt from GitHub Release model-hybrid-td-v2 ---
+Downloading 'hybrid_td_v2.pt' from release 'model-hybrid-td-v2' -> /tmp/hybrid_td_v2.pt...
+DOWNLOAD SUCCESS: /tmp/hybrid_td_v2.pt (1.43 MB)
 
---- Training Strong-Policy Pure Legal TD(0.95) Hybrid ResNet (25 ep, best by val_mc_rmse) ---
-Device: cuda | amp_dtype=torch.float16
-GPU: Tesla T4
-Loaded /tmp/legal_rl_v2_pimc72g.bin.gz: 72 games, 15,457 states (train=13,921, val=1,536) in 0.02s | base_offset=+25.87 pcs | lam=0.95
-BASE (spatial_bc4 + offset, delta=0) | val_td_mae=4.0119 val_td_rmse=6.1455 | val_mc_mae=13.2850 val_mc_rmse=15.3840
-ep  1/25 | lr=0.00100 | tr_loss=3.8916 | td_mae=3.920 td_rmse=6.748 | mc_mae=16.067 mc_rmse=17.977 |d|=3.13 | 5.1s
-ep  2/25 | lr=0.00098 | tr_loss=3.2494 | td_mae=2.976 td_rmse=5.339 | mc_mae=14.553 mc_rmse=16.148 |d|=2.04 | 0.9s
-ep  3/25 | lr=0.00097 | tr_loss=2.4640 | td_mae=3.168 td_rmse=4.272 | mc_mae=14.831 mc_rmse=15.963 |d|=4.92 | 0.9s
-ep  4/25 | lr=0.00094 | tr_loss=2.2763 | td_mae=2.980 td_rmse=4.214 | mc_mae=15.382 mc_rmse=16.735 |d|=4.14 | 0.9s
-ep  5/25 | lr=0.00091 | tr_loss=2.3036 | td_mae=2.597 td_rmse=3.899 | mc_mae=13.773 mc_rmse=14.877 |d|=4.17 | 0.9s *BEST*
-ep  6/25 | lr=0.00087 | tr_loss=2.2139 | td_mae=2.439 td_rmse=3.807 | mc_mae=14.560 mc_rmse=15.850 |d|=3.56 | 0.9s
-ep  7/25 | lr=0.00082 | tr_loss=2.1674 | td_mae=2.282 td_rmse=3.679 | mc_mae=14.245 mc_rmse=15.510 |d|=3.65 | 0.9s
-ep  8/25 | lr=0.00077 | tr_loss=2.1310 | td_mae=2.896 td_rmse=4.058 | mc_mae=14.995 mc_rmse=16.167 |d|=4.45 | 0.9s
-ep  9/25 | lr=0.00072 | tr_loss=2.0849 | td_mae=2.724 td_rmse=4.125 | mc_mae=15.011 mc_rmse=16.485 |d|=3.69 | 0.9s
-ep 10/25 | lr=0.00066 | tr_loss=2.0263 | td_mae=3.899 td_rmse=4.827 | mc_mae=16.097 mc_rmse=17.267 |d|=5.33 | 0.9s
-ep 11/25 | lr=0.00060 | tr_loss=1.9405 | td_mae=3.152 td_rmse=4.384 | mc_mae=15.515 mc_rmse=16.915 |d|=4.34 | 0.9s
-ep 12/25 | lr=0.00054 | tr_loss=1.8869 | td_mae=3.627 td_rmse=4.639 | mc_mae=15.334 mc_rmse=16.434 |d|=5.28 | 0.9s
-ep 13/25 | lr=0.00048 | tr_loss=1.8023 | td_mae=3.563 td_rmse=4.802 | mc_mae=15.980 mc_rmse=17.429 |d|=4.64 | 0.9s
-ep 14/25 | lr=0.00042 | tr_loss=1.7084 | td_mae=4.039 td_rmse=5.004 | mc_mae=16.352 mc_rmse=17.608 |d|=5.36 | 0.9s
-ep 15/25 | lr=0.00036 | tr_loss=1.6392 | td_mae=3.450 td_rmse=4.596 | mc_mae=15.681 mc_rmse=16.957 |d|=4.74 | 0.9s
-ep 16/25 | lr=0.00030 | tr_loss=1.5793 | td_mae=4.037 td_rmse=4.986 | mc_mae=16.149 mc_rmse=17.314 |d|=5.45 | 0.9s
-ep 17/25 | lr=0.00025 | tr_loss=1.5140 | td_mae=3.246 td_rmse=4.418 | mc_mae=15.282 mc_rmse=16.521 |d|=4.62 | 0.9s
-ep 18/25 | lr=0.00020 | tr_loss=1.4603 | td_mae=3.279 td_rmse=4.470 | mc_mae=15.229 mc_rmse=16.465 |d|=4.58 | 0.9s
-ep 19/25 | lr=0.00015 | tr_loss=1.4262 | td_mae=3.815 td_rmse=4.890 | mc_mae=16.137 mc_rmse=17.454 |d|=5.11 | 0.9s
-ep 20/25 | lr=0.00011 | tr_loss=1.3966 | td_mae=3.124 td_rmse=4.409 | mc_mae=15.241 mc_rmse=16.622 |d|=4.19 | 0.9s
-ep 21/25 | lr=0.00008 | tr_loss=1.3677 | td_mae=3.190 td_rmse=4.436 | mc_mae=15.309 mc_rmse=16.652 |d|=4.35 | 0.9s
-ep 22/25 | lr=0.00005 | tr_loss=1.3445 | td_mae=3.139 td_rmse=4.409 | mc_mae=15.237 mc_rmse=16.612 |d|=4.23 | 0.9s
-ep 23/25 | lr=0.00004 | tr_loss=1.3324 | td_mae=3.187 td_rmse=4.446 | mc_mae=15.295 mc_rmse=16.655 |d|=4.32 | 0.9s
-ep 24/25 | lr=0.00002 | tr_loss=1.3185 | td_mae=3.352 td_rmse=4.560 | mc_mae=15.492 mc_rmse=16.822 |d|=4.57 | 0.9s
-ep 25/25 | lr=0.00002 | tr_loss=1.3151 | td_mae=3.386 td_rmse=4.587 | mc_mae=15.526 mc_rmse=16.860 |d|=4.60 | 0.9s
-DONE! Base val_mc_rmse=15.3840 -> Best val_mc_rmse=14.8770 saved to /tmp/hybrid_td_v2.pt
--rw-r--r-- 1 root root 1.5M Nov 26 11:37 /tmp/hybrid_td_v2.pt
-Uploading hybrid_td_v2.pt (1.43 MB) to release tag 'model-hybrid-td-v2'...
-Created release id=459331606 (https://github.com/jush0147/blockfish/releases/tag/model-hybrid-td-v2)
-UPLOAD SUCCESS: https://github.com/jush0147/blockfish/releases/download/model-hybrid-td-v2/hybrid_td_v2.pt (1503535 bytes)
-
---- Building eval_resnet (release, unified held+5) ---
+--- Building eval_resnet (release, full-mlp-internal + unified held+5) ---
 warning: unused build dependency `fontconfig`
   --> blockfish-client/Cargo.toml:29:1
    |
@@ -57,73 +21,73 @@ help: consider removing the dependency on `fontconfig`
 warning: `blockfish-client` (manifest) generated 1 warning
     Updating crates.io index
  Downloading crates ...
-  Downloaded humantime v1.3.0
-  Downloaded unicode-xid v0.2.1
   Downloaded argh v0.1.4
+  Downloaded argh_shared v0.1.4
   Downloaded argh_derive v0.1.4
   Downloaded atty v0.2.14
+  Downloaded lazy_static v1.4.0
+  Downloaded cfg-if v1.0.0
   Downloaded itoa v0.4.6
+  Downloaded aho-corasick v0.7.15
   Downloaded quick-error v1.2.3
-  Downloaded argh_shared v0.1.4
+  Downloaded version-compare v0.1.0
   Downloaded cfg-if v0.1.10
-  Downloaded memchr v2.3.4
+  Downloaded thiserror-impl v1.0.22
+  Downloaded unicode-xid v0.2.1
+  Downloaded red_union_find v0.2.5
+  Downloaded thread_local v1.0.1
+  Downloaded const-cstr v0.3.0
+  Downloaded rand_pcg v0.2.1
+  Downloaded pretty_env_logger v0.4.0
+  Downloaded fontconfig v0.2.0
+  Downloaded pkg-config v0.3.19
+  Downloaded humantime v1.3.0
+  Downloaded rand_chacha v0.2.2
+  Downloaded bitflags v1.2.1
+  Downloaded autocfg v1.0.1
   Downloaded num-integer v0.1.44
   Downloaded ppv-lite86 v0.2.10
-  Downloaded version-compare v0.1.0
-  Downloaded log v0.4.11
-  Downloaded env_logger v0.7.1
-  Downloaded pkg-config v0.3.19
-  Downloaded proc-macro2 v1.0.24
-  Downloaded termcolor v1.1.1
-  Downloaded cfg-if v1.0.0
-  Downloaded heck v0.3.1
-  Downloaded red_union_find v0.2.5
-  Downloaded pretty_env_logger v0.4.0
-  Downloaded ryu v1.0.5
-  Downloaded aho-corasick v0.7.15
-  Downloaded num-traits v0.2.14
   Downloaded quote v1.0.7
-  Downloaded lazy_static v1.4.0
-  Downloaded rand_pcg v0.2.1
-  Downloaded sdl2 v0.35.2
-  Downloaded thiserror-impl v1.0.22
-  Downloaded yeslogic-fontconfig-sys v2.11.1
-  Downloaded fontconfig v0.2.0
-  Downloaded rand_chacha v0.2.2
-  Downloaded autocfg v1.0.1
+  Downloaded termcolor v1.1.1
   Downloaded rand_core v0.5.1
-  Downloaded thread_local v1.0.1
-  Downloaded serde v1.0.118
+  Downloaded env_logger v0.7.1
+  Downloaded memchr v2.3.4
+  Downloaded log v0.4.11
+  Downloaded num-traits v0.2.14
+  Downloaded proc-macro2 v1.0.24
   Downloaded thiserror v1.0.22
-  Downloaded bitflags v1.2.1
-  Downloaded const-cstr v0.3.0
+  Downloaded ryu v1.0.5
   Downloaded getrandom v0.1.15
   Downloaded serde_derive v1.0.118
+  Downloaded heck v0.3.1
+  Downloaded serde v1.0.118
   Downloaded unicode-segmentation v1.7.1
   Downloaded rand v0.7.3
   Downloaded serde_json v1.0.60
-  Downloaded libc v0.2.119
-  Downloaded regex v1.4.2
+  Downloaded sdl2 v0.35.2
   Downloaded syn v1.0.48
+  Downloaded regex v1.4.2
   Downloaded regex-syntax v0.6.21
+  Downloaded libc v0.2.119
   Downloaded sdl2-sys v0.35.2
+  Downloaded yeslogic-fontconfig-sys v2.11.1
    Compiling proc-macro2 v1.0.24
    Compiling unicode-xid v0.2.1
-   Compiling syn v1.0.48
    Compiling libc v0.2.119
-   Compiling cfg-if v0.1.10
-   Compiling getrandom v0.1.15
+   Compiling syn v1.0.48
    Compiling autocfg v1.0.1
+   Compiling getrandom v0.1.15
+   Compiling cfg-if v0.1.10
    Compiling serde_derive v1.0.118
-   Compiling ryu v1.0.5
    Compiling serde v1.0.118
+   Compiling ryu v1.0.5
    Compiling serde_json v1.0.60
    Compiling ppv-lite86 v0.2.10
    Compiling log v0.4.11
    Compiling itoa v0.4.6
+   Compiling blockfish v0.1.0 (/content/blockfish/blockfish-engine)
    Compiling num-traits v0.2.14
    Compiling num-integer v0.1.44
-   Compiling blockfish v0.1.0 (/content/blockfish/blockfish-engine)
    Compiling quote v1.0.7
    Compiling rand_core v0.5.1
    Compiling rand_chacha v0.2.2
@@ -220,35 +184,26 @@ help: use `'_` for type paths
    |                                                         ++++
 
 warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
-    Finished `release` profile [optimized] target(s) in 18.52s
+    Finished `release` profile [optimized] target(s) in 19.09s
 
 --- Starting GPU Strong-Legal TD Hybrid ResNet v2 eval server ---
-resnet_eval_server READY on /tmp/blockfish_resnet.sock | device=cuda (torch.float16) | C=64 B=4 val_ce=14.8770
+resnet_eval_server READY on /tmp/blockfish_resnet.sock | device=cuda (torch.bfloat16) | C=64 B=4 val_ce=14.8770
 
->>> [1/3] SAME-BINARY BASE (spatial_bc4, held+5, delta_w=0.0) pimc_v2 (5 seeds 101..=105):
-=== eval_resnet mode=pimc_v2 seeds=101..=105 (n=5) w=12 h=8 b=20 k=10 l=4 cvar=25 hybrid=true delta_w=0.00 ===
-  [seed 101] pcs=197 top=0 | 63.5s
-  [seed 102] pcs=198 top=0 | 61.1s
-  [seed 103] pcs=185 top=0 | 58.7s
-  [seed 104] pcs=190 top=0 | 57.2s
-  [seed 105] pcs=189 top=0 | 58.5s
-SUMMARY mode=pimc_v2 n=5 ok=5/5 mean=191.80 min=185 max=198 <=166:0 <=161:0 top=0 | 299.0s
+>>> [1/2] SAME-BINARY FULL-MLP BASE (spatial_bc4, delta_w=0.0, 5 seeds 101..=105):
+=== eval_resnet mode=pimc_v2 seeds=101..=105 (n=5) w=12 h=8 b=20 k=8 l=4 cvar=25 hybrid=true delta_w=0.00 full_mlp=true ===
+  [seed 101] pcs=196 top=0 | 62.2s
+  [seed 102] pcs=188 top=0 | 60.6s
+  [seed 103] pcs=196 top=0 | 62.0s
+  [seed 104] pcs=205 top=0 | 64.5s
+  [seed 105] pcs=191 top=0 | 61.3s
+SUMMARY mode=pimc_v2 n=5 ok=5/5 mean=195.20 min=188 max=205 <=166:0 <=161:0 top=0 | 310.6s
 
->>> [2/3] STRONG-LEGAL TD-v2 HYBRID (delta_w=0.5) pimc_v2 (5 seeds 101..=105):
-=== eval_resnet mode=pimc_v2 seeds=101..=105 (n=5) w=12 h=8 b=20 k=10 l=4 cvar=25 hybrid=true delta_w=0.50 ===
-  [seed 101] pcs=183 top=0 | 58.6s
-  [seed 102] pcs=197 top=0 | 63.3s
-  [seed 103] pcs=187 top=0 | 59.0s
-  [seed 104] pcs=190 top=0 | 59.5s
-  [seed 105] pcs=193 top=0 | 61.1s
-SUMMARY mode=pimc_v2 n=5 ok=5/5 mean=190.00 min=183 max=197 <=166:0 <=161:0 top=0 | 301.6s
-
->>> [3/3] STRONG-LEGAL TD-v2 HYBRID (delta_w=1.0) pimc_v2 (5 seeds 101..=105):
-=== eval_resnet mode=pimc_v2 seeds=101..=105 (n=5) w=12 h=8 b=20 k=10 l=4 cvar=25 hybrid=true delta_w=1.00 ===
-  [seed 101] pcs=204 top=0 | 65.0s
-  [seed 102] pcs=208 top=0 | 68.6s
-  [seed 103] pcs=199 top=0 | 64.3s
-  [seed 104] pcs=197 top=0 | 62.5s
-  [seed 105] pcs=197 top=0 | 63.8s
-SUMMARY mode=pimc_v2 n=5 ok=5/5 mean=201.00 min=197 max=208 <=166:0 <=161:0 top=0 | 324.1s
-=== Colab Run #13-GPU COMPLETE ===
+>>> [2/2] FULL-MLP + TD-v2 HYBRID (delta_w=0.35, 5 seeds 101..=105):
+=== eval_resnet mode=pimc_v2 seeds=101..=105 (n=5) w=12 h=8 b=20 k=8 l=4 cvar=25 hybrid=true delta_w=0.35 full_mlp=true ===
+  [seed 101] pcs=200 top=0 | 67.2s
+  [seed 102] pcs=196 top=0 | 63.0s
+  [seed 103] pcs=203 top=0 | 67.8s
+  [seed 104] pcs=204 top=0 | 65.1s
+  [seed 105] pcs=192 top=0 | 64.9s
+SUMMARY mode=pimc_v2 n=5 ok=5/5 mean=199.00 min=192 max=204 <=166:0 <=161:0 top=0 | 328.0s
+=== Colab Run #14-GPU COMPLETE ===
