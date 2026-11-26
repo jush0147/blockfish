@@ -219,7 +219,7 @@ fn avail_mask_from_q(held: Option<u8>, q: &[u8], nqc: usize) -> u8 {
     if let Some(h) = held {
         m |= 1u8 << h;
     }
-    let end = (nqc + 6).min(q.len());
+    let end = (nqc + 5).min(q.len());
     for &p in &q[nqc.min(q.len())..end] {
         m |= 1u8 << p;
     }
