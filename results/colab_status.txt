@@ -1,6 +1,5 @@
-RUNNING commit=89e3751b heartbeat=2026-11-26T17:12:53Z cores=8
+RUNNING commit=89e3751b heartbeat=2026-11-26T17:14:53Z cores=8
 --- tail results/colab_latest.log ---
-Created release id=459668010 (https://github.com/jush0147/blockfish/releases/tag/model-spatial-td-v1)
 UPLOAD SUCCESS: https://github.com/jush0147/blockfish/releases/download/model-spatial-td-v1/spatial_td_v1.txt (1133787 bytes)
 Uploading spatial_td_v1_last.txt (1.08 MB) to release tag 'model-spatial-td-v1'...
 Found existing release id=459668010 (https://github.com/jush0147/blockfish/releases/tag/model-spatial-td-v1)
@@ -15,3 +14,4 @@ UPLOAD SUCCESS: https://github.com/jush0147/blockfish/releases/download/model-sp
 fullmlp_w16 [models/spatial_bc4.txt] n= 5 mean=184.20 min=176 max=193 <=166: 0 top= 0 | nds=62.40 0ds=84.20 (cov=25.0 O=20.0 nar=8.6 wide=27.0 g0=0.0 end=3.6) cov_nxt=15.0% avg_c=12.4 | 1219.5s
   seeds: [101:180, 102:184, 103:176, 104:188, 105:193]
   [seed 103] pcs=176 nds=59 0ds=76 (cov=25 O=19 nar= 7 wide=19 end= 6) cov_nxt=12.0% | 945.4s
+  [seed 104] pcs=188 nds=64 0ds=88 (cov=24 O=21 nar=11 wide=28 end= 4) cov_nxt=18.0% | 1051.6s
