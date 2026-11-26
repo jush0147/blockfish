@@ -1,8 +1,5 @@
-RUNNING commit=93f305a heartbeat=2026-11-26T00:43:52Z cores=12
+RUNNING commit=93f305a heartbeat=2026-11-26T00:45:54Z cores=12
 --- tail results/colab_latest.log ---
-  [ep 1 | batch 300/471 | 27.4s | tr_ce=0.5453]
-  [ep 1 | batch 450/471 | 39.8s | tr_ce=0.5212]
-ep  1/20 | lr=0.00298 | tr_ce=0.5186 tr_top1=83.09% tr_vmae=1.86 | val_ce=0.9015 val_top1=72.13% val_top3=91.89% val_vmae=1.95 | 45.3s *BEST*
 ep  2/20 | lr=0.00293 | tr_ce=0.4494 tr_top1=84.69% tr_vmae=1.78 | val_ce=0.8902 val_top1=72.24% val_top3=92.65% val_vmae=1.91 | 42.7s *BEST*
 ep  3/20 | lr=0.00284 | tr_ce=0.4339 tr_top1=85.06% tr_vmae=1.77 | val_ce=0.8442 val_top1=73.23% val_top3=92.85% val_vmae=1.92 | 42.9s *BEST*
 ep  4/20 | lr=0.00272 | tr_ce=0.4151 tr_top1=85.68% tr_vmae=1.77 | val_ce=0.8504 val_top1=72.96% val_top3=92.92% val_vmae=1.92 | 43.2s
@@ -15,3 +12,6 @@ ep 10/20 | lr=0.00153 | tr_ce=0.3283 tr_top1=88.24% tr_vmae=1.73 | val_ce=0.7717
 ep 11/20 | lr=0.00130 | tr_ce=0.3067 tr_top1=88.89% tr_vmae=1.73 | val_ce=0.7736 val_top1=75.05% val_top3=93.80% val_vmae=1.89 | 43.7s
 ep 12/20 | lr=0.00108 | tr_ce=0.2811 tr_top1=89.83% tr_vmae=1.72 | val_ce=0.8038 val_top1=75.32% val_top3=94.00% val_vmae=1.98 | 43.6s
 ep 13/20 | lr=0.00086 | tr_ce=0.2581 tr_top1=90.45% tr_vmae=1.71 | val_ce=0.8029 val_top1=74.47% val_top3=93.62% val_vmae=1.95 | 43.7s
+ep 14/20 | lr=0.00067 | tr_ce=0.2331 tr_top1=91.34% tr_vmae=1.71 | val_ce=0.8543 val_top1=74.68% val_top3=93.64% val_vmae=2.00 | 43.7s
+ep 15/20 | lr=0.00049 | tr_ce=0.1998 tr_top1=92.67% tr_vmae=1.70 | val_ce=0.8778 val_top1=72.87% val_top3=93.67% val_vmae=1.97 | 43.7s
+ep 16/20 | lr=0.00034 | tr_ce=0.1709 tr_top1=93.88% tr_vmae=1.70 | val_ce=0.9215 val_top1=72.72% val_top3=93.52% val_vmae=2.00 | 43.7s
