@@ -1,4 +1,4 @@
-RUNNING commit=472698e9 heartbeat=2026-11-27T06:23:41Z cores=8
+RUNNING commit=472698e9 heartbeat=2026-11-27T06:25:42Z cores=8
 --- tail /tmp/colab_run.log ---
 [Iter 17/20] tr_ok=247/256 tr_mean=277.62 top=9 steps=70844 kl=0.0221 (27.5s+4.2s)
 [Iter 18/20] tr_ok=252/256 tr_mean=279.99 top=4 steps=71163 kl=0.0208 (27.2s+4.2s) | VAL=60/60 top=0 mean=268.67 [231..297] 
