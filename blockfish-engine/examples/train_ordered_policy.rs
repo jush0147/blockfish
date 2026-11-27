@@ -4,8 +4,8 @@ use blockfish::{
         fast::{color_to_idx, FastBoard, FastPlace, FastPlaceGen, FastShapeTable},
         ordered_policy::{
             extract_policy_cand_features, ObservableRootState, OrderedRootPolicy,
-            PolicyCandFeatures, PolicyForwardCache, PolicyGradBuf, POL_ACT_DIM,
-            POL_BOARD_DENSE_DIM, POL_H1, POL_H2, POL_ORDER_DIM, POL_SPARSE_DIM,
+            PolicyCandFeatures, PolicyForwardCache, PolicyGradBuf, QueueAblation, POL_ACT_DIM,
+            POL_BOARD_DENSE_DIM, POL_COMPAT_DIM, POL_H1, POL_H2, POL_ORDER_DIM, POL_SPARSE_DIM,
         },
         spatial_val::SpatialValueModel,
         BagTracker, BeamConfig, FastAI,
@@ -72,10 +72,30 @@ fn avail_mask_from_q(held: Option<u8>, q_cursor: usize, q: &[u8], bag_mask: u8) 
     m
 }
 
+fn observable_state_hash(
+    board: &FastBoard,
+    hold: Option<u8>,
+    vis_q: &[u8],
+    rem_g: u16,
+    bag_mask: u8,
+    salt: u64,
+) -> u64 {
+    let mut h: u64 = 0x9E3779B97F4A7C15 ^ salt.wrapping_mul(0xBF58476D1CE4E5B9);
+    for r in 0..(board.rows as usize) {
+        h = (h.rotate_left(7) ^ (board.data[r] as u64)).wrapping_mul(0x517cc1b727220a95);
+    }
+    h = (h.rotate_left(5) ^ (board.garbage_rows as u64)).wrapping_mul(0x517cc1b727220a95);
+    h = (h.rotate_left(5) ^ (rem_g as u64)).wrapping_mul(0x517cc1b727220a95);
+    h = (h.rotate_left(5) ^ (bag_mask as u64)).wrapping_mul(0x517cc1b727220a95);
+    h = (h.rotate_left(5) ^ (hold.unwrap_or(7) as u64)).wrapping_mul(0x517cc1b727220a95);
+    for &p in vis_q {
+        h = (h.rotate_left(5) ^ (p as u64)).wrapping_mul(0x517cc1b727220a95);
+    }
+    h
+}
+
 struct PolicyStateRec {
-    /// Original observable state (kept for ordered-preview sensitivity ablation on holdout!)
     state: ObservableRootState,
-    /// Candidate placements + pre-computed features + pure PIMC relative Q (`>= 0.0`, pieces)
     cands: Vec<(FastPlace, FastBoard, u8, u8, PolicyCandFeatures, f32)>,
 }
 
@@ -110,7 +130,6 @@ fn make_teacher_cfg(
 }
 
 /// Collect pure uncontaminated PIMC-reranked sibling Q-distributions (`ai.last_pimc_reranked()`).
-/// Strictly Legal p=5: ZERO Stage-1 `rest_list` mixing, ZERO future peeking beyond `vis_q[0..6]`.
 fn collect_pure_pimc_game(
     env_seed: u64,
     bc4: Arc<SpatialValueModel>,
@@ -164,7 +183,6 @@ fn collect_pure_pimc_game(
             None => break,
         };
 
-        // ONLY use pure PIMC-reranked candidates (zero Stage-1 rest_list contamination!)
         let pure_pimc = ai.last_pimc_reranked().to_vec();
         if pure_pimc.len() >= 3 && rem_g >= 2 {
             let min_sc = pure_pimc.iter().map(|x| x.1).min().unwrap_or(0);
@@ -297,6 +315,12 @@ impl PolicyAdam {
                 Self::upd(&mut pol.w_order[j][h], g.w_order[j][h], &mut self.m.w_order[j][h], &mut self.v.w_order[j][h], lr, wd, b1t, b2t);
             }
         }
+        for j in 0..POL_COMPAT_DIM {
+            Self::upd(&mut pol.w_compat_skip[j], g.w_compat_skip[j], &mut self.m.w_compat_skip[j], &mut self.v.w_compat_skip[j], lr, wd, b1t, b2t);
+            for h in 0..POL_H1 {
+                Self::upd(&mut pol.w_compat[j][h], g.w_compat[j][h], &mut self.m.w_compat[j][h], &mut self.v.w_compat[j][h], lr, wd, b1t, b2t);
+            }
+        }
         for k in 0..POL_H2 {
             Self::upd(&mut pol.b2[k], g.b2[k], &mut self.m.b2[k], &mut self.v.b2[k], lr, 0.0, b1t, b2t);
             Self::upd(&mut pol.w3[k], g.w3[k], &mut self.m.w3[k], &mut self.v.w3[k], lr, wd, b1t, b2t);
@@ -317,19 +341,13 @@ struct RankMetrics {
     regret: f64,
 }
 
-#[derive(Clone, Copy)]
-enum OrderMode {
-    TrueOrdered,
-    ReversedNext5,
-    ZeroedNext5,
-    Bc4PriorOnly,
-}
-
-fn eval_holdout_ranking(
+fn eval_holdout(
     pol: &OrderedRootPolicy,
+    ablation: QueueAblation,
     states: &[PolicyStateRec],
     tau_tgt: f32,
-    mode: OrderMode,
+    swap_q12: bool,
+    bc4_only: bool,
 ) -> RankMetrics {
     let mut ce_sum = 0.0f64;
     let mut top1_cnt = 0usize;
@@ -347,24 +365,18 @@ fn eval_holdout_ranking(
             let et = (-(q_rel / tau_tgt).clamp(-20.0, 20.0)).exp();
             p_tgt[i] = et;
             zt += et;
-            logits[i] = match mode {
-                OrderMode::TrueOrdered => pol.forward(feat, &mut cache),
-                OrderMode::Bc4PriorOnly => -feat.bc4_delta,
-                OrderMode::ZeroedNext5 => {
-                    let mut f2 = feat.clone();
-                    for s in 8..43 {
-                        f2.order_feat[s] = 0.0;
-                    }
-                    pol.forward(&f2, &mut cache)
+            logits[i] = if bc4_only {
+                -feat.bc4_delta
+            } else if swap_q12 {
+                // Legal adjacent swap of q[1] and q[2] (preserves 7-bag validity when q[1] != q[2])
+                let mut st_sw = rec.state.clone();
+                if st_sw.vis_q.len() >= 3 && st_sw.vis_q[1] != st_sw.vis_q[2] {
+                    st_sw.vis_q.swap(1, 2);
                 }
-                OrderMode::ReversedNext5 => {
-                    let mut st_rev = rec.state.clone();
-                    if st_rev.vis_q.len() >= 3 {
-                        st_rev.vis_q[1..].reverse();
-                    }
-                    let f2 = extract_policy_cand_features(&st_rev, fp, b_after, lines, ds, feat.bc4_delta);
-                    pol.forward(&f2, &mut cache)
-                }
+                let f2 = extract_policy_cand_features(&st_sw, fp, b_after, lines, ds, feat.bc4_delta);
+                pol.forward(&f2, ablation, &mut cache)
+            } else {
+                pol.forward(feat, ablation, &mut cache)
             };
         }
 
@@ -382,7 +394,6 @@ fn eval_holdout_ranking(
             ce_sum -= (p_tgt[i] as f64) * (probs[i].max(1e-12).ln() as f64);
         }
 
-        // Rank indices by descending logit
         let mut order: Vec<usize> = (0..k).collect();
         order.sort_by(|&a, &b| logits[b].total_cmp(&logits[a]));
         let best_tgt = rec
@@ -414,18 +425,123 @@ fn eval_holdout_ranking(
     }
 }
 
-/// Small-scale Legal `p=5` 1-ply play test: pure Frozen BC-4 vs `OrderedRootPolicy` (zero search!).
-fn play_1ply_game(
+fn train_one_ablation(
+    name: &str,
+    ablation: QueueAblation,
+    train_states: &[PolicyStateRec],
+    holdout_states: &[PolicyStateRec],
+    epochs: usize,
+    batch_size: usize,
+    tau_tgt: f32,
+    lr: f32,
+    wd: f32,
+) -> (OrderedRootPolicy, RankMetrics) {
+    let mut pol = OrderedRootPolicy::new_random(2026);
+    let mut best_pol = pol.clone();
+    let mut adam = PolicyAdam::new();
+    let mut grad = PolicyGradBuf::new();
+    let mut best_ho = eval_holdout(&pol, ablation, holdout_states, tau_tgt, false, false);
+    let mut order: Vec<usize> = (0..train_states.len()).collect();
+    let mut rng = 0x55AA_1234_9988_7766u64;
+
+    for ep in 1..=epochs {
+        for i in (1..order.len()).rev() {
+            let j = next_usize(&mut rng, i + 1);
+            order.swap(i, j);
+        }
+        let mut idx = 0usize;
+        while idx < order.len() {
+            let end = (idx + batch_size).min(order.len());
+            let bs = end - idx;
+            grad.zero();
+            for &si in &order[idx..end] {
+                let rec = &train_states[si];
+                let k = rec.cands.len();
+                let mut logits = vec![0.0f32; k];
+                let mut caches: Vec<PolicyForwardCache> =
+                    (0..k).map(|_| PolicyForwardCache::default()).collect();
+                let mut p_tgt = vec![0.0f32; k];
+                let mut zt = 0.0f32;
+                for ci in 0..k {
+                    logits[ci] = pol.forward(&rec.cands[ci].4, ablation, &mut caches[ci]);
+                    let et = (-(rec.cands[ci].5 / tau_tgt).clamp(-20.0, 20.0)).exp();
+                    p_tgt[ci] = et;
+                    zt += et;
+                }
+                let max_l = logits.iter().copied().fold(f32::NEG_INFINITY, f32::max);
+                let mut probs = vec![0.0f32; k];
+                let mut zp = 0.0f32;
+                for ci in 0..k {
+                    let e = (logits[ci] - max_l).exp();
+                    probs[ci] = e;
+                    zp += e;
+                }
+                for ci in 0..k {
+                    p_tgt[ci] /= zt.max(1e-12);
+                    probs[ci] /= zp.max(1e-12);
+                    let d_li = (probs[ci] - p_tgt[ci]).clamp(-3.0, 3.0);
+                    pol.backward(&rec.cands[ci].4, ablation, &caches[ci], d_li, &mut grad);
+                }
+            }
+            grad.scale(1.0 / (bs as f32));
+            adam.apply(&mut pol, &grad, lr, wd);
+            idx = end;
+        }
+
+        let ho = eval_holdout(&pol, ablation, holdout_states, tau_tgt, false, false);
+        if ho.regret < best_ho.regret {
+            best_ho = ho;
+            best_pol = pol.clone();
+        }
+        if ep == epochs {
+            let sw = eval_holdout(&best_pol, ablation, holdout_states, tau_tgt, true, false);
+            println!(
+                "  [{:<14}] BEST ho_ce={:.4} top1={:5.1}% top3={:5.1}% mrr={:.4} regret={:.3}pc | swap_q12: top1={:5.1}% regret={:.3}pc ce={:.4}",
+                name, best_ho.ce, best_ho.top1, best_ho.top3, best_ho.mrr, best_ho.regret, sw.top1, sw.regret, sw.ce
+            );
+            let _ = std::io::stdout().flush();
+        }
+    }
+    (best_pol, best_ho)
+}
+
+#[derive(Clone, Copy)]
+struct BNode {
+    board: FastBoard,
+    held: Option<u8>,
+    qc: u8,
+    rem_g: u16,
+    first_idx: u16,
+    score: f32,
+}
+
+#[derive(Hash, Eq, PartialEq)]
+struct DKey {
+    board: FastBoard,
+    held: Option<u8>,
+    qc: u8,
+    rem_g: u16,
+}
+
+/// Legal `p=5` 5-ply Beam Search with FROZEN BC-4 leaf value evaluator + optional Root Policy prior.
+/// Tests ONLY Policy's gain on root candidate ranking (`final_root_score = beam_leaf_v - alpha * policy_logit`).
+fn play_5ply_beam_game(
     env_seed: u64,
     bc4: &SpatialValueModel,
-    pol: Option<&OrderedRootPolicy>,
+    pol: Option<(&OrderedRootPolicy, QueueAblation, f32)>,
+    beam_w: usize,
 ) -> (usize, bool) {
     let fst = FastShapeTable::srs();
     let mut pgen = FastPlaceGen::new();
-    let mut places: Vec<FastPlace> = Vec::with_capacity(80);
+    let mut tmp_p0: Vec<FastPlace> = Vec::with_capacity(80);
+    let mut tmp_p2: Vec<FastPlace> = Vec::with_capacity(64);
+    let mut cur_beam: Vec<BNode> = Vec::with_capacity(beam_w * 2);
+    let mut next_beam: Vec<BNode> = Vec::with_capacity(beam_w * 48);
+    let mut seen: HashSet<DKey> = HashSet::with_capacity(beam_w * 4);
+    let mut cache = PolicyForwardCache::default();
+
     let mut ai_inputs = FastAI::new(BeamConfig::default());
     let mut tracker = BagTracker::new();
-    let mut cache = PolicyForwardCache::default();
 
     let mut game_cfg = BSConfig::default();
     game_cfg.garbage.total_lines = Some(100);
@@ -438,9 +554,11 @@ fn play_1ply_game(
         0x7F
     };
 
+    let mpr = (beam_w / 3).max(4);
     let mut ds_total = 0usize;
     let mut pieces = 0usize;
-    while ds_total < 100 && pieces < 400 && stacker.current_piece_type().is_some() {
+
+    while ds_total < 100 && pieces < 360 && stacker.current_piece_type().is_some() {
         let snap = match stacker.snapshot() {
             Some(s) => s,
             None => break,
@@ -455,66 +573,211 @@ fn play_1ply_game(
         }
         let c_nh = vis_q.first().copied();
         let c_h = if hold.is_some() { hold } else { vis_q.get(1).copied() };
-        pgen.generate_for_state(&fst, &board, c_nh, c_h, &mut places);
-        if places.is_empty() {
+        pgen.generate_for_state(&fst, &board, c_nh, c_h, &mut tmp_p0);
+        if tmp_p0.is_empty() {
             break;
         }
 
-        let mut cands: Vec<(FastPlace, FastBoard, u8, u8, f32)> = Vec::with_capacity(places.len());
+        let base_seed = observable_state_hash(&board, hold, &vis_q, rem_g, cur_bag_mask, 0xCAFE);
+        let max_depth = vis_q.len().min(5);
+        cur_beam.clear();
+        seen.clear();
         let mut win_fp: Option<FastPlace> = None;
-        for &fp in &places {
-            let mut b1 = board;
-            let o = &fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
-            let (l, ds, _) = b1.place_and_sift(o, fp.norm_i, fp.norm_j);
-            let rem1 = rem_g.saturating_sub(ds as u16);
-            if rem1 == 0 && b1.rows < 20 {
-                win_fp = Some(fp);
+
+        // Pre-record root afterstate info for optional policy prior
+        let mut root_meta: Vec<Option<(FastBoard, u8, u8, f32)>> = vec![None; tmp_p0.len()];
+        let mut min_bc4_r = f32::INFINITY;
+
+        for (ridx, &fp0) in tmp_p0.iter().enumerate() {
+            let mut b_pre = board;
+            let o0 = &fst.shapes[fp0.color_idx as usize].orients[fp0.tf.2 as usize];
+            let (l0, ds0, _) = b_pre.place_and_sift(o0, fp0.norm_i, fp0.norm_j);
+            let rem1 = rem_g.saturating_sub(ds0 as u16);
+            if rem1 == 0 && b_pre.rows < 20 {
+                win_fp = Some(fp0);
                 break;
+            }
+            let mut b1 = b_pre;
+            if rem1 > 0 {
+                let mut r_loc = base_seed ^ 0x1111;
+                if !b1.spawn_cheese_rows(rem1, l0, &mut r_loc) {
+                    continue;
+                }
             }
             let col_h = b1.col_heights();
             if *col_h.iter().max().unwrap() >= 20 || col_h[3..=6].iter().copied().max().unwrap() >= 19 {
                 continue;
             }
             let (held1, qc1) = if hold.is_some() {
-                if fp.did_hold { (c_nh, if c_nh.is_some() { 1 } else { 0 }) } else { (hold, 1) }
-            } else if fp.did_hold { (c_nh, 2.min(vis_q.len())) } else { (None, 1.min(vis_q.len())) };
+                if fp0.did_hold { (c_nh, if c_nh.is_some() { 1 } else { 0 }) } else { (hold, 1) }
+            } else if fp0.did_hold { (c_nh, 2.min(vis_q.len())) } else { (None, 1.min(vis_q.len())) };
             let ih1 = hand_piece(held1, qc1, &vis_q);
             let av1 = avail_mask_from_q(held1, qc1, &vis_q, cur_bag_mask);
-            let v = OrderedRootPolicy::frozen_bc4_score(bc4, &b1, rem1, ih1, av1);
-            cands.push((fp, b1, l, ds, v));
+            let sc1 = bc4.evaluate_linear_board_with_bag_no_pe(&b1, rem1, ih1, av1) as f32 * 0.01;
+            if pol.is_some() {
+                let v_pre = OrderedRootPolicy::frozen_bc4_score(bc4, &b_pre, rem1, ih1, av1);
+                if v_pre < min_bc4_r {
+                    min_bc4_r = v_pre;
+                }
+                root_meta[ridx] = Some((b_pre, l0, ds0, v_pre));
+            }
+            let key = DKey { board: b1, held: held1, qc: qc1 as u8, rem_g: rem1 };
+            if seen.insert(key) {
+                cur_beam.push(BNode {
+                    board: b1,
+                    held: held1,
+                    qc: qc1 as u8,
+                    rem_g: rem1,
+                    first_idx: ridx as u16,
+                    score: sc1,
+                });
+            }
         }
 
         let chosen_fp = if let Some(wfp) = win_fp {
             wfp
-        } else if cands.is_empty() {
-            places[0]
+        } else if cur_beam.is_empty() {
+            tmp_p0[0]
         } else {
-            let min_v = cands.iter().map(|x| x.4).fold(f32::INFINITY, f32::min);
-            if let Some(p_net) = pol {
-                let obs = ObservableRootState {
-                    board,
-                    hold,
-                    vis_q: vis_q.clone(),
-                    rem_g,
-                    bag_mask: cur_bag_mask,
-                };
-                let mut best_logit = f32::NEG_INFINITY;
-                let mut best_fp = cands[0].0;
-                for &(fp, ref b1, l, ds, v) in &cands {
-                    let feat = extract_policy_cand_features(&obs, fp, b1, l, ds, v - min_v);
-                    let lg = p_net.forward(&feat, &mut cache);
-                    if lg > best_logit {
-                        best_logit = lg;
-                        best_fp = fp;
+            cur_beam.sort_unstable_by(|a, b| a.score.total_cmp(&b.score));
+            if cur_beam.len() > beam_w {
+                cur_beam.truncate(beam_w);
+            }
+            let mut win_d: Option<FastPlace> = None;
+            'dloop: for depth in 2..=max_depth {
+                next_beam.clear();
+                let d_seed = base_seed ^ ((depth as u64).wrapping_mul(0x9E3779B97F4A7C15));
+                for ni in 0..cur_beam.len() {
+                    let node = cur_beam[ni];
+                    let qc = node.qc as usize;
+                    let (c_nh2, c_h2) = if node.held.is_some() {
+                        (vis_q.get(qc).copied(), node.held)
+                    } else {
+                        (vis_q.get(qc).copied(), vis_q.get(qc + 1).copied())
+                    };
+                    pgen.generate_for_state(&fst, &node.board, c_nh2, c_h2, &mut tmp_p2);
+                    for &fp2 in &tmp_p2 {
+                        let mut b2 = node.board;
+                        let o2 = &fst.shapes[fp2.color_idx as usize].orients[fp2.tf.2 as usize];
+                        let (l2, ds2, _) = b2.place_and_sift(o2, fp2.norm_i, fp2.norm_j);
+                        let rem2 = node.rem_g.saturating_sub(ds2 as u16);
+                        if rem2 == 0 && b2.rows < 20 {
+                            win_d = Some(tmp_p0[node.first_idx as usize]);
+                            break 'dloop;
+                        }
+                        if rem2 > 0 {
+                            let mut r_loc = d_seed;
+                            if !b2.spawn_cheese_rows(rem2, l2, &mut r_loc) {
+                                continue;
+                            }
+                        }
+                        let col_h = b2.col_heights();
+                        if *col_h.iter().max().unwrap() >= 20 || col_h[3..=6].iter().copied().max().unwrap() >= 19 {
+                            continue;
+                        }
+                        let (held2, qc2) = if node.held.is_some() {
+                            if fp2.did_hold { (c_nh2, if c_nh2.is_some() { qc + 1 } else { qc }) } else { (node.held, qc + 1) }
+                        } else if fp2.did_hold { (c_nh2, qc + 2) } else { (None, qc + 1) };
+                        let ih2 = hand_piece(held2, qc2, &vis_q);
+                        let av2 = avail_mask_from_q(held2, qc2, &vis_q, cur_bag_mask);
+                        let sc2 = bc4.evaluate_linear_board_with_bag_no_pe(&b2, rem2, ih2, av2) as f32 * 0.01;
+                        next_beam.push(BNode {
+                            board: b2,
+                            held: held2,
+                            qc: qc2 as u8,
+                            rem_g: rem2,
+                            first_idx: node.first_idx,
+                            score: sc2,
+                        });
                     }
                 }
-                best_fp
+                if next_beam.is_empty() {
+                    break;
+                }
+                next_beam.sort_unstable_by(|a, b| a.score.total_cmp(&b.score));
+                cur_beam.clear();
+                seen.clear();
+                let mut per_root = [0usize; 128];
+                let keep_lim = if depth == max_depth { beam_w * 2 } else { beam_w };
+                for &n in &next_beam {
+                    if cur_beam.len() >= keep_lim {
+                        break;
+                    }
+                    let ridx = n.first_idx as usize;
+                    if ridx < 128 && per_root[ridx] >= mpr {
+                        continue;
+                    }
+                    let key = DKey { board: n.board, held: n.held, qc: n.qc, rem_g: n.rem_g };
+                    if seen.insert(key) {
+                        if ridx < 128 {
+                            per_root[ridx] += 1;
+                        }
+                        cur_beam.push(n);
+                    }
+                }
+            }
+
+            if let Some(wd) = win_d {
+                wd
             } else {
-                cands
-                    .iter()
-                    .min_by(|a, b| a.4.total_cmp(&b.4))
-                    .unwrap()
-                    .0
+                // Frozen BC-4 FULL-MLP leaf value per surviving root
+                let mut root_v = vec![f32::INFINITY; tmp_p0.len()];
+                for &node in &cur_beam {
+                    let ih = hand_piece(node.held, node.qc as usize, &vis_q);
+                    let av = avail_mask_from_q(node.held, node.qc as usize, &vis_q, cur_bag_mask);
+                    let v = OrderedRootPolicy::frozen_bc4_score(bc4, &node.board, node.rem_g, ih, av);
+                    let r = node.first_idx as usize;
+                    if v < root_v[r] {
+                        root_v[r] = v;
+                    }
+                }
+
+                // Apply optional root policy prior ONLY to surviving root candidates
+                if let Some((p_net, abl, alpha)) = pol {
+                    let obs = ObservableRootState {
+                        board,
+                        hold,
+                        vis_q: vis_q.clone(),
+                        rem_g,
+                        bag_mask: cur_bag_mask,
+                    };
+                    let mut best_sc = f32::INFINITY;
+                    let mut best_fp = tmp_p0[0];
+                    for (r, &rv) in root_v.iter().enumerate() {
+                        if !rv.is_finite() {
+                            continue;
+                        }
+                        let bonus = if let Some((ref b_pre, l0, ds0, v_pre)) = root_meta[r] {
+                            let feat = extract_policy_cand_features(
+                                &obs,
+                                tmp_p0[r],
+                                b_pre,
+                                l0,
+                                ds0,
+                                v_pre - min_bc4_r,
+                            );
+                            p_net.forward(&feat, abl, &mut cache)
+                        } else {
+                            0.0
+                        };
+                        let comb = rv - alpha * bonus;
+                        if comb < best_sc {
+                            best_sc = comb;
+                            best_fp = tmp_p0[r];
+                        }
+                    }
+                    best_fp
+                } else {
+                    let mut best_sc = f32::INFINITY;
+                    let mut best_fp = tmp_p0[0];
+                    for (r, &rv) in root_v.iter().enumerate() {
+                        if rv < best_sc {
+                            best_sc = rv;
+                            best_fp = tmp_p0[r];
+                        }
+                    }
+                    best_fp
+                }
             }
         };
 
@@ -536,10 +799,11 @@ fn play_1ply_game(
     (pieces, ds_total < 100)
 }
 
-fn eval_1ply_set(
+fn eval_5ply_set(
     bc4: &SpatialValueModel,
-    pol: Option<&OrderedRootPolicy>,
+    pol: Option<(&OrderedRootPolicy, QueueAblation, f32)>,
     n_games: usize,
+    beam_w: usize,
     n_threads: usize,
 ) -> (f64, usize, usize, usize) {
     let next_idx = AtomicUsize::new(0);
@@ -551,7 +815,7 @@ fn eval_1ply_set(
                 if idx >= n_games {
                     break;
                 }
-                let res = play_1ply_game(9001u64 + idx as u64, bc4, pol);
+                let res = play_5ply_beam_game(9001u64 + idx as u64, bc4, pol, beam_w);
                 results.lock().unwrap().push(res);
             });
         }
@@ -576,18 +840,18 @@ fn eval_1ply_set(
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     let mut bc4_path = "models/spatial_bc4.txt".to_string();
-    let mut out_path = "/tmp/ordered_policy_v1.txt".to_string();
-    let mut n_games: usize = 10;
-    let mut teacher_worlds: usize = 6;
-    let mut teacher_width: usize = 16;
+    let mut n_games: usize = 15;
+    let mut holdout_games: usize = 5;
+    let mut teacher_worlds: usize = 4;
+    let mut teacher_width: usize = 10;
     let mut teacher_horizon: usize = 8;
-    let mut fast_teacher: bool = false;
-    let mut epochs: usize = 20;
+    let mut fast_teacher: bool = true;
+    let mut epochs: usize = 12;
     let mut batch_size: usize = 32;
-    let mut tau_tgt: f32 = 0.20;
-    let mut lr: f32 = 1.5e-3;
-    let mut wd: f32 = 1e-4;
-    let mut eval_games: usize = 20;
+    let mut tau_tgt: f32 = 0.25;
+    let mut lr: f32 = 1e-3;
+    let mut wd: f32 = 3e-4;
+    let mut eval_games: usize = 30;
     let mut n_threads: usize = std::thread::available_parallelism()
         .map(|n| n.get())
         .unwrap_or(4);
@@ -596,12 +860,12 @@ fn main() {
     while i < args.len() {
         match args[i].as_str() {
             "--bc4" => { i += 1; bc4_path = args[i].clone(); }
-            "--out" => { i += 1; out_path = args[i].clone(); }
             "--games" => { i += 1; n_games = args[i].parse().unwrap(); }
+            "--holdout-games" => { i += 1; holdout_games = args[i].parse().unwrap(); }
             "--teacher-worlds" => { i += 1; teacher_worlds = args[i].parse().unwrap(); }
             "--teacher-width" => { i += 1; teacher_width = args[i].parse().unwrap(); }
             "--teacher-horizon" => { i += 1; teacher_horizon = args[i].parse().unwrap(); }
-            "--fast-teacher" => { fast_teacher = true; }
+            "--full-teacher" => { fast_teacher = false; }
             "--epochs" => { i += 1; epochs = args[i].parse().unwrap(); }
             "--batch-size" => { i += 1; batch_size = args[i].parse().unwrap(); }
             "--tau-tgt" => { i += 1; tau_tgt = args[i].parse().unwrap(); }
@@ -623,10 +887,14 @@ fn main() {
     let bc4_arc = Arc::new(bc4);
 
     println!("================================================================");
-    println!(" OrderedRootPolicy (Policy/Value Separation — Frozen BC-4 Leaf)");
+    println!(" OrderedRootPolicy v2: Matched-Capacity Ablation + 5-Ply Beam Test");
     println!(
-        " bc4={} out={} games={} teacher=w{}_h{}_b{}_fast={} epochs={} bs={} tau={:.2} lr={:.1e} threads={}",
-        bc4_path, out_path, n_games, teacher_worlds, teacher_horizon, teacher_width, fast_teacher, epochs, batch_size, tau_tgt, lr, n_threads
+        " games={} (holdout={}) teacher=w{}_h{}_b{}_fast={} (NOTE: fast local proxy != fullmlp_w16)",
+        n_games, holdout_games, teacher_worlds, teacher_horizon, teacher_width, fast_teacher
+    );
+    println!(
+        " epochs={} bs={} tau={:.2} lr={:.1e} wd={:.1e} eval_5ply={} threads={}",
+        epochs, batch_size, tau_tgt, lr, wd, eval_games, n_threads
     );
     println!("================================================================");
     let _ = std::io::stdout().flush();
@@ -661,8 +929,7 @@ fn main() {
 
     let mut gr = results.into_inner().unwrap();
     gr.sort_by_key(|x| x.0);
-    let n_ho_games = (n_games / 5).max(1);
-    let split = n_games.saturating_sub(n_ho_games);
+    let split = n_games.saturating_sub(holdout_games.min(n_games.saturating_sub(1)));
     let mut train_states: Vec<PolicyStateRec> = Vec::new();
     let mut holdout_states: Vec<PolicyStateRec> = Vec::new();
     let mut sum_p = 0usize;
@@ -679,126 +946,93 @@ fn main() {
         }
     }
     println!(
-        "[DATA] pure_pimc games={}/{} top={} mean={:.2} | train_states={} holdout_states={} ({:.1}s)",
+        "[DATA] pure_pimc games={}/{} top={} mean={:.2} | train={}g ({} states) | holdout={}g ({} states) ({:.1}s)",
         ok_g,
         n_games,
         n_games - ok_g,
         if ok_g > 0 { sum_p as f64 / ok_g as f64 } else { 999.0 },
+        split,
         train_states.len(),
+        n_games - split,
         holdout_states.len(),
         t0.elapsed().as_secs_f64()
     );
     let _ = std::io::stdout().flush();
 
-    let mut pol = OrderedRootPolicy::new_random(2026);
-    let mut best_pol = pol.clone();
-    let mut adam = PolicyAdam::new();
-    let mut grad = PolicyGradBuf::new();
-
-    let bc4_ho = eval_holdout_ranking(&pol, &holdout_states, tau_tgt, OrderMode::Bc4PriorOnly);
+    // 1. Frozen BC-4 prior baseline on independent holdout games
+    let dummy_pol = OrderedRootPolicy::new_random(1);
+    let bc4_ho = eval_holdout(&dummy_pol, QueueAblation::QueueBlind, &holdout_states, tau_tgt, false, true);
+    println!("\n--- [1/2] Matched-Capacity Holdout Ranking Ablation ({} independent games, {} states) ---", n_games - split, holdout_states.len());
     println!(
-        "[BASE Frozen BC-4 1-ply prior] ho_top1={:.1}% ho_top3={:.1}% ho_mrr={:.4} ho_regret={:.3}pc",
+        "  [Frozen BC-4   ] BEST ho_ce=  N/A  top1={:5.1}% top3={:5.1}% mrr={:.4} regret={:.3}pc",
         bc4_ho.top1, bc4_ho.top3, bc4_ho.mrr, bc4_ho.regret
     );
 
-    let mut best_ho_top1 = 0.0f64;
-    let mut best_ho_regret = f64::INFINITY;
-    let mut order: Vec<usize> = (0..train_states.len()).collect();
-    let mut rng = 0x55AA_1234_9988_7766u64;
+    let (pol_blind, _m_blind) = train_one_ablation(
+        "QueueBlind",
+        QueueAblation::QueueBlind,
+        &train_states,
+        &holdout_states,
+        epochs,
+        batch_size,
+        tau_tgt,
+        lr,
+        wd,
+    );
+    let (_pol_raw, _m_raw) = train_one_ablation(
+        "RawOrdered",
+        QueueAblation::RawOrdered,
+        &train_states,
+        &holdout_states,
+        epochs,
+        batch_size,
+        tau_tgt,
+        lr,
+        wd,
+    );
+    let (pol_compat, _m_compat) = train_one_ablation(
+        "OrderedCompat",
+        QueueAblation::OrderedCompat,
+        &train_states,
+        &holdout_states,
+        epochs,
+        batch_size,
+        tau_tgt,
+        lr,
+        wd,
+    );
 
-    for ep in 1..=epochs {
-        for i in (1..order.len()).rev() {
-            let j = next_usize(&mut rng, i + 1);
-            order.swap(i, j);
-        }
-        let mut tr_ce = 0.0f64;
-        let mut idx = 0usize;
-        while idx < order.len() {
-            let end = (idx + batch_size).min(order.len());
-            let bs = end - idx;
-            grad.zero();
-            for &si in &order[idx..end] {
-                let rec = &train_states[si];
-                let k = rec.cands.len();
-                let mut logits = vec![0.0f32; k];
-                let mut caches: Vec<PolicyForwardCache> = (0..k).map(|_| PolicyForwardCache::default()).collect();
-                let mut p_tgt = vec![0.0f32; k];
-                let mut zt = 0.0f32;
-                for ci in 0..k {
-                    logits[ci] = pol.forward(&rec.cands[ci].4, &mut caches[ci]);
-                    let et = (-(rec.cands[ci].5 / tau_tgt).clamp(-20.0, 20.0)).exp();
-                    p_tgt[ci] = et;
-                    zt += et;
-                }
-                let max_l = logits.iter().copied().fold(f32::NEG_INFINITY, f32::max);
-                let mut probs = vec![0.0f32; k];
-                let mut zp = 0.0f32;
-                for ci in 0..k {
-                    let e = (logits[ci] - max_l).exp();
-                    probs[ci] = e;
-                    zp += e;
-                }
-                for ci in 0..k {
-                    p_tgt[ci] /= zt.max(1e-12);
-                    probs[ci] /= zp.max(1e-12);
-                    tr_ce -= (p_tgt[ci] as f64) * (probs[ci].max(1e-12).ln() as f64);
-                    // d(CE)/d(logit_i) = probs[i] - p_tgt[i]
-                    let d_li = (probs[ci] - p_tgt[ci]).clamp(-3.0, 3.0);
-                    pol.backward(&rec.cands[ci].4, &caches[ci], d_li, &mut grad);
-                }
-            }
-            grad.scale(1.0 / (bs as f32));
-            adam.apply(&mut pol, &grad, lr, wd);
-            idx = end;
-        }
-
-        if ep % 2 == 0 || ep == epochs {
-            let ho = eval_holdout_ranking(&pol, &holdout_states, tau_tgt, OrderMode::TrueOrdered);
-            let is_best = ho.regret < best_ho_regret;
-            if is_best {
-                best_ho_regret = ho.regret;
-                best_ho_top1 = ho.top1;
-                best_pol = pol.clone();
-                best_pol.save_to_file(&out_path).unwrap();
-            }
-            println!(
-                "[Epoch {:2}/{}] tr_ce={:.4} | ho_ce={:.4} ho_top1={:.1}% ho_top3={:.1}% ho_mrr={:.4} ho_regret={:.3}pc {}",
-                ep,
-                epochs,
-                tr_ce / (order.len().max(1) as f64),
-                ho.ce,
-                ho.top1,
-                ho.top3,
-                ho.mrr,
-                ho.regret,
-                if is_best { "*** BEST ***" } else { "" }
-            );
-            let _ = std::io::stdout().flush();
-        }
-    }
-
-    // Mandatory Ordered-Preview Sensitivity Test on independent holdout games
-    println!("\n--- Ordered Preview Sensitivity Test (Independent Holdout Games) ---");
-    let m_true = eval_holdout_ranking(&best_pol, &holdout_states, tau_tgt, OrderMode::TrueOrdered);
-    let m_rev = eval_holdout_ranking(&best_pol, &holdout_states, tau_tgt, OrderMode::ReversedNext5);
-    let m_zero = eval_holdout_ranking(&best_pol, &holdout_states, tau_tgt, OrderMode::ZeroedNext5);
-    println!("  [Frozen BC-4 prior ] top1={:5.1}% top3={:5.1}% mrr={:.4} regret={:.3}pc", bc4_ho.top1, bc4_ho.top3, bc4_ho.mrr, bc4_ho.regret);
-    println!("  [OrderedPolicy TRUE] top1={:5.1}% top3={:5.1}% mrr={:.4} regret={:.3}pc ce={:.4}", m_true.top1, m_true.top3, m_true.mrr, m_true.regret, m_true.ce);
-    println!("  [OrderedPolicy REV ] top1={:5.1}% top3={:5.1}% mrr={:.4} regret={:.3}pc ce={:.4}", m_rev.top1, m_rev.top3, m_rev.mrr, m_rev.regret, m_rev.ce);
-    println!("  [OrderedPolicy ZERO] top1={:5.1}% top3={:5.1}% mrr={:.4} regret={:.3}pc ce={:.4}", m_zero.top1, m_zero.top3, m_zero.mrr, m_zero.regret, m_zero.ce);
-
-    // Mandatory Small-Scale Legal p=5 1-Ply Practical Play Test (zero search!)
-    println!("\n--- Small-Scale Legal p=5 1-Ply Play Test ({} seeds, ZERO search) ---", eval_games);
+    // 2. Priority Integration: Legal p=5 5-Ply Beam Search (Frozen BC-4 Leaf Value + Root Policy Prior)
+    println!("\n--- [2/2] Legal p=5 5-Ply Beam=16 Practical Play ({} seeds, Frozen BC-4 Leaf) ---", eval_games);
     let t_ev = Instant::now();
-    let (bc4_m, bc4_t, bc4_min, bc4_max) = eval_1ply_set(&bc4_arc, None, eval_games, n_threads);
-    let (pol_m, pol_t, pol_min, pol_max) = eval_1ply_set(&bc4_arc, Some(&best_pol), eval_games, n_threads);
+    let (b_m, b_t, b_min, b_max) = eval_5ply_set(&bc4_arc, None, eval_games, 16, n_threads);
     println!(
-        "  [Frozen BC-4 1-ply      ] ok={}/{} top={} mean={:.2} [{}..{}]",
-        eval_games - bc4_t, eval_games, bc4_t, bc4_m, bc4_min, bc4_max
+        "  [Frozen BC-4 5-ply BASE       ] ok={}/{} top={} mean={:.2} [{}..{}]",
+        eval_games - b_t, eval_games, b_t, b_m, b_min, b_max
     );
-    println!(
-        "  [OrderedRootPolicy 1-ply] ok={}/{} top={} mean={:.2} [{}..{}] (delta={:+.2} pcs, {:.1}s)",
-        eval_games - pol_t, eval_games, pol_t, pol_m, pol_min, pol_max, pol_m - bc4_m, t_ev.elapsed().as_secs_f64()
-    );
-    println!("=== DONE ORDERED POLICY LOCAL VERIFICATION (best ho_top1={:.1}% regret={:.3}pc) ===", best_ho_top1, best_ho_regret);
+    for &alpha in &[0.15f32, 0.35f32] {
+        let (q_m, q_t, q_min, q_max) = eval_5ply_set(
+            &bc4_arc,
+            Some((&pol_blind, QueueAblation::QueueBlind, alpha)),
+            eval_games,
+            16,
+            n_threads,
+        );
+        let (o_m, o_t, o_min, o_max) = eval_5ply_set(
+            &bc4_arc,
+            Some((&pol_compat, QueueAblation::OrderedCompat, alpha)),
+            eval_games,
+            16,
+            n_threads,
+        );
+        println!(
+            "  [+QueueBlind   prior a={:.2}   ] ok={}/{} top={} mean={:.2} [{}..{}] (vs BASE: {:+.2})",
+            alpha, eval_games - q_t, eval_games, q_t, q_m, q_min, q_max, q_m - b_m
+        );
+        println!(
+            "  [+OrderedCompat prior a={:.2}  ] ok={}/{} top={} mean={:.2} [{}..{}] (vs BASE: {:+.2}, vs Blind: {:+.2})",
+            alpha, eval_games - o_t, eval_games, o_t, o_m, o_min, o_max, o_m - b_m, o_m - q_m
+        );
+    }
+    println!("=== DONE v2 LOCAL ABLATION & 5-PLY INTEGRATION ({:.1}s eval) ===", t_ev.elapsed().as_secs_f64());
 }

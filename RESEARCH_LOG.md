@@ -277,6 +277,19 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
             - Teacher mean: `16/16 top=0 mean=185.50` (`1812.2s`).
             - Training dynamics revealed a critical structural mismatch: `ho_ce` dropped monotonically (`1.8725 -> 1.4760`) and `ho_adv` dropped (`0.5616 -> 0.4779`), YET `ho_top1` dropped (`62.9% -> 53.9%`) and 60-seed 5-ply `VAL` immediately jumped `+24` pcs (`208.80 -> 232.78 -> 224.23`, `top=0`); `NEW BEST` guard cleanly skipped `[3/3]` `fullmlp_w16` A/B.
             - **Unified Root-Cause Diagnosis (Runs #16, #25, #27, #29)**: Forcing a queue-blind static board evaluator `V(board, in_hand, unordered_avail_mask)` to fit 1-ply root Q-distributions of an 8-ply ordered-queue searcher (`fullmlp_w16`) shrinks/blurs board geometry weights to match compressed 8-ply spreads and cope with ordered-`next5` aliasing — lowering cross-entropy while degrading top-1 ranking and multi-ply leaf evaluation.
+          - **Local Policy / Value Separation Research (`ordered_policy.rs` + `train_ordered_policy.rs`, Frozen BC-4 Leaf Value, Pure `last_pimc_reranked` Labels — NO Colab CU used)**:
+            - Added uncontaminated `BeamSearcher::last_pimc_reranked()` (raw `pimc_scores` only, zero Stage-1 `rest_list` mixing) + `OrderedRootPolicy` v2 (`48×24` FiLM + 36-dim ordered-slot contour-compat features; 3/3 unit tests pass: zero future peeking, `QueueBlind` invariance, finite-diff gradient).
+            - **Matched-Capacity 4-Game Independent Holdout (`687` states, fast local proxy `w4_h7_b8_fast=true`, mean=`195.42` — NOT equal to `fullmlp_w16`)**:
+              - `Frozen BC-4 prior`: `top1=67.2%, mrr=0.7948, regret=0.340pc`
+              - `QueueBlind` (matched capacity): `top1=69.0%, mrr=0.8014, regret=0.308pc, ce=1.1906`
+              - `RawOrdered`: `top1=68.9%, mrr=0.8007, regret=0.310pc, ce=1.1911`
+              - `OrderedCompat`: `top1=68.7%, mrr=0.8005, regret=0.307pc, ce=1.1902` (`swap_q12`: `top1=68.4%, regret=0.311pc, ce=1.1918`).
+            - **24-Seed Legal `p=5` 5-Ply `beam=16` Integration (Frozen BC-4 Leaf)**:
+              - `Frozen BC-4 BASE`: `24/24 top=0 mean=209.25 [195..229]`
+              - `+QueueBlind prior (a=0.15)`: **`204.88 [192..218]` (`-4.38` pcs)**; `(a=0.35)`: `209.25`
+              - `+OrderedCompat prior (a=0.15)`: **`205.04 [194..218]` (`-4.21` pcs)**; `(a=0.35)`: `207.62 (-1.62 vs BASE/Blind)`
+            - **Honest Scientific Conclusion**: Policy/Value separation cleanly gained **`-4.3` pcs** in 5-ply beam search without corrupting BC-4 leaf values, **but** at `a=0.15` and on holdout ranking `OrderedCompat ≈ QueueBlind` — next step is a direct **Counterfactual Teacher Signal Test** (measuring how often legal `swap(q1, q2)` changes the teacher's own `Q_pimc` best move) + checking whether `-4.38` pcs is purely a 1-ply+5-ply multi-depth BC-4 blend before any further architecture scaling.
+
 
 
 

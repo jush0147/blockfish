@@ -9,8 +9,9 @@ pub const POL_SPARSE_DIM: usize = 166; // 8x10 board + 10 overflow + h1/h2/h3 co
 pub const POL_BOARD_DENSE_DIM: usize = 32;
 pub const POL_ACT_DIM: usize = 34;
 pub const POL_ORDER_DIM: usize = 58; // held(8) + ordered next5(35) + bag_mask(7) + regime(8)
-pub const POL_H1: usize = 96;
-pub const POL_H2: usize = 48;
+pub const POL_COMPAT_DIM: usize = 36; // 6 ordered slots (hold, q0..q4) x 6 explicit contour/hole compat scalars
+pub const POL_H1: usize = 48;
+pub const POL_H2: usize = 24;
 
 /// Strictly legal observable root context (current piece + up to 5 visible previews, hold, BagTracker mask).
 /// NEVER contains any piece beyond the 6 visible queue pieces or any hidden environment seed.
@@ -30,6 +31,7 @@ pub struct PolicyCandFeatures {
     pub board_dense: [f32; POL_BOARD_DENSE_DIM],
     pub act_feat: [f32; POL_ACT_DIM],
     pub order_feat: [f32; POL_ORDER_DIM],
+    pub compat_feat: [f32; POL_COMPAT_DIM],
     /// Centered frozen BC-4 afterstate delta (`V_bc4(cand) - min_k V_bc4`), used as skip prior.
     pub bc4_delta: f32,
 }
@@ -108,6 +110,115 @@ fn quick_board_stats(board: &FastBoard) -> ([i32; 10], i32, i32, i32, i32, i32, 
     (stack_h, stack_cells, cov_holes, blk_over_holes, max_sh, bump, h1_blk * 100 + h2_blk, h1_col, h2_col)
 }
 
+/// Piece index mapping in `fast.rs::color_to_idx`:
+/// 0: I, 1: J, 2: L, 3: O, 4: S, 5: T, 6: Z
+#[inline]
+fn hole_notch_fit(p: u8, sh: &[i32; 10], hole_col: Option<usize>, hole_open: bool) -> f32 {
+    let c = match hole_col {
+        Some(col) if hole_open => col,
+        _ => return 0.0,
+    };
+    let hc = sh[c];
+    let dl = if c > 0 { sh[c - 1] - hc } else { 4 };
+    let dr = if c < 9 { sh[c + 1] - hc } else { 4 };
+    match p {
+        0 => 1.0, // I always clears any open 1-wide hole cleanly
+        3 => 0.0, // O (2x2) can NEVER clear a 1-wide garbage hole
+        1 => {
+            // J: vertical stem on right or left hook
+            if (dr >= 1 && dl == 0) || (dl >= 2 && dr >= 0) || (dl == 0 && dr == 0) { 1.0 } else { 0.3 }
+        }
+        2 => {
+            // L: vertical stem on left or right hook
+            if (dl >= 1 && dr == 0) || (dr >= 2 && dl >= 0) || (dl == 0 && dr == 0) { 1.0 } else { 0.3 }
+        }
+        4 => {
+            // S: steps up to the right
+            if (dl == 0 && dr == 1) || (dl >= 1 && dr == 0) { 1.0 } else { 0.2 }
+        }
+        5 => {
+            // T: fits symmetric notch or 1-step side
+            if (dl >= 1 && dr >= 1) || (dl == 0 && dr == 1) || (dl == 1 && dr == 0) || (dl == 0 && dr == 0) {
+                1.0
+            } else {
+                0.4
+            }
+        }
+        6 => {
+            // Z: steps up to the left
+            if (dr == 0 && dl == 1) || (dr >= 1 && dl == 0) { 1.0 } else { 0.2 }
+        }
+        _ => 0.0,
+    }
+}
+
+/// Counts clean zero-overhang flat placements of piece `p` on surface contour `sh[0..10]`.
+#[inline]
+fn flat_contour_fit_ratio(p: u8, sh: &[i32; 10]) -> f32 {
+    let mut fits = 0i32;
+    match p {
+        0 => {
+            // I vertical fits everywhere (10), horizontal fits 4-flat runs
+            fits += 4;
+            for c in 0..=6 {
+                if sh[c] == sh[c + 1] && sh[c] == sh[c + 2] && sh[c] == sh[c + 3] {
+                    fits += 2;
+                }
+            }
+        }
+        3 => {
+            // O requires adjacent equal columns
+            for c in 0..9 {
+                if sh[c] == sh[c + 1] {
+                    fits += 1;
+                }
+            }
+        }
+        1 | 2 | 5 => {
+            // J/L/T: flat-3, flat-2, or 1-step
+            for c in 0..=7 {
+                if sh[c] == sh[c + 1] && sh[c] == sh[c + 2] {
+                    fits += 1;
+                }
+            }
+            for c in 0..9 {
+                let d = (sh[c] - sh[c + 1]).abs();
+                if d == 0 || (p != 5 && d == 2) || (p == 5 && d == 1) {
+                    fits += 1;
+                }
+            }
+        }
+        4 => {
+            // S: (0,0,+1) or (+1,0)
+            for c in 0..=7 {
+                if sh[c] == sh[c + 1] && sh[c + 2] == sh[c] + 1 {
+                    fits += 1;
+                }
+            }
+            for c in 0..9 {
+                if sh[c] == sh[c + 1] + 1 {
+                    fits += 1;
+                }
+            }
+        }
+        6 => {
+            // Z: (+1,0,0) or (0,+1)
+            for c in 0..=7 {
+                if sh[c] == sh[c + 1] + 1 && sh[c + 1] == sh[c + 2] {
+                    fits += 1;
+                }
+            }
+            for c in 0..9 {
+                if sh[c + 1] == sh[c] + 1 {
+                    fits += 1;
+                }
+            }
+        }
+        _ => {}
+    }
+    (fits as f32 / 10.0).min(1.0)
+}
+
 /// Extract strictly legal observable policy features for one candidate root action `(fp, b_after, lines, ds)`.
 /// Enforces `vis_q` truncation to `<= 6` visible pieces (`cur + next5`) so zero future information can ever leak.
 pub fn extract_policy_cand_features(
@@ -122,31 +233,13 @@ pub fn extract_policy_cand_features(
     let vis_len = state.vis_q.len().min(6);
     let vis_q = &state.vis_q[..vis_len];
 
-    let (
-        _sh_b,
-        cells_b,
-        holes_b,
-        boh_b,
-        maxh_b,
-        bump_b,
-        h12_b,
-        _h1c_b,
-        _h2c_b,
-    ) = quick_board_stats(&state.board);
+    let (_sh_b, cells_b, holes_b, boh_b, maxh_b, bump_b, h12_b, _h1c_b, _h2c_b) =
+        quick_board_stats(&state.board);
     let h1_b = h12_b / 100;
     let h2_b = h12_b % 100;
 
-    let (
-        sh_a,
-        cells_a,
-        holes_a,
-        boh_a,
-        maxh_a,
-        bump_a,
-        h12_a,
-        h1c_a,
-        h2c_a,
-    ) = quick_board_stats(b_after);
+    let (sh_a, cells_a, holes_a, boh_a, maxh_a, bump_a, h12_a, h1c_a, h2c_a) =
+        quick_board_stats(b_after);
     let h1_a = h12_a / 100;
     let h2_a = h12_a % 100;
 
@@ -166,26 +259,24 @@ pub fn extract_policy_cand_features(
 
     // 1. Ordered future sequence + hold + legal bag_mask (`POL_ORDER_DIM = 58`)
     let mut order_feat = [0.0f32; POL_ORDER_DIM];
-    // 0..8: held piece after action
     match held1 {
         Some(p) if (p as usize) < 7 => order_feat[p as usize] = 1.0,
         _ => order_feat[7] = 1.0,
     }
-    // 8..43: ordered post-action queue slots `q_after[0..5]` (strictly within `vis_q[qc1..vis_len]`)
+    let mut slot_pieces: [Option<u8>; 6] = [held1, None, None, None, None, None];
     for slot in 0..5usize {
         if let Some(&p) = vis_q.get(qc1 + slot) {
             if (p as usize) < 7 {
                 order_feat[8 + slot * 7 + p as usize] = 1.0;
+                slot_pieces[1 + slot] = Some(p);
             }
         }
     }
-    // 43..50: legal BagTracker remaining bag mask
     for p in 0..7usize {
         if ((state.bag_mask >> p) & 1) != 0 {
             order_feat[43 + p] = 1.0;
         }
     }
-    // 50..58: regime & queue context
     order_feat[50] = if fp.did_hold { 1.0 } else { 0.0 };
     order_feat[51] = if state.hold.is_some() { 1.0 } else { 0.0 };
     order_feat[52] = (rem1 as f32) / 100.0;
@@ -195,12 +286,41 @@ pub fn extract_policy_cand_features(
     order_feat[56] = (vis_len.saturating_sub(qc1) as f32) / 5.0;
     order_feat[57] = (state.bag_mask.count_ones() as f32) / 7.0;
 
-    // 2. Candidate action & delta geometry (`POL_ACT_DIM = 34`)
+    // 2. Explicit Ordered-Slot x Board-Contour Compatibility Features (`POL_COMPAT_DIM = 36`)
+    let mut compat_feat = [0.0f32; POL_COMPAT_DIM];
+    let h1_open_a = b_after.garbage_rows >= 1 && h1_a == 0;
+    let h2_open_a = b_after.garbage_rows >= 2 && h2_a == 0;
+    let mut max_i_well = 0i32;
+    for c in 0..10usize {
+        let l = if c > 0 { sh_a[c - 1] } else { 99 };
+        let r = if c < 9 { sh_a[c + 1] } else { 99 };
+        let depth = l.min(r) - sh_a[c];
+        if depth > max_i_well {
+            max_i_well = depth;
+        }
+    }
+    for s in 0..6usize {
+        if let Some(p) = slot_pieces[s] {
+            let base = s * 6;
+            compat_feat[base] = hole_notch_fit(p, &sh_a, h1c_a, h1_open_a);
+            compat_feat[base + 1] = hole_notch_fit(p, &sh_a, h2c_a, h2_open_a);
+            compat_feat[base + 2] = flat_contour_fit_ratio(p, &sh_a);
+            compat_feat[base + 3] = if p == 3 { 1.0 } else { 0.0 }; // O-piece slot indicator
+            compat_feat[base + 4] = if p == 0 && max_i_well >= 2 { 1.0 } else { 0.0 }; // I-well match
+            compat_feat[base + 5] = if h1_a > 0 && p != 3 {
+                flat_contour_fit_ratio(p, &sh_a)
+            } else {
+                0.0
+            };
+        }
+    }
+
+    // 3. Candidate action & delta geometry (`POL_ACT_DIM = 34`)
     let mut act_feat = [0.0f32; POL_ACT_DIM];
     let c_idx = (fp.color_idx as usize).min(6);
-    act_feat[c_idx] = 1.0; // 0..7
+    act_feat[c_idx] = 1.0;
     let rot = (fp.tf.2 as usize).min(3);
-    act_feat[7 + rot] = 1.0; // 7..11
+    act_feat[7 + rot] = 1.0;
     act_feat[11] = (fp.norm_j as f32) / 9.0;
     act_feat[12] = (fp.norm_i as f32) / 18.0;
     act_feat[13] = if fp.did_hold { 1.0 } else { 0.0 };
@@ -221,18 +341,15 @@ pub fn extract_policy_cand_features(
     act_feat[24] = ((boh_a - boh_b) as f32) / 4.0;
     act_feat[25] = ((maxh_a - maxh_b) as f32) / 4.0;
     act_feat[26] = ((bump_a - bump_b) as f32) / 8.0;
-    let h1_open_a = b_after.garbage_rows >= 1 && h1_a == 0;
-    let h2_open_a = b_after.garbage_rows >= 2 && h2_a == 0;
     act_feat[27] = if h1_open_a { 1.0 } else { 0.0 };
     act_feat[28] = if h2_open_a { 1.0 } else { 0.0 };
     act_feat[29] = if h1_open_a && h2_open_a { 1.0 } else { 0.0 };
-    // ds_clears_and_covers_h2 (`cov_nxt` proxy!)
     act_feat[30] = if ds > 0 && h2_b == 0 && h1_a > 0 { 1.0 } else { 0.0 };
     act_feat[31] = (bc4_delta / 3.0).clamp(-3.0, 3.0);
     act_feat[32] = h1c_a.map_or(0.0, |c| (sh_a[c] as f32) / 8.0);
     act_feat[33] = h2c_a.map_or(0.0, |c| (sh_a[c] as f32) / 8.0);
 
-    // 3. 2D Board Spatial Features (`POL_SPARSE_DIM = 166`, `POL_BOARD_DENSE_DIM = 32`)
+    // 4. 2D Board Spatial Features (`POL_SPARSE_DIM = 166`, `POL_BOARD_DENSE_DIM = 32`)
     let mut act_buf = [0u16; SPARSE_DIM];
     let mut dense_buf = [0.0f32; DENSE_DIM];
     let n_act = extract_spatial_features_ex(
@@ -267,21 +384,22 @@ pub fn extract_policy_cand_features(
     board_dense[25] = (bump_a as f32) / 16.0;
     board_dense[26] = h1c_a.map_or(-0.5, |c| (c as f32 - 4.5) / 4.5);
     board_dense[27] = h2c_a.map_or(-0.5, |c| (c as f32 - 4.5) / 4.5);
-    board_dense[28] = (dense_buf[18] / 20.0).clamp(-3.0, 3.0); // row_transitions
-    board_dense[29] = (dense_buf[19] / 20.0).clamp(-3.0, 3.0); // col_transitions
-    board_dense[30] = (dense_buf[20] / 4.0).clamp(-3.0, 3.0);  // near_full_9
-    board_dense[31] = (dense_buf[21] / 4.0).clamp(-3.0, 3.0);  // near_full_8
+    board_dense[28] = (dense_buf[18] / 20.0).clamp(-3.0, 3.0);
+    board_dense[29] = (dense_buf[19] / 20.0).clamp(-3.0, 3.0);
+    board_dense[30] = (dense_buf[20] / 4.0).clamp(-3.0, 3.0);
+    board_dense[31] = (dense_buf[21] / 4.0).clamp(-3.0, 3.0);
 
     PolicyCandFeatures {
         sparse,
         board_dense,
         act_feat,
         order_feat,
+        compat_feat,
         bc4_delta,
     }
 }
 
-/// Pure-Rust FiLM Cross-Interaction Ordered-`next5` Root Policy / Ranking Network.
+/// Pure-Rust FiLM Cross-Interaction Ordered-`next5` Root Policy / Ranking Network (v2, compact).
 /// Completely decoupled from frozen BC-4 leaf value evaluator (`SpatialValueModel`).
 #[derive(Clone)]
 pub struct OrderedRootPolicy {
@@ -292,6 +410,7 @@ pub struct OrderedRootPolicy {
 
     pub b_queue: [f32; POL_H1],
     pub w_order: Box<[[f32; POL_H1]; POL_ORDER_DIM]>,
+    pub w_compat: Box<[[f32; POL_H1]; POL_COMPAT_DIM]>,
     /// FiLM multiplicative gate weight `gamma = tanh(w_film * h_queue + b_film)` modulating `h_board`.
     pub b_film: [f32; POL_H1],
     pub w_film: [f32; POL_H1],
@@ -300,6 +419,8 @@ pub struct OrderedRootPolicy {
     pub w2: Box<[[f32; POL_H2]; POL_H1]>,
     pub b3: f32,
     pub w3: [f32; POL_H2],
+    /// Direct linear skip on explicit ordered-slot contour compatibility features.
+    pub w_compat_skip: [f32; POL_COMPAT_DIM],
     /// Learnable skip weight on frozen BC-4 prior (`-bc4_delta`).
     pub w_bc4_skip: f32,
 }
@@ -333,12 +454,14 @@ pub struct PolicyGradBuf {
     pub w_act: Box<[[f32; POL_H1]; POL_ACT_DIM]>,
     pub b_queue: [f32; POL_H1],
     pub w_order: Box<[[f32; POL_H1]; POL_ORDER_DIM]>,
+    pub w_compat: Box<[[f32; POL_H1]; POL_COMPAT_DIM]>,
     pub b_film: [f32; POL_H1],
     pub w_film: [f32; POL_H1],
     pub b2: [f32; POL_H2],
     pub w2: Box<[[f32; POL_H2]; POL_H1]>,
     pub b3: f32,
     pub w3: [f32; POL_H2],
+    pub w_compat_skip: [f32; POL_COMPAT_DIM],
     pub w_bc4_skip: f32,
 }
 
@@ -351,12 +474,14 @@ impl PolicyGradBuf {
             w_act: Box::new([[0.0; POL_H1]; POL_ACT_DIM]),
             b_queue: [0.0; POL_H1],
             w_order: Box::new([[0.0; POL_H1]; POL_ORDER_DIM]),
+            w_compat: Box::new([[0.0; POL_H1]; POL_COMPAT_DIM]),
             b_film: [0.0; POL_H1],
             w_film: [0.0; POL_H1],
             b2: [0.0; POL_H2],
             w2: Box::new([[0.0; POL_H2]; POL_H1]),
             b3: 0.0,
             w3: [0.0; POL_H2],
+            w_compat_skip: [0.0; POL_COMPAT_DIM],
             w_bc4_skip: 0.0,
         }
     }
@@ -368,12 +493,14 @@ impl PolicyGradBuf {
         for row in self.w_act.iter_mut() { row.fill(0.0); }
         self.b_queue.fill(0.0);
         for row in self.w_order.iter_mut() { row.fill(0.0); }
+        for row in self.w_compat.iter_mut() { row.fill(0.0); }
         self.b_film.fill(0.0);
         self.w_film.fill(0.0);
         self.b2.fill(0.0);
         for row in self.w2.iter_mut() { row.fill(0.0); }
         self.b3 = 0.0;
         self.w3.fill(0.0);
+        self.w_compat_skip.fill(0.0);
         self.w_bc4_skip = 0.0;
     }
 
@@ -384,14 +511,27 @@ impl PolicyGradBuf {
         for row in self.w_act.iter_mut() { for x in row.iter_mut() { *x *= s; } }
         for x in &mut self.b_queue { *x *= s; }
         for row in self.w_order.iter_mut() { for x in row.iter_mut() { *x *= s; } }
+        for row in self.w_compat.iter_mut() { for x in row.iter_mut() { *x *= s; } }
         for x in &mut self.b_film { *x *= s; }
         for x in &mut self.w_film { *x *= s; }
         for x in &mut self.b2 { *x *= s; }
         for row in self.w2.iter_mut() { for x in row.iter_mut() { *x *= s; } }
         self.b3 *= s;
         for x in &mut self.w3 { *x *= s; }
+        for x in &mut self.w_compat_skip { *x *= s; }
         self.w_bc4_skip *= s;
     }
+}
+
+/// Masking mode for controlled matched-capacity ablations.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum QueueAblation {
+    /// Matched-capacity Queue-Blind baseline: zero out ordered next5 slots (8..43) AND all compat features.
+    QueueBlind,
+    /// Raw ordered next5 one-hots enabled, explicit contour-compat features zeroed.
+    RawOrdered,
+    /// Full model: BOTH ordered next5 one-hots AND explicit slot-contour compatibility enabled.
+    OrderedCompat,
 }
 
 impl OrderedRootPolicy {
@@ -404,27 +544,19 @@ impl OrderedRootPolicy {
         };
 
         let mut w_sparse = Box::new([[0.0f32; POL_H1]; POL_SPARSE_DIM]);
-        for row in w_sparse.iter_mut() {
-            for x in row.iter_mut() { *x = next_u(0.05); }
-        }
+        for row in w_sparse.iter_mut() { for x in row.iter_mut() { *x = next_u(0.05); } }
         let mut w_bdense = Box::new([[0.0f32; POL_H1]; POL_BOARD_DENSE_DIM]);
-        for row in w_bdense.iter_mut() {
-            for x in row.iter_mut() { *x = next_u(0.12); }
-        }
+        for row in w_bdense.iter_mut() { for x in row.iter_mut() { *x = next_u(0.12); } }
         let mut w_act = Box::new([[0.0f32; POL_H1]; POL_ACT_DIM]);
-        for row in w_act.iter_mut() {
-            for x in row.iter_mut() { *x = next_u(0.12); }
-        }
+        for row in w_act.iter_mut() { for x in row.iter_mut() { *x = next_u(0.12); } }
         let mut w_order = Box::new([[0.0f32; POL_H1]; POL_ORDER_DIM]);
-        for row in w_order.iter_mut() {
-            for x in row.iter_mut() { *x = next_u(0.12); }
-        }
+        for row in w_order.iter_mut() { for x in row.iter_mut() { *x = next_u(0.12); } }
+        let mut w_compat = Box::new([[0.0f32; POL_H1]; POL_COMPAT_DIM]);
+        for row in w_compat.iter_mut() { for x in row.iter_mut() { *x = next_u(0.15); } }
         let mut w_film = [0.0f32; POL_H1];
         for x in &mut w_film { *x = next_u(0.25); }
         let mut w2 = Box::new([[0.0f32; POL_H2]; POL_H1]);
-        for row in w2.iter_mut() {
-            for x in row.iter_mut() { *x = next_u(0.14); }
-        }
+        for row in w2.iter_mut() { for x in row.iter_mut() { *x = next_u(0.16); } }
         let mut w3 = [0.0f32; POL_H2];
         for x in &mut w3 { *x = next_u(0.08); }
 
@@ -435,52 +567,59 @@ impl OrderedRootPolicy {
             w_act,
             b_queue: [0.0; POL_H1],
             w_order,
+            w_compat,
             b_film: [0.0; POL_H1],
             w_film,
             b2: [0.0; POL_H2],
             w2,
             b3: 0.0,
             w3,
+            w_compat_skip: [0.0; POL_COMPAT_DIM],
             w_bc4_skip: 1.0,
         }
     }
 
-    /// Forward pass returning policy preference logit (higher = preferred action).
     #[inline]
-    pub fn forward(&self, f: &PolicyCandFeatures, cache: &mut PolicyForwardCache) -> f32 {
+    pub fn forward(&self, f: &PolicyCandFeatures, ablation: QueueAblation, cache: &mut PolicyForwardCache) -> f32 {
         let mut hb = self.b_board;
         for &bit in &f.sparse {
             let row = &self.w_sparse[bit as usize];
-            for h in 0..POL_H1 {
-                hb[h] += row[h];
-            }
+            for h in 0..POL_H1 { hb[h] += row[h]; }
         }
         for j in 0..POL_BOARD_DENSE_DIM {
             let x = f.board_dense[j];
             if x != 0.0 {
                 let row = &self.w_bdense[j];
-                for h in 0..POL_H1 {
-                    hb[h] += x * row[h];
-                }
+                for h in 0..POL_H1 { hb[h] += x * row[h]; }
             }
         }
         for j in 0..POL_ACT_DIM {
             let x = f.act_feat[j];
             if x != 0.0 {
                 let row = &self.w_act[j];
-                for h in 0..POL_H1 {
-                    hb[h] += x * row[h];
-                }
+                for h in 0..POL_H1 { hb[h] += x * row[h]; }
             }
         }
 
         let mut hq = self.b_queue;
+        let use_order_slots = ablation != QueueAblation::QueueBlind;
+        let use_compat = ablation == QueueAblation::OrderedCompat;
         for j in 0..POL_ORDER_DIM {
+            if !use_order_slots && (8..43).contains(&j) {
+                continue;
+            }
             let x = f.order_feat[j];
             if x != 0.0 {
                 let row = &self.w_order[j];
-                for h in 0..POL_H1 {
-                    hq[h] += x * row[h];
+                for h in 0..POL_H1 { hq[h] += x * row[h]; }
+            }
+        }
+        if use_compat {
+            for j in 0..POL_COMPAT_DIM {
+                let x = f.compat_feat[j];
+                if x != 0.0 {
+                    let row = &self.w_compat[j];
+                    for h in 0..POL_H1 { hq[h] += x * row[h]; }
                 }
             }
         }
@@ -499,13 +638,16 @@ impl OrderedRootPolicy {
             cache.z1[h] = z;
             if z > 0.0 {
                 let row = &self.w2[h];
-                for k in 0..POL_H2 {
-                    h2[k] += z * row[k];
-                }
+                for k in 0..POL_H2 { h2[k] += z * row[k]; }
             }
         }
 
         let mut out = self.b3 - self.w_bc4_skip * f.bc4_delta;
+        if use_compat {
+            for j in 0..POL_COMPAT_DIM {
+                out += self.w_compat_skip[j] * f.compat_feat[j];
+            }
+        }
         for k in 0..POL_H2 {
             let a2 = h2[k].clamp(0.0, 6.0);
             cache.a2[k] = a2;
@@ -516,11 +658,11 @@ impl OrderedRootPolicy {
         out
     }
 
-    /// Exact analytical backward pass accumulating `dL / d theta` given `d_out = dL / d logit`.
     #[inline]
     pub fn backward(
         &self,
         f: &PolicyCandFeatures,
+        ablation: QueueAblation,
         cache: &PolicyForwardCache,
         d_out: f32,
         g: &mut PolicyGradBuf,
@@ -528,8 +670,16 @@ impl OrderedRootPolicy {
         if d_out == 0.0 {
             return;
         }
+        let use_order_slots = ablation != QueueAblation::QueueBlind;
+        let use_compat = ablation == QueueAblation::OrderedCompat;
+
         g.b3 += d_out;
         g.w_bc4_skip += d_out * (-f.bc4_delta);
+        if use_compat {
+            for j in 0..POL_COMPAT_DIM {
+                g.w_compat_skip[j] += d_out * f.compat_feat[j];
+            }
+        }
 
         let mut d_h2 = [0.0f32; POL_H2];
         for k in 0..POL_H2 {
@@ -558,7 +708,6 @@ impl OrderedRootPolicy {
                 let ab = cache.h_board[h];
                 let aq = cache.h_queue[h];
                 let ft = cache.film_tanh[h];
-                // z_pre = ab * (1 + ft) + aq
                 let d_ab = dz * (1.0 + ft);
                 let d_ft = dz * ab;
                 let d_ft_pre = d_ft * (1.0 - ft * ft);
@@ -579,34 +728,38 @@ impl OrderedRootPolicy {
 
         for &bit in &f.sparse {
             let row = &mut g.w_sparse[bit as usize];
-            for h in 0..POL_H1 {
-                row[h] += d_hb[h];
-            }
+            for h in 0..POL_H1 { row[h] += d_hb[h]; }
         }
         for j in 0..POL_BOARD_DENSE_DIM {
             let x = f.board_dense[j];
             if x != 0.0 {
                 let row = &mut g.w_bdense[j];
-                for h in 0..POL_H1 {
-                    row[h] += x * d_hb[h];
-                }
+                for h in 0..POL_H1 { row[h] += x * d_hb[h]; }
             }
         }
         for j in 0..POL_ACT_DIM {
             let x = f.act_feat[j];
             if x != 0.0 {
                 let row = &mut g.w_act[j];
-                for h in 0..POL_H1 {
-                    row[h] += x * d_hb[h];
-                }
+                for h in 0..POL_H1 { row[h] += x * d_hb[h]; }
             }
         }
         for j in 0..POL_ORDER_DIM {
+            if !use_order_slots && (8..43).contains(&j) {
+                continue;
+            }
             let x = f.order_feat[j];
             if x != 0.0 {
                 let row = &mut g.w_order[j];
-                for h in 0..POL_H1 {
-                    row[h] += x * d_hq[h];
+                for h in 0..POL_H1 { row[h] += x * d_hq[h]; }
+            }
+        }
+        if use_compat {
+            for j in 0..POL_COMPAT_DIM {
+                let x = f.compat_feat[j];
+                if x != 0.0 {
+                    let row = &mut g.w_compat[j];
+                    for h in 0..POL_H1 { row[h] += x * d_hq[h]; }
                 }
             }
         }
@@ -614,38 +767,35 @@ impl OrderedRootPolicy {
 
     pub fn save_to_file(&self, path: &str) -> std::io::Result<()> {
         let mut w = BufWriter::new(File::create(path)?);
-        writeln!(w, "ORDERED_POLICY_V1 {} {} {} {} {} {}",
-            POL_SPARSE_DIM, POL_BOARD_DENSE_DIM, POL_ACT_DIM, POL_ORDER_DIM, POL_H1, POL_H2)?;
+        writeln!(
+            w,
+            "ORDERED_POLICY_V2 {} {} {} {} {} {} {}",
+            POL_SPARSE_DIM, POL_BOARD_DENSE_DIM, POL_ACT_DIM, POL_ORDER_DIM, POL_COMPAT_DIM, POL_H1, POL_H2
+        )?;
         writeln!(w, "{:.7} {:.7}", self.b3, self.w_bc4_skip)?;
+        for x in &self.w_compat_skip { write!(w, "{:.6} ", x)?; } writeln!(w)?;
         for x in &self.b_board { write!(w, "{:.6} ", x)?; } writeln!(w)?;
         for x in &self.b_queue { write!(w, "{:.6} ", x)?; } writeln!(w)?;
         for x in &self.b_film { write!(w, "{:.6} ", x)?; } writeln!(w)?;
         for x in &self.w_film { write!(w, "{:.6} ", x)?; } writeln!(w)?;
         for x in &self.b2 { write!(w, "{:.6} ", x)?; } writeln!(w)?;
         for x in &self.w3 { write!(w, "{:.6} ", x)?; } writeln!(w)?;
-        for row in self.w_sparse.iter() {
-            for x in row { write!(w, "{:.6} ", x)?; } writeln!(w)?;
-        }
-        for row in self.w_bdense.iter() {
-            for x in row { write!(w, "{:.6} ", x)?; } writeln!(w)?;
-        }
-        for row in self.w_act.iter() {
-            for x in row { write!(w, "{:.6} ", x)?; } writeln!(w)?;
-        }
-        for row in self.w_order.iter() {
-            for x in row { write!(w, "{:.6} ", x)?; } writeln!(w)?;
-        }
-        for row in self.w2.iter() {
-            for x in row { write!(w, "{:.6} ", x)?; } writeln!(w)?;
-        }
+        for row in self.w_sparse.iter() { for x in row { write!(w, "{:.6} ", x)?; } writeln!(w)?; }
+        for row in self.w_bdense.iter() { for x in row { write!(w, "{:.6} ", x)?; } writeln!(w)?; }
+        for row in self.w_act.iter() { for x in row { write!(w, "{:.6} ", x)?; } writeln!(w)?; }
+        for row in self.w_order.iter() { for x in row { write!(w, "{:.6} ", x)?; } writeln!(w)?; }
+        for row in self.w_compat.iter() { for x in row { write!(w, "{:.6} ", x)?; } writeln!(w)?; }
+        for row in self.w2.iter() { for x in row { write!(w, "{:.6} ", x)?; } writeln!(w)?; }
         w.flush()
     }
 
     pub fn load_from_file(path: &str) -> std::io::Result<Self> {
         let r = BufReader::new(File::open(path)?);
         let mut lines = r.lines();
-        let header = lines.next().ok_or_else(|| std::io::Error::new(std::io::ErrorKind::InvalidData, "empty file"))??;
-        if !header.starts_with("ORDERED_POLICY_V1") {
+        let header = lines
+            .next()
+            .ok_or_else(|| std::io::Error::new(std::io::ErrorKind::InvalidData, "empty file"))??;
+        if !header.starts_with("ORDERED_POLICY_V2") {
             return Err(std::io::Error::new(std::io::ErrorKind::InvalidData, "bad header"));
         }
         let parse_vec = |line: String| -> Vec<f32> {
@@ -655,27 +805,19 @@ impl OrderedRootPolicy {
         let sc = parse_vec(lines.next().unwrap()?);
         mdl.b3 = sc[0];
         mdl.w_bc4_skip = sc[1];
+        mdl.w_compat_skip.copy_from_slice(&parse_vec(lines.next().unwrap()?)[..POL_COMPAT_DIM]);
         mdl.b_board.copy_from_slice(&parse_vec(lines.next().unwrap()?)[..POL_H1]);
         mdl.b_queue.copy_from_slice(&parse_vec(lines.next().unwrap()?)[..POL_H1]);
         mdl.b_film.copy_from_slice(&parse_vec(lines.next().unwrap()?)[..POL_H1]);
         mdl.w_film.copy_from_slice(&parse_vec(lines.next().unwrap()?)[..POL_H1]);
         mdl.b2.copy_from_slice(&parse_vec(lines.next().unwrap()?)[..POL_H2]);
         mdl.w3.copy_from_slice(&parse_vec(lines.next().unwrap()?)[..POL_H2]);
-        for row in mdl.w_sparse.iter_mut() {
-            row.copy_from_slice(&parse_vec(lines.next().unwrap()?)[..POL_H1]);
-        }
-        for row in mdl.w_bdense.iter_mut() {
-            row.copy_from_slice(&parse_vec(lines.next().unwrap()?)[..POL_H1]);
-        }
-        for row in mdl.w_act.iter_mut() {
-            row.copy_from_slice(&parse_vec(lines.next().unwrap()?)[..POL_H1]);
-        }
-        for row in mdl.w_order.iter_mut() {
-            row.copy_from_slice(&parse_vec(lines.next().unwrap()?)[..POL_H1]);
-        }
-        for row in mdl.w2.iter_mut() {
-            row.copy_from_slice(&parse_vec(lines.next().unwrap()?)[..POL_H2]);
-        }
+        for row in mdl.w_sparse.iter_mut() { row.copy_from_slice(&parse_vec(lines.next().unwrap()?)[..POL_H1]); }
+        for row in mdl.w_bdense.iter_mut() { row.copy_from_slice(&parse_vec(lines.next().unwrap()?)[..POL_H1]); }
+        for row in mdl.w_act.iter_mut() { row.copy_from_slice(&parse_vec(lines.next().unwrap()?)[..POL_H1]); }
+        for row in mdl.w_order.iter_mut() { row.copy_from_slice(&parse_vec(lines.next().unwrap()?)[..POL_H1]); }
+        for row in mdl.w_compat.iter_mut() { row.copy_from_slice(&parse_vec(lines.next().unwrap()?)[..POL_H1]); }
+        for row in mdl.w2.iter_mut() { row.copy_from_slice(&parse_vec(lines.next().unwrap()?)[..POL_H2]); }
         Ok(mdl)
     }
 
@@ -715,7 +857,7 @@ mod tests {
     #[test]
     fn test_ordered_policy_zero_future_peeking_beyond_p5() {
         let s6 = dummy_state(vec![0, 1, 2, 3, 4, 5]);
-        let s10 = dummy_state(vec![0, 1, 2, 3, 4, 5, 6, 6, 0, 1]); // extra hidden pieces MUST be ignored
+        let s10 = dummy_state(vec![0, 1, 2, 3, 4, 5, 6, 6, 0, 1]);
         let fp = FastPlace {
             color_idx: 0,
             tf: (2, 4, crate::Orientation::R0),
@@ -726,14 +868,13 @@ mod tests {
         let f6 = extract_policy_cand_features(&s6, fp, &s6.board, 0, 0, 0.2);
         let f10 = extract_policy_cand_features(&s10, fp, &s10.board, 0, 0, 0.2);
         assert_eq!(f6.order_feat, f10.order_feat, "must strictly ignore pieces beyond cur+next5");
-        assert_eq!(f6.act_feat, f10.act_feat);
-        assert_eq!(f6.board_dense, f10.board_dense);
+        assert_eq!(f6.compat_feat, f10.compat_feat, "compat_feat must strictly ignore pieces beyond cur+next5");
     }
 
     #[test]
-    fn test_ordered_policy_sequence_sensitivity() {
-        let s_a = dummy_state(vec![0, 1, 2, 3, 4, 5]);
-        let s_b = dummy_state(vec![0, 5, 4, 3, 2, 1]); // same multiset, reversed next5 order!
+    fn test_ordered_policy_sequence_sensitivity_and_queue_blind_invariance() {
+        let s_a = dummy_state(vec![0, 3, 0, 5, 4, 2]); // O at q0, I at q1
+        let s_b = dummy_state(vec![0, 0, 3, 5, 4, 2]); // Legal in-bag swap: I at q0, O at q1
         let fp = FastPlace {
             color_idx: 0,
             tf: (2, 4, crate::Orientation::R0),
@@ -743,14 +884,21 @@ mod tests {
         };
         let fa = extract_policy_cand_features(&s_a, fp, &s_a.board, 0, 0, 0.2);
         let fb = extract_policy_cand_features(&s_b, fp, &s_b.board, 0, 0, 0.2);
-        assert_ne!(fa.order_feat, fb.order_feat, "reordering next5 MUST change order_feat");
+        assert_ne!(fa.order_feat, fb.order_feat);
+        assert_ne!(fa.compat_feat, fb.compat_feat, "swapping I and O between q0 and q1 MUST change compat_feat");
 
         let pol = OrderedRootPolicy::new_random(42);
         let mut ca = PolicyForwardCache::default();
         let mut cb = PolicyForwardCache::default();
-        let la = pol.forward(&fa, &mut ca);
-        let lb = pol.forward(&fb, &mut cb);
-        assert!((la - lb).abs() > 1e-5, "reordering next5 MUST change policy logit (got {} vs {})", la, lb);
+        // QueueBlind MUST be 100% invariant to swapping q0 and q1!
+        let la_blind = pol.forward(&fa, QueueAblation::QueueBlind, &mut ca);
+        let lb_blind = pol.forward(&fb, QueueAblation::QueueBlind, &mut cb);
+        assert!((la_blind - lb_blind).abs() < 1e-6, "QueueBlind must ignore next5 swaps");
+
+        // OrderedCompat MUST respond to swapping q0 and q1!
+        let la_ord = pol.forward(&fa, QueueAblation::OrderedCompat, &mut ca);
+        let lb_ord = pol.forward(&fb, QueueAblation::OrderedCompat, &mut cb);
+        assert!((la_ord - lb_ord).abs() > 1e-5, "OrderedCompat must respond to in-bag next5 swap");
     }
 
     #[test]
@@ -771,20 +919,19 @@ mod tests {
 
         let mut pol = OrderedRootPolicy::new_random(7);
         let mut cache = PolicyForwardCache::default();
-        let _ = pol.forward(&feat, &mut cache);
+        let _ = pol.forward(&feat, QueueAblation::OrderedCompat, &mut cache);
         let mut g = PolicyGradBuf::new();
-        pol.backward(&feat, &cache, 1.0, &mut g);
+        pol.backward(&feat, QueueAblation::OrderedCompat, &cache, 1.0, &mut g);
 
         let eps = 1e-3f32;
-        // Check w_film[0], w_order[8][0], w_act[0][0], w3[0], w_bc4_skip
         let check = |pol: &mut OrderedRootPolicy, getter: fn(&mut OrderedRootPolicy) -> &mut f32, ana: f32, name: &str| {
             let orig = *getter(pol);
             let mut c1 = PolicyForwardCache::default();
             let mut c2 = PolicyForwardCache::default();
             *getter(pol) = orig + eps;
-            let p1 = pol.forward(&feat, &mut c1);
+            let p1 = pol.forward(&feat, QueueAblation::OrderedCompat, &mut c1);
             *getter(pol) = orig - eps;
-            let p2 = pol.forward(&feat, &mut c2);
+            let p2 = pol.forward(&feat, QueueAblation::OrderedCompat, &mut c2);
             *getter(pol) = orig;
             let num = (p1 - p2) / (2.0 * eps);
             assert!(
@@ -797,10 +944,10 @@ mod tests {
         };
 
         check(&mut pol, |p| &mut p.w_bc4_skip, g.w_bc4_skip, "w_bc4_skip");
-        check(&mut pol, |p| &mut p.b3, g.b3, "b3");
-        check(&mut pol, |p| &mut p.w3[0], g.w3[0], "w3[0]");
+        check(&mut pol, |p| &mut p.w_compat_skip[6], g.w_compat_skip[6], "w_compat_skip");
+        check(&mut pol, |p| &mut p.w_compat[6][0], g.w_compat[6][0], "w_compat");
         check(&mut pol, |p| &mut p.w_film[0], g.w_film[0], "w_film[0]");
         check(&mut pol, |p| &mut p.w_order[8 + 2][0], g.w_order[8 + 2][0], "w_order");
-        check(&mut pol, |p| &mut p.w_act[0][0], g.w_act[0][0], "w_act");
+        check(&mut pol, |p| &mut p.w3[0], g.w3[0], "w3[0]");
     }
 }
