@@ -1,17 +1,17 @@
-RUNNING commit=47e7b3af heartbeat=2026-11-27T08:13:37Z cores=8
+RUNNING commit=47e7b3af heartbeat=2026-11-27T08:15:38Z cores=8
 --- tail /tmp/colab_run.log ---
-warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
-    Finished `release` profile [optimized] target(s) in 8.19s
-
---- [1/3] Training SpatialValueModel with True Same-State Sibling CRN Q-Advantage PI ---
-================================================================
- Pure Rust True Same-State Sibling-Action CRN Q-Advantage PI
- init=models/spatial_bc4.txt out=/tmp/spatial_sibq_v1.txt rounds=5 games/rd=28 states/g=5 K=8 W=8 dG=14
- outer_beam=16 roll_beam=10 val=60 sparse_lim=1591 epochs=8 bs=24 tau=0.60/0.60 w_ce=1.00 w_adv=0.60
- lr_lin=3.0e-4 lr_mlp=1.5e-4 anchor_wd=2.0e-4 threads=8
-================================================================
-[Round 0 BASE] val=60/60 top=0 mean=214.45 [193..254] (9.3s)
-[Round  1/5] outer=215.25(28/28) states=140 crn_disagree=88.6% crn_gain=0.393pc | ce=2.6788 adv=0.3117 top1=11.4% (213.9s+0.2s) | VAL=59/60 top=1 mean=230.76 [203..285] 
 [Round  2/5] outer=230.57(28/28) states=140 crn_disagree=86.4% crn_gain=0.497pc | ce=2.4279 adv=0.2739 top1=14.3% (214.2s+0.5s) | VAL=0/60 top=60 mean=999.00 [18446744073709551615..0] 
 [Round  3/5] outer=999.00(0/28) states=60 crn_disagree=91.7% crn_gain=1.393pc | ce=2.3578 adv=0.4838 top1=14.0% (104.2s+0.4s) | VAL=0/60 top=60 mean=999.00 [18446744073709551615..0] 
 [Round  4/5] outer=999.00(0/28) states=59 crn_disagree=88.1% crn_gain=2.210pc | ce=2.4087 adv=1.1958 top1=12.6% (96.7s+0.2s) | VAL=2/60 top=58 mean=350.50 [350..351] 
+[Round  5/5] outer=310.00(1/28) states=103 crn_disagree=90.3% crn_gain=1.103pc | ce=2.4093 adv=0.9713 top1=14.8% (173.1s+0.3s) | VAL=0/60 top=60 mean=999.00 [18446744073709551615..0] 
+=== DONE SIBLING-Q PI: base_val=214.45 (top=0) -> best_val=214.45 (top=0) | saved /tmp/spatial_sibq_v1.txt ===
+
+--- [2/3] Uploading spatial_sibq_v1 checkpoints to Release model-spatial-sibq-v1 ---
+Uploading spatial_sibq_v1.txt (1.08 MB) to release tag 'model-spatial-sibq-v1'...
+Created release id=460318960 (https://github.com/jush0147/blockfish/releases/tag/model-spatial-sibq-v1)
+UPLOAD SUCCESS: https://github.com/jush0147/blockfish/releases/download/model-spatial-sibq-v1/spatial_sibq_v1.txt (1133787 bytes)
+Uploading spatial_sibq_v1_last.txt (1.09 MB) to release tag 'model-spatial-sibq-v1'...
+Found existing release id=460318960 (https://github.com/jush0147/blockfish/releases/tag/model-spatial-sibq-v1)
+UPLOAD SUCCESS: https://github.com/jush0147/blockfish/releases/download/model-spatial-sibq-v1/spatial_sibq_v1_last.txt (1143544 bytes)
+
+--- [3/3] STRICT SAME-BINARY fullmlp_w16 A/B (5 seeds 101..=105): bc4 vs sibq_v1 ---
