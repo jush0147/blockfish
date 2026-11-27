@@ -1,6 +1,5 @@
-RUNNING commit=dffeb60a heartbeat=2026-11-27T12:38:16Z cores=8
+RUNNING commit=dffeb60a heartbeat=2026-11-27T12:40:19Z cores=8
 --- tail /tmp/colab_run.log ---
-warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
    Compiling blockfish v0.1.0 (/content/blockfish/blockfish-engine)
     Finished `release` profile [optimized] target(s) in 2.60s
 
@@ -15,3 +14,4 @@ warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockf
 [Round  1/6] outer=214.56(32/32) states=160 crn_disagree=51.9% crn_gain=0.832pc | ce=1.7669 adv=1.8119 top1=46.2% (164.7s+0.2s) | VAL=60/60 top=0 mean=215.92 [190..258] 
 [Round  2/6] outer=217.44(32/32) states=160 crn_disagree=51.2% crn_gain=0.863pc | ce=1.7004 adv=1.9071 top1=47.8% (167.0s+0.4s) | VAL=60/60 top=0 mean=221.08 [201..259] 
 [Round  3/6] outer=224.22(32/32) states=160 crn_disagree=50.0% crn_gain=0.861pc | ce=1.7183 adv=1.9993 top1=45.0% (170.9s+0.4s) | VAL=59/60 top=1 mean=227.49 [192..272] 
+[Round  4/6] outer=224.31(32/32) states=160 crn_disagree=46.9% crn_gain=0.996pc | ce=1.7649 adv=2.2965 top1=45.9% (171.2s+0.4s) | VAL=60/60 top=0 mean=227.02 [201..259] 
