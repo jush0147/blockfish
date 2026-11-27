@@ -62,6 +62,7 @@ env:
 jobs:
   plan:
     name: Plan & Verify Pinned Baseline
+    if: ${{ !startsWith(inputs.batch_id, 'archive-') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:
@@ -219,7 +220,7 @@ jobs:
   summarize:
     name: Aggregate & Summarize Batch
     needs: [plan, simulate]
-    if: always()
+    if: ${{ always() && !startsWith(inputs.batch_id, 'archive-') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -252,3 +253,138 @@ jobs:
           name: bc4-mass-legal-${{ needs.plan.outputs.batch_id }}-run-${{ github.run_id }}-summary
           path: batch_summary/
           retention-days: 90
+
+  archive:
+    name: Archive Milestone to Independent GitHub Release
+    if: ${{ startsWith(inputs.batch_id, 'archive-') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Verify pinned core files & model SHA-256
+        run: |
+          set -euo pipefail
+          echo "$PINNED_MODEL_SHA256  models/spatial_bc4.txt" | sha256sum -c -
+          echo "$PINNED_BEAM_SHA256  blockfish-engine/src/ai/beam.rs" | sha256sum -c -
+          echo "$PINNED_SPATIAL_VAL_SHA256  blockfish-engine/src/ai/spatial_val.rs" | sha256sum -c -
+          echo "$PINNED_GUIDELINE_SHA256  support/guideline.json" | sha256sum -c -
+
+      - name: Download artifacts, verify, and publish independent Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BATCH_ID: ${{ inputs.batch_id }}
+          RUN_IDS: ${{ inputs.explicit_seeds }}
+          SEED_START: ${{ inputs.seed_start }}
+          SEED_COUNT: ${{ inputs.seed_count }}
+        run: |
+          set -euo pipefail
+          SUFFIX="${BATCH_ID#archive-}"
+          TAG="bc4-mass-legal-${SUFFIX}"
+          if gh release view "$TAG" -R "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            echo "FATAL: Release $TAG already exists; refusing to overwrite."
+            exit 1
+          fi
+
+          mkdir -p archive_work/artifacts archive_work/report archive_work/release/manifests archive_work/release/replays
+          SEED_END=$((SEED_START + SEED_COUNT - 1))
+          python3 scripts/bc4_mass_legal/collect_runs.py \
+            --repo "${GITHUB_REPOSITORY}" \
+            --run-ids "${RUN_IDS}" \
+            --work-dir archive_work/artifacts \
+            --out-dir archive_work/report \
+            --seed-range "${SEED_START}:${SEED_END}"
+
+          REL="archive_work/release"
+          PREFIX="bc4_mass_legal_${SUFFIX}"
+          cp archive_work/report/cumulative_results.jsonl "${REL}/${PREFIX}_merged.jsonl"
+          cp archive_work/report/cumulative_summary.json "${REL}/${PREFIX}_summary.json"
+          cp archive_work/report/cumulative_summary.md "${REL}/${PREFIX}_summary.md"
+
+          IFS=',' read -ra RIDS <<< "${RUN_IDS}"
+          for rid in "${RIDS[@]}"; do
+            rid="$(echo "$rid" | xargs)"
+            for d in "archive_work/artifacts/run_${rid}"/*-shard-*; do
+              [ -d "$d" ] || continue
+              name="$(basename "$d")"
+              if [ -f "$d/manifest.json" ]; then
+                cp "$d/manifest.json" "${REL}/manifests/${name}_manifest.json"
+              fi
+              if [ -d "$d/replays" ]; then
+                for rf in "$d/replays"/*.replay.json; do
+                  [ -f "$rf" ] && cp "$rf" "${REL}/replays/$(basename "$rf")"
+                done
+              fi
+            done
+          done
+
+          tar -czf "${REL}/${PREFIX}_manifests.tar.gz" -C "${REL}" manifests
+          tar -czf "${REL}/${PREFIX}_replays.tar.gz" -C "${REL}" replays
+
+          N_GAMES=$(wc -l < "${REL}/${PREFIX}_merged.jsonl")
+          N_MAN=$(ls "${REL}/manifests" | wc -l)
+          N_REP=$(ls "${REL}/replays" | wc -l)
+          PB=$(python3 -c "import json; print(json.load(open('${REL}/${PREFIX}_summary.json'))['overall']['min_pieces'])")
+
+          cat > "${REL}/PROVENANCE_AND_CHECKSUMS.txt" <<EOF
+          BC-4 Mass Legal 100L Cheese Race Simulation — Milestone ${SUFFIX} Archive
+          =========================================================================
+
+          Record Type: local_legal_sim_block_stacker (distinct from Jstris official leaderboard)
+          Experiment Branch: ${GITHUB_REF_NAME}
+          Experiment Commit: ${GITHUB_SHA}
+          Pinned Baseline Commit (read-only from rescue/independent-validation-20261116):
+            ${PINNED_BASELINE_COMMIT}
+
+          Pinned Core File SHA-256 Checksums:
+            ${PINNED_MODEL_SHA256}  models/spatial_bc4.txt
+            ${PINNED_BEAM_SHA256}  blockfish-engine/src/ai/beam.rs
+            ${PINNED_SPATIAL_VAL_SHA256}  blockfish-engine/src/ai/spatial_val.rs
+            ${PINNED_GUIDELINE_SHA256}  support/guideline.json
+
+          Locked Search Configuration:
+            Engine: beam.rs (REAL FULL-MLP; spatial_rerank_only=false, spatial_no_pe_internal=false)
+            Legal Preview: p=5 (assert snap.queue.len() <= 6 on every move)
+            Root PIMC: w=16, h=8, b=28, roots=32, fine_roots=10, cvar_pct=25, margin=500, weight_pct=100
+            Base Beam: beam_width=80, max_per_root=16, bag_det_extend=true, endgame_solver=true, simulate_cheese_spawn=true
+            Simulator: block-stacker (Ruleset::guideline, 10x25, 20 visible, 100L cheese min_h=4 max_h=9, Pcg64Mcg::seed_from_u64)
+
+          Included GitHub Actions Run IDs: ${RUN_IDS}
+          Total Valid Unique Seeds: ${N_GAMES} | Manifests: ${N_MAN} | Replays: ${N_REP} | PB: ${PB} pieces
+
+          Reproducibility Instructions:
+            1. git checkout ${GITHUB_SHA}
+            2. Verify core file SHA-256 checksums above.
+            3. cargo build --release -p blockfish --features race --example bc4_mass_legal
+            4. Verify any replay move-for-move:
+                 python3 scripts/bc4_mass_legal/verify_replay.py replays/<replay_file>.replay.json
+
+          Release Asset SHA-256 Checksums:
+          EOF
+          (cd "${REL}" && sha256sum \
+            "${PREFIX}_merged.jsonl" \
+            "${PREFIX}_summary.json" \
+            "${PREFIX}_summary.md" \
+            "${PREFIX}_manifests.tar.gz" \
+            "${PREFIX}_replays.tar.gz") >> "${REL}/PROVENANCE_AND_CHECKSUMS.txt"
+
+          gh release create "$TAG" \
+            -R "${GITHUB_REPOSITORY}" \
+            --target "${GITHUB_REF_NAME}" \
+            --prerelease \
+            --title "BC-4 Mass Legal 100L Simulation — ${N_GAMES} Seeds (PB ${PB})" \
+            --notes-file "${REL}/${PREFIX}_summary.md" \
+            "${REL}/${PREFIX}_merged.jsonl" \
+            "${REL}/${PREFIX}_summary.json" \
+            "${REL}/${PREFIX}_summary.md" \
+            "${REL}/${PREFIX}_manifests.tar.gz" \
+            "${REL}/${PREFIX}_replays.tar.gz" \
+            "${REL}/PROVENANCE_AND_CHECKSUMS.txt"
+
+          cat "${REL}/${PREFIX}_summary.md" >> "$GITHUB_STEP_SUMMARY"
+
