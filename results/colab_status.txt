@@ -1,9 +1,5 @@
-RUNNING commit=47e7b3af heartbeat=2026-11-27T08:23:45Z cores=8
+RUNNING commit=47e7b3af heartbeat=2026-11-27T08:25:47Z cores=8
 --- tail /tmp/colab_run.log ---
-[Round  2/5] outer=230.57(28/28) states=140 crn_disagree=86.4% crn_gain=0.497pc | ce=2.4279 adv=0.2739 top1=14.3% (214.2s+0.5s) | VAL=0/60 top=60 mean=999.00 [18446744073709551615..0] 
-[Round  3/5] outer=999.00(0/28) states=60 crn_disagree=91.7% crn_gain=1.393pc | ce=2.3578 adv=0.4838 top1=14.0% (104.2s+0.4s) | VAL=0/60 top=60 mean=999.00 [18446744073709551615..0] 
-[Round  4/5] outer=999.00(0/28) states=59 crn_disagree=88.1% crn_gain=2.210pc | ce=2.4087 adv=1.1958 top1=12.6% (96.7s+0.2s) | VAL=2/60 top=58 mean=350.50 [350..351] 
-[Round  5/5] outer=310.00(1/28) states=103 crn_disagree=90.3% crn_gain=1.103pc | ce=2.4093 adv=0.9713 top1=14.8% (173.1s+0.3s) | VAL=0/60 top=60 mean=999.00 [18446744073709551615..0] 
 === DONE SIBLING-Q PI: base_val=214.45 (top=0) -> best_val=214.45 (top=0) | saved /tmp/spatial_sibq_v1.txt ===
 
 --- [2/3] Uploading spatial_sibq_v1 checkpoints to Release model-spatial-sibq-v1 ---
@@ -15,3 +11,7 @@ Found existing release id=460318960 (https://github.com/jush0147/blockfish/relea
 UPLOAD SUCCESS: https://github.com/jush0147/blockfish/releases/download/model-spatial-sibq-v1/spatial_sibq_v1_last.txt (1143544 bytes)
 
 --- [3/3] STRICT SAME-BINARY fullmlp_w16 A/B (5 seeds 101..=105): bc4 vs sibq_v1 ---
+  [seed 102] pcs=184 nds=62 0ds=84 (cov=24 O=20 nar= 7 wide=30 end= 3) cov_nxt=15.0% | 617.1s
+  [seed 103] pcs=176 nds=59 0ds=76 (cov=25 O=19 nar= 7 wide=19 end= 6) cov_nxt=12.0% | 628.1s
+  [seed 101] pcs=180 nds=61 0ds=80 (cov=25 O=19 nar= 9 wide=24 end= 3) cov_nxt=17.0% | 633.1s
+  [seed 104] pcs=188 nds=64 0ds=88 (cov=24 O=21 nar=11 wide=28 end= 4) cov_nxt=18.0% | 636.0s
