@@ -1,0 +1,254 @@
+name: BC-4 Mass Legal 100L Simulation (Isolated)
+
+# STRICT TRIGGER ISOLATION:
+# Only manual workflow_dispatch is permitted.
+# No push, pull_request, schedule, workflow_run, workflow_call, or repository_dispatch.
+on:
+  workflow_dispatch:
+    inputs:
+      batch_id:
+        description: "Unique batch identifier (e.g., smoke-001, batch-001)"
+        required: true
+        type: string
+        default: "batch-001"
+      seed_start:
+        description: "Starting seed (inclusive, u64). Ignored if explicit_seeds is set."
+        required: true
+        type: string
+        default: "100001"
+      seed_count:
+        description: "Total number of seeds in this batch. Ignored if explicit_seeds is set."
+        required: true
+        type: string
+        default: "200"
+      num_shards:
+        description: "Number of parallel runner shards (1..20 for public repo)"
+        required: true
+        type: string
+        default: "20"
+      explicit_seeds:
+        description: "Optional comma-separated seed list (for targeted reruns of missing seeds)"
+        required: false
+        type: string
+        default: ""
+      replay_threshold:
+        description: "Save full move-by-move replay JSON for all completed games <= N pieces"
+        required: false
+        type: string
+        default: "176"
+      max_minutes_per_shard:
+        description: "Graceful time guard per shard in minutes (must be < 330)"
+        required: false
+        type: string
+        default: "295"
+
+permissions:
+  contents: read
+
+# STRICT CONCURRENCY ISOLATION:
+# Unique prefix `bc4-mass-legal-`, keyed by batch_id (or run_id).
+# cancel-in-progress: false so launching a new batch NEVER cancels running batches.
+concurrency:
+  group: bc4-mass-legal-${{ inputs.batch_id || github.run_id }}
+  cancel-in-progress: false
+
+env:
+  PINNED_BASELINE_COMMIT: "939cb506a2e5fb9e86f289b86a51162d05afbf2d"
+  PINNED_MODEL_SHA256: "d99ae1f07e629e95e115f30fb3e46fecee20eb3d14c5b9e2a94dc52da1238412"
+  PINNED_BEAM_SHA256: "31ae4072dfe51ac9e3cd6aaed13bf329c028553a32af3384c7f6f116e99fb09f"
+  PINNED_SPATIAL_VAL_SHA256: "5cc76e71265aba86c065957e6f5226b9b676503e149ee92bf5e010a36e7077c1"
+  PINNED_GUIDELINE_SHA256: "b196f65f0a1a748f2194c9b36a7006259a1cb0fa6ee5321f1fb9ef6197115c5e"
+
+jobs:
+  plan:
+    name: Plan & Verify Pinned Baseline
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      matrix: ${{ steps.make_matrix.outputs.matrix }}
+      batch_id: ${{ steps.make_matrix.outputs.batch_id }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Verify pinned core files & model SHA-256
+        run: |
+          set -euo pipefail
+          check_sha() {
+            local file="$1"
+            local expected="$2"
+            local actual
+            actual="$(sha256sum "$file" | awk '{print $1}')"
+            if [ "$actual" != "$expected" ]; then
+              echo "FATAL: SHA-256 mismatch for $file"
+              echo "  expected: $expected"
+              echo "  actual:   $actual"
+              exit 1
+            fi
+            echo "OK: $file ($actual)"
+          }
+          check_sha "models/spatial_bc4.txt" "$PINNED_MODEL_SHA256"
+          check_sha "blockfish-engine/src/ai/beam.rs" "$PINNED_BEAM_SHA256"
+          check_sha "blockfish-engine/src/ai/spatial_val.rs" "$PINNED_SPATIAL_VAL_SHA256"
+          check_sha "support/guideline.json" "$PINNED_GUIDELINE_SHA256"
+
+      - name: Build non-overlapping shard matrix
+        id: make_matrix
+        shell: python3 {0}
+        run: |
+          import json, os, re
+
+          batch_id = os.environ.get("INPUT_BATCH_ID", "").strip()
+          if not re.match(r"^[A-Za-z0-9._-]+$", batch_id):
+              raise SystemExit(f"Invalid batch_id: {batch_id!r}")
+
+          explicit_raw = os.environ.get("INPUT_EXPLICIT_SEEDS", "").strip()
+          num_shards = max(1, min(20, int(os.environ.get("INPUT_NUM_SHARDS", "20"))))
+
+          shards = []
+          if explicit_raw:
+              seeds = sorted({int(x.strip()) for x in explicit_raw.split(",") if x.strip()})
+              if not seeds:
+                  raise SystemExit("explicit_seeds was non-empty but parsed 0 seeds")
+              k = min(num_shards, len(seeds))
+              for idx in range(k):
+                  sub = seeds[idx::k]
+                  shards.append({
+                      "shard_id": idx,
+                      "mode": "list",
+                      "seeds_arg": ",".join(str(s) for s in sub),
+                      "count": len(sub),
+                  })
+          else:
+              seed_start = int(os.environ.get("INPUT_SEED_START", "100001"))
+              seed_count = int(os.environ.get("INPUT_SEED_COUNT", "200"))
+              if seed_count <= 0:
+                  raise SystemExit("seed_count must be > 0")
+              k = min(num_shards, seed_count)
+              base = seed_count // k
+              rem = seed_count % k
+              cur = seed_start
+              for idx in range(k):
+                  sz = base + (1 if idx < rem else 0)
+                  s0 = cur
+                  s1 = cur + sz - 1
+                  cur += sz
+                  shards.append({
+                      "shard_id": idx,
+                      "mode": "range",
+                      "seed_start": s0,
+                      "seed_end": s1,
+                      "count": sz,
+                  })
+
+          matrix_json = json.dumps({"include": shards}, separators=(",", ":"))
+          print("Generated shard matrix:", matrix_json)
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
+              f.write(f"matrix={matrix_json}\n")
+              f.write(f"batch_id={batch_id}\n")
+        env:
+          INPUT_BATCH_ID: ${{ inputs.batch_id }}
+          INPUT_SEED_START: ${{ inputs.seed_start }}
+          INPUT_SEED_COUNT: ${{ inputs.seed_count }}
+          INPUT_NUM_SHARDS: ${{ inputs.num_shards }}
+          INPUT_EXPLICIT_SEEDS: ${{ inputs.explicit_seeds }}
+
+  simulate:
+    name: Shard ${{ matrix.shard_id }} (${{ matrix.count }} seeds)
+    needs: [plan]
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Verify pinned core files & model SHA-256
+        run: |
+          set -euo pipefail
+          echo "$PINNED_MODEL_SHA256  models/spatial_bc4.txt" | sha256sum -c -
+          echo "$PINNED_BEAM_SHA256  blockfish-engine/src/ai/beam.rs" | sha256sum -c -
+          echo "$PINNED_SPATIAL_VAL_SHA256  blockfish-engine/src/ai/spatial_val.rs" | sha256sum -c -
+          echo "$PINNED_GUIDELINE_SHA256  support/guideline.json" | sha256sum -c -
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: bc4-mass-legal
+
+      - name: Build pinned BC-4 Mass Legal simulator
+        run: cargo build --release -p blockfish --features race --example bc4_mass_legal
+
+      - name: Run BC-4 Legal p=5 REAL FULL-MLP simulations
+        run: |
+          set -euo pipefail
+          OUT_DIR="bc4_shard_out/shard_${{ matrix.shard_id }}"
+          mkdir -p "$OUT_DIR/replays"
+          ARGS=(
+            --output "$OUT_DIR/results.jsonl"
+            --manifest "$OUT_DIR/manifest.json"
+            --replay-dir "$OUT_DIR/replays"
+            --replay-threshold "${{ inputs.replay_threshold }}"
+            --batch-id "${{ needs.plan.outputs.batch_id }}"
+            --shard-id "${{ matrix.shard_id }}"
+            --runner-job-id "${GITHUB_RUN_ID}/shard-${{ matrix.shard_id }}"
+            --git-commit "${GITHUB_SHA}"
+            --max-minutes "${{ inputs.max_minutes_per_shard }}"
+          )
+          if [ "${{ matrix.mode }}" = "list" ]; then
+            ARGS+=(--seeds "${{ matrix.seeds_arg }}")
+          else
+            ARGS+=(--seed-start "${{ matrix.seed_start }}" --seed-end "${{ matrix.seed_end }}")
+          fi
+          ./target/release/examples/bc4_mass_legal "${ARGS[@]}"
+
+      - name: Upload shard results & replays
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bc4-mass-legal-${{ needs.plan.outputs.batch_id }}-run-${{ github.run_id }}-shard-${{ matrix.shard_id }}
+          path: bc4_shard_out/shard_${{ matrix.shard_id }}/
+          retention-days: 90
+          if-no-files-found: warn
+
+  summarize:
+    name: Aggregate & Summarize Batch
+    needs: [plan, simulate]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Download all shard artifacts from this run
+        uses: actions/download-artifact@v4
+        with:
+          pattern: bc4-mass-legal-${{ needs.plan.outputs.batch_id }}-run-${{ github.run_id }}-shard-*
+          path: collected_shards
+          merge-multiple: false
+
+      - name: Aggregate & compute statistics
+        run: |
+          set -euo pipefail
+          mkdir -p batch_summary
+          python3 scripts/bc4_mass_legal/aggregate.py \
+            --input-dir collected_shards \
+            --out-json batch_summary/summary.json \
+            --out-md batch_summary/summary.md \
+            --out-merged-jsonl batch_summary/merged_results.jsonl
+          cat batch_summary/summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload batch summary artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bc4-mass-legal-${{ needs.plan.outputs.batch_id }}-run-${{ github.run_id }}-summary
+          path: batch_summary/
+          retention-days: 90
