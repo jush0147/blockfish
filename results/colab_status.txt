@@ -1,17 +1,1 @@
-RUNNING commit=b273ea1c heartbeat=2026-11-27T03:35:26Z cores=8
---- tail /tmp/colab_run.log ---
-   |                  ^^^^^                          ^^^^^^^^ the same lifetime is hidden here
-   |                  |
-   |                  the lifetime is elided here
-   |
-   = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
-   = note: `#[warn(mismatched_lifetime_syntaxes)]` on by default
-help: use `'_` for type paths
-   |
-16 |     pub fn shape(&self, color: Color) -> Option<ShapeRef<'_>> {
-   |                                                         ++++
-
-warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
-    Finished `release` profile [optimized] target(s) in 7.86s
-
---- Running es_v3_combo (bc4 base, ens50 bc4+esv3, esv3+bc4cov115) ---
+RUNNING commit=11bdb27e started=2026-11-27T03:37:59Z cores=8
