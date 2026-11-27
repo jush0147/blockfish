@@ -176,6 +176,15 @@ impl FastAI {
             .search(&self.shape_table, snapshot, ctx, &self.beam_config)
     }
 
+    pub fn best_move_with_ctx(
+        &mut self,
+        snapshot: &Snapshot,
+        ctx: GameContext,
+    ) -> Option<BeamResult> {
+        self.searcher
+            .search(&self.shape_table, snapshot, ctx, &self.beam_config)
+    }
+
     pub fn inputs_for_place(
         &mut self,
         matrix: &BasicMatrix,

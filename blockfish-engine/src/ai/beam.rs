@@ -190,6 +190,9 @@ pub struct BeamConfig {
     pub stage1_weights: Option<EvalWeights>,
     pub root_pimc_d2_top_k: usize,
     pub root_pimc_opaque_after_d: usize,
+    /// Optional 1-ply pre-spawn BC-4 prior weight in percent (`0` = disabled, bit-identical default).
+    /// Adds `(root_step1_prior_pct * (V_1ply(a) - min_k V_1ply)) / 100` to `pimc_scores[a]` (exact x100 scale).
+    pub root_step1_prior_pct: i64,
 }
 
 impl Default for BeamConfig {
@@ -246,6 +249,7 @@ impl Default for BeamConfig {
             stage1_weights: None,
             root_pimc_d2_top_k: 0,
             root_pimc_opaque_after_d: 0,
+            root_step1_prior_pct: 0,
         }
     }
 }
@@ -1417,6 +1421,53 @@ impl BeamSearcher {
                     } else {
                         mean_sc
                     };
+                }
+
+                // Opt-in 1-ply pre-spawn BC-4 prior (0 = completely disabled, bit-identical default)
+                if cfg.root_step1_prior_pct > 0 && eval_k >= 2 {
+                    let mut s1_pre = [0i64; 32];
+                    let mut min_s1 = i64::MAX;
+                    let lim_k = eval_k.min(32);
+                    for ai in 0..lim_k {
+                        let fp = self.root_places[candidates[fine_roots[ai].0].0 as usize];
+                        let mut b_pre = root_board;
+                        let o0 = &self.fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
+                        let (_l0, ds0, _) = b_pre.place_and_sift(o0, fp.norm_i, fp.norm_j);
+                        let rem1 = rem_g0.saturating_sub(ds0 as u16);
+                        let (held1, qc1) = if hold0.is_some() {
+                            if fp.did_hold {
+                                (cur0, if cur0.is_some() { 1 } else { 0 })
+                            } else {
+                                (hold0, 1.min(q_len))
+                            }
+                        } else if fp.did_hold {
+                            (cur0, 2.min(q_len))
+                        } else {
+                            (None, 1.min(q_len))
+                        };
+                        let ih1 = Self::hand_piece(held1, qc1, &q[..q_len]);
+                        let av1 = Self::avail_mask_from_q(held1, qc1, &q[..q_len], bag_mask);
+                        let sc1 = if rem1 == 0 && b_pre.rows < 20 {
+                            -15_000_000
+                        } else {
+                            Self::eval_state(&b_pre, rem1, ih1, av1, cfg)
+                        };
+                        s1_pre[ai] = sc1;
+                        if sc1 > -10_000_000 && sc1 < min_s1 {
+                            min_s1 = sc1;
+                        }
+                    }
+                    if min_s1 < i64::MAX {
+                        for ai in 0..lim_k {
+                            if pimc_scores[ai] > -10_000_000
+                                && pimc_scores[ai] < 4_000_000
+                                && s1_pre[ai] > -10_000_000
+                            {
+                                pimc_scores[ai] +=
+                                    (cfg.root_step1_prior_pct * (s1_pre[ai] - min_s1)) / 100;
+                            }
+                        }
+                    }
                 }
 
                 // Phase 4B: Top-K 2-Ply Non-Clairvoyant Expectimax Rerank

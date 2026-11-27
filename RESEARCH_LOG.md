@@ -299,7 +299,18 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
                 - `5. QueueBlind Full`: `204.88 [192..218]` (`vsBASE = -4.38 ± 2.31, W/T/L = 15/0/9`)
                 - `6. OrderedCompat ResidOnly`: `209.79 [197..225]` (`vsBASE = +0.54 ± 2.34, W/T/L = 11/1/12`)
                 - `7. OrderedCompat Full`: `204.83 [192..218]` (`vsBASE = -4.42 ± 2.16, W/T/L = 16/0/8`)
+              - **Caveat on `ResidualOnly`**: Zeroing `w_bc4_skip` only removes the linear skip; `act_feat[31]` still feeds `bc4_delta` into the MLP, so `ResidualOnly` does not completely strip BC-4 information.
               - **Definitive Conclusion (FAST ELIMINATED)**: ~90% of the `-4.4` piece gain came from the **BC-4 1-ply skip prior (`-3.67 ± 1.80`, multi-depth regularization)** rather than the learned `OrderedCompat` residual (`+0.54 ± 2.34`). Fast-eliminating `OrderedRootPolicy` v2 cleanly with zero Colab CU spent.
+            - **Fixed Same-7-Bag Counterfactual Teacher Test (explicit identical `next_bag_mask` via `FastAI::best_move_with_ctx`) + 40-Seed Fresh Independent Verification (`20001..=20040`, ZERO tuning)**:
+              - `hold=Some` (`47` states, identical root action set): `flipped = 2/47 (4.3%)`, `comparable = 47, missing = 0 (0.0%)`, `mean_cf_regret = 0.030pc`.
+              - `hold=None` (`3` states, root `did_hold` piece changes): `flipped = 3/3 (100.0%)`, `comparable = 2, missing = 1 (33.3%)`, `mean_cf_regret(comparable) = 1.125pc`.
+              - **40 Fresh Seeds (`20001..=20040`, 5-ply `beam=16`, Frozen BC-4)**:
+                - `BASE (a=0.00)`: `40/40 top=0 mean=209.85 [190..229]`
+                - `Pure BC-4 1-ply a=0.10`: `206.57 [195..223]` (`-3.27 ± 1.78, 95%CI=[-6.77,+0.22], W/T/L=24/1/15`)
+                - `Pure BC-4 1-ply a=0.15`: `206.53 [182..234]` (`-3.33 ± 1.89, 95%CI=[-7.03,+0.38], W/T/L=24/1/15`)
+                - **`Pure BC-4 1-ply a=0.25`**: **`206.53 [190..224]`** (**`-3.33 ± 1.57, 95%CI=[-6.40,-0.25], W/T/L=25/1/14`** — statistically significant!)
+              - Integrated opt-in `root_step1_prior_pct` (default `0`, exact `×100` scale) into `beam.rs` for strict same-binary `fullmlp_w16` A/B (`p0` vs `p08` vs `p15`, Run #30-CPU).
+
 
 
 

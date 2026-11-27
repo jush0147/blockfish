@@ -8,7 +8,7 @@ use blockfish::{
             POL_BOARD_DENSE_DIM, POL_COMPAT_DIM, POL_H1, POL_H2, POL_ORDER_DIM, POL_SPARSE_DIM,
         },
         spatial_val::SpatialValueModel,
-        BagTracker, BeamConfig, FastAI,
+        BagTracker, BeamConfig, FastAI, GameContext,
     },
     Input, StackerExt as _,
 };
@@ -827,6 +827,7 @@ fn play_5ply_beam_game(
 fn eval_5ply_set_per_seed(
     bc4: &SpatialValueModel,
     prior: RootPriorMode<'_>,
+    seed_start: u64,
     n_games: usize,
     beam_w: usize,
     n_threads: usize,
@@ -840,7 +841,7 @@ fn eval_5ply_set_per_seed(
                 if idx >= n_games {
                     break;
                 }
-                let seed = 9001u64 + idx as u64;
+                let seed = seed_start + idx as u64;
                 let (pcs, top) = play_5ply_beam_game(seed, bc4, prior, beam_w);
                 results.lock().unwrap().push((seed, pcs, top));
             });
@@ -851,7 +852,12 @@ fn eval_5ply_set_per_seed(
     r
 }
 
-fn summarize_vs_base(label: &str, res: &[(u64, usize, bool)], base: Option<&[(u64, usize, bool)]>) {
+fn summarize_vs_base(
+    label: &str,
+    res: &[(u64, usize, bool)],
+    base: Option<&[(u64, usize, bool)]>,
+    print_per_seed: bool,
+) {
     let n = res.len();
     let mut sum = 0usize;
     let mut ok = 0usize;
@@ -867,28 +873,48 @@ fn summarize_vs_base(label: &str, res: &[(u64, usize, bool)], base: Option<&[(u6
     }
     let mean = if ok > 0 { sum as f64 / ok as f64 } else { 999.0 };
     if let Some(b) = base {
-        let mut diffs: Vec<f64> = Vec::with_capacity(n);
+        let mut diffs: Vec<(u64, i32)> = Vec::with_capacity(n);
         let mut wins = 0usize;
         let mut ties = 0usize;
         let mut losses = 0usize;
         for i in 0..n {
             if !res[i].2 && !b[i].2 {
-                let d = res[i].1 as f64 - b[i].1 as f64;
-                diffs.push(d);
-                if d < 0.0 { wins += 1; } else if d > 0.0 { losses += 1; } else { ties += 1; }
+                let d = res[i].1 as i32 - b[i].1 as i32;
+                diffs.push((res[i].0, d));
+                if d < 0 { wins += 1; } else if d > 0 { losses += 1; } else { ties += 1; }
             }
         }
-        let m_diff = if diffs.is_empty() { 0.0 } else { diffs.iter().sum::<f64>() / diffs.len() as f64 };
+        let m_diff = if diffs.is_empty() {
+            0.0
+        } else {
+            diffs.iter().map(|x| x.1 as f64).sum::<f64>() / diffs.len() as f64
+        };
         let se = if diffs.len() > 1 {
-            let var = diffs.iter().map(|&d| (d - m_diff) * (d - m_diff)).sum::<f64>() / (diffs.len() - 1) as f64;
+            let var = diffs
+                .iter()
+                .map(|x| {
+                    let v = x.1 as f64 - m_diff;
+                    v * v
+                })
+                .sum::<f64>()
+                / (diffs.len() - 1) as f64;
             (var / diffs.len() as f64).sqrt()
         } else {
             0.0
         };
+        let ci_lo = m_diff - 1.96 * se;
+        let ci_hi = m_diff + 1.96 * se;
         println!(
-            "  [{:<26}] ok={:2}/{} top={} mean={:6.2} [{}..{}] | vsBASE={:+6.2}±{:.2} W/T/L={}/{}/{}",
-            label, ok, n, n - ok, mean, min_p, max_p, m_diff, se, wins, ties, losses
+            "  [{:<26}] ok={:2}/{} top={} mean={:6.2} [{}..{}] | vsBASE={:+6.2}±{:.2} 95%CI=[{:+.2},{:+.2}] W/T/L={}/{}/{}",
+            label, ok, n, n - ok, mean, min_p, max_p, m_diff, se, ci_lo, ci_hi, wins, ties, losses
         );
+        if print_per_seed {
+            print!("    paired deltas:");
+            for &(sd, d) in &diffs {
+                print!(" {}:{:+}", sd, d);
+            }
+            println!();
+        }
     } else {
         println!(
             "  [{:<26}] ok={:2}/{} top={} mean={:6.2} [{}..{}]",
@@ -897,10 +923,12 @@ fn summarize_vs_base(label: &str, res: &[(u64, usize, bool)], base: Option<&[(u6
     }
 }
 
-/// True Counterfactual Teacher Test:
-/// On real Legal p=5 states where `q[1]` and `q[2]` are VERIFIED to lie inside the SAME 7-bag
-/// (`7 - bag_mask.count_ones() <= 3`), re-run the actual `root_pimc` teacher on the swapped snapshot
-/// to measure how often ordered `q[1] <-> q[2]` genuinely changes the teacher's best move & Q-value.
+/// True Counterfactual Teacher Test (FIXED):
+/// - Explicitly passes the EXACT SAME `GameContext { garbage_rows, remaining_garbage, next_bag_mask }`
+///   to `BeamSearcher::search` for BOTH original and counterfactual `swap(q[1], q[2])` snapshots.
+/// - Verifies `7 - bag_mask.count_ones() <= 3` so `q[1]` and `q[2]` are strictly in the SAME 7-bag.
+/// - Separately reports `hold.is_some()` (identical root legal action set) vs `hold.is_none()`.
+/// - Never treats a missing original-best candidate as 0 regret: reports `comparable` vs `missing` separately.
 fn run_counterfactual_teacher_test(
     bc4: Arc<SpatialValueModel>,
     teacher_worlds: usize,
@@ -910,8 +938,8 @@ fn run_counterfactual_teacher_test(
     max_states: usize,
 ) {
     let cfg = make_teacher_cfg(bc4, teacher_worlds, teacher_width, teacher_horizon, fast_internal);
-    let mut ai = FastAI::new(cfg.clone());
-    let mut ai_cf = FastAI::new(cfg);
+    let mut s_orig = FastAI::new(cfg.clone());
+    let mut s_cf = FastAI::new(cfg);
     let mut tracker = BagTracker::new();
 
     let mut game_cfg = BSConfig::default();
@@ -924,48 +952,65 @@ fn run_counterfactual_teacher_test(
         0x7F
     };
 
-    let mut tested = 0usize;
-    let mut flipped = 0usize;
-    let mut q_shift_sum = 0.0f64;
+    #[derive(Default)]
+    struct CfStats {
+        tested: usize,
+        flipped: usize,
+        comparable: usize,
+        missing: usize,
+        regret_sum: f64,
+    }
+    let mut st_hold_some = CfStats::default();
+    let mut st_hold_none = CfStats::default();
     let mut ds_total = 0usize;
     let mut pieces = 0usize;
 
-    while ds_total < 100 && pieces < 260 && tested < max_states && stacker.current_piece_type().is_some() {
+    while ds_total < 100
+        && pieces < 260
+        && (st_hold_some.tested + st_hold_none.tested) < max_states
+        && stacker.current_piece_type().is_some()
+    {
         let snap = match stacker.snapshot() {
             Some(s) => s,
             None => break,
         };
         let g_rows = garbage_rows(&stacker);
         let rem_g = 100u16.saturating_sub(ds_total as u16).max(g_rows);
-        let res = match ai.best_move(&snap, Some(g_rows), Some(rem_g)) {
+        let ctx = GameContext {
+            garbage_rows: Some(g_rows),
+            remaining_garbage: Some(rem_g),
+            next_bag_mask: Some(cur_bag_mask),
+        };
+        let res = match s_orig.best_move_with_ctx(&snap, ctx) {
             Some(r) => r,
             None => break,
         };
 
-        // Check exact 7-bag boundary: `k_new` pieces at tail of `vis_q[0..6]` belong to the new bag.
-        // If `k_new <= 3`, then indices 0, 1, 2 (in particular q[1] and q[2]) are strictly in the SAME 7-bag!
         let k_new = 7u32.saturating_sub(cur_bag_mask.count_ones());
-        let orig_pimc = ai.last_pimc_reranked().to_vec();
+        let orig_pimc = s_orig.last_pimc_reranked().to_vec();
         if k_new <= 3 && snap.queue.len() >= 6 && snap.queue[1] != snap.queue[2] && orig_pimc.len() >= 3 && rem_g >= 4 {
             let mut snap_sw = snap.clone();
             snap_sw.queue.swap(1, 2);
-            // Reset ai_cf bag tracker so it observes the exact same bag state
-            ai_cf.reset_bag();
-            let _ = ai_cf.best_move(&snap_sw, Some(g_rows), Some(rem_g));
-            let sw_pimc = ai_cf.last_pimc_reranked().to_vec();
+            // Pass the EXACT SAME explicit `ctx` (same `next_bag_mask`) to counterfactual searcher!
+            let _ = s_cf.best_move_with_ctx(&snap_sw, ctx);
+            let sw_pimc = s_cf.last_pimc_reranked().to_vec();
             if !sw_pimc.is_empty() {
+                let bucket = if snap.hold.is_some() {
+                    &mut st_hold_some
+                } else {
+                    &mut st_hold_none
+                };
                 let best_orig = orig_pimc[0].0;
                 let best_sw = sw_pimc[0].0;
-                tested += 1;
+                bucket.tested += 1;
                 let same_move = best_orig.color_idx == best_sw.color_idx
                     && best_orig.norm_i == best_sw.norm_i
                     && best_orig.norm_j == best_sw.norm_j
                     && best_orig.tf.2 == best_sw.tf.2
                     && best_orig.did_hold == best_sw.did_hold;
                 if !same_move {
-                    flipped += 1;
+                    bucket.flipped += 1;
                 }
-                // Find orig best move's regret under the counterfactual swapped queue
                 let sw_min = sw_pimc[0].1;
                 if let Some(&(_, sc_in_sw)) = sw_pimc.iter().find(|&&(fp, _)| {
                     fp.color_idx == best_orig.color_idx
@@ -976,8 +1021,13 @@ fn run_counterfactual_teacher_test(
                 }) {
                     let shift = ((sc_in_sw - sw_min).max(0) as f64) * 0.01;
                     if shift < 5.0 {
-                        q_shift_sum += shift;
+                        bucket.comparable += 1;
+                        bucket.regret_sum += shift;
+                    } else {
+                        bucket.missing += 1;
                     }
+                } else {
+                    bucket.missing += 1;
                 }
             }
         }
@@ -996,16 +1046,23 @@ fn run_counterfactual_teacher_test(
     }
 
     println!(
-        "\n--- [0/2] True Same-7-Bag Counterfactual Teacher Test (re-running root_pimc on swap(q1,q2)) ---"
+        "\n--- [0/2] FIXED Same-7-Bag Counterfactual Teacher Test (explicit same next_bag_mask) ---"
     );
-    println!(
-        "  verified_same_bag_states={} | teacher_best_move_flipped={}/{} ({:.1}%) | mean_cf_regret={:.3}pc",
-        tested,
-        flipped,
-        tested,
-        100.0 * (flipped as f64) / (tested.max(1) as f64),
-        q_shift_sum / (tested.max(1) as f64)
-    );
+    let report = |name: &str, st: &CfStats| {
+        let flip_pct = 100.0 * (st.flipped as f64) / (st.tested.max(1) as f64);
+        let miss_pct = 100.0 * (st.missing as f64) / (st.tested.max(1) as f64);
+        let mean_reg = if st.comparable > 0 {
+            st.regret_sum / (st.comparable as f64)
+        } else {
+            f64::NAN
+        };
+        println!(
+            "  [{:<12}] tested={:2} | flipped={:2}/{} ({:5.1}%) | comparable={:2} missing={:2} ({:4.1}%) | mean_cf_regret(comparable)={:.3}pc",
+            name, st.tested, st.flipped, st.tested, flip_pct, st.comparable, st.missing, miss_pct, mean_reg
+        );
+    };
+    report("hold=Some", &st_hold_some);
+    report("hold=None", &st_hold_none);
     let _ = std::io::stdout().flush();
 }
 
@@ -1024,6 +1081,7 @@ fn main() {
     let mut lr: f32 = 1e-3;
     let mut wd: f32 = 3e-4;
     let mut eval_games: usize = 30;
+    let mut verify_only: bool = false;
     let mut n_threads: usize = std::thread::available_parallelism()
         .map(|n| n.get())
         .unwrap_or(4);
@@ -1044,6 +1102,7 @@ fn main() {
             "--lr" => { i += 1; lr = args[i].parse().unwrap(); }
             "--wd" => { i += 1; wd = args[i].parse().unwrap(); }
             "--eval-games" => { i += 1; eval_games = args[i].parse().unwrap(); }
+            "--verify-only" => { verify_only = true; }
             "--threads" => { i += 1; n_threads = args[i].parse().unwrap(); }
             other => {
                 eprintln!("Unknown arg: {}", other);
@@ -1057,6 +1116,44 @@ fn main() {
         .unwrap_or_else(|e| panic!("load {}: {}", bc4_path, e));
     bc4.prepare_fast();
     let bc4_arc = Arc::new(bc4);
+
+    if verify_only {
+        println!("================================================================");
+        println!(" VERIFY-ONLY: Fixed Counterfactual Teacher Test + Fresh-Seed Pure BC-4 1-Ply Prior");
+        println!(
+            " fresh_seeds=20001..={} (n={}) teacher=w{}_h{}_b{}_fast={} threads={}",
+            20_000 + eval_games, eval_games, teacher_worlds, teacher_horizon, teacher_width, fast_teacher, n_threads
+        );
+        println!("================================================================");
+        run_counterfactual_teacher_test(
+            Arc::clone(&bc4_arc),
+            teacher_worlds,
+            teacher_width,
+            teacher_horizon,
+            fast_teacher,
+            50,
+        );
+        println!(
+            "\n--- Independent Fresh-Seed Verification: Pure BC-4 1-Ply Prior (seeds 20001..={}, 5-ply beam=16) ---",
+            20_000 + eval_games
+        );
+        let t_ev = Instant::now();
+        let r_base = eval_5ply_set_per_seed(&bc4_arc, RootPriorMode::None, 20_001, eval_games, 16, n_threads);
+        summarize_vs_base("BASE (Frozen BC-4 5ply)", &r_base, None, false);
+        for &alpha in &[0.10f32, 0.15f32, 0.25f32] {
+            let r_p = eval_5ply_set_per_seed(
+                &bc4_arc,
+                RootPriorMode::PureBc4SingleStep(alpha),
+                20_001,
+                eval_games,
+                16,
+                n_threads,
+            );
+            summarize_vs_base(&format!("Pure BC-4 1-ply a={:.2}", alpha), &r_p, Some(&r_base), true);
+        }
+        println!("=== DONE VERIFY-ONLY ({:.1}s eval) ===", t_ev.elapsed().as_secs_f64());
+        return;
+    }
 
     println!("================================================================");
     println!(" OrderedRootPolicy v2: Matched-Capacity Ablation + 5-Ply Beam Test");
@@ -1201,21 +1298,21 @@ fn main() {
     let mut compat_res_only = pol_compat.clone();
     compat_res_only.w_bc4_skip = 0.0;
 
-    let r_base = eval_5ply_set_per_seed(&bc4_arc, RootPriorMode::None, eval_games, 16, n_threads);
-    let r_bc4_1ply = eval_5ply_set_per_seed(&bc4_arc, RootPriorMode::PureBc4SingleStep(alpha), eval_games, 16, n_threads);
-    let r_rand = eval_5ply_set_per_seed(&bc4_arc, RootPriorMode::Policy(&rand_pol, QueueAblation::QueueBlind, alpha), eval_games, 16, n_threads);
-    let r_blind_res = eval_5ply_set_per_seed(&bc4_arc, RootPriorMode::Policy(&blind_res_only, QueueAblation::QueueBlind, alpha), eval_games, 16, n_threads);
-    let r_blind_full = eval_5ply_set_per_seed(&bc4_arc, RootPriorMode::Policy(&pol_blind, QueueAblation::QueueBlind, alpha), eval_games, 16, n_threads);
-    let r_compat_res = eval_5ply_set_per_seed(&bc4_arc, RootPriorMode::Policy(&compat_res_only, QueueAblation::OrderedCompat, alpha), eval_games, 16, n_threads);
-    let r_compat_full = eval_5ply_set_per_seed(&bc4_arc, RootPriorMode::Policy(&pol_compat, QueueAblation::OrderedCompat, alpha), eval_games, 16, n_threads);
+    let r_base = eval_5ply_set_per_seed(&bc4_arc, RootPriorMode::None, 9001, eval_games, 16, n_threads);
+    let r_bc4_1ply = eval_5ply_set_per_seed(&bc4_arc, RootPriorMode::PureBc4SingleStep(alpha), 9001, eval_games, 16, n_threads);
+    let r_rand = eval_5ply_set_per_seed(&bc4_arc, RootPriorMode::Policy(&rand_pol, QueueAblation::QueueBlind, alpha), 9001, eval_games, 16, n_threads);
+    let r_blind_res = eval_5ply_set_per_seed(&bc4_arc, RootPriorMode::Policy(&blind_res_only, QueueAblation::QueueBlind, alpha), 9001, eval_games, 16, n_threads);
+    let r_blind_full = eval_5ply_set_per_seed(&bc4_arc, RootPriorMode::Policy(&pol_blind, QueueAblation::QueueBlind, alpha), 9001, eval_games, 16, n_threads);
+    let r_compat_res = eval_5ply_set_per_seed(&bc4_arc, RootPriorMode::Policy(&compat_res_only, QueueAblation::OrderedCompat, alpha), 9001, eval_games, 16, n_threads);
+    let r_compat_full = eval_5ply_set_per_seed(&bc4_arc, RootPriorMode::Policy(&pol_compat, QueueAblation::OrderedCompat, alpha), 9001, eval_games, 16, n_threads);
 
-    summarize_vs_base("1. BASE (Frozen BC-4 5ply)", &r_base, None);
-    summarize_vs_base("2. Pure BC-4 1-ply prior", &r_bc4_1ply, Some(&r_base));
-    summarize_vs_base("3. Random Init Policy", &r_rand, Some(&r_base));
-    summarize_vs_base("4. QueueBlind ResidualOnly", &r_blind_res, Some(&r_base));
-    summarize_vs_base("5. QueueBlind Full", &r_blind_full, Some(&r_base));
-    summarize_vs_base("6. OrderedCompat ResidOnly", &r_compat_res, Some(&r_base));
-    summarize_vs_base("7. OrderedCompat Full", &r_compat_full, Some(&r_base));
+    summarize_vs_base("1. BASE (Frozen BC-4 5ply)", &r_base, None, false);
+    summarize_vs_base("2. Pure BC-4 1-ply prior", &r_bc4_1ply, Some(&r_base), false);
+    summarize_vs_base("3. Random Init Policy", &r_rand, Some(&r_base), false);
+    summarize_vs_base("4. QueueBlind ResidualOnly", &r_blind_res, Some(&r_base), false);
+    summarize_vs_base("5. QueueBlind Full", &r_blind_full, Some(&r_base), false);
+    summarize_vs_base("6. OrderedCompat ResidOnly", &r_compat_res, Some(&r_base), false);
+    summarize_vs_base("7. OrderedCompat Full", &r_compat_full, Some(&r_base), false);
     println!(
         "  (Learned w_bc4_skip: QueueBlind={:.3}, OrderedCompat={:.3})",
         pol_blind.w_bc4_skip, pol_compat.w_bc4_skip

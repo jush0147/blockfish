@@ -2834,6 +2834,54 @@ fn main() {
         eval_seeds("fullmlp_ds5_w16_b16_c25", &seeds, &c_ds5);
         return;
     }
+    if mode == "step1_prior" {
+        let n_seeds: u64 = std::env::args()
+            .nth(2)
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(5);
+        let model_path = std::env::args()
+            .nth(3)
+            .unwrap_or_else(|| "models/spatial_bc4.txt".to_string());
+        let seeds: Vec<u64> = (101..(101 + n_seeds)).collect();
+
+        let mut sm_val = SpatialValueModel::load_from_file(&model_path)
+            .unwrap_or_else(|e| panic!("load spatial model {}: {}", model_path, e));
+        sm_val.prepare_fast();
+        let sm_arc = Arc::new(sm_val);
+
+        let mut base = BeamConfig::default();
+        base.spatial_model = Some(Arc::clone(&sm_arc));
+        base.rollout_top_k = 0;
+        base.beam_width = 80;
+        base.max_per_root = 16;
+        base.bag_det_extend = true;
+        base.endgame_solver = true;
+        base.simulate_cheese_spawn = true;
+        base.spatial_rerank_only = false; // REAL FULL MLP
+        base.spatial_no_pe_internal = false;
+        base.root_pimc_prescreen_worlds = 0;
+        base.root_pimc_roots = 32;
+        base.root_pimc_fine_roots = 10;
+        base.root_pimc_worlds = 16;
+        base.root_pimc_horizon = 8;
+        base.root_pimc_width = 28;
+        base.root_pimc_margin = 500;
+        base.root_pimc_weight_pct = 100;
+        base.root_pimc_steady_g4 = false;
+        base.root_pimc_cvar_pct = 25;
+        base.root_step1_prior_pct = 0;
+
+        eval_seeds("fullmlp_w16_BASE_p0", &seeds, &base);
+
+        let mut c8 = base.clone();
+        c8.root_step1_prior_pct = 8;
+        eval_seeds("fullmlp_w16_step1_p08", &seeds, &c8);
+
+        let mut c15 = base.clone();
+        c15.root_step1_prior_pct = 15;
+        eval_seeds("fullmlp_w16_step1_p15", &seeds, &c15);
+        return;
+    }
     if mode == "d2_expectimax" {
         let n_seeds: u64 = std::env::args()
             .nth(2)

@@ -2,58 +2,21 @@
 set -euo pipefail
 
 echo "================================================================"
-echo " Colab Run #29-CPU: Strong-Teacher Legal p=5 Expert Iteration (fullmlp_w16)"
-echo "                    16 fullmlp_w16 games (~2,900 exact sibling Q-dists)"
-echo "                    Unlocking all 1,591 V6 2D 3x3 patterns (ZERO clairvoyance)"
-echo "                    Pure Relative Q-Adv + Listwise CE (ZERO scalar regression)"
-echo "                    + Strict Same-Binary fullmlp_w16 A/B (only if NEW BEST)"
+echo " Colab Run #30-CPU: Pure BC-4 1-Ply Prior in Formal fullmlp_w16"
+echo "                    Opt-in root_step1_prior_pct (0 vs 8 vs 15, exact x100 scale)"
+echo "                    Validated on 40 fresh 5-ply seeds (-3.33 +/- 1.57, 95%CI=[-6.40,-0.25])"
+echo "                    Strict Same-Binary 5-Seed A/B (101..=105)"
 echo " Cores: $(nproc) | RAM: $(free -h | awk '/^Mem:/{print $2}')"
 echo "================================================================"
 
-echo "--- [0/3] Running train_exit_w16 unit test ---"
-cargo test --release --example train_exit_w16 --features block-stacker
+echo "--- [0/2] Running library unit tests ---"
+cargo test --lib --features block-stacker
 
-echo "--- Building train_exit_w16 and bench_legal (release) ---"
-cargo build --release --example train_exit_w16 --example bench_legal --features block-stacker
-
-OUT_MODEL="/tmp/spatial_exit_w16_v1.txt"
-OUT_LAST="/tmp/spatial_exit_w16_v1_last.txt"
-TR_LOG="/tmp/exit_w16_v1_train.log"
+echo "--- [1/2] Building bench_legal (release) ---"
+cargo build --release --example bench_legal --features block-stacker
 
 echo ""
-echo "--- [1/3] Collecting 16 fullmlp_w16 Legal p=5 games & training V6-1591 model ---"
-target/release/examples/train_exit_w16 \
-  --init models/spatial_bc4.txt \
-  --out "$OUT_MODEL" \
-  --games 16 \
-  --teacher-worlds 16 \
-  --teacher-width 28 \
-  --spawn-worlds 4 \
-  --val-games 60 \
-  --val-beam 16 \
-  --sparse-lim 1591 \
-  --epochs 12 \
-  --batch-size 32 \
-  --tau-tgt 0.25 \
-  --tau-pred 0.25 \
-  --w-ce 1.0 \
-  --w-adv 0.25 \
-  --lr-lin 3e-4 \
-  --lr-mlp 1.5e-4 \
-  --anchor-wd 2e-4 | tee "$TR_LOG"
+echo "--- [2/2] Running strict same-binary fullmlp_w16 step1_prior A/B (5 seeds 101..=105) ---"
+target/release/examples/bench_legal step1_prior 5 models/spatial_bc4.txt
 
-echo ""
-echo "--- [2/3] Uploading spatial_exit_w16_v1 checkpoints to Release model-spatial-exit-w16-v1 ---"
-python3 scripts/upload_release_asset.py model-spatial-exit-w16-v1 "$OUT_MODEL" "Strong-Teacher fullmlp_w16 Legal p=5 Expert Iteration V6-1591 v1"
-python3 scripts/upload_release_asset.py model-spatial-exit-w16-v1 "$OUT_LAST" "Strong-Teacher fullmlp_w16 Legal p=5 Expert Iteration V6-1591 v1 (last)"
-
-if grep -q "NEW BEST" "$TR_LOG"; then
-  echo ""
-  echo "--- [3/3] STRICT SAME-BINARY fullmlp_w16 A/B (5 seeds 101..=105): bc4 vs exit_w16_v1 ---"
-  target/release/examples/bench_legal compare_spatial 5 models/spatial_bc4.txt "$OUT_MODEL"
-else
-  echo ""
-  echo "--- [3/3] SKIPPED fullmlp_w16 A/B: no NEW BEST over base_val ---"
-fi
-
-echo "=== Colab Run #29-CPU COMPLETE ==="
+echo "=== Colab Run #30-CPU COMPLETE ==="
