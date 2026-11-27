@@ -1,7 +1,5 @@
-RUNNING commit=f2095f1b heartbeat=2026-11-27T05:07:14Z cores=8
+RUNNING commit=f2095f1b heartbeat=2026-11-27T05:09:16Z cores=8
 --- tail /tmp/colab_run.log ---
-   |
-16 |     pub fn shape(&self, color: Color) -> Option<ShapeRef<'_>> {
    |                                                         ++++
 
 warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
@@ -15,3 +13,5 @@ warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockf
   [seed 101] pcs=180 nds=61 0ds=80 (cov=25 O=19 nar= 9 wide=24 end= 3) cov_nxt=17.0% | 703.1s
 fullmlp_base_bc4           n= 5 mean=184.20 min=176 max=193 <=166: 0 top= 0 | nds=62.40 0ds=84.20 (cov=25.0 O=20.0 nar=8.6 wide=27.0 g0=0.0 end=3.6) cov_nxt=15.0% avg_c=12.4 | 703.1s
   seeds: [101:180, 102:184, 103:176, 104:188, 105:193]
+  [seed 102] pcs=185 nds=62 0ds=85 (cov=24 O=20 nar= 7 wide=28 end= 6) cov_nxt=15.0% | 1037.0s
+  [seed 105] pcs=183 nds=62 0ds=83 (cov=25 O=20 nar=11 wide=23 end= 4) cov_nxt=14.0% | 1102.3s
