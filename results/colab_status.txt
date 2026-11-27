@@ -1,6 +1,5 @@
-RUNNING commit=11bdb27e heartbeat=2026-11-27T04:16:30Z cores=8
+RUNNING commit=11bdb27e heartbeat=2026-11-27T04:18:32Z cores=8
 --- tail /tmp/colab_run.log ---
---- Running FIXED es_v3_combo (bc4 base, TRUE ens50 bc4+esv3, esv3+bc4cov115) ---
   [seed 103] pcs=176 nds=59 0ds=76 (cov=25 O=19 nar= 7 wide=19 end= 6) cov_nxt=12.0% | 582.8s
   [seed 102] pcs=184 nds=62 0ds=84 (cov=24 O=20 nar= 7 wide=30 end= 3) cov_nxt=15.0% | 612.1s
   [seed 101] pcs=180 nds=61 0ds=80 (cov=25 O=19 nar= 9 wide=24 end= 3) cov_nxt=17.0% | 638.2s
@@ -15,3 +14,4 @@ fullmlp_base_bc4           n= 5 mean=184.20 min=176 max=193 <=166: 0 top= 0 | nd
   [seed 105] pcs=191 nds=65 0ds=91 (cov=24 O=23 nar= 7 wide=33 end= 4) cov_nxt=12.0% | 1149.4s
 fullmlp_ens50_bc4_esv3     n= 5 mean=186.40 min=184 max=191 <=166: 0 top= 0 | nds=63.40 0ds=86.40 (cov=32.0 O=17.6 nar=7.0 wide=26.2 g0=0.0 end=3.6) cov_nxt=16.6% avg_c=12.4 | 1149.4s
   seeds: [101:184, 102:184, 103:185, 104:188, 105:191]
+  [seed 104] pcs=176 nds=59 0ds=76 (cov=29 O=15 nar= 7 wide=23 end= 2) cov_nxt=13.0% | 542.9s
