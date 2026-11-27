@@ -1,12 +1,11 @@
 ================================================================
- Colab Run #27-CPU: FIXED True Same-State Sibling-Action CRN Q-Advantage PI
-                    (EMPTY_ROW + 1-to-1 CRN World Alignment Verified)
-                    6 PI rounds x 32 games x 5 states = 960 exact states
-                    K=8 siblings x W=8 CRN Legal p=5 worlds (dG=14, roll_beam=12)
-                    + Strict Same-Binary fullmlp_w16 A/B (only if NEW BEST achieved)
+ Colab Run #28-CPU: DS-Bucketed A* FULL-MLP PIMC (Search Paradigm Shift)
+                    Exact g(n)+h(n) to identical target_ds buckets (ds=4, ds=5)
+                    Cancels rem_g horizon bias vs fixed-depth h=8 fullmlp_w16
+                    Strict Same-Binary 5-Seed A/B (101..=105)
  Cores: 8 | RAM: 50Gi
 ================================================================
---- [0/3] Running train_sibling_q physics & alignment unit tests ---
+--- Building bench_legal (release) ---
 warning: unused build dependency `fontconfig`
   --> blockfish-client/Cargo.toml:29:1
    |
@@ -16,84 +15,7 @@ warning: unused build dependency `fontconfig`
    = note: `cargo::unused_dependencies` is set to `warn` by default
 help: consider removing the dependency on `fontconfig`
 warning: `blockfish-client` (manifest) generated 1 warning
-    Updating crates.io index
- Downloading crates ...
-  Downloaded atty v0.2.14
-  Downloaded aho-corasick v0.7.15
-  Downloaded thiserror v1.0.22
-  Downloaded version-compare v0.1.0
-  Downloaded ryu v1.0.5
-  Downloaded lazy_static v1.4.0
-  Downloaded fontconfig v0.2.0
-  Downloaded thread_local v1.0.1
-  Downloaded pkg-config v0.3.19
-  Downloaded cfg-if v1.0.0
-  Downloaded rand_pcg v0.2.1
-  Downloaded pretty_env_logger v0.4.0
-  Downloaded thiserror-impl v1.0.22
-  Downloaded autocfg v1.0.1
-  Downloaded bitflags v1.2.1
-  Downloaded quick-error v1.2.3
-  Downloaded itoa v0.4.6
-  Downloaded cfg-if v0.1.10
-  Downloaded const-cstr v0.3.0
-  Downloaded rand_chacha v0.2.2
-  Downloaded ppv-lite86 v0.2.10
-  Downloaded getrandom v0.1.15
-  Downloaded quote v1.0.7
-  Downloaded unicode-xid v0.2.1
-  Downloaded num-integer v0.1.44
-  Downloaded memchr v2.3.4
-  Downloaded humantime v1.3.0
-  Downloaded num-traits v0.2.14
-  Downloaded rand_core v0.5.1
-  Downloaded log v0.4.11
-  Downloaded env_logger v0.7.1
-  Downloaded proc-macro2 v1.0.24
-  Downloaded heck v0.3.1
-  Downloaded serde_derive v1.0.118
-  Downloaded serde v1.0.118
-  Downloaded unicode-segmentation v1.7.1
-  Downloaded rand v0.7.3
-  Downloaded serde_json v1.0.60
-  Downloaded sdl2 v0.35.2
-  Downloaded regex v1.4.2
-  Downloaded syn v1.0.48
-  Downloaded regex-syntax v0.6.21
-  Downloaded libc v0.2.119
-  Downloaded argh_shared v0.1.4
-  Downloaded argh v0.1.4
-  Downloaded argh_derive v0.1.4
-  Downloaded termcolor v1.1.1
-  Downloaded yeslogic-fontconfig-sys v2.11.1
-  Downloaded red_union_find v0.2.5
-  Downloaded sdl2-sys v0.35.2
-   Compiling proc-macro2 v1.0.24
-   Compiling unicode-xid v0.2.1
-   Compiling libc v0.2.119
-   Compiling syn v1.0.48
-   Compiling autocfg v1.0.1
-   Compiling getrandom v0.1.15
-   Compiling cfg-if v0.1.10
-   Compiling serde_derive v1.0.118
-   Compiling serde v1.0.118
-   Compiling ryu v1.0.5
-   Compiling ppv-lite86 v0.2.10
-   Compiling serde_json v1.0.60
-   Compiling log v0.4.11
-   Compiling itoa v0.4.6
-   Compiling num-traits v0.2.14
-   Compiling num-integer v0.1.44
    Compiling blockfish v0.1.0 (/content/blockfish/blockfish-engine)
-   Compiling quote v1.0.7
-   Compiling rand_core v0.5.1
-   Compiling rand_chacha v0.2.2
-   Compiling rand_pcg v0.2.1
-   Compiling rand v0.7.3
-   Compiling red_union_find v0.2.5
-   Compiling thiserror-impl v1.0.22
-   Compiling thiserror v1.0.22
-   Compiling block-stacker v0.1.0 (/content/blockfish/block-stacker)
 warning: unused imports: `Input` and `place::PlaceFinder`
  --> blockfish-engine/src/ai/fast.rs:2:5
   |
@@ -181,138 +103,28 @@ help: use `'_` for type paths
    |                                                         ++++
 
 warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
-    Finished `release` profile [optimized] target(s) in 16.80s
-     Running unittests examples/train_sibling_q.rs (target/release/build/blockfish/afb7020f5b9d294f/out/train_sibling_q-afb7020f5b9d294f)
+    Finished `release` profile [optimized] target(s) in 7.55s
 
-running 2 tests
-test tests::test_spawn_from_hole_stream_clears_garbage_and_caps_unspawned ... ok
-test tests::test_sibling_world_alignment_and_loss ... ok
-
-test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.17s
-
---- Building train_sibling_q and bench_legal (release) ---
-warning: unused build dependency `fontconfig`
-  --> blockfish-client/Cargo.toml:29:1
-   |
-29 | fontconfig = "0.2"
-   | ^^^^^^^^^^^^^^^^^^
-   |
-   = note: `cargo::unused_dependencies` is set to `warn` by default
-help: consider removing the dependency on `fontconfig`
-warning: `blockfish-client` (manifest) generated 1 warning
-warning: unused imports: `Input` and `place::PlaceFinder`
- --> blockfish-engine/src/ai/fast.rs:2:5
-  |
-2 |     place::PlaceFinder,
-  |     ^^^^^^^^^^^^^^^^^^
-3 |     shape::{ShapeRef, ShapeTable},
-4 |     BasicMatrix, Color, Input, Orientation,
-  |                         ^^^^^
-  |
-  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
-
-warning: use of deprecated constant `std::u16::MAX`: replaced by the `MAX` associated constant on this type
-  --> blockfish-engine/src/matrix.rs:41:15
-   |
-41 |     std::u16::MAX.overflowing_shl(cols.into()).0
-   |               ^^^
-   |
-   = note: `#[warn(deprecated)]` on by default
-
-warning: use of deprecated constant `std::u16::MAX`: replaced by the `MAX` associated constant on this type
-  --> blockfish-engine/src/matrix.rs:46:15
-   |
-46 |     std::u16::MAX
-   |               ^^^
-
-warning: use of deprecated constant `std::usize::MAX`: replaced by the `MAX` associated constant on this type
-  --> blockfish-engine/src/place.rs:27:30
-   |
-27 |             idx: std::usize::MAX,
-   |                              ^^^
-
-warning: use of deprecated constant `std::i64::MAX`: replaced by the `MAX` associated constant on this type
-   --> blockfish-engine/src/ai/analysis.rs:169:36
-    |
-169 |     let mut global_min = std::i64::MAX;
-    |                                    ^^^
-
-warning: use of deprecated constant `std::i64::MAX`: replaced by the `MAX` associated constant on this type
-   --> blockfish-engine/src/ai/b_star.rs:195:67
-    |
-195 |             .min_by_key(|&i| self.lvls[i].peek().map_or(std::i64::MAX, |n| n.f))
-    |                                                                   ^^^
-
-warning: use of deprecated constant `std::i64::MAX`: replaced by the `MAX` associated constant on this type
-   --> blockfish-engine/src/ai/b_star.rs:206:75
-    |
-206 |                 let best = self.move_best.entry(m_id).or_insert(std::i64::MAX);
-    |                                                                           ^^^
-
-warning: use of deprecated constant `std::usize::MAX`: replaced by the `MAX` associated constant on this type
-   --> blockfish-engine/src/ai/eval.rs:118:32
-    |
-118 |     let mut idx0 = std::usize::MAX;
-    |                                ^^^
-
-warning: use of deprecated constant `std::usize::MAX`: replaced by the `MAX` associated constant on this type
-   --> blockfish-engine/src/ai/eval.rs:121:31
-    |
-121 |         if idx0 < std::usize::MAX {
-    |                               ^^^
-
-warning: variable does not need to be mutable
-   --> blockfish-engine/src/ai/fast.rs:338:13
-    |
-338 |         let mut shapes_opt: [Option<FastShape>; 7] = [None, None, None, None, None, None, None];
-    |             ----^^^^^^^^^^
-    |             |
-    |             help: remove this `mut`
-    |
-    = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
-
-warning: hiding a lifetime that's elided elsewhere is confusing
-  --> blockfish-engine/src/shape.rs:16:18
-   |
-16 |     pub fn shape(&self, color: Color) -> Option<ShapeRef> {
-   |                  ^^^^^                          ^^^^^^^^ the same lifetime is hidden here
-   |                  |
-   |                  the lifetime is elided here
-   |
-   = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
-   = note: `#[warn(mismatched_lifetime_syntaxes)]` on by default
-help: use `'_` for type paths
-   |
-16 |     pub fn shape(&self, color: Color) -> Option<ShapeRef<'_>> {
-   |                                                         ++++
-
-warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
-   Compiling blockfish v0.1.0 (/content/blockfish/blockfish-engine)
-    Finished `release` profile [optimized] target(s) in 2.60s
-
---- [1/3] Training SpatialValueModel with FIXED Same-State Sibling CRN Q-Advantage PI ---
-================================================================
- Pure Rust True Same-State Sibling-Action CRN Q-Advantage PI
- init=models/spatial_bc4.txt out=/tmp/spatial_sibq_v2.txt rounds=6 games/rd=32 states/g=5 K=8 W=8 dG=14
- outer_beam=16 roll_beam=12 val=60 sparse_lim=1591 epochs=6 bs=24 tau=0.60/0.60 w_ce=1.00 w_adv=0.60
- lr_lin=3.0e-4 lr_mlp=1.5e-4 anchor_wd=2.0e-4 threads=8
-================================================================
-[Round 0 BASE] val=60/60 top=0 mean=214.45 [193..254] (8.9s)
-[Round  1/6] outer=214.56(32/32) states=160 crn_disagree=51.9% crn_gain=0.832pc | ce=1.7669 adv=1.8119 top1=46.2% (164.7s+0.2s) | VAL=60/60 top=0 mean=215.92 [190..258] 
-[Round  2/6] outer=217.44(32/32) states=160 crn_disagree=51.2% crn_gain=0.863pc | ce=1.7004 adv=1.9071 top1=47.8% (167.0s+0.4s) | VAL=60/60 top=0 mean=221.08 [201..259] 
-[Round  3/6] outer=224.22(32/32) states=160 crn_disagree=50.0% crn_gain=0.861pc | ce=1.7183 adv=1.9993 top1=45.0% (170.9s+0.4s) | VAL=59/60 top=1 mean=227.49 [192..272] 
-[Round  4/6] outer=224.31(32/32) states=160 crn_disagree=46.9% crn_gain=0.996pc | ce=1.7649 adv=2.2965 top1=45.9% (171.2s+0.4s) | VAL=60/60 top=0 mean=227.02 [201..259] 
-[Round  5/6] outer=223.22(32/32) states=160 crn_disagree=53.8% crn_gain=1.199pc | ce=1.7727 adv=2.5481 top1=43.8% (174.8s+0.4s) | VAL=60/60 top=0 mean=221.12 [186..244] 
-[Round  6/6] outer=218.90(31/32) states=160 crn_disagree=51.9% crn_gain=1.173pc | ce=1.7532 adv=2.3844 top1=41.6% (171.3s+0.4s) | VAL=59/60 top=1 mean=222.90 [202..268] 
-=== DONE SIBLING-Q PI: base_val=214.45 (top=0) -> best_val=214.45 (top=0) | saved /tmp/spatial_sibq_v2.txt ===
-
---- [2/3] Uploading spatial_sibq_v2 checkpoints to Release model-spatial-sibq-v2 ---
-Uploading spatial_sibq_v2.txt (1.08 MB) to release tag 'model-spatial-sibq-v2'...
-Created release id=460590946 (https://github.com/jush0147/blockfish/releases/tag/model-spatial-sibq-v2)
-UPLOAD SUCCESS: https://github.com/jush0147/blockfish/releases/download/model-spatial-sibq-v2/spatial_sibq_v2.txt (1133787 bytes)
-Uploading spatial_sibq_v2_last.txt (1.09 MB) to release tag 'model-spatial-sibq-v2'...
-Found existing release id=460590946 (https://github.com/jush0147/blockfish/releases/tag/model-spatial-sibq-v2)
-UPLOAD SUCCESS: https://github.com/jush0147/blockfish/releases/download/model-spatial-sibq-v2/spatial_sibq_v2_last.txt (1144491 bytes)
-
---- [3/3] SKIPPED fullmlp_w16 A/B: no NEW BEST over base_val ---
-=== Colab Run #27-CPU COMPLETE ===
+--- Running strict same-binary ds_fullmlp A/B (5 seeds 101..=105) ---
+  [seed 103] pcs=176 nds=59 0ds=76 (cov=25 O=19 nar= 7 wide=19 end= 6) cov_nxt=12.0% | 601.6s
+  [seed 104] pcs=188 nds=64 0ds=88 (cov=24 O=21 nar=11 wide=28 end= 4) cov_nxt=18.0% | 618.7s
+  [seed 102] pcs=184 nds=62 0ds=84 (cov=24 O=20 nar= 7 wide=30 end= 3) cov_nxt=15.0% | 636.4s
+  [seed 101] pcs=180 nds=61 0ds=80 (cov=25 O=19 nar= 9 wide=24 end= 3) cov_nxt=17.0% | 656.6s
+  [seed 105] pcs=193 nds=66 0ds=93 (cov=27 O=21 nar= 9 wide=34 end= 2) cov_nxt=13.0% | 662.1s
+fullmlp_base_h8_w16_b28    n= 5 mean=184.20 min=176 max=193 <=166: 0 top= 0 | nds=62.40 0ds=84.20 (cov=25.0 O=20.0 nar=8.6 wide=27.0 g0=0.0 end=3.6) cov_nxt=15.0% avg_c=12.4 | 662.1s
+  seeds: [101:180, 102:184, 103:176, 104:188, 105:193]
+  [seed 105] pcs=187 nds=63 0ds=87 (cov=34 O=13 nar= 7 wide=29 end= 4) cov_nxt=16.0% | 769.9s
+  [seed 103] pcs=190 nds=65 0ds=90 (cov=32 O=15 nar=10 wide=30 end= 3) cov_nxt=17.0% | 809.7s
+  [seed 101] pcs=183 nds=62 0ds=83 (cov=28 O=16 nar= 8 wide=27 end= 4) cov_nxt=17.0% | 858.1s
+  [seed 102] pcs=196 nds=67 0ds=96 (cov=37 O=17 nar= 3 wide=33 end= 6) cov_nxt=19.0% | 876.4s
+  [seed 104] pcs=191 nds=65 0ds=91 (cov=35 O=17 nar= 6 wide=28 end= 5) cov_nxt=16.0% | 900.0s
+fullmlp_ds4_w16_b20_c25    n= 5 mean=189.40 min=183 max=196 <=166: 0 top= 0 | nds=64.40 0ds=89.40 (cov=33.2 O=15.6 nar=6.8 wide=29.4 g0=0.0 end=4.4) cov_nxt=17.0% avg_c=12.2 | 900.0s
+  seeds: [101:183, 102:196, 103:190, 104:191, 105:187]
+  [seed 104] pcs=188 nds=64 0ds=88 (cov=34 O=15 nar= 7 wide=27 end= 5) cov_nxt=20.0% | 955.4s
+  [seed 105] pcs=190 nds=65 0ds=90 (cov=32 O=20 nar= 9 wide=29 end= 0) cov_nxt=17.0% | 959.8s
+  [seed 101] pcs=195 nds=67 0ds=95 (cov=22 O=20 nar=14 wide=34 end= 5) cov_nxt=15.0% | 978.2s
+  [seed 102] pcs=179 nds=60 0ds=79 (cov=27 O=15 nar= 6 wide=27 end= 4) cov_nxt=15.0% | 982.7s
+  [seed 103] pcs=185 nds=63 0ds=85 (cov=31 O=17 nar= 9 wide=22 end= 6) cov_nxt=17.0% | 984.1s
+fullmlp_ds5_w16_b16_c25    n= 5 mean=187.40 min=179 max=195 <=166: 0 top= 0 | nds=63.80 0ds=87.40 (cov=29.2 O=17.4 nar=9.0 wide=27.8 g0=0.0 end=4.0) cov_nxt=16.8% avg_c=12.5 | 984.1s
+  seeds: [101:195, 102:179, 103:185, 104:188, 105:190]
+=== Colab Run #28-CPU COMPLETE ===
