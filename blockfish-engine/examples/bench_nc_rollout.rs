@@ -181,6 +181,7 @@ struct RNode {
 struct DKey {
     board: FastBoard,
     held: Option<u8>,
+    qc: u8,
     rem_g: u16,
 }
 
@@ -280,7 +281,7 @@ fn legal_p5_beam_move(
         } else {
             sm.evaluate_linear_board_with_bag_no_pe(&b, rem_g, ih, av)
         };
-        let key = DKey { board: b, held, rem_g };
+        let key = DKey { board: b, held, qc: qc as u8, rem_g };
         if buf.seen.insert(key) {
             buf.cur.push(RNode {
                 board: b,
@@ -391,6 +392,7 @@ fn legal_p5_beam_move(
             let key = DKey {
                 board: n.board,
                 held: n.held,
+                qc: n.qc,
                 rem_g: n.rem_g,
             };
             if buf.seen.insert(key) {
@@ -474,7 +476,7 @@ fn shortlist_root_candidates(
             sm.evaluate_linear_board_with_bag_no_pe(&b, rem_g, ih, av)
         };
         root_best[idx] = root_best[idx].min(sc);
-        let key = DKey { board: b, held, rem_g };
+        let key = DKey { board: b, held, qc: qc as u8, rem_g };
         if buf.seen.insert(key) {
             buf.cur.push(RNode {
                 board: b,
@@ -578,6 +580,7 @@ fn shortlist_root_candidates(
             let key = DKey {
                 board: n.board,
                 held: n.held,
+                qc: n.qc,
                 rem_g: n.rem_g,
             };
             if buf.seen.insert(key) {
@@ -692,10 +695,21 @@ fn play_nc_rollout_seed(seed: u64, sm: Arc<SpatialValueModel>, nc: NcConfig) -> 
             let root_board = FastBoard::from_basic_matrix(&snap.matrix, g);
             let vis_q: Vec<u8> = snap.queue.iter().map(|&c| color_to_idx(c) as u8).collect();
             let hold0: Option<u8> = snap.hold.map(|c| color_to_idx(c) as u8);
-            let mut crn_rng = seed
-                .wrapping_mul(0x9E3779B97F4A7C15)
-                .wrapping_add(step_idx.wrapping_mul(0xBF58476D1CE4E5B9))
-                .wrapping_add(17);
+            let mut crn_rng: u64 = 0x9E3779B97F4A7C15
+                ^ ((rem_g as u64) << 32)
+                ^ ((cur_bag_mask as u64) << 16)
+                ^ (hold0.unwrap_or(7) as u64)
+                ^ step_idx.wrapping_mul(0xBF58476D1CE4E5B9);
+            for r in 0..(root_board.rows as usize).min(20) {
+                crn_rng = crn_rng
+                    .wrapping_mul(6364136223846793005)
+                    .wrapping_add(root_board.data[r] as u64);
+            }
+            for &p in &vis_q {
+                crn_rng = crn_rng
+                    .wrapping_mul(6364136223846793005)
+                    .wrapping_add(p as u64 + 1);
+            }
 
             let cands = shortlist_root_candidates(
                 &fst,

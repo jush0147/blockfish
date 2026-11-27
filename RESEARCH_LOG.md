@@ -250,6 +250,9 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
             - `fullmlp_base_bc4`: **`184.20 [176..193]`** (`[180, 184, 176, 188, 193]`, `cov=25.0, cov_nxt=15.0%, 703.1s`).
             - `fullmlp_TRUE_ens50_bc4_bc6` (V5 + V6 2D `3×3`): `185.80 [181..192]` (`[181, 185, 192, 188, 183]`, `cov=26.2, cov_nxt=17.0%, 1213.2s`).
             - `fullmlp_TRUE_ens50_bc4_v5q1` (V5 + Soft-Q): `185.00 [182..187]` (`[183, 187, 186, 182, 187]`, `cov=24.6, cov_nxt=14.8%, 1144.9s`) — lowest `cov`/`cov_nxt` and tightest `[182..187]` range, confirming all `spatial_bc4`-family variants cluster in `183–186`.
+          - **Colab Run #23-CPU (`bench_nc_rollout.rs`, Zero-Strategy-Fusion Nested Legal `p=5` Rollout Search, 5 seeds `101..=105`, 8-core CPU — FAST ELIMINATED)**:
+            - `nc_k6_w8_h8_b10l_c25`: `200.20 [188..209]` (`cov=30.2, wide=35.4, 209.9s`); `nc_k6_w12_h8_b10l_c0`: `197.00 [190..207]` (`cov=36.2, wide=30.6, 280.9s`).
+            - Fast-eliminated (`+13` to `+16` pcs behind `184.20`). Fixed `crn_rng` (removed hidden env seed dependency) and `DKey` (added `qc`) in `bench_nc_rollout.rs`.
 
 ---
 
