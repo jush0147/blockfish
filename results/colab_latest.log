@@ -1,11 +1,11 @@
 ================================================================
- Colab Run #23-CPU: Zero-Strategy-Fusion Nested Legal p=5 Rollout
-                    (New Paradigm: 100% Legal p=5 in-world rollout,
-                     ZERO future hole peeking inside rollouts!)
-                    5 seeds 101..=105 (~30 min on 8-core CPU)
+ Colab Run #24-CPU: Pure Legal p=5 2-Ply CRN-GRPO Policy Improvement
+                    5,120 Legal 100L games (20 iters x 32 seeds x G=8)
+                    Step-aligned CRN advantage + sibling softmax + KL
+                    + Strict Same-Binary fullmlp_w16 A/B (5 seeds)
  Cores: 8 | RAM: 50Gi
 ================================================================
---- Building bench_nc_rollout (release) ---
+--- Building train_grpo and bench_legal (release) ---
 warning: unused build dependency `fontconfig`
   --> blockfish-client/Cargo.toml:29:1
    |
@@ -103,23 +103,58 @@ help: use `'_` for type paths
    |                                                         ++++
 
 warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
-    Finished `release` profile [optimized] target(s) in 7.22s
+    Finished `release` profile [optimized] target(s) in 8.08s
 
->>> [1/2] Nested Legal p=5 Rollout (k=6, w=8, h=8, b=10, cvar=25):
-  [seed 104] pcs=194 nds=66 0ds=94 (cov=36 O=18 nar= 3 wide=32 end= 5) cov_nxt=20.0% | 153.5s
-  [seed 103] pcs=188 nds=64 0ds=88 (cov=30 O=16 nar=11 wide=25 end= 6) cov_nxt=16.0% | 162.7s
-  [seed 102] pcs=209 nds=73 0ds=109 (cov=22 O=24 nar=13 wide=47 end= 3) cov_nxt=13.0% | 173.8s
-  [seed 101] pcs=206 nds=71 0ds=106 (cov=32 O=18 nar=12 wide=38 end= 6) cov_nxt=13.0% | 203.4s
-  [seed 105] pcs=204 nds=71 0ds=104 (cov=31 O=19 nar=13 wide=35 end= 6) cov_nxt=21.0% | 209.9s
-nc_k6_w8_h8_b10l_c25         n= 5 mean=200.20 min=188 max=209 <=166: 0 <=161: 0 top= 0 | cov=30.2 O=19.0 nar=10.4 wide=35.4 end=5.2 cov_nxt=16.6% | 209.9s
-  seeds: [101:206, 102:209, 103:188, 104:194, 105:204]
+--- [1/3] Training SpatialValueModel with 5,120 Legal p=5 CRN-GRPO games ---
+================================================================
+ Pure Rust Legal p=5 CRN-GRPO (Group Relative Policy Optimization)
+ init=models/spatial_bc4.txt out=/tmp/spatial_grpo_v1.txt iters=20 seeds/iter=32 G=8 (256 games/iter) val=60
+ tau=0.15 top_m=10 kl_beta=0.050 lr_lin=3.0e-4 lr_mlp=1.5e-4 anchor_wd=5.0e-4 threads=8
+================================================================
+[Iter  0 BASE] val=59/60 top=1 mean=269.73 [233..315] (6.0s)
+[Iter  1/20] tr_ok=233/256 tr_mean=284.90 top=23 steps=73181 kl=0.0101 (28.3s+4.4s)
+[Iter  2/20] tr_ok=226/256 tr_mean=280.80 top=30 steps=72538 kl=0.0280 (28.1s+4.3s) | VAL=60/60 top=0 mean=278.57 [232..318] *** NEW BEST ***
+[Iter  3/20] tr_ok=222/256 tr_mean=283.71 top=34 steps=73349 kl=0.0649 (28.3s+4.5s)
+[Iter  4/20] tr_ok=237/256 tr_mean=282.34 top=19 steps=72409 kl=0.1210 (27.7s+4.2s) | VAL=60/60 top=0 mean=269.03 [226..309] *** NEW BEST ***
+[Iter  5/20] tr_ok=249/256 tr_mean=279.16 top=7 steps=71128 kl=0.0544 (27.4s+4.2s)
+[Iter  6/20] tr_ok=243/256 tr_mean=278.88 top=13 steps=71324 kl=0.0306 (27.4s+4.3s) | VAL=57/60 top=3 mean=271.42 [232..311] 
+[Iter  7/20] tr_ok=243/256 tr_mean=279.90 top=13 steps=71581 kl=0.0456 (27.7s+4.4s)
+[Iter  8/20] tr_ok=247/256 tr_mean=280.00 top=9 steps=71411 kl=0.1023 (27.1s+4.1s) | VAL=60/60 top=0 mean=274.98 [233..316] 
+[Iter  9/20] tr_ok=246/256 tr_mean=281.75 top=10 steps=71917 kl=0.0536 (27.3s+4.2s)
+[Iter 10/20] tr_ok=236/256 tr_mean=282.83 top=20 steps=72583 kl=0.0336 (27.7s+4.3s) | VAL=60/60 top=0 mean=272.62 [237..306] 
+[Iter 11/20] tr_ok=247/256 tr_mean=281.39 top=9 steps=71779 kl=0.0259 (27.3s+4.3s)
+[Iter 12/20] tr_ok=246/256 tr_mean=280.88 top=10 steps=71677 kl=0.0237 (27.4s+4.3s) | VAL=60/60 top=0 mean=267.42 [234..312] *** NEW BEST ***
+[Iter 13/20] tr_ok=243/256 tr_mean=280.64 top=13 steps=71751 kl=0.0249 (27.7s+4.3s)
+[Iter 14/20] tr_ok=238/256 tr_mean=280.75 top=18 steps=71991 kl=0.0222 (27.8s+4.3s) | VAL=59/60 top=1 mean=272.93 [231..314] 
+[Iter 15/20] tr_ok=247/256 tr_mean=280.79 top=9 steps=71595 kl=0.0226 (27.4s+4.3s)
+[Iter 16/20] tr_ok=245/256 tr_mean=280.64 top=11 steps=71627 kl=0.0231 (27.4s+4.3s) | VAL=60/60 top=0 mean=267.78 [237..315] 
+[Iter 17/20] tr_ok=247/256 tr_mean=277.62 top=9 steps=70844 kl=0.0221 (27.5s+4.2s)
+[Iter 18/20] tr_ok=252/256 tr_mean=279.99 top=4 steps=71163 kl=0.0208 (27.2s+4.2s) | VAL=60/60 top=0 mean=268.67 [231..297] 
+[Iter 19/20] tr_ok=249/256 tr_mean=280.22 top=7 steps=71409 kl=0.0205 (27.3s+4.3s)
+[Iter 20/20] tr_ok=246/256 tr_mean=279.24 top=10 steps=71265 kl=0.0203 (27.5s+4.2s) | VAL=60/60 top=0 mean=269.88 [240..310] 
+=== DONE CRN-GRPO: base_val=269.73 (top=1) -> best_val=267.42 (top=0) | saved /tmp/spatial_grpo_v1.txt ===
 
->>> [2/2] Nested Legal p=5 Rollout (k=6, w=12, h=8, b=10, cvar=0 pure mean):
-  [seed 101] pcs=200 nds=69 0ds=100 (cov=48 O=17 nar= 6 wide=24 end= 5) cov_nxt=17.0% | 231.6s
-  [seed 105] pcs=195 nds=67 0ds=95 (cov=33 O=21 nar=10 wide=26 end= 5) cov_nxt=20.0% | 238.2s
-  [seed 102] pcs=207 nds=72 0ds=107 (cov=45 O=18 nar= 9 wide=32 end= 3) cov_nxt=25.0% | 243.1s
-  [seed 103] pcs=190 nds=65 0ds=90 (cov=27 O=17 nar= 6 wide=39 end= 1) cov_nxt=14.0% | 273.6s
-  [seed 104] pcs=193 nds=66 0ds=93 (cov=28 O=21 nar= 9 wide=32 end= 3) cov_nxt=16.0% | 280.9s
-nc_k6_w12_h8_b10l_c0         n= 5 mean=197.00 min=190 max=207 <=166: 0 <=161: 0 top= 0 | cov=36.2 O=18.8 nar=8.0 wide=30.6 end=3.4 cov_nxt=18.4% | 280.9s
-  seeds: [101:200, 102:207, 103:190, 104:193, 105:195]
-=== Colab Run #23-CPU COMPLETE ===
+--- [2/3] Uploading spatial_grpo_v1 checkpoints to Release model-spatial-grpo-v1 ---
+Uploading spatial_grpo_v1.txt (1.08 MB) to release tag 'model-spatial-grpo-v1'...
+Created release id=460236025 (https://github.com/jush0147/blockfish/releases/tag/model-spatial-grpo-v1)
+UPLOAD SUCCESS: https://github.com/jush0147/blockfish/releases/download/model-spatial-grpo-v1/spatial_grpo_v1.txt (1133684 bytes)
+Uploading spatial_grpo_v1_last.txt (1.08 MB) to release tag 'model-spatial-grpo-v1'...
+Found existing release id=460236025 (https://github.com/jush0147/blockfish/releases/tag/model-spatial-grpo-v1)
+UPLOAD SUCCESS: https://github.com/jush0147/blockfish/releases/download/model-spatial-grpo-v1/spatial_grpo_v1_last.txt (1133706 bytes)
+
+--- [3/3] STRICT SAME-BINARY fullmlp_w16 A/B (5 seeds 101..=105): bc4 vs grpo_v1 ---
+  [seed 104] pcs=188 nds=64 0ds=88 (cov=24 O=21 nar=11 wide=28 end= 4) cov_nxt=18.0% | 609.3s
+  [seed 103] pcs=176 nds=59 0ds=76 (cov=25 O=19 nar= 7 wide=19 end= 6) cov_nxt=12.0% | 624.2s
+  [seed 101] pcs=180 nds=61 0ds=80 (cov=25 O=19 nar= 9 wide=24 end= 3) cov_nxt=17.0% | 628.5s
+  [seed 105] pcs=193 nds=66 0ds=93 (cov=27 O=21 nar= 9 wide=34 end= 2) cov_nxt=13.0% | 643.3s
+  [seed 102] pcs=184 nds=62 0ds=84 (cov=24 O=20 nar= 7 wide=30 end= 3) cov_nxt=15.0% | 689.2s
+fullmlp_w16 [models/spatial_bc4.txt] n= 5 mean=184.20 min=176 max=193 <=166: 0 top= 0 | nds=62.40 0ds=84.20 (cov=25.0 O=20.0 nar=8.6 wide=27.0 g0=0.0 end=3.6) cov_nxt=15.0% avg_c=12.4 | 689.2s
+  seeds: [101:180, 102:184, 103:176, 104:188, 105:193]
+  [seed 105] pcs=185 nds=63 0ds=85 (cov=31 O=16 nar= 7 wide=26 end= 5) cov_nxt=22.0% | 581.2s
+  [seed 104] pcs=181 nds=61 0ds=81 (cov=25 O=17 nar=10 wide=24 end= 5) cov_nxt=17.0% | 626.3s
+  [seed 102] pcs=194 nds=66 0ds=94 (cov=22 O=23 nar=10 wide=34 end= 5) cov_nxt=14.0% | 627.1s
+  [seed 103] pcs=176 nds=59 0ds=76 (cov=29 O=18 nar= 6 wide=20 end= 3) cov_nxt=13.0% | 644.9s
+  [seed 101] pcs=182 nds=62 0ds=82 (cov=23 O=21 nar= 7 wide=28 end= 3) cov_nxt=16.0% | 690.8s
+fullmlp_w16 [/tmp/spatial_grpo_v1.txt] n= 5 mean=183.60 min=176 max=194 <=166: 0 top= 0 | nds=62.20 0ds=83.60 (cov=26.0 O=19.0 nar=8.0 wide=26.4 g0=0.0 end=4.2) cov_nxt=16.4% avg_c=11.4 | 690.8s
+  seeds: [101:182, 102:194, 103:176, 104:181, 105:185]
+=== Colab Run #24-CPU COMPLETE ===
