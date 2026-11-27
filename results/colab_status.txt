@@ -1,4 +1,4 @@
-RUNNING commit=a100bf64 heartbeat=2026-11-27T07:22:32Z cores=8
+RUNNING commit=a100bf64 heartbeat=2026-11-27T07:24:34Z cores=8
 --- tail /tmp/colab_run.log ---
 Uploading spatial_grpo_v2_5ply_v6.txt (1.10 MB) to release tag 'model-spatial-grpo-v2'...
 Created release id=460262475 (https://github.com/jush0147/blockfish/releases/tag/model-spatial-grpo-v2)
