@@ -2833,4 +2833,61 @@ fn main() {
         eval_seeds("fullmlp_d2k6_cov115_w16_h8_b28", &seeds, &c_d2k6_cov);
         return;
     }
+    if mode == "es_v3_combo" {
+        let n_seeds: u64 = std::env::args()
+            .nth(2)
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(5);
+        let model_a = std::env::args()
+            .nth(3)
+            .unwrap_or_else(|| "models/spatial_bc4.txt".to_string());
+        let model_b = std::env::args()
+            .nth(4)
+            .unwrap_or_else(|| "/tmp/spatial_es_v3.txt".to_string());
+        let seeds: Vec<u64> = (101..(101 + n_seeds)).collect();
+
+        let mut sm_a = SpatialValueModel::load_from_file(&model_a).expect("load model_a");
+        sm_a.prepare_fast();
+        let mut sm_b = SpatialValueModel::load_from_file(&model_b).expect("load model_b");
+        sm_b.prepare_fast();
+
+        // Keep es_v3's improved non-cov weights (O/nar/wide/w3), restore cov weights to bc4 * 1.15
+        let mut sm_b_cov = sm_b.clone();
+        for &j in &[23usize, 24, 25, 28, 36, 45, 70] {
+            sm_b_cov.lin_dense[j] = sm_a.lin_dense[j] * 1.15;
+        }
+        sm_b_cov.prepare_fast();
+
+        let mut c = BeamConfig::default();
+        c.spatial_model = Some(Arc::new(sm_a));
+        c.rollout_top_k = 0;
+        c.beam_width = 80;
+        c.max_per_root = 16;
+        c.bag_det_extend = true;
+        c.endgame_solver = true;
+        c.simulate_cheese_spawn = true;
+        c.spatial_rerank_only = false; // REAL FULL MLP
+        c.spatial_no_pe_internal = false;
+        c.root_pimc_prescreen_worlds = 0;
+        c.root_pimc_roots = 32;
+        c.root_pimc_fine_roots = 10;
+        c.root_pimc_worlds = 16;
+        c.root_pimc_horizon = 8;
+        c.root_pimc_width = 28;
+        c.root_pimc_margin = 500;
+        c.root_pimc_weight_pct = 100;
+        c.root_pimc_steady_g4 = false;
+        c.root_pimc_cvar_pct = 25;
+
+        eval_seeds("fullmlp_base_bc4", &seeds, &c);
+
+        let mut c_ens = c.clone();
+        c_ens.spatial_model_2 = Some(Arc::new(sm_b));
+        eval_seeds("fullmlp_ens50_bc4_esv3", &seeds, &c_ens);
+
+        let mut c_cov = c.clone();
+        c_cov.spatial_model = Some(Arc::new(sm_b_cov));
+        eval_seeds("fullmlp_esv3_bc4cov115", &seeds, &c_cov);
+        return;
+    }
 }

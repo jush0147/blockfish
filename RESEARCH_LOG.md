@@ -238,6 +238,9 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
           - **Colab Run #17-CPU (`bench_legal d2_expectimax`, 5 seeds `101..=105`, 8-core CPU)**:
             - `fullmlp_base_w16_h8_b28 = 184.20 [176..193] (cov=25.0)` vs `d2k4_w16 = 192.00 (+7.80, cov=36.6)` vs `d2k6_cov115_w16 = 188.40 (+4.20, cov=33.6)`.
             - **Legality bug found & fixed in `beam.rs`**: `d2_prepped` generated `fp2` on `world 0` and passed it directly into `root_pimc_eval_world` for all worlds without checking collision/support against world-specific newly spawned garbage rows (`0..num_new`), invalidating Run #17's `d2` numbers. Fixed by filtering `fp2.norm_i <= num_new` in `d2_prepped` and adding `FastShape::intersects` collision + support guards in `root_pimc_eval_world`.
+          - **Colab Runs #18–#19-CPU (`opt_pimc.rs` Direct Legal CRN ES → `model-spatial-es-v3`, strict same-binary `fullmlp_w16` 5 seeds `101..=105`)**:
+            - `spatial_bc4.txt`: **`184.20 [176..193]`** (`[180, 184, 176, 188, 193]`, `cov=25.0, O=20.0, nar=8.6, wide=27.0, end=3.6`).
+            - `spatial_es_v3.txt`: **`184.40 [179..190]`** (`[184, 179, 185, 184, 190]`, `cov=31.6, O=17.2, nar=6.4, wide=25.8, end=3.4`) — beat `bc4` on 3/5 seeds (`102:-5, 104:-4, 105:-3`), cut `O+nar+wide+end` by **`-6.4` pcs**, and tightened `max` `193 -> 190`, while losing `+6.6` on `cov` due to `dense[23/25/28]` stepping `-0.02`.
 
 ---
 
