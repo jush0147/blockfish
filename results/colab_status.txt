@@ -1,4 +1,4 @@
-RUNNING commit=28128ef0 heartbeat=2026-11-27T13:53:48Z cores=8
+RUNNING commit=28128ef0 heartbeat=2026-11-27T13:55:50Z cores=8
 --- tail /tmp/colab_run.log ---
    |
 16 |     pub fn shape(&self, color: Color) -> Option<ShapeRef<'_>> {
