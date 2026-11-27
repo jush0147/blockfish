@@ -1,17 +1,1 @@
-RUNNING commit=7ef3b974 heartbeat=2026-11-27T06:05:41Z cores=8
---- tail /tmp/colab_run.log ---
-    Finished `release` profile [optimized] target(s) in 7.22s
-
->>> [1/2] Nested Legal p=5 Rollout (k=6, w=8, h=8, b=10, cvar=25):
-  [seed 104] pcs=194 nds=66 0ds=94 (cov=36 O=18 nar= 3 wide=32 end= 5) cov_nxt=20.0% | 153.5s
-  [seed 103] pcs=188 nds=64 0ds=88 (cov=30 O=16 nar=11 wide=25 end= 6) cov_nxt=16.0% | 162.7s
-  [seed 102] pcs=209 nds=73 0ds=109 (cov=22 O=24 nar=13 wide=47 end= 3) cov_nxt=13.0% | 173.8s
-  [seed 101] pcs=206 nds=71 0ds=106 (cov=32 O=18 nar=12 wide=38 end= 6) cov_nxt=13.0% | 203.4s
-  [seed 105] pcs=204 nds=71 0ds=104 (cov=31 O=19 nar=13 wide=35 end= 6) cov_nxt=21.0% | 209.9s
-nc_k6_w8_h8_b10l_c25         n= 5 mean=200.20 min=188 max=209 <=166: 0 <=161: 0 top= 0 | cov=30.2 O=19.0 nar=10.4 wide=35.4 end=5.2 cov_nxt=16.6% | 209.9s
-  seeds: [101:206, 102:209, 103:188, 104:194, 105:204]
-
->>> [2/2] Nested Legal p=5 Rollout (k=6, w=12, h=8, b=10, cvar=0 pure mean):
-  [seed 101] pcs=200 nds=69 0ds=100 (cov=48 O=17 nar= 6 wide=24 end= 5) cov_nxt=17.0% | 231.6s
-  [seed 105] pcs=195 nds=67 0ds=95 (cov=33 O=21 nar=10 wide=26 end= 5) cov_nxt=20.0% | 238.2s
-  [seed 102] pcs=207 nds=72 0ds=107 (cov=45 O=18 nar= 9 wide=32 end= 3) cov_nxt=25.0% | 243.1s
+DONE commit=7ef3b974 exit=0 finished=2026-11-27T06:05:54Z
