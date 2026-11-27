@@ -1,8 +1,5 @@
-RUNNING commit=a100bf64 heartbeat=2026-11-27T06:56:10Z cores=8
+RUNNING commit=a100bf64 heartbeat=2026-11-27T06:58:12Z cores=8
 --- tail /tmp/colab_run.log ---
-
---- [1/3] Training V6-1591 SpatialValueModel with 5-Ply Beam CRN-GRPO ---
-================================================================
  Pure Rust Legal p=5 CRN-GRPO (Group Relative Policy Optimization)
  init=models/spatial_bc4.txt out=/tmp/spatial_grpo_v2_5ply_v6.txt iters=20 seeds/iter=24 G=8 (192 games/iter) val=60 beam=16 sparse_lim=1591
  tau=0.15 top_m=10 kl_beta=0.015 lr_lin=3.0e-4 lr_mlp=1.5e-4 anchor_wd=2.0e-4 threads=8
@@ -15,3 +12,6 @@ RUNNING commit=a100bf64 heartbeat=2026-11-27T06:56:10Z cores=8
 [Iter  5/20] tr_ok=192/192 tr_mean=213.93 top=0 steps=39960 kl=0.0371 (27.0s+1.1s)
 [Iter  6/20] tr_ok=192/192 tr_mean=213.58 top=0 steps=39844 kl=0.0249 (26.9s+1.1s) | VAL=60/60 top=0 mean=208.75 [186..237] *** NEW BEST ***
 [Iter  7/20] tr_ok=192/192 tr_mean=213.64 top=0 steps=39823 kl=0.0250 (26.8s+1.1s)
+[Iter  8/20] tr_ok=192/192 tr_mean=212.65 top=0 steps=39703 kl=0.0231 (26.7s+1.1s) | VAL=60/60 top=0 mean=209.88 [191..236] 
+[Iter  9/20] tr_ok=192/192 tr_mean=213.11 top=0 steps=39745 kl=0.0224 (26.8s+1.1s)
+[Iter 10/20] tr_ok=192/192 tr_mean=214.59 top=0 steps=39994 kl=0.0258 (27.2s+1.1s) | VAL=60/60 top=0 mean=210.35 [192..232] 
