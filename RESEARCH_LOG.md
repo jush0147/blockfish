@@ -272,7 +272,12 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
             - `fullmlp_base_h8_w16_b28`: **`184.20 [176..193]`** (`cov=25.0, cov_nxt=15.0%, 662.1s`).
             - `fullmlp_ds4_w16_b20_c25`: `189.40 [183..196]` (`+5.20` pcs, `cov=33.2, 900.0s`).
             - `fullmlp_ds5_w16_b16_c25`: `187.40 [179..195]` (`+3.20` pcs, `cov=29.2, 984.1s`).
-            - Fast-eliminated without tuning; pivoting to **Strong-Teacher `fullmlp_w16` (`184.20` pcs) Legal `p=5` Same-State Sibling Q-Advantage Expert Iteration (`train_exit_w16.rs`, Run #29-CPU)** unlocking all `1,591` V6 2D `3×3` patterns with ZERO clairvoyance and ZERO absolute scalar regression.
+            - Fast-eliminated without tuning; pivoting to **Strong-Teacher `fullmlp_w16` (`184.20` pcs) Legal `p=5` Same-State Sibling Q-Advantage Expert Iteration (`train_exit_w16.rs`, Run #29-CPU)**.
+          - **Colab Run #29-CPU (`train_exit_w16.rs`, 16 `fullmlp_w16` games = `2,564` train / `178` holdout states, Full V6-1591, pure relative Q-adv + listwise CE → `model-spatial-exit-w16-v1`, 8-core CPU — FAST ELIMINATED)**:
+            - Teacher mean: `16/16 top=0 mean=185.50` (`1812.2s`).
+            - Training dynamics revealed a critical structural mismatch: `ho_ce` dropped monotonically (`1.8725 -> 1.4760`) and `ho_adv` dropped (`0.5616 -> 0.4779`), YET `ho_top1` dropped (`62.9% -> 53.9%`) and 60-seed 5-ply `VAL` immediately jumped `+24` pcs (`208.80 -> 232.78 -> 224.23`, `top=0`); `NEW BEST` guard cleanly skipped `[3/3]` `fullmlp_w16` A/B.
+            - **Unified Root-Cause Diagnosis (Runs #16, #25, #27, #29)**: Forcing a queue-blind static board evaluator `V(board, in_hand, unordered_avail_mask)` to fit 1-ply root Q-distributions of an 8-ply ordered-queue searcher (`fullmlp_w16`) shrinks/blurs board geometry weights to match compressed 8-ply spreads and cope with ordered-`next5` aliasing — lowering cross-entropy while degrading top-1 ranking and multi-ply leaf evaluation.
+
 
 
 
