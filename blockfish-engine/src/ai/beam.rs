@@ -1439,6 +1439,7 @@ impl BeamSearcher {
                                     all_valid = false;
                                     break;
                                 }
+                                let g_before_spawn = b0.garbage_rows as usize;
                                 if !Self::spawn_cheese_from_stream(
                                     &mut b0,
                                     rem0,
@@ -1450,6 +1451,7 @@ impl BeamSearcher {
                                     all_valid = false;
                                     break;
                                 }
+                                let num_new = (b0.garbage_rows as usize).saturating_sub(g_before_spawn);
                                 let (held0, qc0) = if hold0.is_some() {
                                     if fp.did_hold {
                                         (cur0, if cur0.is_some() { 1 } else { 0 })
@@ -1475,8 +1477,13 @@ impl BeamSearcher {
                                     break;
                                 }
                                 // Score all legal step-2 moves with 1-ply eval to pick top 6 (preserving 0ds & ds1)
+                                // Skip placements touching or resting on newly spawned rows (0..num_new),
+                                // whose hole column varies across sampled worlds.
                                 let mut d2_scored: Vec<(FastPlace, i64, u8)> = Vec::with_capacity(self.tmp_places.len());
                                 for &fp2 in &self.tmp_places {
+                                    if num_new > 0 && (fp2.norm_i as usize) <= num_new {
+                                        continue;
+                                    }
                                     let mut b2 = b0;
                                     let o2 = &self.fst.shapes[fp2.color_idx as usize].orients[fp2.tf.2 as usize];
                                     let (l2, ds2, _) = b2.place_and_sift(o2, fp2.norm_i, fp2.norm_j);
@@ -3724,7 +3731,14 @@ impl BeamSearcher {
         let mut start_step = 1usize;
 
         if let Some(fp2) = second_fp {
-            let orient2 = &self.fst.shapes[fp2.color_idx as usize].orients[fp2.tf.2 as usize];
+            let shape2 = &self.fst.shapes[fp2.color_idx as usize];
+            let r2 = fp2.tf.2 as usize;
+            if shape2.intersects(&b0, fp2.tf.0, fp2.tf.1, r2)
+                || !shape2.intersects(&b0, fp2.tf.0 - 1, fp2.tf.1, r2)
+            {
+                return (5_000_000, 1);
+            }
+            let orient2 = &shape2.orients[r2];
             let ng_add = u8::from(b0.garbage_rows == 0 && rem_cur > 0);
             let (lines2, ds2, _) = b0.place_and_sift(orient2, fp2.norm_i, fp2.norm_j);
             rem_cur = rem_cur.saturating_sub(ds2 as u16);

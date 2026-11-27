@@ -235,6 +235,9 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
             - Fixed 60-seed greedy `beam=24` validation (`seeds 1..=60`, `top=0` on all iters): `Iter 0 BASE (spatial_bc4) = 203.10 [182..219]` → `Iter 1 = 206.37` → `Iter 2 = 206.72` → `Iter 3 = 208.43` → `Iter 4 = 212.93` → `Iter 5 = 212.25` (best checkpoint stayed `Iter 0`, `fullmlp_w16` same-binary A/B `184.20` vs `184.20`).
             - **Metric caveats**: `train_spatial_td.rs`'s `cov_turns` counts all turns where the top garbage hole is covered (not restricted to `ds == 0` like `bench_legal.rs`'s `cov`), and per-iter `val_mc_rmse` (`22.059 -> 20.139`) is evaluated on each iteration's own policy trajectory distribution rather than a fixed state set.
             - **Conclusion**: Absolute scalar `TD(λ)` regression on single-trajectory returns washes out `0.1`-piece sibling move rankings; pivoting to **100% Legal-Physics 2-Ply Shared-Prefix Expectimax** (`d2_top_k`) and/or **CRN Antithetic ES** directly on Legal `p=5` piece counts.
+          - **Colab Run #17-CPU (`bench_legal d2_expectimax`, 5 seeds `101..=105`, 8-core CPU)**:
+            - `fullmlp_base_w16_h8_b28 = 184.20 [176..193] (cov=25.0)` vs `d2k4_w16 = 192.00 (+7.80, cov=36.6)` vs `d2k6_cov115_w16 = 188.40 (+4.20, cov=33.6)`.
+            - **Legality bug found & fixed in `beam.rs`**: `d2_prepped` generated `fp2` on `world 0` and passed it directly into `root_pimc_eval_world` for all worlds without checking collision/support against world-specific newly spawned garbage rows (`0..num_new`), invalidating Run #17's `d2` numbers. Fixed by filtering `fp2.norm_i <= num_new` in `d2_prepped` and adding `FastShape::intersects` collision + support guards in `root_pimc_eval_world`.
 
 ---
 

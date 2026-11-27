@@ -123,7 +123,7 @@ fn eval_batch(
     worlds: usize,
     width: usize,
     roots: usize,
-) -> (f64, usize) {
+) -> (f64, f64, usize) {
     let mut m = mdl.clone();
     m.prepare_fast();
     let cfg = make_pimc_cfg(Arc::new(m), worlds, width, roots);
@@ -146,9 +146,15 @@ fn eval_batch(
         }
         out
     });
-    let mean = res.iter().map(|&(p, _)| p as f64).sum::<f64>() / (res.len().max(1) as f64);
+    let pen_mean = res.iter().map(|&(p, _)| p as f64).sum::<f64>() / (res.len().max(1) as f64);
+    let ok: Vec<usize> = res.iter().filter(|&&(_, t)| !t).map(|&(p, _)| p).collect();
+    let ok_mean = if ok.is_empty() {
+        999.0
+    } else {
+        ok.iter().sum::<usize>() as f64 / (ok.len() as f64)
+    };
     let tops = res.iter().filter(|&&(_, t)| t).count();
-    (mean, tops)
+    (ok_mean, pen_mean, tops)
 }
 
 fn extract_theta(mdl: &SpatialValueModel, ah2: usize) -> Vec<f32> {
@@ -175,12 +181,14 @@ fn apply_theta(base: &SpatialValueModel, th: &[f32], ah2: usize) -> SpatialValue
 }
 
 fn main() {
+    use std::io::Write;
     let args: Vec<String> = std::env::args().collect();
     let mut init_path = "models/spatial_bc4.txt".to_string();
     let mut out_path = "models/spatial_pimc_es1.txt".to_string();
     let mut gens: usize = 12;
     let mut pairs: usize = 3;
     let mut batch_seeds: usize = 8;
+    let mut n_val_seeds: usize = 16;
     let mut worlds: usize = 4;
     let mut width: usize = 14;
     let mut roots: usize = 8;
@@ -197,6 +205,7 @@ fn main() {
             "--gens" => { gens = args[i + 1].parse().unwrap(); i += 2; }
             "--pairs" => { pairs = args[i + 1].parse().unwrap(); i += 2; }
             "--batch-seeds" => { batch_seeds = args[i + 1].parse().unwrap(); i += 2; }
+            "--val-seeds" => { n_val_seeds = args[i + 1].parse().unwrap(); i += 2; }
             "--worlds" => { worlds = args[i + 1].parse().unwrap(); i += 2; }
             "--width" => { width = args[i + 1].parse().unwrap(); i += 2; }
             "--roots" => { roots = args[i + 1].parse().unwrap(); i += 2; }
@@ -218,17 +227,20 @@ fn main() {
         sigmas[idx] = sigma_lin;
     }
 
-    let val_seeds: Vec<u64> = (6001..=6008).collect();
+    let val_seeds: Vec<u64> = (6001..(6001 + n_val_seeds as u64)).collect();
     let t0 = Instant::now();
     println!(
-        "=== Direct Legal REAL-MLP root_pimc ES (opt_pimc) ===\n  init={} out={} dim={} (16 dense + {} w3) gens={} pairs={} batch_seeds={} w={} b={} r={} lr={} max_secs={}s",
-        init_path, out_path, dim, ah2, gens, pairs, batch_seeds, worlds, width, roots, lr, max_secs
+        "=== Direct Legal REAL-MLP root_pimc ES (opt_pimc) ===\n  init={} out={} dim={} (16 dense + {} w3) gens={} pairs={} batch_seeds={} val_seeds={} w={} b={} r={} lr={} max_secs={}s",
+        init_path, out_path, dim, ah2, gens, pairs, batch_seeds, n_val_seeds, worlds, width, roots, lr, max_secs
     );
+    let _ = std::io::stdout().flush();
 
-    let (init_val, init_top) = eval_batch(&base_mdl, &val_seeds, worlds, width, roots);
-    println!("  [INIT val8] mean={:.2} top={} dt={:.1}s", init_val, init_top, t0.elapsed().as_secs_f64());
+    let (init_val, _, init_top) = eval_batch(&base_mdl, &val_seeds, worlds, width, roots);
+    println!("  [INIT val{}] mean_ok={:.2} top={} dt={:.1}s", n_val_seeds, init_val, init_top, t0.elapsed().as_secs_f64());
+    let _ = std::io::stdout().flush();
 
     let mut best_val = init_val;
+    let mut best_top = init_top;
     let mut best_mdl = base_mdl.clone();
     best_mdl.save_to_file(&out_path).expect("save init out");
 
@@ -253,8 +265,8 @@ fn main() {
 
             let m_pos = apply_theta(&base_mdl, &th_pos, ah2);
             let m_neg = apply_theta(&base_mdl, &th_neg, ah2);
-            let (f_pos, _) = eval_batch(&m_pos, &tr_seeds, worlds, width, roots);
-            let (f_neg, _) = eval_batch(&m_neg, &tr_seeds, worlds, width, roots);
+            let (_, f_pos, _) = eval_batch(&m_pos, &tr_seeds, worlds, width, roots);
+            let (_, f_neg, _) = eval_batch(&m_neg, &tr_seeds, worlds, width, roots);
             pair_means.push(0.5 * (f_pos + f_neg));
 
             // Minimize piece count: gradient points toward lower f
@@ -284,9 +296,11 @@ fn main() {
         let tr_avg = pair_means.iter().sum::<f64>() / (pair_means.len().max(1) as f64);
 
         if gen % 2 == 0 || gen == gens || t0.elapsed().as_secs() + 120 >= max_secs {
-            let (v_mean, v_top) = eval_batch(&cur_mdl, &val_seeds, worlds, width, roots);
-            let star = if v_mean < best_val {
+            let (v_mean, _, v_top) = eval_batch(&cur_mdl, &val_seeds, worlds, width, roots);
+            let improved = (v_top < best_top) || (v_top == best_top && v_mean < best_val);
+            let star = if improved {
                 best_val = v_mean;
+                best_top = v_top;
                 best_mdl = cur_mdl.clone();
                 best_mdl.save_to_file(&out_path).expect("save best es model");
                 " *NEW BEST*"
@@ -294,19 +308,20 @@ fn main() {
                 ""
             };
             println!(
-                "  [ES gen {:2}/{:2}] tr_mean={:.2} | val8={:.2} (best={:.2}, top={}){} | dt={:.1}s",
-                gen, gens, tr_avg, v_mean, best_val, v_top, star, t0.elapsed().as_secs_f64()
+                "  [ES gen {:2}/{:2}] tr_pen={:.2} | val{}={:.2} (best={:.2}, top={}){} | dt={:.1}s",
+                gen, gens, tr_avg, n_val_seeds, v_mean, best_val, v_top, star, t0.elapsed().as_secs_f64()
             );
         } else {
             println!(
-                "  [ES gen {:2}/{:2}] tr_mean={:.2} | dt={:.1}s",
+                "  [ES gen {:2}/{:2}] tr_pen={:.2} | dt={:.1}s",
                 gen, gens, tr_avg, t0.elapsed().as_secs_f64()
             );
         }
+        let _ = std::io::stdout().flush();
     }
 
     println!(
-        "Finished opt_pimc: init_val8={:.2} -> best_val8={:.2} (saved to {}) in {:.1}s",
-        init_val, best_val, out_path, t0.elapsed().as_secs_f64()
+        "Finished opt_pimc: init_val{}={:.2} (top={}) -> best_val{}={:.2} (top={}) (saved to {}) in {:.1}s",
+        n_val_seeds, init_val, init_top, n_val_seeds, best_val, best_top, out_path, t0.elapsed().as_secs_f64()
     );
 }
