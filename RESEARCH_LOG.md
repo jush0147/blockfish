@@ -253,6 +253,10 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
           - **Colab Run #23-CPU (`bench_nc_rollout.rs`, Zero-Strategy-Fusion Nested Legal `p=5` Rollout Search, 5 seeds `101..=105`, 8-core CPU — FAST ELIMINATED)**:
             - `nc_k6_w8_h8_b10l_c25`: `200.20 [188..209]` (`cov=30.2, wide=35.4, 209.9s`); `nc_k6_w12_h8_b10l_c0`: `197.00 [190..207]` (`cov=36.2, wide=30.6, 280.9s`).
             - Fast-eliminated (`+13` to `+16` pcs behind `184.20`). Fixed `crn_rng` (removed hidden env seed dependency) and `DKey` (added `qc`) in `bench_nc_rollout.rs`.
+          - **Colab Run #24-CPU (`train_grpo.rs`, 5,120 Legal `p=5` 2-Ply CRN-GRPO games → `model-spatial-grpo-v1`, 8-core CPU — FIRST PURE LEGAL RL TO BEAT `bc4` IN `fullmlp_w16`!)**:
+            - 2-ply `val=60`: `59/60 (top=1) 269.73` → **`60/60 (top=0) 267.42`**; training `top` dropped `34/256 -> 4/256` (`tr_mean: 284.90 -> 277.62`).
+            - Strict same-binary 5-seed `fullmlp_w16` (`101..=105`): `spatial_bc4 = 184.20 [176..193]` vs **`spatial_grpo_v1 = 183.60 [176..194] (-0.60 pcs)`** (`104: 188->181 (-7)`, `105: 193->185 (-8)`, `nds: 62.4->62.2, O: 20.0->19.0, nar: 8.6->8.0, wide: 27.0->26.4, avg_c: 12.4->11.4`).
+            - Fixed `step_pieces` alignment in `train_grpo.rs` and upgrading to **5-Ply Beam CRN-GRPO + Full 1,591 V6 2D `3×3` patterns** (Run #25-CPU).
 
 ---
 

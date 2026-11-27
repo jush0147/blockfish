@@ -104,6 +104,7 @@ fn play_grpo_episode(
     ref_mdl: &SpatialValueModel,
     tau: f32,
     top_m: usize,
+    beam_w: usize,
     sparse_lim: usize,
     record_steps: bool,
 ) -> EpisodeRec {
@@ -135,6 +136,28 @@ fn play_grpo_episode(
 
     let mut act_buf = [0u16; SPARSE_DIM];
     let mut dense_buf = [0.0f32; DENSE_DIM];
+
+    #[derive(Clone, Copy)]
+    struct BNode {
+        board: FastBoard,
+        held: Option<u8>,
+        qc: u8,
+        rem_g: u16,
+        first_idx: u16,
+        score: i64,
+    }
+    #[derive(Hash, Eq, PartialEq)]
+    struct BKey {
+        board: FastBoard,
+        held: Option<u8>,
+        qc: u8,
+        rem_g: u16,
+    }
+    let mut cur_beam: Vec<BNode> = Vec::with_capacity(beam_w.max(16));
+    let mut next_beam: Vec<BNode> = Vec::with_capacity(beam_w.max(16) * 48);
+    let mut seen_beam: std::collections::HashSet<BKey> =
+        std::collections::HashSet::with_capacity(beam_w.max(16) * 4);
+    let mut tmp_p2: Vec<FastPlace> = Vec::with_capacity(64);
 
     while ds_total < 100 && pieces < 320 && stacker.current_piece_type().is_some() {
         let snap = match stacker.snapshot() {
@@ -171,126 +194,295 @@ fn play_grpo_episode(
                 .wrapping_add(b0.data[r] as u64);
         }
 
-        // Evaluate all legal 1-ply moves, then expand top-14 to 2-ply Legal p=5 lookahead!
-        let mut p1_scored: Vec<(f32, usize, FastPlace, FastBoard, Option<u8>, usize, u16)> =
-            Vec::with_capacity(tmp_places.len());
-        let mut win_fp: Option<FastPlace> = None;
-
-        for (idx, &fp) in tmp_places.iter().enumerate() {
-            let mut b = b0;
-            let o = &fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
-            let (lines, ds, _) = b.place_and_sift(o, fp.norm_i, fp.norm_j);
-            let rem2 = rem_g.saturating_sub(ds as u16);
-            if rem2 == 0 && b.rows < 20 {
-                win_fp = Some(fp);
-                break;
-            }
-            if rem2 > 0 {
-                let mut r_loc = spawn_rng_base;
-                if !b.spawn_cheese_rows(rem2, lines, &mut r_loc) {
-                    continue;
-                }
-            }
-            let col_h = b.col_heights();
-            let max_h = *col_h.iter().max().unwrap();
-            let center_h = col_h[3..=6].iter().copied().max().unwrap();
-            if max_h >= 20 || center_h >= 19 {
-                continue;
-            }
-            let (new_held, nqc) = if hold0.is_some() {
-                if fp.did_hold {
-                    (cur0, 1usize)
-                } else {
-                    (hold0, 1usize)
-                }
-            } else if fp.did_hold {
-                (cur0, 2usize)
-            } else {
-                (None, 1usize)
-            };
-            let ih2 = hand_piece(new_held, nqc, &vis_q);
-            let av2 = avail_mask_from_q(new_held, nqc, &vis_q, cur_bag_mask);
-            let v1 = mdl.evaluate_linear_board_with_bag_no_pe(&b, rem2, ih2, av2) as f32 * 0.01;
-            p1_scored.push((v1, idx, fp, b, new_held, nqc, rem2));
-        }
-
         let mut scored: Vec<(f32, usize, FastPlace, Vec<u16>, [f32; DENSE_DIM])> =
             Vec::with_capacity(16);
-        let mut tmp_p2: Vec<FastPlace> = Vec::with_capacity(64);
-        let spawn_rng_d2 = spawn_rng_base.wrapping_add(0x517CC1B727220A95);
+        let mut win_fp: Option<FastPlace> = None;
 
-        if win_fp.is_none() && !p1_scored.is_empty() {
-            p1_scored.sort_unstable_by(|a, b| a.0.total_cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
-            let n_expand = p1_scored.len().min(14);
-            'root_loop: for &( _, ridx, fp0, b1, held1, qc1, rem1 ) in &p1_scored[..n_expand] {
-                let (c_nh2, c_h2) = if held1.is_some() {
-                    (vis_q.get(qc1).copied(), held1)
-                } else {
-                    (vis_q.get(qc1).copied(), vis_q.get(qc1 + 1).copied())
-                };
-                pgen.generate_for_state(&fst, &b1, c_nh2, c_h2, &mut tmp_p2);
-                let mut best_v2 = f32::INFINITY;
-                let mut best_act = Vec::new();
-                let mut best_dense = [0.0f32; DENSE_DIM];
+        if beam_w > 0 {
+            // 5-ply Legal p=5 beam (linear-skip internal + Full-MLP leaf rerank per root)
+            let q_len = vis_q.len().min(6);
+            let max_depth = if hold0.is_some() { q_len } else { q_len.saturating_sub(1) }.clamp(1, 5);
+            let mpr = (beam_w / 3).max(4);
+            cur_beam.clear();
+            seen_beam.clear();
 
-                for &fp2 in &tmp_p2 {
-                    let mut b2 = b1;
-                    let o2 = &fst.shapes[fp2.color_idx as usize].orients[fp2.tf.2 as usize];
-                    let (l2, ds2, _) = b2.place_and_sift(o2, fp2.norm_i, fp2.norm_j);
-                    let rem2 = rem1.saturating_sub(ds2 as u16);
-                    if rem2 == 0 && b2.rows < 20 {
-                        win_fp = Some(fp0);
-                        break 'root_loop;
-                    }
-                    if rem2 > 0 {
-                        let mut r_loc = spawn_rng_d2;
-                        if !b2.spawn_cheese_rows(rem2, l2, &mut r_loc) {
-                            continue;
-                        }
-                    }
-                    let col_h = b2.col_heights();
-                    let max_h = *col_h.iter().max().unwrap();
-                    let center_h = col_h[3..=6].iter().copied().max().unwrap();
-                    if max_h >= 20 || center_h >= 19 {
+            for (idx, &fp) in tmp_places.iter().enumerate() {
+                let mut b = b0;
+                let o = &fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
+                let (lines, ds, _) = b.place_and_sift(o, fp.norm_i, fp.norm_j);
+                let rem2 = rem_g.saturating_sub(ds as u16);
+                if rem2 == 0 && b.rows < 20 {
+                    win_fp = Some(fp);
+                    break;
+                }
+                if rem2 > 0 {
+                    let mut r_loc = spawn_rng_base;
+                    if !b.spawn_cheese_rows(rem2, lines, &mut r_loc) {
                         continue;
                     }
-                    let (held2, qc2) = if held1.is_some() {
-                        if fp2.did_hold {
-                            (c_nh2, if c_nh2.is_some() { qc1 + 1 } else { qc1 })
-                        } else {
-                            (held1, qc1 + 1)
+                }
+                let (new_held, nqc) = if hold0.is_some() {
+                    if fp.did_hold { (cur0, 1usize) } else { (hold0, 1usize) }
+                } else if fp.did_hold {
+                    (cur0, 2usize)
+                } else {
+                    (None, 1usize)
+                };
+                let ih = hand_piece(new_held, nqc, &vis_q[..q_len]);
+                let av = avail_mask_from_q(new_held, nqc, &vis_q[..q_len], cur_bag_mask);
+                let sc = mdl.evaluate_linear_board_with_bag_no_pe(&b, rem2, ih, av);
+                let key = BKey { board: b, held: new_held, qc: nqc as u8, rem_g: rem2 };
+                if seen_beam.insert(key) {
+                    cur_beam.push(BNode {
+                        board: b,
+                        held: new_held,
+                        qc: nqc as u8,
+                        rem_g: rem2,
+                        first_idx: idx as u16,
+                        score: sc,
+                    });
+                }
+            }
+
+            if win_fp.is_none() && !cur_beam.is_empty() {
+                if cur_beam.len() > beam_w {
+                    cur_beam.sort_unstable_by_key(|n| n.score);
+                    cur_beam.truncate(beam_w);
+                }
+                'd_loop: for depth in 2..=max_depth {
+                    next_beam.clear();
+                    let d_seed =
+                        spawn_rng_base.wrapping_add((depth as u64).wrapping_mul(0x517CC1B727220A95));
+                    for ni in 0..cur_beam.len() {
+                        let node = cur_beam[ni];
+                        if node.rem_g == 0 {
+                            continue;
                         }
-                    } else if fp2.did_hold {
-                        (c_nh2, qc1 + 2)
-                    } else {
-                        (None, qc1 + 1)
-                    };
-                    let ih2 = hand_piece(held2, qc2, &vis_q);
-                    let av2 = avail_mask_from_q(held2, qc2, &vis_q, cur_bag_mask);
+                        let qc = node.qc as usize;
+                        let (c_nh2, c_h2) = if node.held.is_some() {
+                            (if qc < q_len { Some(vis_q[qc]) } else { None }, node.held)
+                        } else {
+                            (
+                                if qc < q_len { Some(vis_q[qc]) } else { None },
+                                if qc + 1 < q_len { Some(vis_q[qc + 1]) } else { None },
+                            )
+                        };
+                        pgen.generate_for_state(&fst, &node.board, c_nh2, c_h2, &mut tmp_p2);
+                        for &fp2 in &tmp_p2 {
+                            let mut b2 = node.board;
+                            let o2 = &fst.shapes[fp2.color_idx as usize].orients[fp2.tf.2 as usize];
+                            let (l2, ds2, _) = b2.place_and_sift(o2, fp2.norm_i, fp2.norm_j);
+                            let rem2 = node.rem_g.saturating_sub(ds2 as u16);
+                            if rem2 == 0 && b2.rows < 20 {
+                                win_fp = Some(tmp_places[node.first_idx as usize]);
+                                break 'd_loop;
+                            }
+                            if rem2 > 0 {
+                                let mut r_loc = d_seed;
+                                if !b2.spawn_cheese_rows(rem2, l2, &mut r_loc) {
+                                    continue;
+                                }
+                            }
+                            let (held2, nqc2) = if node.held.is_some() {
+                                if fp2.did_hold {
+                                    (c_nh2, if c_nh2.is_some() { qc + 1 } else { qc })
+                                } else {
+                                    (node.held, qc + 1)
+                                }
+                            } else if fp2.did_hold {
+                                (c_nh2, qc + 2)
+                            } else {
+                                (None, qc + 1)
+                            };
+                            let ih2 = hand_piece(held2, nqc2, &vis_q[..q_len]);
+                            let av2 = avail_mask_from_q(held2, nqc2, &vis_q[..q_len], cur_bag_mask);
+                            let sc2 = mdl.evaluate_linear_board_with_bag_no_pe(&b2, rem2, ih2, av2);
+                            next_beam.push(BNode {
+                                board: b2,
+                                held: held2,
+                                qc: nqc2 as u8,
+                                rem_g: rem2,
+                                first_idx: node.first_idx,
+                                score: sc2,
+                            });
+                        }
+                    }
+                    if next_beam.is_empty() {
+                        break;
+                    }
+                    next_beam.sort_unstable_by_key(|n| n.score);
+                    cur_beam.clear();
+                    seen_beam.clear();
+                    let mut per_root = [0usize; 128];
+                    let keep_lim = if depth == max_depth { beam_w * 2 } else { beam_w };
+                    for &n in &next_beam {
+                        if cur_beam.len() >= keep_lim {
+                            break;
+                        }
+                        let ridx = n.first_idx as usize;
+                        if ridx < 128 && per_root[ridx] >= mpr {
+                            continue;
+                        }
+                        let key = BKey {
+                            board: n.board,
+                            held: n.held,
+                            qc: n.qc,
+                            rem_g: n.rem_g,
+                        };
+                        if seen_beam.insert(key) {
+                            if ridx < 128 {
+                                per_root[ridx] += 1;
+                            }
+                            cur_beam.push(n);
+                        }
+                    }
+                }
+            }
+
+            // Full-MLP leaf rerank: keep best leaf per distinct root candidate
+            if win_fp.is_none() && !cur_beam.is_empty() {
+                let mut best_by_root: Vec<Option<(f32, Vec<u16>, [f32; DENSE_DIM])>> =
+                    vec![None; tmp_places.len()];
+                for &n in &cur_beam {
+                    let ih = hand_piece(n.held, n.qc as usize, &vis_q[..q_len]);
+                    let av = avail_mask_from_q(n.held, n.qc as usize, &vis_q[..q_len], cur_bag_mask);
                     let n_act = extract_spatial_features_ex(
-                        &b2,
-                        rem2,
-                        ih2,
-                        av2,
+                        &n.board,
+                        n.rem_g,
+                        ih,
+                        av,
                         false,
                         &mut act_buf,
                         &mut dense_buf,
                     );
-                    let mut act_v = Vec::with_capacity(n_act.min(64));
+                    let mut act_v = Vec::with_capacity(n_act.min(96));
                     for &bit in &act_buf[..n_act] {
                         if (bit as usize) < sparse_lim {
                             act_v.push(bit);
                         }
                     }
-                    let v2 = mdl.predict_extracted(&act_v, &dense_buf);
-                    if v2 < best_v2 {
-                        best_v2 = v2;
-                        best_act = act_v;
-                        best_dense = dense_buf;
+                    let v_mlp = mdl.predict_extracted(&act_v, &dense_buf);
+                    let ridx = n.first_idx as usize;
+                    if best_by_root[ridx].as_ref().map_or(true, |x| v_mlp < x.0) {
+                        best_by_root[ridx] = Some((v_mlp, act_v, dense_buf));
                     }
                 }
-                if best_v2.is_finite() {
-                    scored.push((best_v2, ridx, fp0, best_act, best_dense));
+                for (ridx, entry) in best_by_root.into_iter().enumerate() {
+                    if let Some((v, act_v, d_arr)) = entry {
+                        scored.push((v, ridx, tmp_places[ridx], act_v, d_arr));
+                    }
+                }
+            }
+        } else {
+            // 2-ply fallback
+            let mut p1_scored: Vec<(f32, usize, FastPlace, FastBoard, Option<u8>, usize, u16)> =
+                Vec::with_capacity(tmp_places.len());
+            for (idx, &fp) in tmp_places.iter().enumerate() {
+                let mut b = b0;
+                let o = &fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
+                let (lines, ds, _) = b.place_and_sift(o, fp.norm_i, fp.norm_j);
+                let rem2 = rem_g.saturating_sub(ds as u16);
+                if rem2 == 0 && b.rows < 20 {
+                    win_fp = Some(fp);
+                    break;
+                }
+                if rem2 > 0 {
+                    let mut r_loc = spawn_rng_base;
+                    if !b.spawn_cheese_rows(rem2, lines, &mut r_loc) {
+                        continue;
+                    }
+                }
+                let col_h = b.col_heights();
+                let max_h = *col_h.iter().max().unwrap();
+                let center_h = col_h[3..=6].iter().copied().max().unwrap();
+                if max_h >= 20 || center_h >= 19 {
+                    continue;
+                }
+                let (new_held, nqc) = if hold0.is_some() {
+                    if fp.did_hold { (cur0, 1usize) } else { (hold0, 1usize) }
+                } else if fp.did_hold {
+                    (cur0, 2usize)
+                } else {
+                    (None, 1usize)
+                };
+                let ih2 = hand_piece(new_held, nqc, &vis_q);
+                let av2 = avail_mask_from_q(new_held, nqc, &vis_q, cur_bag_mask);
+                let v1 = mdl.evaluate_linear_board_with_bag_no_pe(&b, rem2, ih2, av2) as f32 * 0.01;
+                p1_scored.push((v1, idx, fp, b, new_held, nqc, rem2));
+            }
+            let spawn_rng_d2 = spawn_rng_base.wrapping_add(0x517CC1B727220A95);
+            if win_fp.is_none() && !p1_scored.is_empty() {
+                p1_scored.sort_unstable_by(|a, b| a.0.total_cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
+                let n_expand = p1_scored.len().min(14);
+                'root_loop: for &(_, ridx, fp0, b1, held1, qc1, rem1) in &p1_scored[..n_expand] {
+                    let (c_nh2, c_h2) = if held1.is_some() {
+                        (vis_q.get(qc1).copied(), held1)
+                    } else {
+                        (vis_q.get(qc1).copied(), vis_q.get(qc1 + 1).copied())
+                    };
+                    pgen.generate_for_state(&fst, &b1, c_nh2, c_h2, &mut tmp_p2);
+                    let mut best_v2 = f32::INFINITY;
+                    let mut best_act = Vec::new();
+                    let mut best_dense = [0.0f32; DENSE_DIM];
+                    for &fp2 in &tmp_p2 {
+                        let mut b2 = b1;
+                        let o2 = &fst.shapes[fp2.color_idx as usize].orients[fp2.tf.2 as usize];
+                        let (l2, ds2, _) = b2.place_and_sift(o2, fp2.norm_i, fp2.norm_j);
+                        let rem2 = rem1.saturating_sub(ds2 as u16);
+                        if rem2 == 0 && b2.rows < 20 {
+                            win_fp = Some(fp0);
+                            break 'root_loop;
+                        }
+                        if rem2 > 0 {
+                            let mut r_loc = spawn_rng_d2;
+                            if !b2.spawn_cheese_rows(rem2, l2, &mut r_loc) {
+                                continue;
+                            }
+                        }
+                        let col_h = b2.col_heights();
+                        let max_h = *col_h.iter().max().unwrap();
+                        let center_h = col_h[3..=6].iter().copied().max().unwrap();
+                        if max_h >= 20 || center_h >= 19 {
+                            continue;
+                        }
+                        let (held2, qc2) = if held1.is_some() {
+                            if fp2.did_hold {
+                                (c_nh2, if c_nh2.is_some() { qc1 + 1 } else { qc1 })
+                            } else {
+                                (held1, qc1 + 1)
+                            }
+                        } else if fp2.did_hold {
+                            (c_nh2, qc1 + 2)
+                        } else {
+                            (None, qc1 + 1)
+                        };
+                        let ih2 = hand_piece(held2, qc2, &vis_q);
+                        let av2 = avail_mask_from_q(held2, qc2, &vis_q, cur_bag_mask);
+                        let n_act = extract_spatial_features_ex(
+                            &b2,
+                            rem2,
+                            ih2,
+                            av2,
+                            false,
+                            &mut act_buf,
+                            &mut dense_buf,
+                        );
+                        let mut act_v = Vec::with_capacity(n_act.min(64));
+                        for &bit in &act_buf[..n_act] {
+                            if (bit as usize) < sparse_lim {
+                                act_v.push(bit);
+                            }
+                        }
+                        let v2 = mdl.predict_extracted(&act_v, &dense_buf);
+                        if v2 < best_v2 {
+                            best_v2 = v2;
+                            best_act = act_v;
+                            best_dense = dense_buf;
+                        }
+                    }
+                    if best_v2.is_finite() {
+                        scored.push((best_v2, ridx, fp0, best_act, best_dense));
+                    }
                 }
             }
         }
@@ -760,6 +952,7 @@ struct GrpoStep {
 fn eval_greedy_val(
     seeds: &[u64],
     mdl: &Arc<SpatialValueModel>,
+    beam_w: usize,
     sparse_lim: usize,
     threads: usize,
 ) -> (usize, usize, f64, usize, usize) {
@@ -789,6 +982,7 @@ fn eval_greedy_val(
                         &m_c,
                         0.0, // deterministic greedy
                         12,
+                        beam_w,
                         sparse_lim,
                         false,
                     );
@@ -827,6 +1021,7 @@ fn main() {
     let mut val_games: usize = 80;
     let mut tau: f32 = 0.25;
     let mut top_m: usize = 10;
+    let mut beam_w: usize = 16;
     let mut kl_beta: f32 = 0.08;
     let mut lr_lin: f32 = 4e-4;
     let mut lr_mlp: f32 = 2e-4;
@@ -848,6 +1043,7 @@ fn main() {
             "--val-games" => { val_games = args[i + 1].parse().unwrap(); i += 2; }
             "--tau" => { tau = args[i + 1].parse().unwrap(); i += 2; }
             "--top-m" => { top_m = args[i + 1].parse().unwrap(); i += 2; }
+            "--beam" => { beam_w = args[i + 1].parse().unwrap(); i += 2; }
             "--kl-beta" => { kl_beta = args[i + 1].parse().unwrap(); i += 2; }
             "--lr-lin" => { lr_lin = args[i + 1].parse().unwrap(); i += 2; }
             "--lr-mlp" => { lr_mlp = args[i + 1].parse().unwrap(); i += 2; }
@@ -862,14 +1058,16 @@ fn main() {
     println!("================================================================");
     println!(" Pure Rust Legal p=5 CRN-GRPO (Group Relative Policy Optimization)");
     println!(
-        " init={} out={} iters={} seeds/iter={} G={} ({} games/iter) val={}",
+        " init={} out={} iters={} seeds/iter={} G={} ({} games/iter) val={} beam={} sparse_lim={}",
         init_path,
         out_path,
         iters,
         seeds_per_iter,
         group_size,
         seeds_per_iter * group_size,
-        val_games
+        val_games,
+        beam_w,
+        sparse_lim
     );
     println!(
         " tau={:.2} top_m={} kl_beta={:.3} lr_lin={:.1e} lr_mlp={:.1e} anchor_wd={:.1e} threads={}",
@@ -885,7 +1083,7 @@ fn main() {
     let val_seeds: Vec<u64> = (1..=(val_games as u64)).collect();
     let t0 = Instant::now();
     let (v_ok0, v_top0, v_mean0, v_min0, v_max0) =
-        eval_greedy_val(&val_seeds, &Arc::new(mdl.clone()), sparse_lim, threads);
+        eval_greedy_val(&val_seeds, &Arc::new(mdl.clone()), beam_w, sparse_lim, threads);
     println!(
         "[Iter  0 BASE] val={}/{} top={} mean={:.2} [{}..{}] ({:.1}s)",
         v_ok0,
@@ -950,6 +1148,7 @@ fn main() {
                                 &r_c,
                                 tau,
                                 top_m,
+                                beam_w,
                                 sparse_lim,
                                 true,
                             );
@@ -1133,7 +1332,7 @@ fn main() {
 
         if iter % 2 == 0 || iter == iters {
             let (v_ok, v_top, v_mean, v_min, v_max) =
-                eval_greedy_val(&val_seeds, &Arc::new(mdl.clone()), sparse_lim, threads);
+                eval_greedy_val(&val_seeds, &Arc::new(mdl.clone()), beam_w, sparse_lim, threads);
             let improved = (v_top < best_top) || (v_top == best_top && v_mean < best_val);
             if improved {
                 best_val = v_mean;
