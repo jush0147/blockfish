@@ -82,6 +82,7 @@ struct CandFeat {
 
 struct StepRec {
     rem_g: usize,
+    step_pieces: usize,
     chosen_idx: usize,
     cands: Vec<CandFeat>,
 }
@@ -339,6 +340,7 @@ fn play_grpo_episode(
                 }
                 steps.push(StepRec {
                     rem_g: rem_g as usize,
+                    step_pieces: pieces,
                     chosen_idx: pick,
                     cands,
                 });
@@ -959,15 +961,16 @@ fn main() {
                             eps.push(ep);
                         }
 
-                        // Step-aligned CRN remaining-pieces baseline per rem_g bucket (1..=100)
-                        // Eliminates both seed difficulty AND early-game noise!
+                        // Per-rem_g variance-reduction baseline across G rollouts on the same env_seed
+                        // (note: trajectories may diverge onto different boards, so this reduces variance
+                        // rather than computing exact same-state sibling Q-advantage).
                         let mut sum_rem = [0.0f32; 101];
                         let mut sq_rem = [0.0f32; 101];
                         let mut cnt_rem = [0u32; 101];
                         for ep in &eps {
-                            for (t_idx, st) in ep.steps.iter().enumerate() {
+                            for st in &ep.steps {
                                 let rg = st.rem_g.min(100);
-                                let rem_p = (ep.pen_pieces - t_idx as f32).max(0.0);
+                                let rem_p = (ep.pen_pieces - st.step_pieces as f32).max(0.0);
                                 sum_rem[rg] += rem_p;
                                 sq_rem[rg] += rem_p * rem_p;
                                 cnt_rem[rg] += 1;
@@ -985,9 +988,9 @@ fn main() {
 
                         for mut ep in eps {
                             let pen = ep.pen_pieces;
-                            for (t_idx, st) in ep.steps.drain(..).enumerate() {
+                            for st in ep.steps.drain(..) {
                                 let rg = st.rem_g.min(100);
-                                let rem_p = (pen - t_idx as f32).max(0.0);
+                                let rem_p = (pen - st.step_pieces as f32).max(0.0);
                                 let adv = if cnt_rem[rg] >= 3 {
                                     let m = sum_rem[rg] / (cnt_rem[rg] as f32);
                                     let v = (sq_rem[rg] / (cnt_rem[rg] as f32) - m * m).max(0.0);
