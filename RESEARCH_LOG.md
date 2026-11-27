@@ -241,6 +241,11 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
           - **Colab Runs #18–#19-CPU (`opt_pimc.rs` Direct Legal CRN ES → `model-spatial-es-v3`, strict same-binary `fullmlp_w16` 5 seeds `101..=105`)**:
             - `spatial_bc4.txt`: **`184.20 [176..193]`** (`[180, 184, 176, 188, 193]`, `cov=25.0, O=20.0, nar=8.6, wide=27.0, end=3.6`).
             - `spatial_es_v3.txt`: **`184.40 [179..190]`** (`[184, 179, 185, 184, 190]`, `cov=31.6, O=17.2, nar=6.4, wide=25.8, end=3.4`) — beat `bc4` on 3/5 seeds (`102:-5, 104:-4, 105:-3`), cut `O+nar+wide+end` by **`-6.4` pcs**, and tightened `max` `193 -> 190`, while losing `+6.6` on `cov` due to `dense[23/25/28]` stepping `-0.02`.
+          - **Colab Run #21-CPU (`eval_core_ex` `spatial_model_2` bug fixed + verified by unit test `65/65`, strict same-binary `fullmlp_w16` 5 seeds `101..=105`)**:
+            - Fixed critical `eval_core_ex` short-circuit bug that had silently bypassed `spatial_model_2` in ALL prior `allow_spatial=true` FULL-MLP `ens2` runs.
+            - `fullmlp_base_bc4`: **`184.20 [176..193]`** (`[180, 184, 176, 188, 193]`, `707.5s`).
+            - `fullmlp_ens50_bc4_esv3` (TRUE 50/50 FULL-MLP): `186.40 [184..191]` (`1149.4s`).
+            - **`fullmlp_esv3_bc4cov115`**: **`184.20 [176..187]`** (`[187, 184, 187, 176, 187]`, `wide=24.0, O=18.0, avg_c=12.2, 671.0s`) — tied `bc4` mean while slashing `seed 104: 188->176 (-12)` and `seed 105: 193->187 (-6)` (`max=187`, tied all-time lowest worst-seed!).
 
 ---
 
