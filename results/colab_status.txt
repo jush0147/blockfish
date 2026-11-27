@@ -1,8 +1,5 @@
-RUNNING commit=472698e9 heartbeat=2026-11-27T06:13:32Z cores=8
+RUNNING commit=472698e9 heartbeat=2026-11-27T06:15:34Z cores=8
 --- tail /tmp/colab_run.log ---
-   |                                                         ++++
-
-warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
     Finished `release` profile [optimized] target(s) in 8.08s
 
 --- [1/3] Training SpatialValueModel with 5,120 Legal p=5 CRN-GRPO games ---
@@ -15,3 +12,6 @@ warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockf
 [Iter  1/20] tr_ok=233/256 tr_mean=284.90 top=23 steps=73181 kl=0.0101 (28.3s+4.4s)
 [Iter  2/20] tr_ok=226/256 tr_mean=280.80 top=30 steps=72538 kl=0.0280 (28.1s+4.3s) | VAL=60/60 top=0 mean=278.57 [232..318] *** NEW BEST ***
 [Iter  3/20] tr_ok=222/256 tr_mean=283.71 top=34 steps=73349 kl=0.0649 (28.3s+4.5s)
+[Iter  4/20] tr_ok=237/256 tr_mean=282.34 top=19 steps=72409 kl=0.1210 (27.7s+4.2s) | VAL=60/60 top=0 mean=269.03 [226..309] *** NEW BEST ***
+[Iter  5/20] tr_ok=249/256 tr_mean=279.16 top=7 steps=71128 kl=0.0544 (27.4s+4.2s)
+[Iter  6/20] tr_ok=243/256 tr_mean=278.88 top=13 steps=71324 kl=0.0306 (27.4s+4.3s) | VAL=57/60 top=3 mean=271.42 [232..311] 
