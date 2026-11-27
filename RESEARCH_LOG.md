@@ -288,7 +288,19 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
               - `Frozen BC-4 BASE`: `24/24 top=0 mean=209.25 [195..229]`
               - `+QueueBlind prior (a=0.15)`: **`204.88 [192..218]` (`-4.38` pcs)**; `(a=0.35)`: `209.25`
               - `+OrderedCompat prior (a=0.15)`: **`205.04 [194..218]` (`-4.21` pcs)**; `(a=0.35)`: `207.62 (-1.62 vs BASE/Blind)`
-            - **Honest Scientific Conclusion**: Policy/Value separation cleanly gained **`-4.3` pcs** in 5-ply beam search without corrupting BC-4 leaf values, **but** at `a=0.15` and on holdout ranking `OrderedCompat ≈ QueueBlind` — next step is a direct **Counterfactual Teacher Signal Test** (measuring how often legal `swap(q1, q2)` changes the teacher's own `Q_pimc` best move) + checking whether `-4.38` pcs is purely a 1-ply+5-ply multi-depth BC-4 blend before any further architecture scaling.
+            - **Fixed Piece-Index Bug (`fast::idx_to_color` `'I','O','T','S','Z','J','L'`, 4/4 unit tests pass) + True Same-7-Bag Counterfactual Teacher Test + 7-Condition Paired Decomposition (24 seeds, `a=0.15`, local)**:
+              - **True Counterfactual Teacher Test (`30` verified same-7-bag states, re-running `root_pimc` on `swap(q1, q2)`)**: `teacher_best_move_flipped = 4/30 (13.3%)`, `mean_cf_regret = 0.085pc` — explains why ordered `q1<->q2` signal in root labels is small (`hold` absorbs local piece swaps).
+              - **Retrained Fixed Holdout (`687` states, 4 independent games)**: `QueueBlind = 69.0% / 0.308pc` vs `RawOrdered = 68.9% / 0.310pc` vs `OrderedCompat (FIXED) = 68.6% / 0.310pc` (`input_perturb = 68.6% / 0.317pc`).
+              - **7-Condition Paired Decomposition on 24-Seed Legal `p=5` 5-Ply `beam=16`**:
+                - `1. BASE (Frozen BC-4 5ply)`: `209.25 [195..229]`
+                - `2. Pure BC-4 1-ply prior`: `205.58 [194..222]` (`vsBASE = -3.67 ± 1.80, W/T/L = 15/0/9`)
+                - `3. Random Init Policy`: `205.17 [194..222]` (`vsBASE = -4.08 ± 1.73, W/T/L = 16/1/7`)
+                - `4. QueueBlind ResidualOnly`: `207.33 [196..226]` (`vsBASE = -1.92 ± 2.17, W/T/L = 15/1/8`)
+                - `5. QueueBlind Full`: `204.88 [192..218]` (`vsBASE = -4.38 ± 2.31, W/T/L = 15/0/9`)
+                - `6. OrderedCompat ResidOnly`: `209.79 [197..225]` (`vsBASE = +0.54 ± 2.34, W/T/L = 11/1/12`)
+                - `7. OrderedCompat Full`: `204.83 [192..218]` (`vsBASE = -4.42 ± 2.16, W/T/L = 16/0/8`)
+              - **Definitive Conclusion (FAST ELIMINATED)**: ~90% of the `-4.4` piece gain came from the **BC-4 1-ply skip prior (`-3.67 ± 1.80`, multi-depth regularization)** rather than the learned `OrderedCompat` residual (`+0.54 ± 2.34`). Fast-eliminating `OrderedRootPolicy` v2 cleanly with zero Colab CU spent.
+
 
 
 

@@ -496,7 +496,7 @@ fn train_one_ablation(
         if ep == epochs {
             let sw = eval_holdout(&best_pol, ablation, holdout_states, tau_tgt, true, false);
             println!(
-                "  [{:<14}] BEST ho_ce={:.4} top1={:5.1}% top3={:5.1}% mrr={:.4} regret={:.3}pc | swap_q12: top1={:5.1}% regret={:.3}pc ce={:.4}",
+                "  [{:<14}] BEST ho_ce={:.4} top1={:5.1}% top3={:5.1}% mrr={:.4} regret={:.3}pc | input_perturb: top1={:5.1}% regret={:.3}pc ce={:.4}",
                 name, best_ho.ce, best_ho.top1, best_ho.top3, best_ho.mrr, best_ho.regret, sw.top1, sw.regret, sw.ce
             );
             let _ = std::io::stdout().flush();
@@ -523,12 +523,20 @@ struct DKey {
     rem_g: u16,
 }
 
-/// Legal `p=5` 5-ply Beam Search with FROZEN BC-4 leaf value evaluator + optional Root Policy prior.
-/// Tests ONLY Policy's gain on root candidate ranking (`final_root_score = beam_leaf_v - alpha * policy_logit`).
+#[derive(Clone, Copy)]
+enum RootPriorMode<'a> {
+    None,
+    /// Pure Frozen BC-4 1-ply pre-spawn prior (`rv + alpha * bc4_delta`, zero neural network).
+    PureBc4SingleStep(f32),
+    /// Learned (or random) OrderedRootPolicy prior (`rv - alpha * logit`).
+    Policy(&'a OrderedRootPolicy, QueueAblation, f32),
+}
+
+/// Legal `p=5` 5-ply Beam Search with FROZEN BC-4 leaf value evaluator + optional Root Prior.
 fn play_5ply_beam_game(
     env_seed: u64,
     bc4: &SpatialValueModel,
-    pol: Option<(&OrderedRootPolicy, QueueAblation, f32)>,
+    prior: RootPriorMode<'_>,
     beam_w: usize,
 ) -> (usize, bool) {
     let fst = FastShapeTable::srs();
@@ -555,6 +563,7 @@ fn play_5ply_beam_game(
     };
 
     let mpr = (beam_w / 3).max(4);
+    let need_root_meta = !matches!(prior, RootPriorMode::None);
     let mut ds_total = 0usize;
     let mut pieces = 0usize;
 
@@ -584,7 +593,6 @@ fn play_5ply_beam_game(
         seen.clear();
         let mut win_fp: Option<FastPlace> = None;
 
-        // Pre-record root afterstate info for optional policy prior
         let mut root_meta: Vec<Option<(FastBoard, u8, u8, f32)>> = vec![None; tmp_p0.len()];
         let mut min_bc4_r = f32::INFINITY;
 
@@ -614,7 +622,7 @@ fn play_5ply_beam_game(
             let ih1 = hand_piece(held1, qc1, &vis_q);
             let av1 = avail_mask_from_q(held1, qc1, &vis_q, cur_bag_mask);
             let sc1 = bc4.evaluate_linear_board_with_bag_no_pe(&b1, rem1, ih1, av1) as f32 * 0.01;
-            if pol.is_some() {
+            if need_root_meta {
                 let v_pre = OrderedRootPolicy::frozen_bc4_score(bc4, &b_pre, rem1, ih1, av1);
                 if v_pre < min_bc4_r {
                     min_bc4_r = v_pre;
@@ -720,7 +728,6 @@ fn play_5ply_beam_game(
             if let Some(wd) = win_d {
                 wd
             } else {
-                // Frozen BC-4 FULL-MLP leaf value per surviving root
                 let mut root_v = vec![f32::INFINITY; tmp_p0.len()];
                 for &node in &cur_beam {
                     let ih = hand_piece(node.held, node.qc as usize, &vis_q);
@@ -732,51 +739,69 @@ fn play_5ply_beam_game(
                     }
                 }
 
-                // Apply optional root policy prior ONLY to surviving root candidates
-                if let Some((p_net, abl, alpha)) = pol {
-                    let obs = ObservableRootState {
-                        board,
-                        hold,
-                        vis_q: vis_q.clone(),
-                        rem_g,
-                        bag_mask: cur_bag_mask,
-                    };
-                    let mut best_sc = f32::INFINITY;
-                    let mut best_fp = tmp_p0[0];
-                    for (r, &rv) in root_v.iter().enumerate() {
-                        if !rv.is_finite() {
-                            continue;
+                match prior {
+                    RootPriorMode::None => {
+                        let mut best_sc = f32::INFINITY;
+                        let mut best_fp = tmp_p0[0];
+                        for (r, &rv) in root_v.iter().enumerate() {
+                            if rv < best_sc {
+                                best_sc = rv;
+                                best_fp = tmp_p0[r];
+                            }
                         }
-                        let bonus = if let Some((ref b_pre, l0, ds0, v_pre)) = root_meta[r] {
-                            let feat = extract_policy_cand_features(
-                                &obs,
-                                tmp_p0[r],
-                                b_pre,
-                                l0,
-                                ds0,
-                                v_pre - min_bc4_r,
-                            );
-                            p_net.forward(&feat, abl, &mut cache)
-                        } else {
-                            0.0
+                        best_fp
+                    }
+                    RootPriorMode::PureBc4SingleStep(alpha) => {
+                        let mut best_sc = f32::INFINITY;
+                        let mut best_fp = tmp_p0[0];
+                        for (r, &rv) in root_v.iter().enumerate() {
+                            if !rv.is_finite() {
+                                continue;
+                            }
+                            let delta = root_meta[r].map_or(0.0, |m| m.3 - min_bc4_r);
+                            let comb = rv + alpha * delta;
+                            if comb < best_sc {
+                                best_sc = comb;
+                                best_fp = tmp_p0[r];
+                            }
+                        }
+                        best_fp
+                    }
+                    RootPriorMode::Policy(p_net, abl, alpha) => {
+                        let obs = ObservableRootState {
+                            board,
+                            hold,
+                            vis_q: vis_q.clone(),
+                            rem_g,
+                            bag_mask: cur_bag_mask,
                         };
-                        let comb = rv - alpha * bonus;
-                        if comb < best_sc {
-                            best_sc = comb;
-                            best_fp = tmp_p0[r];
+                        let mut best_sc = f32::INFINITY;
+                        let mut best_fp = tmp_p0[0];
+                        for (r, &rv) in root_v.iter().enumerate() {
+                            if !rv.is_finite() {
+                                continue;
+                            }
+                            let bonus = if let Some((ref b_pre, l0, ds0, v_pre)) = root_meta[r] {
+                                let feat = extract_policy_cand_features(
+                                    &obs,
+                                    tmp_p0[r],
+                                    b_pre,
+                                    l0,
+                                    ds0,
+                                    v_pre - min_bc4_r,
+                                );
+                                p_net.forward(&feat, abl, &mut cache)
+                            } else {
+                                0.0
+                            };
+                            let comb = rv - alpha * bonus;
+                            if comb < best_sc {
+                                best_sc = comb;
+                                best_fp = tmp_p0[r];
+                            }
                         }
+                        best_fp
                     }
-                    best_fp
-                } else {
-                    let mut best_sc = f32::INFINITY;
-                    let mut best_fp = tmp_p0[0];
-                    for (r, &rv) in root_v.iter().enumerate() {
-                        if rv < best_sc {
-                            best_sc = rv;
-                            best_fp = tmp_p0[r];
-                        }
-                    }
-                    best_fp
                 }
             }
         };
@@ -799,15 +824,15 @@ fn play_5ply_beam_game(
     (pieces, ds_total < 100)
 }
 
-fn eval_5ply_set(
+fn eval_5ply_set_per_seed(
     bc4: &SpatialValueModel,
-    pol: Option<(&OrderedRootPolicy, QueueAblation, f32)>,
+    prior: RootPriorMode<'_>,
     n_games: usize,
     beam_w: usize,
     n_threads: usize,
-) -> (f64, usize, usize, usize) {
+) -> Vec<(u64, usize, bool)> {
     let next_idx = AtomicUsize::new(0);
-    let results: Mutex<Vec<(usize, bool)>> = Mutex::new(Vec::with_capacity(n_games));
+    let results: Mutex<Vec<(u64, usize, bool)>> = Mutex::new(Vec::with_capacity(n_games));
     std::thread::scope(|s| {
         for _ in 0..n_threads {
             s.spawn(|| loop {
@@ -815,17 +840,24 @@ fn eval_5ply_set(
                 if idx >= n_games {
                     break;
                 }
-                let res = play_5ply_beam_game(9001u64 + idx as u64, bc4, pol, beam_w);
-                results.lock().unwrap().push(res);
+                let seed = 9001u64 + idx as u64;
+                let (pcs, top) = play_5ply_beam_game(seed, bc4, prior, beam_w);
+                results.lock().unwrap().push((seed, pcs, top));
             });
         }
     });
-    let r = results.into_inner().unwrap();
+    let mut r = results.into_inner().unwrap();
+    r.sort_by_key(|x| x.0);
+    r
+}
+
+fn summarize_vs_base(label: &str, res: &[(u64, usize, bool)], base: Option<&[(u64, usize, bool)]>) {
+    let n = res.len();
     let mut sum = 0usize;
     let mut ok = 0usize;
     let mut min_p = usize::MAX;
     let mut max_p = 0usize;
-    for &(p, top) in &r {
+    for &(_, p, top) in res {
         if !top {
             sum += p;
             ok += 1;
@@ -834,7 +866,147 @@ fn eval_5ply_set(
         }
     }
     let mean = if ok > 0 { sum as f64 / ok as f64 } else { 999.0 };
-    (mean, n_games - ok, min_p, max_p)
+    if let Some(b) = base {
+        let mut diffs: Vec<f64> = Vec::with_capacity(n);
+        let mut wins = 0usize;
+        let mut ties = 0usize;
+        let mut losses = 0usize;
+        for i in 0..n {
+            if !res[i].2 && !b[i].2 {
+                let d = res[i].1 as f64 - b[i].1 as f64;
+                diffs.push(d);
+                if d < 0.0 { wins += 1; } else if d > 0.0 { losses += 1; } else { ties += 1; }
+            }
+        }
+        let m_diff = if diffs.is_empty() { 0.0 } else { diffs.iter().sum::<f64>() / diffs.len() as f64 };
+        let se = if diffs.len() > 1 {
+            let var = diffs.iter().map(|&d| (d - m_diff) * (d - m_diff)).sum::<f64>() / (diffs.len() - 1) as f64;
+            (var / diffs.len() as f64).sqrt()
+        } else {
+            0.0
+        };
+        println!(
+            "  [{:<26}] ok={:2}/{} top={} mean={:6.2} [{}..{}] | vsBASE={:+6.2}±{:.2} W/T/L={}/{}/{}",
+            label, ok, n, n - ok, mean, min_p, max_p, m_diff, se, wins, ties, losses
+        );
+    } else {
+        println!(
+            "  [{:<26}] ok={:2}/{} top={} mean={:6.2} [{}..{}]",
+            label, ok, n, n - ok, mean, min_p, max_p
+        );
+    }
+}
+
+/// True Counterfactual Teacher Test:
+/// On real Legal p=5 states where `q[1]` and `q[2]` are VERIFIED to lie inside the SAME 7-bag
+/// (`7 - bag_mask.count_ones() <= 3`), re-run the actual `root_pimc` teacher on the swapped snapshot
+/// to measure how often ordered `q[1] <-> q[2]` genuinely changes the teacher's best move & Q-value.
+fn run_counterfactual_teacher_test(
+    bc4: Arc<SpatialValueModel>,
+    teacher_worlds: usize,
+    teacher_width: usize,
+    teacher_horizon: usize,
+    fast_internal: bool,
+    max_states: usize,
+) {
+    let cfg = make_teacher_cfg(bc4, teacher_worlds, teacher_width, teacher_horizon, fast_internal);
+    let mut ai = FastAI::new(cfg.clone());
+    let mut ai_cf = FastAI::new(cfg);
+    let mut tracker = BagTracker::new();
+
+    let mut game_cfg = BSConfig::default();
+    game_cfg.garbage.total_lines = Some(100);
+    game_cfg.prng_seed = Some(77_701);
+    let mut stacker = Stacker::new(Ruleset::guideline().into(), game_cfg);
+    let mut cur_bag_mask = if let Some(snap0) = stacker.snapshot() {
+        tracker.observe(snap0.hold, &snap0.queue)
+    } else {
+        0x7F
+    };
+
+    let mut tested = 0usize;
+    let mut flipped = 0usize;
+    let mut q_shift_sum = 0.0f64;
+    let mut ds_total = 0usize;
+    let mut pieces = 0usize;
+
+    while ds_total < 100 && pieces < 260 && tested < max_states && stacker.current_piece_type().is_some() {
+        let snap = match stacker.snapshot() {
+            Some(s) => s,
+            None => break,
+        };
+        let g_rows = garbage_rows(&stacker);
+        let rem_g = 100u16.saturating_sub(ds_total as u16).max(g_rows);
+        let res = match ai.best_move(&snap, Some(g_rows), Some(rem_g)) {
+            Some(r) => r,
+            None => break,
+        };
+
+        // Check exact 7-bag boundary: `k_new` pieces at tail of `vis_q[0..6]` belong to the new bag.
+        // If `k_new <= 3`, then indices 0, 1, 2 (in particular q[1] and q[2]) are strictly in the SAME 7-bag!
+        let k_new = 7u32.saturating_sub(cur_bag_mask.count_ones());
+        let orig_pimc = ai.last_pimc_reranked().to_vec();
+        if k_new <= 3 && snap.queue.len() >= 6 && snap.queue[1] != snap.queue[2] && orig_pimc.len() >= 3 && rem_g >= 4 {
+            let mut snap_sw = snap.clone();
+            snap_sw.queue.swap(1, 2);
+            // Reset ai_cf bag tracker so it observes the exact same bag state
+            ai_cf.reset_bag();
+            let _ = ai_cf.best_move(&snap_sw, Some(g_rows), Some(rem_g));
+            let sw_pimc = ai_cf.last_pimc_reranked().to_vec();
+            if !sw_pimc.is_empty() {
+                let best_orig = orig_pimc[0].0;
+                let best_sw = sw_pimc[0].0;
+                tested += 1;
+                let same_move = best_orig.color_idx == best_sw.color_idx
+                    && best_orig.norm_i == best_sw.norm_i
+                    && best_orig.norm_j == best_sw.norm_j
+                    && best_orig.tf.2 == best_sw.tf.2
+                    && best_orig.did_hold == best_sw.did_hold;
+                if !same_move {
+                    flipped += 1;
+                }
+                // Find orig best move's regret under the counterfactual swapped queue
+                let sw_min = sw_pimc[0].1;
+                if let Some(&(_, sc_in_sw)) = sw_pimc.iter().find(|&&(fp, _)| {
+                    fp.color_idx == best_orig.color_idx
+                        && fp.norm_i == best_orig.norm_i
+                        && fp.norm_j == best_orig.norm_j
+                        && fp.tf.2 == best_orig.tf.2
+                        && fp.did_hold == best_orig.did_hold
+                }) {
+                    let shift = ((sc_in_sw - sw_min).max(0) as f64) * 0.01;
+                    if shift < 5.0 {
+                        q_shift_sum += shift;
+                    }
+                }
+            }
+        }
+
+        let mut inputs = res.inputs;
+        if inputs.last() == Some(&Input::HD) {
+            inputs.pop();
+        }
+        stacker.run(inputs);
+        let (_lines, ds) = stacker.hard_drop();
+        pieces += 1;
+        ds_total += ds;
+        if let Some(snap_a) = stacker.snapshot() {
+            cur_bag_mask = tracker.observe(snap_a.hold, &snap_a.queue);
+        }
+    }
+
+    println!(
+        "\n--- [0/2] True Same-7-Bag Counterfactual Teacher Test (re-running root_pimc on swap(q1,q2)) ---"
+    );
+    println!(
+        "  verified_same_bag_states={} | teacher_best_move_flipped={}/{} ({:.1}%) | mean_cf_regret={:.3}pc",
+        tested,
+        flipped,
+        tested,
+        100.0 * (flipped as f64) / (tested.max(1) as f64),
+        q_shift_sum / (tested.max(1) as f64)
+    );
+    let _ = std::io::stdout().flush();
 }
 
 fn main() {
@@ -959,10 +1131,24 @@ fn main() {
     );
     let _ = std::io::stdout().flush();
 
+    // 0. True Same-7-Bag Counterfactual Teacher Test (actually re-runs root_pimc on swapped queue!)
+    run_counterfactual_teacher_test(
+        Arc::clone(&bc4_arc),
+        teacher_worlds,
+        teacher_width,
+        teacher_horizon,
+        fast_teacher,
+        30,
+    );
+
     // 1. Frozen BC-4 prior baseline on independent holdout games
     let dummy_pol = OrderedRootPolicy::new_random(1);
     let bc4_ho = eval_holdout(&dummy_pol, QueueAblation::QueueBlind, &holdout_states, tau_tgt, false, true);
-    println!("\n--- [1/2] Matched-Capacity Holdout Ranking Ablation ({} independent games, {} states) ---", n_games - split, holdout_states.len());
+    println!(
+        "\n--- [1/2] Matched-Capacity Holdout Ranking Ablation ({} independent games, {} states, FIXED piece idx) ---",
+        n_games - split,
+        holdout_states.len()
+    );
     println!(
         "  [Frozen BC-4   ] BEST ho_ce=  N/A  top1={:5.1}% top3={:5.1}% mrr={:.4} regret={:.3}pc",
         bc4_ho.top1, bc4_ho.top3, bc4_ho.mrr, bc4_ho.regret
@@ -1002,37 +1188,37 @@ fn main() {
         wd,
     );
 
-    // 2. Priority Integration: Legal p=5 5-Ply Beam Search (Frozen BC-4 Leaf Value + Root Policy Prior)
-    println!("\n--- [2/2] Legal p=5 5-Ply Beam=16 Practical Play ({} seeds, Frozen BC-4 Leaf) ---", eval_games);
-    let t_ev = Instant::now();
-    let (b_m, b_t, b_min, b_max) = eval_5ply_set(&bc4_arc, None, eval_games, 16, n_threads);
+    // 2. Full 7-Condition Paired Decomposition of 5-Ply Beam Prior Gain (Frozen BC-4 Leaf)
     println!(
-        "  [Frozen BC-4 5-ply BASE       ] ok={}/{} top={} mean={:.2} [{}..{}]",
-        eval_games - b_t, eval_games, b_t, b_m, b_min, b_max
+        "\n--- [2/2] 7-Condition Paired Decomposition on Legal p=5 5-Ply Beam=16 ({} seeds, a=0.15) ---",
+        eval_games
     );
-    for &alpha in &[0.15f32, 0.35f32] {
-        let (q_m, q_t, q_min, q_max) = eval_5ply_set(
-            &bc4_arc,
-            Some((&pol_blind, QueueAblation::QueueBlind, alpha)),
-            eval_games,
-            16,
-            n_threads,
-        );
-        let (o_m, o_t, o_min, o_max) = eval_5ply_set(
-            &bc4_arc,
-            Some((&pol_compat, QueueAblation::OrderedCompat, alpha)),
-            eval_games,
-            16,
-            n_threads,
-        );
-        println!(
-            "  [+QueueBlind   prior a={:.2}   ] ok={}/{} top={} mean={:.2} [{}..{}] (vs BASE: {:+.2})",
-            alpha, eval_games - q_t, eval_games, q_t, q_m, q_min, q_max, q_m - b_m
-        );
-        println!(
-            "  [+OrderedCompat prior a={:.2}  ] ok={}/{} top={} mean={:.2} [{}..{}] (vs BASE: {:+.2}, vs Blind: {:+.2})",
-            alpha, eval_games - o_t, eval_games, o_t, o_m, o_min, o_max, o_m - b_m, o_m - q_m
-        );
-    }
-    println!("=== DONE v2 LOCAL ABLATION & 5-PLY INTEGRATION ({:.1}s eval) ===", t_ev.elapsed().as_secs_f64());
+    let t_ev = Instant::now();
+    let alpha = 0.15f32;
+    let rand_pol = OrderedRootPolicy::new_random(2026);
+    let mut blind_res_only = pol_blind.clone();
+    blind_res_only.w_bc4_skip = 0.0;
+    let mut compat_res_only = pol_compat.clone();
+    compat_res_only.w_bc4_skip = 0.0;
+
+    let r_base = eval_5ply_set_per_seed(&bc4_arc, RootPriorMode::None, eval_games, 16, n_threads);
+    let r_bc4_1ply = eval_5ply_set_per_seed(&bc4_arc, RootPriorMode::PureBc4SingleStep(alpha), eval_games, 16, n_threads);
+    let r_rand = eval_5ply_set_per_seed(&bc4_arc, RootPriorMode::Policy(&rand_pol, QueueAblation::QueueBlind, alpha), eval_games, 16, n_threads);
+    let r_blind_res = eval_5ply_set_per_seed(&bc4_arc, RootPriorMode::Policy(&blind_res_only, QueueAblation::QueueBlind, alpha), eval_games, 16, n_threads);
+    let r_blind_full = eval_5ply_set_per_seed(&bc4_arc, RootPriorMode::Policy(&pol_blind, QueueAblation::QueueBlind, alpha), eval_games, 16, n_threads);
+    let r_compat_res = eval_5ply_set_per_seed(&bc4_arc, RootPriorMode::Policy(&compat_res_only, QueueAblation::OrderedCompat, alpha), eval_games, 16, n_threads);
+    let r_compat_full = eval_5ply_set_per_seed(&bc4_arc, RootPriorMode::Policy(&pol_compat, QueueAblation::OrderedCompat, alpha), eval_games, 16, n_threads);
+
+    summarize_vs_base("1. BASE (Frozen BC-4 5ply)", &r_base, None);
+    summarize_vs_base("2. Pure BC-4 1-ply prior", &r_bc4_1ply, Some(&r_base));
+    summarize_vs_base("3. Random Init Policy", &r_rand, Some(&r_base));
+    summarize_vs_base("4. QueueBlind ResidualOnly", &r_blind_res, Some(&r_base));
+    summarize_vs_base("5. QueueBlind Full", &r_blind_full, Some(&r_base));
+    summarize_vs_base("6. OrderedCompat ResidOnly", &r_compat_res, Some(&r_base));
+    summarize_vs_base("7. OrderedCompat Full", &r_compat_full, Some(&r_base));
+    println!(
+        "  (Learned w_bc4_skip: QueueBlind={:.3}, OrderedCompat={:.3})",
+        pol_blind.w_bc4_skip, pol_compat.w_bc4_skip
+    );
+    println!("=== DONE FIXED v2 DECOMPOSITION & COUNTERFACTUAL TEST ({:.1}s eval) ===", t_ev.elapsed().as_secs_f64());
 }

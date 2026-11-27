@@ -1,5 +1,5 @@
 use super::{
-    fast::{FastBoard, FastPlace},
+    fast::{idx_to_color, FastBoard, FastPlace},
     spatial_val::{extract_spatial_features_ex, SpatialValueModel, DENSE_DIM, SPARSE_DIM},
 };
 use std::fs::File;
@@ -110,43 +110,41 @@ fn quick_board_stats(board: &FastBoard) -> ([i32; 10], i32, i32, i32, i32, i32, 
     (stack_h, stack_cells, cov_holes, blk_over_holes, max_sh, bump, h1_blk * 100 + h2_blk, h1_col, h2_col)
 }
 
-/// Piece index mapping in `fast.rs::color_to_idx`:
-/// 0: I, 1: J, 2: L, 3: O, 4: S, 5: T, 6: Z
+/// Piece index mapping strictly matches `fast.rs::color_to_idx` via `idx_to_color`:
+/// 0:'I', 1:'O', 2:'T', 3:'S', 4:'Z', 5:'J', 6:'L'.
 #[inline]
-fn hole_notch_fit(p: u8, sh: &[i32; 10], hole_col: Option<usize>, hole_open: bool) -> f32 {
+pub fn hole_notch_fit(p: u8, sh: &[i32; 10], hole_col: Option<usize>, hole_open: bool) -> f32 {
     let c = match hole_col {
         Some(col) if hole_open => col,
         _ => return 0.0,
     };
+    if (p as usize) >= 7 {
+        return 0.0;
+    }
     let hc = sh[c];
     let dl = if c > 0 { sh[c - 1] - hc } else { 4 };
     let dr = if c < 9 { sh[c + 1] - hc } else { 4 };
-    match p {
-        0 => 1.0, // I always clears any open 1-wide hole cleanly
-        3 => 0.0, // O (2x2) can NEVER clear a 1-wide garbage hole
-        1 => {
-            // J: vertical stem on right or left hook
+    match idx_to_color(p as usize).as_char() {
+        'I' => 1.0, // I always clears any open 1-wide hole cleanly
+        'O' => 0.0, // O (2x2) can NEVER clear a 1-wide garbage hole
+        'J' => {
             if (dr >= 1 && dl == 0) || (dl >= 2 && dr >= 0) || (dl == 0 && dr == 0) { 1.0 } else { 0.3 }
         }
-        2 => {
-            // L: vertical stem on left or right hook
+        'L' => {
             if (dl >= 1 && dr == 0) || (dr >= 2 && dl >= 0) || (dl == 0 && dr == 0) { 1.0 } else { 0.3 }
         }
-        4 => {
-            // S: steps up to the right
-            if (dl == 0 && dr == 1) || (dl >= 1 && dr == 0) { 1.0 } else { 0.2 }
+        'S' => {
+            if (dl == 0 && dr == 1) || (dl == 1 && dr >= 0) { 1.0 } else { 0.2 }
         }
-        5 => {
-            // T: fits symmetric notch or 1-step side
+        'T' => {
             if (dl >= 1 && dr >= 1) || (dl == 0 && dr == 1) || (dl == 1 && dr == 0) || (dl == 0 && dr == 0) {
                 1.0
             } else {
                 0.4
             }
         }
-        6 => {
-            // Z: steps up to the left
-            if (dr == 0 && dl == 1) || (dr >= 1 && dl == 0) { 1.0 } else { 0.2 }
+        'Z' => {
+            if (dr == 0 && dl == 1) || (dr == 1 && dl >= 0) { 1.0 } else { 0.2 }
         }
         _ => 0.0,
     }
@@ -154,11 +152,14 @@ fn hole_notch_fit(p: u8, sh: &[i32; 10], hole_col: Option<usize>, hole_open: boo
 
 /// Counts clean zero-overhang flat placements of piece `p` on surface contour `sh[0..10]`.
 #[inline]
-fn flat_contour_fit_ratio(p: u8, sh: &[i32; 10]) -> f32 {
+pub fn flat_contour_fit_ratio(p: u8, sh: &[i32; 10]) -> f32 {
+    if (p as usize) >= 7 {
+        return 0.0;
+    }
     let mut fits = 0i32;
-    match p {
-        0 => {
-            // I vertical fits everywhere (10), horizontal fits 4-flat runs
+    let ch = idx_to_color(p as usize).as_char();
+    match ch {
+        'I' => {
             fits += 4;
             for c in 0..=6 {
                 if sh[c] == sh[c + 1] && sh[c] == sh[c + 2] && sh[c] == sh[c + 3] {
@@ -166,16 +167,14 @@ fn flat_contour_fit_ratio(p: u8, sh: &[i32; 10]) -> f32 {
                 }
             }
         }
-        3 => {
-            // O requires adjacent equal columns
+        'O' => {
             for c in 0..9 {
                 if sh[c] == sh[c + 1] {
                     fits += 1;
                 }
             }
         }
-        1 | 2 | 5 => {
-            // J/L/T: flat-3, flat-2, or 1-step
+        'J' | 'L' | 'T' => {
             for c in 0..=7 {
                 if sh[c] == sh[c + 1] && sh[c] == sh[c + 2] {
                     fits += 1;
@@ -183,13 +182,12 @@ fn flat_contour_fit_ratio(p: u8, sh: &[i32; 10]) -> f32 {
             }
             for c in 0..9 {
                 let d = (sh[c] - sh[c + 1]).abs();
-                if d == 0 || (p != 5 && d == 2) || (p == 5 && d == 1) {
+                if d == 0 || (ch != 'T' && d == 2) || (ch == 'T' && d == 1) {
                     fits += 1;
                 }
             }
         }
-        4 => {
-            // S: (0,0,+1) or (+1,0)
+        'S' => {
             for c in 0..=7 {
                 if sh[c] == sh[c + 1] && sh[c + 2] == sh[c] + 1 {
                     fits += 1;
@@ -201,8 +199,7 @@ fn flat_contour_fit_ratio(p: u8, sh: &[i32; 10]) -> f32 {
                 }
             }
         }
-        6 => {
-            // Z: (+1,0,0) or (0,+1)
+        'Z' => {
             for c in 0..=7 {
                 if sh[c] == sh[c + 1] + 1 && sh[c + 1] == sh[c + 2] {
                     fits += 1;
@@ -301,13 +298,14 @@ pub fn extract_policy_cand_features(
     }
     for s in 0..6usize {
         if let Some(p) = slot_pieces[s] {
+            let ch = idx_to_color(p as usize).as_char();
             let base = s * 6;
             compat_feat[base] = hole_notch_fit(p, &sh_a, h1c_a, h1_open_a);
             compat_feat[base + 1] = hole_notch_fit(p, &sh_a, h2c_a, h2_open_a);
             compat_feat[base + 2] = flat_contour_fit_ratio(p, &sh_a);
-            compat_feat[base + 3] = if p == 3 { 1.0 } else { 0.0 }; // O-piece slot indicator
-            compat_feat[base + 4] = if p == 0 && max_i_well >= 2 { 1.0 } else { 0.0 }; // I-well match
-            compat_feat[base + 5] = if h1_a > 0 && p != 3 {
+            compat_feat[base + 3] = if ch == 'O' { 1.0 } else { 0.0 }; // O-piece slot indicator
+            compat_feat[base + 4] = if ch == 'I' && max_i_well >= 2 { 1.0 } else { 0.0 }; // I-well match
+            compat_feat[base + 5] = if h1_a > 0 && ch != 'O' {
                 flat_contour_fit_ratio(p, &sh_a)
             } else {
                 0.0
@@ -950,4 +948,83 @@ mod tests {
         check(&mut pol, |p| &mut p.w_order[8 + 2][0], g.w_order[8 + 2][0], "w_order");
         check(&mut pol, |p| &mut p.w3[0], g.w3[0], "w3[0]");
     }
+
+    #[test]
+    fn test_all_seven_pieces_compat_features_match_fast_color_idx() {
+        use crate::ai::fast::color_to_idx;
+        use std::convert::TryFrom;
+
+        let idx = |ch: char| color_to_idx(crate::Color::try_from(ch).unwrap()) as u8;
+        let i_p = idx('I');
+        let o_p = idx('O');
+        let t_p = idx('T');
+        let s_p = idx('S');
+        let z_p = idx('Z');
+        let j_p = idx('J');
+        let l_p = idx('L');
+        assert_eq!([i_p, o_p, t_p, s_p, z_p, j_p, l_p], [0, 1, 2, 3, 4, 5, 6]);
+
+        // 1. O-piece indicator in extract_policy_cand_features MUST be 1.0 ONLY for 'O' (idx 1)
+        let fp = FastPlace {
+            color_idx: 0,
+            tf: (2, 4, crate::Orientation::R0),
+            norm_i: 2,
+            norm_j: 4,
+            did_hold: false,
+        };
+        for &p in &[i_p, o_p, t_p, s_p, z_p, j_p, l_p] {
+            let st = dummy_state(vec![i_p, p, t_p, s_p, z_p, j_p]);
+            let f = extract_policy_cand_features(&st, fp, &st.board, 0, 0, 0.0);
+            // Slot 1 is q_after[0] = p -> base = 6, is_O is base + 3 = 9
+            let expected_o = if p == o_p { 1.0 } else { 0.0 };
+            assert_eq!(f.compat_feat[9], expected_o, "is_O indicator wrong for piece idx {}", p);
+        }
+
+        // 2. hole_notch_fit across all 7 pieces on crafted local contours
+        // Contour A: flat open hole (dl=0, dr=0) -> I/J/L/T fit cleanly (1.0), S/Z overhang (0.2), O=0.0
+        let sh_flat = [0; 10];
+        assert_eq!(hole_notch_fit(i_p, &sh_flat, Some(4), true), 1.0);
+        assert_eq!(hole_notch_fit(o_p, &sh_flat, Some(4), true), 0.0);
+        assert_eq!(hole_notch_fit(t_p, &sh_flat, Some(4), true), 1.0);
+        assert_eq!(hole_notch_fit(j_p, &sh_flat, Some(4), true), 1.0);
+        assert_eq!(hole_notch_fit(l_p, &sh_flat, Some(4), true), 1.0);
+        assert!(hole_notch_fit(s_p, &sh_flat, Some(4), true) < 0.5);
+        assert!(hole_notch_fit(z_p, &sh_flat, Some(4), true) < 0.5);
+
+        // Contour B: hole at col 4 with dl = 0, dr = +1 -> J/T/S/Z fit cleanly, L does not
+        let sh_step_r = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1];
+        assert_eq!(hole_notch_fit(j_p, &sh_step_r, Some(4), true), 1.0);
+        assert!(hole_notch_fit(l_p, &sh_step_r, Some(4), true) < 0.5);
+        assert_eq!(hole_notch_fit(s_p, &sh_step_r, Some(4), true), 1.0);
+        assert_eq!(hole_notch_fit(z_p, &sh_step_r, Some(4), true), 1.0);
+
+        // Contour C: hole at col 4 with dl = +1, dr = +2 -> vertical S fits (dl=1, dr>=0), Z does not
+        let sh_s_only = [1, 1, 1, 1, 0, 2, 2, 2, 2, 2];
+        assert_eq!(hole_notch_fit(s_p, &sh_s_only, Some(4), true), 1.0);
+        assert!(hole_notch_fit(z_p, &sh_s_only, Some(4), true) < 0.5);
+
+        // Contour D: mirror (dl = +2, dr = +1) -> vertical Z fits (dr=1, dl>=0), S does not
+        let sh_z_only = [2, 2, 2, 2, 0, 1, 1, 1, 1, 1];
+        assert_eq!(hole_notch_fit(z_p, &sh_z_only, Some(4), true), 1.0);
+        assert!(hole_notch_fit(s_p, &sh_z_only, Some(4), true) < 0.5);
+
+        // Contour E: hole at col 4 with dl = +1, dr = 0 -> L fits, J does not
+        let sh_step_l = [1, 1, 1, 1, 0, 0, 0, 0, 0, 0];
+        assert_eq!(hole_notch_fit(l_p, &sh_step_l, Some(4), true), 1.0);
+        assert!(hole_notch_fit(j_p, &sh_step_l, Some(4), true) < 0.5);
+
+        // 3. flat_contour_fit_ratio across all 7 pieces
+        assert!(flat_contour_fit_ratio(o_p, &sh_flat) > 0.8, "O must fit flat board");
+        assert!(flat_contour_fit_ratio(i_p, &sh_flat) > 0.8, "I must fit flat board");
+        assert_eq!(flat_contour_fit_ratio(s_p, &sh_flat), 0.0, "S has no flat-0 step on pure flat board");
+        assert_eq!(flat_contour_fit_ratio(z_p, &sh_flat), 0.0, "Z has no flat-0 step on pure flat board");
+        let sh_stair_down = [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]; // sh[c] == sh[c+1] + 1 -> S fits, O does not
+        assert_eq!(flat_contour_fit_ratio(o_p, &sh_stair_down), 0.0);
+        assert!(flat_contour_fit_ratio(s_p, &sh_stair_down) > 0.5);
+        assert_eq!(flat_contour_fit_ratio(z_p, &sh_stair_down), 0.0);
+        let sh_stair_up = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]; // sh[c+1] == sh[c] + 1 -> Z fits, S does not
+        assert!(flat_contour_fit_ratio(z_p, &sh_stair_up) > 0.5);
+        assert_eq!(flat_contour_fit_ratio(s_p, &sh_stair_up), 0.0);
+    }
 }
+
