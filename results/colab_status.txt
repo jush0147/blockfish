@@ -1,17 +1,1 @@
-RUNNING commit=e76df756 heartbeat=2026-11-27T02:53:09Z cores=8
---- tail results/colab_latest.log ---
-   |                  ^^^^^                          ^^^^^^^^ the same lifetime is hidden here
-   |                  |
-   |                  the lifetime is elided here
-   |
-   = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
-   = note: `#[warn(mismatched_lifetime_syntaxes)]` on by default
-help: use `'_` for type paths
-   |
-16 |     pub fn shape(&self, color: Color) -> Option<ShapeRef<'_>> {
-   |                                                         ++++
-
-warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
-    Finished `release` profile [optimized] target(s) in 0.08s
-
---- STRICT SAME-BINARY fullmlp_w16 A/B (5 seeds 101..=105): bc4 vs es_v3 ---
+RUNNING commit=fef09a58 started=2026-11-27T02:56:55Z cores=8
