@@ -1,6 +1,5 @@
-RUNNING commit=28128ef0 heartbeat=2026-11-27T13:41:31Z cores=8
+RUNNING commit=28128ef0 heartbeat=2026-11-27T13:43:34Z cores=8
 --- tail /tmp/colab_run.log ---
-   |                  ^^^^^                          ^^^^^^^^ the same lifetime is hidden here
    |                  |
    |                  the lifetime is elided here
    |
@@ -15,3 +14,4 @@ warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockf
     Finished `release` profile [optimized] target(s) in 7.55s
 
 --- Running strict same-binary ds_fullmlp A/B (5 seeds 101..=105) ---
+  [seed 103] pcs=176 nds=59 0ds=76 (cov=25 O=19 nar= 7 wide=19 end= 6) cov_nxt=12.0% | 601.6s
