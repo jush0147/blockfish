@@ -38,7 +38,8 @@ while true; do
     git reset --hard "origin/${BRANCH}" --quiet
 
     SHORT_SHA="$(git rev-parse --short HEAD)"
-    : > results/colab_latest.log
+    RUN_LOG="/tmp/colab_run.log"
+    : > "$RUN_LOG"
     echo "RUNNING commit=${SHORT_SHA} started=$(date -u +%Y-%m-%dT%H:%M:%SZ) cores=$(nproc)" > results/colab_status.txt
     git add -f results/colab_status.txt
     if ! git diff --cached --quiet; then
@@ -52,8 +53,8 @@ while true; do
         sleep "$LIVE_SYNC_SECS"
         {
           echo "RUNNING commit=${SHORT_SHA} heartbeat=$(date -u +%Y-%m-%dT%H:%M:%SZ) cores=$(nproc)"
-          echo "--- tail results/colab_latest.log ---"
-          tail -n 15 results/colab_latest.log 2>/dev/null || true
+          echo "--- tail /tmp/colab_run.log ---"
+          tail -n 15 "$RUN_LOG" 2>/dev/null || true
         } > results/colab_status.txt
         git add -f results/colab_status.txt 2>/dev/null || true
         if ! git diff --cached --quiet 2>/dev/null; then
@@ -67,7 +68,7 @@ while true; do
 
     echo "Running scripts/colab_cmd.sh at commit $SHORT_SHA..."
     set +e
-    bash scripts/colab_cmd.sh 2>&1 | tee results/colab_latest.log
+    bash scripts/colab_cmd.sh 2>&1 | tee "$RUN_LOG"
     EXIT_CODE=${PIPESTATUS[0]}
     set -e
 
@@ -77,6 +78,7 @@ while true; do
     echo ""
     echo "[$(date -u +%H:%M:%S)] scripts/colab_cmd.sh finished (exit_code=$EXIT_CODE)"
     echo "$REMOTE_BLOB" > "$STATE_FILE"
+    cp "$RUN_LOG" results/colab_latest.log
     echo "DONE commit=${SHORT_SHA} exit=${EXIT_CODE} finished=$(date -u +%Y-%m-%dT%H:%M:%SZ)" > results/colab_status.txt
 
     git add -f results/colab_latest.log results/colab_status.txt
