@@ -264,6 +264,11 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
           - **Colab Run #26-CPU (`train_sibling_q.rs`, INVALID — physics & world-alignment bugs caught and fixed)**:
             - **Bug #1**: `spawn_from_hole_stream` wrote `0x3FF ^ (1 << hc)` without `EMPTY_ROW (0xFC00)` high bits, so `FastBoard::place_and_sift` (`row == FULL_ROW (0xFFFF)`) could NEVER clear newly spawned garbage rows during CRN rollouts (`VAL` collapsed to 60/60 topout in Rounds 2, 3, 5; best remained initial `bc4`).
             - **Bug #2**: When a world topped out immediately on spawn, `q_crn` included a failure penalty while `world_feats` skipped that world. Fixed both bugs and added physics + world-alignment unit tests before any further Colab runs.
+          - **Colab Run #27-CPU (`train_sibling_q.rs` FIXED, 6 PI rounds × 160 states = 960 exact states, `K=8, W=8, dG=14, roll_beam=12` → `model-spatial-sibq-v2`, 8-core CPU)**:
+            - Physics & world-alignment unit tests passed (`2/2`); `VAL=60` no longer collapsed (`top=0..1` across all 6 rounds, `top1=46–48%`, `ce=1.70–1.77`).
+            - However, `VAL` drifted worse (`Round 0 BASE = 214.45 [193..254]` → `R1: 215.92` → `R2: 221.08` → `R3: 227.49 (top=1)` → `R4: 227.02` → `R5: 221.12` → `R6: 222.90 (top=1)`); `NEW BEST` guard cleanly skipped redundant `fullmlp_w16` A/B.
+            - **Root-cause diagnosis**: (1) `w_adv=0.6` on noisy `dG=14` (~28-move) rollout spread drove `adv` up (`1.81 -> 2.55`), inflating 1-ply weights; (2) 1-ply afterstate training mismatches 5-ply beam leaf usage; (3) `roll_beam=12` (`~215`-piece policy) is ~31 pieces weaker than `fullmlp_w16 (184.20)`. Pivoting to test **DS-Bucketed A\* FULL-MLP PIMC** (`ds_fullmlp`, Run #28-CPU) — changing the search paradigm itself (`g(n)+h(n)` to identical `target_ds` buckets, canceling `rem_g` horizon bias).
+
 
 
 
