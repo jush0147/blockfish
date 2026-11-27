@@ -1,6 +1,5 @@
-RUNNING commit=472698e9 heartbeat=2026-11-27T06:31:47Z cores=8
+RUNNING commit=472698e9 heartbeat=2026-11-27T06:33:49Z cores=8
 --- tail /tmp/colab_run.log ---
-[Iter 17/20] tr_ok=247/256 tr_mean=277.62 top=9 steps=70844 kl=0.0221 (27.5s+4.2s)
 [Iter 18/20] tr_ok=252/256 tr_mean=279.99 top=4 steps=71163 kl=0.0208 (27.2s+4.2s) | VAL=60/60 top=0 mean=268.67 [231..297] 
 [Iter 19/20] tr_ok=249/256 tr_mean=280.22 top=7 steps=71409 kl=0.0205 (27.3s+4.3s)
 [Iter 20/20] tr_ok=246/256 tr_mean=279.24 top=10 steps=71265 kl=0.0203 (27.5s+4.2s) | VAL=60/60 top=0 mean=269.88 [240..310] 
@@ -15,3 +14,4 @@ Found existing release id=460236025 (https://github.com/jush0147/blockfish/relea
 UPLOAD SUCCESS: https://github.com/jush0147/blockfish/releases/download/model-spatial-grpo-v1/spatial_grpo_v1_last.txt (1133706 bytes)
 
 --- [3/3] STRICT SAME-BINARY fullmlp_w16 A/B (5 seeds 101..=105): bc4 vs grpo_v1 ---
+  [seed 104] pcs=188 nds=64 0ds=88 (cov=24 O=21 nar=11 wide=28 end= 4) cov_nxt=18.0% | 609.3s
