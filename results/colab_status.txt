@@ -1,8 +1,5 @@
-RUNNING commit=4c5d1dac heartbeat=2026-11-27T18:04:07Z cores=8
+RUNNING commit=4c5d1dac heartbeat=2026-11-27T18:06:08Z cores=8
 --- tail /tmp/colab_run.log ---
-warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
-    Finished `release` profile [optimized] target(s) in 21.64s
-
 --- [2/2] Running strict same-binary fullmlp_w16 step1_prior A/B (5 seeds 101..=105) ---
   [seed 103] pcs=176 nds=59 0ds=76 (cov=25 O=19 nar= 7 wide=19 end= 6) cov_nxt=12.0% | 1018.8s
   [seed 102] pcs=184 nds=62 0ds=84 (cov=24 O=20 nar= 7 wide=30 end= 3) cov_nxt=15.0% | 1051.0s
@@ -15,3 +12,6 @@ fullmlp_w16_BASE_p0        n= 5 mean=184.20 min=176 max=193 <=166: 0 top= 0 | nd
   [seed 105] pcs=189 nds=64 0ds=89 (cov=34 O=18 nar=12 wide=21 end= 4) cov_nxt=19.0% | 1061.5s
   [seed 102] pcs=182 nds=62 0ds=82 (cov=18 O=21 nar=12 wide=27 end= 4) cov_nxt=10.0% | 1063.9s
   [seed 104] pcs=189 nds=64 0ds=89 (cov=32 O=17 nar=12 wide=23 end= 5) cov_nxt=18.0% | 1100.0s
+  [seed 101] pcs=186 nds=64 0ds=86 (cov=32 O=18 nar= 7 wide=25 end= 4) cov_nxt=18.0% | 1162.7s
+fullmlp_w16_step1_p08      n= 5 mean=184.60 min=177 max=189 <=166: 0 top= 0 | nds=62.60 0ds=84.60 (cov=28.0 O=18.4 nar=9.8 wide=24.2 g0=0.0 end=4.2) cov_nxt=16.4% avg_c=12.2 | 1162.7s
+  seeds: [101:186, 102:182, 103:177, 104:189, 105:189]
