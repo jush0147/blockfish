@@ -1,8 +1,5 @@
-RUNNING commit=47e7b3af heartbeat=2026-11-27T08:25:47Z cores=8
+RUNNING commit=47e7b3af heartbeat=2026-11-27T08:27:48Z cores=8
 --- tail /tmp/colab_run.log ---
-=== DONE SIBLING-Q PI: base_val=214.45 (top=0) -> best_val=214.45 (top=0) | saved /tmp/spatial_sibq_v1.txt ===
-
---- [2/3] Uploading spatial_sibq_v1 checkpoints to Release model-spatial-sibq-v1 ---
 Uploading spatial_sibq_v1.txt (1.08 MB) to release tag 'model-spatial-sibq-v1'...
 Created release id=460318960 (https://github.com/jush0147/blockfish/releases/tag/model-spatial-sibq-v1)
 UPLOAD SUCCESS: https://github.com/jush0147/blockfish/releases/download/model-spatial-sibq-v1/spatial_sibq_v1.txt (1133787 bytes)
@@ -15,3 +12,6 @@ UPLOAD SUCCESS: https://github.com/jush0147/blockfish/releases/download/model-sp
   [seed 103] pcs=176 nds=59 0ds=76 (cov=25 O=19 nar= 7 wide=19 end= 6) cov_nxt=12.0% | 628.1s
   [seed 101] pcs=180 nds=61 0ds=80 (cov=25 O=19 nar= 9 wide=24 end= 3) cov_nxt=17.0% | 633.1s
   [seed 104] pcs=188 nds=64 0ds=88 (cov=24 O=21 nar=11 wide=28 end= 4) cov_nxt=18.0% | 636.0s
+  [seed 105] pcs=193 nds=66 0ds=93 (cov=27 O=21 nar= 9 wide=34 end= 2) cov_nxt=13.0% | 712.0s
+fullmlp_w16 [models/spatial_bc4.txt] n= 5 mean=184.20 min=176 max=193 <=166: 0 top= 0 | nds=62.40 0ds=84.20 (cov=25.0 O=20.0 nar=8.6 wide=27.0 g0=0.0 end=3.6) cov_nxt=15.0% avg_c=12.4 | 712.0s
+  seeds: [101:180, 102:184, 103:176, 104:188, 105:193]
