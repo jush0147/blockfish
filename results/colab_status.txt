@@ -1,1 +1,17 @@
-RUNNING commit=d35a0b04 started=2026-11-27T14:51:45Z cores=8
+RUNNING commit=d35a0b04 heartbeat=2026-11-27T14:53:47Z cores=8
+--- tail /tmp/colab_run.log ---
+help: use `'_` for type paths
+   |
+16 |     pub fn shape(&self, color: Color) -> Option<ShapeRef<'_>> {
+   |                                                         ++++
+
+warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
+   Compiling blockfish v0.1.0 (/content/blockfish/blockfish-engine)
+    Finished `release` profile [optimized] target(s) in 2.57s
+
+--- [1/3] Collecting 16 fullmlp_w16 Legal p=5 games & training V6-1591 model ---
+================================================================
+ Pure Rust Strong-Teacher Legal p=5 Expert Iteration (fullmlp_w16)
+ init=models/spatial_bc4.txt out=/tmp/spatial_exit_w16_v1.txt games=16 teacher=w16_b28 spawn_W=4 sparse_lim=1591
+ epochs=12 bs=32 tau=0.25/0.25 w_ce=1.00 w_adv=0.25 lr=3.0e-4/1.5e-4 wd=2.0e-4 threads=8
+================================================================
