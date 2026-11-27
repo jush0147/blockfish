@@ -1,4 +1,4 @@
-RUNNING commit=28128ef0 heartbeat=2026-11-27T13:35:23Z cores=8
+RUNNING commit=28128ef0 heartbeat=2026-11-27T13:37:26Z cores=8
 --- tail /tmp/colab_run.log ---
    |                  ^^^^^                          ^^^^^^^^ the same lifetime is hidden here
    |                  |
