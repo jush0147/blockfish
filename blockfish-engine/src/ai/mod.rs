@@ -11,12 +11,14 @@ pub mod cheese_val;
 mod eval;
 pub mod fast;
 pub mod fast_eval;
+pub mod ordered_policy;
 pub mod spatial_val;
 mod state;
 
 pub use beam::{BagTracker, BeamConfig, BeamResult, BeamSearcher, GameContext};
 pub use cheese_val::LearnedValueModel;
 pub use fast_eval::EvalWeights;
+pub use ordered_policy::OrderedRootPolicy;
 pub use spatial_val::SpatialValueModel;
 
 // Input / output types
@@ -145,6 +147,10 @@ impl FastAI {
 
     pub fn last_top_leaf_info(&self) -> &[(u16, u16, i64, u8, u8)] {
         self.searcher.last_top_leaf_info()
+    }
+
+    pub fn last_pimc_reranked(&self) -> &[(fast::FastPlace, i64)] {
+        self.searcher.last_pimc_reranked()
     }
 
     pub fn diverse_beam_leaves(

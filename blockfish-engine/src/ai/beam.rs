@@ -296,6 +296,7 @@ pub struct BeamSearcher {
     pimc_seen: HashSet<DedupKey, FxBuildHasher>,
     last_top: Vec<(char, i16, i16, u8, bool, i64)>,
     last_top_leaves: Vec<(u16, u16, i64, u8, u8)>,
+    last_pimc_reranked: Vec<(FastPlace, i64)>,
     last_q: [u8; 16],
     last_q_len: usize,
     last_bag_mask: u8,
@@ -323,6 +324,7 @@ impl BeamSearcher {
             pimc_seen: HashSet::with_capacity_and_hasher(512, FxBuildHasher::default()),
             last_top: Vec::with_capacity(16),
             last_top_leaves: Vec::with_capacity(16),
+            last_pimc_reranked: Vec::with_capacity(16),
             last_q: [0u8; 16],
             last_q_len: 0,
             last_bag_mask: 0x7F,
@@ -335,6 +337,12 @@ impl BeamSearcher {
 
     pub fn last_top_leaf_info(&self) -> &[(u16, u16, i64, u8, u8)] {
         &self.last_top_leaves
+    }
+
+    /// Returns ONLY the root candidates actually evaluated by `root_pimc` in the last search,
+    /// paired with their raw unshifted `pimc_scores` (no Stage-1 `rest_list` mixing).
+    pub fn last_pimc_reranked(&self) -> &[(FastPlace, i64)] {
+        &self.last_pimc_reranked
     }
 
     pub fn diverse_beam_leaves(&self, max_siblings: usize) -> Vec<(FastBoard, Option<u8>, u16, u8)> {
@@ -375,6 +383,7 @@ impl BeamSearcher {
         ctx: GameContext,
         cfg: &BeamConfig,
     ) -> Option<BeamResult> {
+        self.last_pimc_reranked.clear();
         let garbage_rows = ctx
             .garbage_rows
             .unwrap_or_else(|| FastBoard::infer_garbage_rows(&snapshot.matrix));
@@ -1613,6 +1622,14 @@ impl BeamSearcher {
                         }
                     }
                 }
+
+                self.last_pimc_reranked.clear();
+                for (ai, &(ci, _)) in fine_roots.iter().enumerate() {
+                    let root_idx = candidates[ci].0;
+                    self.last_pimc_reranked
+                        .push((self.root_places[root_idx as usize], pimc_scores[ai]));
+                }
+                self.last_pimc_reranked.sort_unstable_by_key(|&(_, sc)| sc);
 
                 let min_pimc = pimc_scores.iter().copied().min().unwrap_or(0);
                 let shift = best_s1 - min_pimc;
