@@ -1,4 +1,4 @@
-RUNNING commit=f2095f1b heartbeat=2026-11-27T05:13:19Z cores=8
+RUNNING commit=f2095f1b heartbeat=2026-11-27T05:15:21Z cores=8
 --- tail /tmp/colab_run.log ---
 --- Running true_ens_showdown (5 seeds 101..=105) ---
   [seed 103] pcs=176 nds=59 0ds=76 (cov=25 O=19 nar= 7 wide=19 end= 6) cov_nxt=12.0% | 604.1s
