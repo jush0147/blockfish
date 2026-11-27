@@ -1,6 +1,5 @@
-RUNNING commit=dffeb60a heartbeat=2026-11-27T12:28:02Z cores=8
+RUNNING commit=dffeb60a heartbeat=2026-11-27T12:30:05Z cores=8
 --- tail /tmp/colab_run.log ---
-16 |     pub fn shape(&self, color: Color) -> Option<ShapeRef<'_>> {
    |                                                         ++++
 
 warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
@@ -15,3 +14,4 @@ warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockf
  lr_lin=3.0e-4 lr_mlp=1.5e-4 anchor_wd=2.0e-4 threads=8
 ================================================================
 [Round 0 BASE] val=60/60 top=0 mean=214.45 [193..254] (8.9s)
+[Round  1/6] outer=214.56(32/32) states=160 crn_disagree=51.9% crn_gain=0.832pc | ce=1.7669 adv=1.8119 top1=46.2% (164.7s+0.2s) | VAL=60/60 top=0 mean=215.92 [190..258] 
