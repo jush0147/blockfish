@@ -1,8 +1,5 @@
-RUNNING commit=a100bf64 heartbeat=2026-11-27T07:14:25Z cores=8
+RUNNING commit=a100bf64 heartbeat=2026-11-27T07:16:27Z cores=8
 --- tail /tmp/colab_run.log ---
-=== DONE CRN-GRPO: base_val=210.60 (top=0) -> best_val=208.75 (top=0) | saved /tmp/spatial_grpo_v2_5ply_v6.txt ===
-
---- [2/3] Uploading spatial_grpo_v2_5ply_v6 checkpoints to Release model-spatial-grpo-v2 ---
 Uploading spatial_grpo_v2_5ply_v6.txt (1.10 MB) to release tag 'model-spatial-grpo-v2'...
 Created release id=460262475 (https://github.com/jush0147/blockfish/releases/tag/model-spatial-grpo-v2)
 UPLOAD SUCCESS: https://github.com/jush0147/blockfish/releases/download/model-spatial-grpo-v2/spatial_grpo_v2_5ply_v6.txt (1153136 bytes)
@@ -15,3 +12,6 @@ UPLOAD SUCCESS: https://github.com/jush0147/blockfish/releases/download/model-sp
   [seed 101] pcs=180 nds=61 0ds=80 (cov=25 O=19 nar= 9 wide=24 end= 3) cov_nxt=17.0% | 612.1s
   [seed 105] pcs=193 nds=66 0ds=93 (cov=27 O=21 nar= 9 wide=34 end= 2) cov_nxt=13.0% | 642.6s
   [seed 104] pcs=188 nds=64 0ds=88 (cov=24 O=21 nar=11 wide=28 end= 4) cov_nxt=18.0% | 662.8s
+  [seed 102] pcs=184 nds=62 0ds=84 (cov=24 O=20 nar= 7 wide=30 end= 3) cov_nxt=15.0% | 683.0s
+fullmlp_w16 [models/spatial_bc4.txt] n= 5 mean=184.20 min=176 max=193 <=166: 0 top= 0 | nds=62.40 0ds=84.20 (cov=25.0 O=20.0 nar=8.6 wide=27.0 g0=0.0 end=3.6) cov_nxt=15.0% avg_c=12.4 | 683.0s
+  seeds: [101:180, 102:184, 103:176, 104:188, 105:193]
