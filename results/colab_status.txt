@@ -1,8 +1,5 @@
-RUNNING commit=7ef3b974 heartbeat=2026-11-27T06:03:39Z cores=8
+RUNNING commit=7ef3b974 heartbeat=2026-11-27T06:05:41Z cores=8
 --- tail /tmp/colab_run.log ---
-   |                                                         ++++
-
-warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
     Finished `release` profile [optimized] target(s) in 7.22s
 
 >>> [1/2] Nested Legal p=5 Rollout (k=6, w=8, h=8, b=10, cvar=25):
@@ -15,3 +12,6 @@ nc_k6_w8_h8_b10l_c25         n= 5 mean=200.20 min=188 max=209 <=166: 0 <=161: 0 
   seeds: [101:206, 102:209, 103:188, 104:194, 105:204]
 
 >>> [2/2] Nested Legal p=5 Rollout (k=6, w=12, h=8, b=10, cvar=0 pure mean):
+  [seed 101] pcs=200 nds=69 0ds=100 (cov=48 O=17 nar= 6 wide=24 end= 5) cov_nxt=17.0% | 231.6s
+  [seed 105] pcs=195 nds=67 0ds=95 (cov=33 O=21 nar=10 wide=26 end= 5) cov_nxt=20.0% | 238.2s
+  [seed 102] pcs=207 nds=72 0ds=107 (cov=45 O=18 nar= 9 wide=32 end= 3) cov_nxt=25.0% | 243.1s
