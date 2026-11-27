@@ -1682,6 +1682,11 @@ impl BeamSearcher {
     ) -> i64 {
         if allow_spatial {
             if let Some(ref sm) = cfg.spatial_model {
+                if let Some(ref sm2) = cfg.spatial_model_2 {
+                    return sm.evaluate_board_with_bag_ensemble2(
+                        sm2, board, rem_g, in_hand, avail_mask, true,
+                    );
+                }
                 return sm.evaluate_board_with_bag(board, rem_g, in_hand, avail_mask);
             }
         }
@@ -4296,5 +4301,48 @@ mod test {
             ds_total += ds;
         }
         assert_eq!(ds_total, 10);
+    }
+
+    #[test]
+    fn test_eval_core_ex_ensemble2_uses_both_models() {
+        use crate::ai::spatial_val::SpatialValueModel;
+        use std::sync::Arc;
+
+        let mut fb = FastBoard::empty();
+        fb.data[0] = 0xFC00 | (0x3FF & !(1u16 << 4));
+        fb.rows = 1;
+        fb.garbage_rows = 1;
+
+        let mut m1 = SpatialValueModel::default();
+        m1.lin_bias = 10.0;
+        m1.b3 = 1.0;
+        m1.prepare_fast();
+
+        let mut m2 = SpatialValueModel::default();
+        m2.lin_bias = 20.0;
+        m2.b3 = 3.0;
+        m2.prepare_fast();
+
+        let m1_arc = Arc::new(m1);
+        let m2_arc = Arc::new(m2);
+
+        let mut cfg1 = BeamConfig::default();
+        cfg1.spatial_model = Some(m1_arc.clone());
+        let s1 = BeamSearcher::eval_core_ex(&fb, 10, Some(0), 0x7F, &cfg1, true);
+
+        let mut cfg2 = BeamConfig::default();
+        cfg2.spatial_model = Some(m2_arc.clone());
+        let s2 = BeamSearcher::eval_core_ex(&fb, 10, Some(0), 0x7F, &cfg2, true);
+
+        let mut cfg_ens = BeamConfig::default();
+        cfg_ens.spatial_model = Some(m1_arc.clone());
+        cfg_ens.spatial_model_2 = Some(m2_arc.clone());
+        let s_ens = BeamSearcher::eval_core_ex(&fb, 10, Some(0), 0x7F, &cfg_ens, true);
+
+        let expected = m1_arc.evaluate_board_with_bag_ensemble2(&m2_arc, &fb, 10, Some(0), 0x7F, true);
+        assert_ne!(s1, s2);
+        assert_ne!(s_ens, s1);
+        assert_ne!(s_ens, s2);
+        assert_eq!(s_ens, expected);
     }
 }
