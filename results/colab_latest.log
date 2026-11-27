@@ -1,10 +1,13 @@
 ================================================================
- Colab Run #18-CPU: Direct Legal CRN Antithetic ES (opt_pimc)
-                    16-seed batches x 4 pairs x 8 gens on spatial_bc4
-                    + Strict Same-Binary fullmlp_w16 A/B (5 seeds)
+ Colab Run #19-CPU: Strict Same-Binary 5-seed fullmlp_w16 A/B
+                    spatial_bc4.txt vs spatial_es_v3.txt (~38 min)
  Cores: 8 | RAM: 50Gi
 ================================================================
---- Building opt_pimc and bench_legal (release) ---
+--- Downloading spatial_es_v3.txt from Release model-spatial-es-v3 ---
+Downloading 'spatial_es_v3.txt' from release 'model-spatial-es-v3' -> /tmp/spatial_es_v3.txt...
+DOWNLOAD SUCCESS: /tmp/spatial_es_v3.txt (1.08 MB)
+
+--- Building bench_legal (release) ---
 warning: unused build dependency `fontconfig`
   --> blockfish-client/Cargo.toml:29:1
    |
@@ -16,70 +19,70 @@ help: consider removing the dependency on `fontconfig`
 warning: `blockfish-client` (manifest) generated 1 warning
     Updating crates.io index
  Downloading crates ...
-  Downloaded atty v0.2.14
   Downloaded argh v0.1.4
-  Downloaded argh_shared v0.1.4
-  Downloaded fontconfig v0.2.0
-  Downloaded quick-error v1.2.3
-  Downloaded cfg-if v0.1.10
-  Downloaded humantime v1.3.0
-  Downloaded aho-corasick v0.7.15
-  Downloaded ppv-lite86 v0.2.10
+  Downloaded atty v0.2.14
   Downloaded argh_derive v0.1.4
-  Downloaded regex-syntax v0.6.21
-  Downloaded const-cstr v0.3.0
-  Downloaded red_union_find v0.2.5
-  Downloaded num-integer v0.1.44
-  Downloaded unicode-segmentation v1.7.1
-  Downloaded rand_core v0.5.1
+  Downloaded aho-corasick v0.7.15
   Downloaded itoa v0.4.6
-  Downloaded env_logger v0.7.1
-  Downloaded yeslogic-fontconfig-sys v2.11.1
-  Downloaded pretty_env_logger v0.4.0
-  Downloaded rand v0.7.3
-  Downloaded rand_pcg v0.2.1
-  Downloaded termcolor v1.1.1
-  Downloaded autocfg v1.0.1
-  Downloaded unicode-xid v0.2.1
   Downloaded rand_chacha v0.2.2
-  Downloaded bitflags v1.2.1
+  Downloaded const-cstr v0.3.0
+  Downloaded quick-error v1.2.3
+  Downloaded autocfg v1.0.1
+  Downloaded num-integer v0.1.44
   Downloaded pkg-config v0.3.19
-  Downloaded serde_json v1.0.60
-  Downloaded proc-macro2 v1.0.24
-  Downloaded thiserror-impl v1.0.22
-  Downloaded thread_local v1.0.1
+  Downloaded lazy_static v1.4.0
+  Downloaded ppv-lite86 v0.2.10
   Downloaded cfg-if v1.0.0
-  Downloaded serde_derive v1.0.118
+  Downloaded pretty_env_logger v0.4.0
+  Downloaded cfg-if v0.1.10
+  Downloaded fontconfig v0.2.0
+  Downloaded rand_pcg v0.2.1
+  Downloaded thread_local v1.0.1
+  Downloaded thiserror-impl v1.0.22
+  Downloaded quote v1.0.7
+  Downloaded env_logger v0.7.1
+  Downloaded log v0.4.11
+  Downloaded unicode-xid v0.2.1
+  Downloaded yeslogic-fontconfig-sys v2.11.1
+  Downloaded humantime v1.3.0
+  Downloaded memchr v2.3.4
+  Downloaded termcolor v1.1.1
+  Downloaded bitflags v1.2.1
+  Downloaded proc-macro2 v1.0.24
+  Downloaded thiserror v1.0.22
+  Downloaded version-compare v0.1.0
+  Downloaded num-traits v0.2.14
+  Downloaded rand_core v0.5.1
   Downloaded getrandom v0.1.15
   Downloaded heck v0.3.1
-  Downloaded syn v1.0.48
-  Downloaded log v0.4.11
-  Downloaded regex v1.4.2
-  Downloaded lazy_static v1.4.0
-  Downloaded num-traits v0.2.14
-  Downloaded memchr v2.3.4
-  Downloaded serde v1.0.118
+  Downloaded serde_derive v1.0.118
   Downloaded ryu v1.0.5
-  Downloaded version-compare v0.1.0
+  Downloaded serde v1.0.118
+  Downloaded unicode-segmentation v1.7.1
+  Downloaded rand v0.7.3
+  Downloaded serde_json v1.0.60
   Downloaded sdl2 v0.35.2
-  Downloaded quote v1.0.7
-  Downloaded sdl2-sys v0.35.2
+  Downloaded regex v1.4.2
+  Downloaded syn v1.0.48
+  Downloaded regex-syntax v0.6.21
   Downloaded libc v0.2.119
-  Downloaded thiserror v1.0.22
+  Downloaded sdl2-sys v0.35.2
+  Downloaded red_union_find v0.2.5
+  Downloaded argh_shared v0.1.4
    Compiling proc-macro2 v1.0.24
    Compiling unicode-xid v0.2.1
-   Compiling syn v1.0.48
    Compiling libc v0.2.119
+   Compiling syn v1.0.48
    Compiling cfg-if v0.1.10
    Compiling getrandom v0.1.15
    Compiling autocfg v1.0.1
    Compiling serde_derive v1.0.118
    Compiling serde v1.0.118
    Compiling ryu v1.0.5
-   Compiling serde_json v1.0.60
    Compiling ppv-lite86 v0.2.10
-   Compiling log v0.4.11
+   Compiling serde_json v1.0.60
    Compiling itoa v0.4.6
+   Compiling log v0.4.11
    Compiling num-traits v0.2.14
    Compiling num-integer v0.1.44
    Compiling blockfish v0.1.0 (/content/blockfish/blockfish-engine)
@@ -179,8 +182,21 @@ help: use `'_` for type paths
    |                                                         ++++
 
 warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
-    Finished `release` profile [optimized] target(s) in 23.47s
+    Finished `release` profile [optimized] target(s) in 17.46s
 
---- [1/3] Running Direct Legal CRN Antithetic ES (max 38 min) ---
-=== Direct Legal REAL-MLP root_pimc ES (opt_pimc) ===
-  init=models/spatial_bc4.txt out=/tmp/spatial_es_v3.txt dim=48 (16 dense + 32 w3) gens=10 pairs=4 batch_seeds=16 val_seeds=16 w=4 b=14 r=8 lr=0.015 max_secs=2280s
+--- STRICT SAME-BINARY fullmlp_w16 A/B (5 seeds 101..=105): bc4 vs es_v3 ---
+  [seed 102] pcs=184 nds=62 0ds=84 (cov=24 O=20 nar= 7 wide=30 end= 3) cov_nxt=15.0% | 546.6s
+  [seed 103] pcs=176 nds=59 0ds=76 (cov=25 O=19 nar= 7 wide=19 end= 6) cov_nxt=12.0% | 582.7s
+  [seed 104] pcs=188 nds=64 0ds=88 (cov=24 O=21 nar=11 wide=28 end= 4) cov_nxt=18.0% | 606.5s
+  [seed 101] pcs=180 nds=61 0ds=80 (cov=25 O=19 nar= 9 wide=24 end= 3) cov_nxt=17.0% | 678.9s
+  [seed 105] pcs=193 nds=66 0ds=93 (cov=27 O=21 nar= 9 wide=34 end= 2) cov_nxt=13.0% | 719.6s
+fullmlp_w16 [models/spatial_bc4.txt] n= 5 mean=184.20 min=176 max=193 <=166: 0 top= 0 | nds=62.40 0ds=84.20 (cov=25.0 O=20.0 nar=8.6 wide=27.0 g0=0.0 end=3.6) cov_nxt=15.0% avg_c=12.4 | 719.6s
+  seeds: [101:180, 102:184, 103:176, 104:188, 105:193]
+  [seed 102] pcs=179 nds=60 0ds=79 (cov=29 O=19 nar= 6 wide=24 end= 1) cov_nxt=15.0% | 535.0s
+  [seed 103] pcs=185 nds=63 0ds=85 (cov=36 O=14 nar= 7 wide=26 end= 2) cov_nxt=20.0% | 590.2s
+  [seed 105] pcs=190 nds=65 0ds=90 (cov=28 O=21 nar= 8 wide=30 end= 3) cov_nxt=13.0% | 625.3s
+  [seed 104] pcs=184 nds=63 0ds=84 (cov=35 O=15 nar= 3 wide=25 end= 6) cov_nxt=19.0% | 697.6s
+  [seed 101] pcs=184 nds=63 0ds=84 (cov=30 O=17 nar= 8 wide=24 end= 5) cov_nxt=16.0% | 743.1s
+fullmlp_w16 [/tmp/spatial_es_v3.txt] n= 5 mean=184.40 min=179 max=190 <=166: 0 top= 0 | nds=62.80 0ds=84.40 (cov=31.6 O=17.2 nar=6.4 wide=25.8 g0=0.0 end=3.4) cov_nxt=16.6% avg_c=12.3 | 743.1s
+  seeds: [101:184, 102:179, 103:185, 104:184, 105:190]
+=== Colab Run #19-CPU COMPLETE ===
