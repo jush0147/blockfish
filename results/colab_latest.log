@@ -1,14 +1,10 @@
 ================================================================
- Colab Run #21-CPU: FIXED True 50/50 FULL-MLP Ensemble A/B
-                    eval_core_ex spatial_model_2 fix verified!
-                    Same-Binary 5-seed fullmlp_w16 (~36 min)
+ Colab Run #22-CPU: TRUE Diverse FULL-MLP 50/50 Ensemble Showdown
+                    (First real test after eval_core_ex fix!)
+                    bc4 vs ens(bc4+bc6 V6) vs ens(bc4+v5q1 SoftQ)
  Cores: 8 | RAM: 50Gi
 ================================================================
---- Downloading spatial_es_v3.txt from Release model-spatial-es-v3 ---
-Downloading 'spatial_es_v3.txt' from release 'model-spatial-es-v3' -> /tmp/spatial_es_v3.txt...
-DOWNLOAD SUCCESS: /tmp/spatial_es_v3.txt (1.08 MB)
-
---- Running unit tests & building bench_legal (release) ---
+--- Running ensemble2 unit test & building bench_legal (release) ---
 warning: unused build dependency `fontconfig`
   --> blockfish-client/Cargo.toml:29:1
    |
@@ -18,58 +14,7 @@ warning: unused build dependency `fontconfig`
    = note: `cargo::unused_dependencies` is set to `warn` by default
 help: consider removing the dependency on `fontconfig`
 warning: `blockfish-client` (manifest) generated 1 warning
-    Updating crates.io index
- Downloading crates ...
-  Downloaded cfg-if v0.1.10
-  Downloaded autocfg v1.0.1
-  Downloaded itoa v0.4.6
-  Downloaded getrandom v0.1.15
-  Downloaded log v0.4.11
-  Downloaded rand_pcg v0.2.1
-  Downloaded unicode-xid v0.2.1
-  Downloaded num-integer v0.1.44
-  Downloaded red_union_find v0.2.5
-  Downloaded ryu v1.0.5
-  Downloaded quote v1.0.7
-  Downloaded serde v1.0.118
-  Downloaded serde_derive v1.0.118
-  Downloaded thiserror-impl v1.0.22
-  Downloaded rand v0.7.3
-  Downloaded serde_json v1.0.60
-  Downloaded libc v0.2.119
-  Downloaded syn v1.0.48
-  Downloaded num-traits v0.2.14
-  Downloaded ppv-lite86 v0.2.10
-  Downloaded rand_core v0.5.1
-  Downloaded thiserror v1.0.22
-  Downloaded rand_chacha v0.2.2
-  Downloaded proc-macro2 v1.0.24
-   Compiling proc-macro2 v1.0.24
-   Compiling unicode-xid v0.2.1
-   Compiling libc v0.2.119
-   Compiling syn v1.0.48
-   Compiling cfg-if v0.1.10
-   Compiling getrandom v0.1.15
-   Compiling autocfg v1.0.1
-   Compiling serde_derive v1.0.118
-   Compiling ryu v1.0.5
-   Compiling serde v1.0.118
-   Compiling ppv-lite86 v0.2.10
-   Compiling serde_json v1.0.60
-   Compiling itoa v0.4.6
-   Compiling log v0.4.11
-   Compiling num-traits v0.2.14
-   Compiling num-integer v0.1.44
    Compiling blockfish v0.1.0 (/content/blockfish/blockfish-engine)
-   Compiling quote v1.0.7
-   Compiling rand_core v0.5.1
-   Compiling rand_chacha v0.2.2
-   Compiling rand_pcg v0.2.1
-   Compiling rand v0.7.3
-   Compiling red_union_find v0.2.5
-   Compiling thiserror-impl v1.0.22
-   Compiling thiserror v1.0.22
-   Compiling block-stacker v0.1.0 (/content/blockfish/block-stacker)
 warning: unused import: `Input`
  --> blockfish-engine/src/ai/fast.rs:4:25
   |
@@ -166,7 +111,7 @@ help: use `'_` for type paths
    |                                                         ++++
 
 warning: `blockfish` (lib test) generated 13 warnings (run `cargo fix --lib -p blockfish --tests` to apply 3 suggestions)
-    Finished `release` profile [optimized] target(s) in 15.41s
+    Finished `release` profile [optimized] target(s) in 6.54s
      Running unittests src/lib.rs (target/release/build/blockfish/dbd9625ec03772ea/out/blockfish-dbd9625ec03772ea)
 
 running 1 test
@@ -183,41 +128,6 @@ warning: unused build dependency `fontconfig`
    = note: `cargo::unused_dependencies` is set to `warn` by default
 help: consider removing the dependency on `fontconfig`
 warning: `blockfish-client` (manifest) generated 1 warning
- Downloading crates ...
-  Downloaded atty v0.2.14
-  Downloaded argh v0.1.4
-  Downloaded argh_shared v0.1.4
-  Downloaded argh_derive v0.1.4
-  Downloaded yeslogic-fontconfig-sys v2.11.1
-  Downloaded const-cstr v0.3.0
-  Downloaded pkg-config v0.3.19
-  Downloaded version-compare v0.1.0
-  Downloaded lazy_static v1.4.0
-  Downloaded thread_local v1.0.1
-  Downloaded cfg-if v1.0.0
-  Downloaded fontconfig v0.2.0
-  Downloaded aho-corasick v0.7.15
-  Downloaded env_logger v0.7.1
-  Downloaded quick-error v1.2.3
-  Downloaded pretty_env_logger v0.4.0
-  Downloaded termcolor v1.1.1
-  Downloaded humantime v1.3.0
-  Downloaded bitflags v1.2.1
-  Downloaded memchr v2.3.4
-  Downloaded heck v0.3.1
-  Downloaded unicode-segmentation v1.7.1
-  Downloaded sdl2 v0.35.2
-  Downloaded regex v1.4.2
-  Downloaded regex-syntax v0.6.21
-  Downloaded sdl2-sys v0.35.2
-   Compiling libc v0.2.119
-   Compiling log v0.4.11
-   Compiling getrandom v0.1.15
-   Compiling rand_core v0.5.1
-   Compiling rand_chacha v0.2.2
-   Compiling rand_pcg v0.2.1
-   Compiling rand v0.7.3
-   Compiling block-stacker v0.1.0 (/content/blockfish/block-stacker)
    Compiling blockfish v0.1.0 (/content/blockfish/blockfish-engine)
 warning: unused imports: `Input` and `place::PlaceFinder`
  --> blockfish-engine/src/ai/fast.rs:2:5
@@ -306,28 +216,28 @@ help: use `'_` for type paths
    |                                                         ++++
 
 warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
-    Finished `release` profile [optimized] target(s) in 10.33s
+    Finished `release` profile [optimized] target(s) in 8.39s
 
---- Running FIXED es_v3_combo (bc4 base, TRUE ens50 bc4+esv3, esv3+bc4cov115) ---
-  [seed 103] pcs=176 nds=59 0ds=76 (cov=25 O=19 nar= 7 wide=19 end= 6) cov_nxt=12.0% | 582.8s
-  [seed 102] pcs=184 nds=62 0ds=84 (cov=24 O=20 nar= 7 wide=30 end= 3) cov_nxt=15.0% | 612.1s
-  [seed 101] pcs=180 nds=61 0ds=80 (cov=25 O=19 nar= 9 wide=24 end= 3) cov_nxt=17.0% | 638.2s
-  [seed 105] pcs=193 nds=66 0ds=93 (cov=27 O=21 nar= 9 wide=34 end= 2) cov_nxt=13.0% | 678.6s
-  [seed 104] pcs=188 nds=64 0ds=88 (cov=24 O=21 nar=11 wide=28 end= 4) cov_nxt=18.0% | 707.5s
-fullmlp_base_bc4           n= 5 mean=184.20 min=176 max=193 <=166: 0 top= 0 | nds=62.40 0ds=84.20 (cov=25.0 O=20.0 nar=8.6 wide=27.0 g0=0.0 end=3.6) cov_nxt=15.0% avg_c=12.4 | 707.5s
+--- Running true_ens_showdown (5 seeds 101..=105) ---
+  [seed 103] pcs=176 nds=59 0ds=76 (cov=25 O=19 nar= 7 wide=19 end= 6) cov_nxt=12.0% | 604.1s
+  [seed 104] pcs=188 nds=64 0ds=88 (cov=24 O=21 nar=11 wide=28 end= 4) cov_nxt=18.0% | 605.7s
+  [seed 102] pcs=184 nds=62 0ds=84 (cov=24 O=20 nar= 7 wide=30 end= 3) cov_nxt=15.0% | 611.6s
+  [seed 105] pcs=193 nds=66 0ds=93 (cov=27 O=21 nar= 9 wide=34 end= 2) cov_nxt=13.0% | 693.8s
+  [seed 101] pcs=180 nds=61 0ds=80 (cov=25 O=19 nar= 9 wide=24 end= 3) cov_nxt=17.0% | 703.1s
+fullmlp_base_bc4           n= 5 mean=184.20 min=176 max=193 <=166: 0 top= 0 | nds=62.40 0ds=84.20 (cov=25.0 O=20.0 nar=8.6 wide=27.0 g0=0.0 end=3.6) cov_nxt=15.0% avg_c=12.4 | 703.1s
   seeds: [101:180, 102:184, 103:176, 104:188, 105:193]
-  [seed 104] pcs=188 nds=64 0ds=88 (cov=46 O=14 nar= 6 wide=18 end= 4) cov_nxt=20.0% | 963.8s
-  [seed 102] pcs=184 nds=62 0ds=84 (cov=24 O=20 nar= 7 wide=30 end= 3) cov_nxt=15.0% | 1001.6s
-  [seed 103] pcs=185 nds=63 0ds=85 (cov=36 O=14 nar= 7 wide=26 end= 2) cov_nxt=20.0% | 1070.9s
-  [seed 101] pcs=184 nds=63 0ds=84 (cov=30 O=17 nar= 8 wide=24 end= 5) cov_nxt=16.0% | 1099.5s
-  [seed 105] pcs=191 nds=65 0ds=91 (cov=24 O=23 nar= 7 wide=33 end= 4) cov_nxt=12.0% | 1149.4s
-fullmlp_ens50_bc4_esv3     n= 5 mean=186.40 min=184 max=191 <=166: 0 top= 0 | nds=63.40 0ds=86.40 (cov=32.0 O=17.6 nar=7.0 wide=26.2 g0=0.0 end=3.6) cov_nxt=16.6% avg_c=12.4 | 1149.4s
-  seeds: [101:184, 102:184, 103:185, 104:188, 105:191]
-  [seed 104] pcs=176 nds=59 0ds=76 (cov=29 O=15 nar= 7 wide=23 end= 2) cov_nxt=13.0% | 542.9s
-  [seed 103] pcs=187 nds=64 0ds=87 (cov=31 O=18 nar= 8 wide=22 end= 8) cov_nxt=23.0% | 629.0s
-  [seed 102] pcs=184 nds=62 0ds=84 (cov=25 O=20 nar=12 wide=25 end= 2) cov_nxt=15.0% | 636.2s
-  [seed 105] pcs=187 nds=63 0ds=87 (cov=32 O=18 nar= 9 wide=24 end= 4) cov_nxt=20.0% | 653.0s
-  [seed 101] pcs=187 nds=64 0ds=87 (cov=33 O=19 nar= 4 wide=26 end= 5) cov_nxt=22.0% | 671.0s
-fullmlp_esv3_bc4cov115     n= 5 mean=184.20 min=176 max=187 <=166: 0 top= 0 | nds=62.40 0ds=84.20 (cov=30.0 O=18.0 nar=8.0 wide=24.0 g0=0.0 end=4.2) cov_nxt=18.6% avg_c=12.2 | 671.0s
-  seeds: [101:187, 102:184, 103:187, 104:176, 105:187]
-=== Colab Run #21-CPU COMPLETE ===
+  [seed 102] pcs=185 nds=62 0ds=85 (cov=24 O=20 nar= 7 wide=28 end= 6) cov_nxt=15.0% | 1037.0s
+  [seed 105] pcs=183 nds=62 0ds=83 (cov=25 O=20 nar=11 wide=23 end= 4) cov_nxt=14.0% | 1102.3s
+  [seed 104] pcs=188 nds=65 0ds=88 (cov=23 O=20 nar=11 wide=29 end= 5) cov_nxt=19.0% | 1135.2s
+  [seed 101] pcs=181 nds=61 0ds=81 (cov=30 O=20 nar=10 wide=18 end= 3) cov_nxt=17.0% | 1183.2s
+  [seed 103] pcs=192 nds=66 0ds=92 (cov=29 O=17 nar=13 wide=26 end= 7) cov_nxt=20.0% | 1213.2s
+fullmlp_TRUE_ens50_bc4_bc6 n= 5 mean=185.80 min=181 max=192 <=166: 0 top= 0 | nds=63.20 0ds=85.80 (cov=26.2 O=19.4 nar=10.4 wide=24.8 g0=0.0 end=5.0) cov_nxt=17.0% avg_c=12.3 | 1213.2s
+  seeds: [101:181, 102:185, 103:192, 104:188, 105:183]
+  [seed 102] pcs=187 nds=63 0ds=87 (cov=25 O=20 nar= 9 wide=30 end= 3) cov_nxt=13.0% | 1014.2s
+  [seed 104] pcs=182 nds=61 0ds=82 (cov=18 O=19 nar=12 wide=29 end= 4) cov_nxt=17.0% | 1022.3s
+  [seed 103] pcs=186 nds=63 0ds=86 (cov=27 O=19 nar= 9 wide=29 end= 2) cov_nxt=16.0% | 1126.9s
+  [seed 105] pcs=187 nds=64 0ds=87 (cov=21 O=23 nar= 9 wide=29 end= 5) cov_nxt=10.0% | 1144.3s
+  [seed 101] pcs=183 nds=62 0ds=83 (cov=32 O=19 nar= 5 wide=24 end= 3) cov_nxt=18.0% | 1144.9s
+fullmlp_TRUE_ens50_bc4_v5q1 n= 5 mean=185.00 min=182 max=187 <=166: 0 top= 0 | nds=62.60 0ds=85.00 (cov=24.6 O=20.0 nar=8.8 wide=28.2 g0=0.0 end=3.4) cov_nxt=14.8% avg_c=12.6 | 1144.9s
+  seeds: [101:183, 102:187, 103:186, 104:182, 105:187]
+=== Colab Run #22-CPU COMPLETE ===
