@@ -267,7 +267,13 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
           - **Colab Run #27-CPU (`train_sibling_q.rs` FIXED, 6 PI rounds × 160 states = 960 exact states, `K=8, W=8, dG=14, roll_beam=12` → `model-spatial-sibq-v2`, 8-core CPU)**:
             - Physics & world-alignment unit tests passed (`2/2`); `VAL=60` no longer collapsed (`top=0..1` across all 6 rounds, `top1=46–48%`, `ce=1.70–1.77`).
             - However, `VAL` drifted worse (`Round 0 BASE = 214.45 [193..254]` → `R1: 215.92` → `R2: 221.08` → `R3: 227.49 (top=1)` → `R4: 227.02` → `R5: 221.12` → `R6: 222.90 (top=1)`); `NEW BEST` guard cleanly skipped redundant `fullmlp_w16` A/B.
-            - **Root-cause diagnosis**: (1) `w_adv=0.6` on noisy `dG=14` (~28-move) rollout spread drove `adv` up (`1.81 -> 2.55`), inflating 1-ply weights; (2) 1-ply afterstate training mismatches 5-ply beam leaf usage; (3) `roll_beam=12` (`~215`-piece policy) is ~31 pieces weaker than `fullmlp_w16 (184.20)`. Pivoting to test **DS-Bucketed A\* FULL-MLP PIMC** (`ds_fullmlp`, Run #28-CPU) — changing the search paradigm itself (`g(n)+h(n)` to identical `target_ds` buckets, canceling `rem_g` horizon bias).
+            - **Root-cause diagnosis**: (1) `w_adv=0.6` on noisy `dG=14` (~28-move) rollout spread drove `adv` up (`1.81 -> 2.55`), inflating 1-ply weights; (2) 1-ply afterstate training mismatches 5-ply beam leaf usage; (3) `roll_beam=12` (`~215`-piece policy) is ~31 pieces weaker than `fullmlp_w16 (184.20)`.
+          - **Colab Run #28-CPU (`bench_legal ds_fullmlp`, DS-Bucketed Heuristic Beam Search + FULL-MLP PIMC, 5 seeds `101..=105`, 8-core CPU — FAST ELIMINATED)**:
+            - `fullmlp_base_h8_w16_b28`: **`184.20 [176..193]`** (`cov=25.0, cov_nxt=15.0%, 662.1s`).
+            - `fullmlp_ds4_w16_b20_c25`: `189.40 [183..196]` (`+5.20` pcs, `cov=33.2, 900.0s`).
+            - `fullmlp_ds5_w16_b16_c25`: `187.40 [179..195]` (`+3.20` pcs, `cov=29.2, 984.1s`).
+            - Fast-eliminated without tuning; pivoting to **Strong-Teacher `fullmlp_w16` (`184.20` pcs) Legal `p=5` Same-State Sibling Q-Advantage Expert Iteration (`train_exit_w16.rs`, Run #29-CPU)** unlocking all `1,591` V6 2D `3×3` patterns with ZERO clairvoyance and ZERO absolute scalar regression.
+
 
 
 
