@@ -1,17 +1,17 @@
-RUNNING commit=472698e9 heartbeat=2026-11-27T06:21:39Z cores=8
+RUNNING commit=472698e9 heartbeat=2026-11-27T06:23:41Z cores=8
 --- tail /tmp/colab_run.log ---
-[Iter  3/20] tr_ok=222/256 tr_mean=283.71 top=34 steps=73349 kl=0.0649 (28.3s+4.5s)
-[Iter  4/20] tr_ok=237/256 tr_mean=282.34 top=19 steps=72409 kl=0.1210 (27.7s+4.2s) | VAL=60/60 top=0 mean=269.03 [226..309] *** NEW BEST ***
-[Iter  5/20] tr_ok=249/256 tr_mean=279.16 top=7 steps=71128 kl=0.0544 (27.4s+4.2s)
-[Iter  6/20] tr_ok=243/256 tr_mean=278.88 top=13 steps=71324 kl=0.0306 (27.4s+4.3s) | VAL=57/60 top=3 mean=271.42 [232..311] 
-[Iter  7/20] tr_ok=243/256 tr_mean=279.90 top=13 steps=71581 kl=0.0456 (27.7s+4.4s)
-[Iter  8/20] tr_ok=247/256 tr_mean=280.00 top=9 steps=71411 kl=0.1023 (27.1s+4.1s) | VAL=60/60 top=0 mean=274.98 [233..316] 
-[Iter  9/20] tr_ok=246/256 tr_mean=281.75 top=10 steps=71917 kl=0.0536 (27.3s+4.2s)
-[Iter 10/20] tr_ok=236/256 tr_mean=282.83 top=20 steps=72583 kl=0.0336 (27.7s+4.3s) | VAL=60/60 top=0 mean=272.62 [237..306] 
-[Iter 11/20] tr_ok=247/256 tr_mean=281.39 top=9 steps=71779 kl=0.0259 (27.3s+4.3s)
-[Iter 12/20] tr_ok=246/256 tr_mean=280.88 top=10 steps=71677 kl=0.0237 (27.4s+4.3s) | VAL=60/60 top=0 mean=267.42 [234..312] *** NEW BEST ***
-[Iter 13/20] tr_ok=243/256 tr_mean=280.64 top=13 steps=71751 kl=0.0249 (27.7s+4.3s)
-[Iter 14/20] tr_ok=238/256 tr_mean=280.75 top=18 steps=71991 kl=0.0222 (27.8s+4.3s) | VAL=59/60 top=1 mean=272.93 [231..314] 
-[Iter 15/20] tr_ok=247/256 tr_mean=280.79 top=9 steps=71595 kl=0.0226 (27.4s+4.3s)
-[Iter 16/20] tr_ok=245/256 tr_mean=280.64 top=11 steps=71627 kl=0.0231 (27.4s+4.3s) | VAL=60/60 top=0 mean=267.78 [237..315] 
 [Iter 17/20] tr_ok=247/256 tr_mean=277.62 top=9 steps=70844 kl=0.0221 (27.5s+4.2s)
+[Iter 18/20] tr_ok=252/256 tr_mean=279.99 top=4 steps=71163 kl=0.0208 (27.2s+4.2s) | VAL=60/60 top=0 mean=268.67 [231..297] 
+[Iter 19/20] tr_ok=249/256 tr_mean=280.22 top=7 steps=71409 kl=0.0205 (27.3s+4.3s)
+[Iter 20/20] tr_ok=246/256 tr_mean=279.24 top=10 steps=71265 kl=0.0203 (27.5s+4.2s) | VAL=60/60 top=0 mean=269.88 [240..310] 
+=== DONE CRN-GRPO: base_val=269.73 (top=1) -> best_val=267.42 (top=0) | saved /tmp/spatial_grpo_v1.txt ===
+
+--- [2/3] Uploading spatial_grpo_v1 checkpoints to Release model-spatial-grpo-v1 ---
+Uploading spatial_grpo_v1.txt (1.08 MB) to release tag 'model-spatial-grpo-v1'...
+Created release id=460236025 (https://github.com/jush0147/blockfish/releases/tag/model-spatial-grpo-v1)
+UPLOAD SUCCESS: https://github.com/jush0147/blockfish/releases/download/model-spatial-grpo-v1/spatial_grpo_v1.txt (1133684 bytes)
+Uploading spatial_grpo_v1_last.txt (1.08 MB) to release tag 'model-spatial-grpo-v1'...
+Found existing release id=460236025 (https://github.com/jush0147/blockfish/releases/tag/model-spatial-grpo-v1)
+UPLOAD SUCCESS: https://github.com/jush0147/blockfish/releases/download/model-spatial-grpo-v1/spatial_grpo_v1_last.txt (1133706 bytes)
+
+--- [3/3] STRICT SAME-BINARY fullmlp_w16 A/B (5 seeds 101..=105): bc4 vs grpo_v1 ---
