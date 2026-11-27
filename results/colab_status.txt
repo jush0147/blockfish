@@ -1,8 +1,5 @@
-RUNNING commit=472698e9 heartbeat=2026-11-27T06:15:34Z cores=8
+RUNNING commit=472698e9 heartbeat=2026-11-27T06:17:35Z cores=8
 --- tail /tmp/colab_run.log ---
-    Finished `release` profile [optimized] target(s) in 8.08s
-
---- [1/3] Training SpatialValueModel with 5,120 Legal p=5 CRN-GRPO games ---
 ================================================================
  Pure Rust Legal p=5 CRN-GRPO (Group Relative Policy Optimization)
  init=models/spatial_bc4.txt out=/tmp/spatial_grpo_v1.txt iters=20 seeds/iter=32 G=8 (256 games/iter) val=60
@@ -15,3 +12,6 @@ RUNNING commit=472698e9 heartbeat=2026-11-27T06:15:34Z cores=8
 [Iter  4/20] tr_ok=237/256 tr_mean=282.34 top=19 steps=72409 kl=0.1210 (27.7s+4.2s) | VAL=60/60 top=0 mean=269.03 [226..309] *** NEW BEST ***
 [Iter  5/20] tr_ok=249/256 tr_mean=279.16 top=7 steps=71128 kl=0.0544 (27.4s+4.2s)
 [Iter  6/20] tr_ok=243/256 tr_mean=278.88 top=13 steps=71324 kl=0.0306 (27.4s+4.3s) | VAL=57/60 top=3 mean=271.42 [232..311] 
+[Iter  7/20] tr_ok=243/256 tr_mean=279.90 top=13 steps=71581 kl=0.0456 (27.7s+4.4s)
+[Iter  8/20] tr_ok=247/256 tr_mean=280.00 top=9 steps=71411 kl=0.1023 (27.1s+4.1s) | VAL=60/60 top=0 mean=274.98 [233..316] 
+[Iter  9/20] tr_ok=246/256 tr_mean=281.75 top=10 steps=71917 kl=0.0536 (27.3s+4.2s)
