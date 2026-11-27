@@ -1,11 +1,12 @@
 ================================================================
- Colab Run #28-CPU: DS-Bucketed A* FULL-MLP PIMC (Search Paradigm Shift)
-                    Exact g(n)+h(n) to identical target_ds buckets (ds=4, ds=5)
-                    Cancels rem_g horizon bias vs fixed-depth h=8 fullmlp_w16
-                    Strict Same-Binary 5-Seed A/B (101..=105)
+ Colab Run #29-CPU: Strong-Teacher Legal p=5 Expert Iteration (fullmlp_w16)
+                    16 fullmlp_w16 games (~2,900 exact sibling Q-dists)
+                    Unlocking all 1,591 V6 2D 3x3 patterns (ZERO clairvoyance)
+                    Pure Relative Q-Adv + Listwise CE (ZERO scalar regression)
+                    + Strict Same-Binary fullmlp_w16 A/B (only if NEW BEST)
  Cores: 8 | RAM: 50Gi
 ================================================================
---- Building bench_legal (release) ---
+--- [0/3] Running train_exit_w16 unit test ---
 warning: unused build dependency `fontconfig`
   --> blockfish-client/Cargo.toml:29:1
    |
@@ -103,28 +104,144 @@ help: use `'_` for type paths
    |                                                         ++++
 
 warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
-    Finished `release` profile [optimized] target(s) in 7.55s
+    Finished `release` profile [optimized] target(s) in 6.40s
+     Running unittests examples/train_exit_w16.rs (target/release/build/blockfish/f6967dfbdd1d02e7/out/train_exit_w16-f6967dfbdd1d02e7)
 
---- Running strict same-binary ds_fullmlp A/B (5 seeds 101..=105) ---
-  [seed 103] pcs=176 nds=59 0ds=76 (cov=25 O=19 nar= 7 wide=19 end= 6) cov_nxt=12.0% | 601.6s
-  [seed 104] pcs=188 nds=64 0ds=88 (cov=24 O=21 nar=11 wide=28 end= 4) cov_nxt=18.0% | 618.7s
-  [seed 102] pcs=184 nds=62 0ds=84 (cov=24 O=20 nar= 7 wide=30 end= 3) cov_nxt=15.0% | 636.4s
-  [seed 101] pcs=180 nds=61 0ds=80 (cov=25 O=19 nar= 9 wide=24 end= 3) cov_nxt=17.0% | 656.6s
-  [seed 105] pcs=193 nds=66 0ds=93 (cov=27 O=21 nar= 9 wide=34 end= 2) cov_nxt=13.0% | 662.1s
-fullmlp_base_h8_w16_b28    n= 5 mean=184.20 min=176 max=193 <=166: 0 top= 0 | nds=62.40 0ds=84.20 (cov=25.0 O=20.0 nar=8.6 wide=27.0 g0=0.0 end=3.6) cov_nxt=15.0% avg_c=12.4 | 662.1s
-  seeds: [101:180, 102:184, 103:176, 104:188, 105:193]
-  [seed 105] pcs=187 nds=63 0ds=87 (cov=34 O=13 nar= 7 wide=29 end= 4) cov_nxt=16.0% | 769.9s
-  [seed 103] pcs=190 nds=65 0ds=90 (cov=32 O=15 nar=10 wide=30 end= 3) cov_nxt=17.0% | 809.7s
-  [seed 101] pcs=183 nds=62 0ds=83 (cov=28 O=16 nar= 8 wide=27 end= 4) cov_nxt=17.0% | 858.1s
-  [seed 102] pcs=196 nds=67 0ds=96 (cov=37 O=17 nar= 3 wide=33 end= 6) cov_nxt=19.0% | 876.4s
-  [seed 104] pcs=191 nds=65 0ds=91 (cov=35 O=17 nar= 6 wide=28 end= 5) cov_nxt=16.0% | 900.0s
-fullmlp_ds4_w16_b20_c25    n= 5 mean=189.40 min=183 max=196 <=166: 0 top= 0 | nds=64.40 0ds=89.40 (cov=33.2 O=15.6 nar=6.8 wide=29.4 g0=0.0 end=4.4) cov_nxt=17.0% avg_c=12.2 | 900.0s
-  seeds: [101:183, 102:196, 103:190, 104:191, 105:187]
-  [seed 104] pcs=188 nds=64 0ds=88 (cov=34 O=15 nar= 7 wide=27 end= 5) cov_nxt=20.0% | 955.4s
-  [seed 105] pcs=190 nds=65 0ds=90 (cov=32 O=20 nar= 9 wide=29 end= 0) cov_nxt=17.0% | 959.8s
-  [seed 101] pcs=195 nds=67 0ds=95 (cov=22 O=20 nar=14 wide=34 end= 5) cov_nxt=15.0% | 978.2s
-  [seed 102] pcs=179 nds=60 0ds=79 (cov=27 O=15 nar= 6 wide=27 end= 4) cov_nxt=15.0% | 982.7s
-  [seed 103] pcs=185 nds=63 0ds=85 (cov=31 O=17 nar= 9 wide=22 end= 6) cov_nxt=17.0% | 984.1s
-fullmlp_ds5_w16_b16_c25    n= 5 mean=187.40 min=179 max=195 <=166: 0 top= 0 | nds=63.80 0ds=87.40 (cov=29.2 O=17.4 nar=9.0 wide=27.8 g0=0.0 end=4.0) cov_nxt=16.8% avg_c=12.5 | 984.1s
-  seeds: [101:195, 102:179, 103:185, 104:188, 105:190]
-=== Colab Run #28-CPU COMPLETE ===
+running 1 test
+test tests::test_teacher_collection_world_alignment_and_loss has been running for over 60 seconds
+test tests::test_teacher_collection_world_alignment_and_loss ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 62.59s
+
+--- Building train_exit_w16 and bench_legal (release) ---
+warning: unused build dependency `fontconfig`
+  --> blockfish-client/Cargo.toml:29:1
+   |
+29 | fontconfig = "0.2"
+   | ^^^^^^^^^^^^^^^^^^
+   |
+   = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `fontconfig`
+warning: `blockfish-client` (manifest) generated 1 warning
+warning: unused imports: `Input` and `place::PlaceFinder`
+ --> blockfish-engine/src/ai/fast.rs:2:5
+  |
+2 |     place::PlaceFinder,
+  |     ^^^^^^^^^^^^^^^^^^
+3 |     shape::{ShapeRef, ShapeTable},
+4 |     BasicMatrix, Color, Input, Orientation,
+  |                         ^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: use of deprecated constant `std::u16::MAX`: replaced by the `MAX` associated constant on this type
+  --> blockfish-engine/src/matrix.rs:41:15
+   |
+41 |     std::u16::MAX.overflowing_shl(cols.into()).0
+   |               ^^^
+   |
+   = note: `#[warn(deprecated)]` on by default
+
+warning: use of deprecated constant `std::u16::MAX`: replaced by the `MAX` associated constant on this type
+  --> blockfish-engine/src/matrix.rs:46:15
+   |
+46 |     std::u16::MAX
+   |               ^^^
+
+warning: use of deprecated constant `std::usize::MAX`: replaced by the `MAX` associated constant on this type
+  --> blockfish-engine/src/place.rs:27:30
+   |
+27 |             idx: std::usize::MAX,
+   |                              ^^^
+
+warning: use of deprecated constant `std::i64::MAX`: replaced by the `MAX` associated constant on this type
+   --> blockfish-engine/src/ai/analysis.rs:169:36
+    |
+169 |     let mut global_min = std::i64::MAX;
+    |                                    ^^^
+
+warning: use of deprecated constant `std::i64::MAX`: replaced by the `MAX` associated constant on this type
+   --> blockfish-engine/src/ai/b_star.rs:195:67
+    |
+195 |             .min_by_key(|&i| self.lvls[i].peek().map_or(std::i64::MAX, |n| n.f))
+    |                                                                   ^^^
+
+warning: use of deprecated constant `std::i64::MAX`: replaced by the `MAX` associated constant on this type
+   --> blockfish-engine/src/ai/b_star.rs:206:75
+    |
+206 |                 let best = self.move_best.entry(m_id).or_insert(std::i64::MAX);
+    |                                                                           ^^^
+
+warning: use of deprecated constant `std::usize::MAX`: replaced by the `MAX` associated constant on this type
+   --> blockfish-engine/src/ai/eval.rs:118:32
+    |
+118 |     let mut idx0 = std::usize::MAX;
+    |                                ^^^
+
+warning: use of deprecated constant `std::usize::MAX`: replaced by the `MAX` associated constant on this type
+   --> blockfish-engine/src/ai/eval.rs:121:31
+    |
+121 |         if idx0 < std::usize::MAX {
+    |                               ^^^
+
+warning: variable does not need to be mutable
+   --> blockfish-engine/src/ai/fast.rs:338:13
+    |
+338 |         let mut shapes_opt: [Option<FastShape>; 7] = [None, None, None, None, None, None, None];
+    |             ----^^^^^^^^^^
+    |             |
+    |             help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+warning: hiding a lifetime that's elided elsewhere is confusing
+  --> blockfish-engine/src/shape.rs:16:18
+   |
+16 |     pub fn shape(&self, color: Color) -> Option<ShapeRef> {
+   |                  ^^^^^                          ^^^^^^^^ the same lifetime is hidden here
+   |                  |
+   |                  the lifetime is elided here
+   |
+   = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+   = note: `#[warn(mismatched_lifetime_syntaxes)]` on by default
+help: use `'_` for type paths
+   |
+16 |     pub fn shape(&self, color: Color) -> Option<ShapeRef<'_>> {
+   |                                                         ++++
+
+warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
+   Compiling blockfish v0.1.0 (/content/blockfish/blockfish-engine)
+    Finished `release` profile [optimized] target(s) in 2.57s
+
+--- [1/3] Collecting 16 fullmlp_w16 Legal p=5 games & training V6-1591 model ---
+================================================================
+ Pure Rust Strong-Teacher Legal p=5 Expert Iteration (fullmlp_w16)
+ init=models/spatial_bc4.txt out=/tmp/spatial_exit_w16_v1.txt games=16 teacher=w16_b28 spawn_W=4 sparse_lim=1591
+ epochs=12 bs=32 tau=0.25/0.25 w_ce=1.00 w_adv=0.25 lr=3.0e-4/1.5e-4 wd=2.0e-4 threads=8
+================================================================
+[DATA] teacher_games=16/16 top=0 mean=185.50 | train_states=2564 holdout_states=178 (1812.2s)
+[Epoch  0 BASE] ho_ce=1.8725 ho_adv=0.5616 ho_top1=62.9% | VAL=60/60 top=0 mean=208.80 [193..226] (8.9s)
+[Epoch  1/12] tr_ce=1.6880 tr_top1=67.1% | ho_ce=1.6348 ho_adv=0.4915 ho_top1=59.0% (0.3s)
+[Epoch  2/12] tr_ce=1.4863 tr_top1=65.2% | ho_ce=1.5790 ho_adv=0.4832 ho_top1=55.6% (10.2s) | VAL=60/60 top=0 mean=232.78 [190..291] 
+[Epoch  3/12] tr_ce=1.4085 tr_top1=65.4% | ho_ce=1.5500 ho_adv=0.4818 ho_top1=55.6% (0.3s)
+[Epoch  4/12] tr_ce=1.3587 tr_top1=65.5% | ho_ce=1.5254 ho_adv=0.4800 ho_top1=54.5% (10.2s) | VAL=60/60 top=0 mean=230.70 [202..272] 
+[Epoch  5/12] tr_ce=1.3205 tr_top1=65.9% | ho_ce=1.5043 ho_adv=0.4785 ho_top1=55.6% (0.3s)
+[Epoch  6/12] tr_ce=1.2875 tr_top1=66.4% | ho_ce=1.5115 ho_adv=0.4816 ho_top1=56.2% (10.2s) | VAL=60/60 top=0 mean=235.73 [206..296] 
+[Epoch  7/12] tr_ce=1.2607 tr_top1=66.8% | ho_ce=1.4936 ho_adv=0.4791 ho_top1=56.2% (0.3s)
+[Epoch  8/12] tr_ce=1.2354 tr_top1=67.3% | ho_ce=1.4914 ho_adv=0.4795 ho_top1=56.2% (9.6s) | VAL=60/60 top=0 mean=227.10 [201..258] 
+[Epoch  9/12] tr_ce=1.2113 tr_top1=67.9% | ho_ce=1.4917 ho_adv=0.4803 ho_top1=55.1% (0.3s)
+[Epoch 10/12] tr_ce=1.1909 tr_top1=68.2% | ho_ce=1.4856 ho_adv=0.4800 ho_top1=53.9% (9.8s) | VAL=60/60 top=0 mean=225.55 [200..263] 
+[Epoch 11/12] tr_ce=1.1724 tr_top1=68.9% | ho_ce=1.4760 ho_adv=0.4789 ho_top1=53.9% (0.3s)
+[Epoch 12/12] tr_ce=1.1545 tr_top1=69.1% | ho_ce=1.4830 ho_adv=0.4779 ho_top1=53.9% (9.8s) | VAL=60/60 top=0 mean=224.23 [194..263] 
+=== DONE EXIT-W16: base_val=208.80 (top=0) -> best_val=208.80 (top=0) | saved /tmp/spatial_exit_w16_v1.txt ===
+
+--- [2/3] Uploading spatial_exit_w16_v1 checkpoints to Release model-spatial-exit-w16-v1 ---
+Uploading spatial_exit_w16_v1.txt (1.08 MB) to release tag 'model-spatial-exit-w16-v1'...
+Created release id=460771642 (https://github.com/jush0147/blockfish/releases/tag/model-spatial-exit-w16-v1)
+UPLOAD SUCCESS: https://github.com/jush0147/blockfish/releases/download/model-spatial-exit-w16-v1/spatial_exit_w16_v1.txt (1133787 bytes)
+Uploading spatial_exit_w16_v1_last.txt (1.09 MB) to release tag 'model-spatial-exit-w16-v1'...
+Found existing release id=460771642 (https://github.com/jush0147/blockfish/releases/tag/model-spatial-exit-w16-v1)
+UPLOAD SUCCESS: https://github.com/jush0147/blockfish/releases/download/model-spatial-exit-w16-v1/spatial_exit_w16_v1_last.txt (1147310 bytes)
+
+--- [3/3] SKIPPED fullmlp_w16 A/B: no NEW BEST over base_val ---
+=== Colab Run #29-CPU COMPLETE ===
