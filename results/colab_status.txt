@@ -1,8 +1,5 @@
-RUNNING commit=4c5d1dac heartbeat=2026-11-27T18:22:21Z cores=8
+RUNNING commit=4c5d1dac heartbeat=2026-11-27T18:24:23Z cores=8
 --- tail /tmp/colab_run.log ---
-  [seed 103] pcs=176 nds=59 0ds=76 (cov=25 O=19 nar= 7 wide=19 end= 6) cov_nxt=12.0% | 1018.8s
-  [seed 102] pcs=184 nds=62 0ds=84 (cov=24 O=20 nar= 7 wide=30 end= 3) cov_nxt=15.0% | 1051.0s
-  [seed 104] pcs=188 nds=64 0ds=88 (cov=24 O=21 nar=11 wide=28 end= 4) cov_nxt=18.0% | 1107.7s
   [seed 101] pcs=180 nds=61 0ds=80 (cov=25 O=19 nar= 9 wide=24 end= 3) cov_nxt=17.0% | 1135.7s
   [seed 105] pcs=193 nds=66 0ds=93 (cov=27 O=21 nar= 9 wide=34 end= 2) cov_nxt=13.0% | 1153.7s
 fullmlp_w16_BASE_p0        n= 5 mean=184.20 min=176 max=193 <=166: 0 top= 0 | nds=62.40 0ds=84.20 (cov=25.0 O=20.0 nar=8.6 wide=27.0 g0=0.0 end=3.6) cov_nxt=15.0% avg_c=12.4 | 1153.7s
@@ -15,3 +12,6 @@ fullmlp_w16_BASE_p0        n= 5 mean=184.20 min=176 max=193 <=166: 0 top= 0 | nd
 fullmlp_w16_step1_p08      n= 5 mean=184.60 min=177 max=189 <=166: 0 top= 0 | nds=62.60 0ds=84.60 (cov=28.0 O=18.4 nar=9.8 wide=24.2 g0=0.0 end=4.2) cov_nxt=16.4% avg_c=12.2 | 1162.7s
   seeds: [101:186, 102:182, 103:177, 104:189, 105:189]
   [seed 103] pcs=178 nds=59 0ds=78 (cov=31 O=15 nar= 4 wide=26 end= 2) cov_nxt=17.0% | 1019.6s
+  [seed 101] pcs=187 nds=64 0ds=87 (cov=24 O=19 nar= 7 wide=32 end= 5) cov_nxt=17.0% | 1044.5s
+  [seed 104] pcs=180 nds=60 0ds=80 (cov=33 O=17 nar= 7 wide=19 end= 4) cov_nxt=18.0% | 1055.4s
+  [seed 105] pcs=192 nds=66 0ds=92 (cov=23 O=23 nar=14 wide=28 end= 4) cov_nxt=16.0% | 1137.4s
