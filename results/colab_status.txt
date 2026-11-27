@@ -1,9 +1,5 @@
-RUNNING commit=a100bf64 heartbeat=2026-11-27T06:54:08Z cores=8
+RUNNING commit=a100bf64 heartbeat=2026-11-27T06:56:10Z cores=8
 --- tail /tmp/colab_run.log ---
-   |                                                         ++++
-
-warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockfish` to apply 3 suggestions)
-    Finished `release` profile [optimized] target(s) in 8.16s
 
 --- [1/3] Training V6-1591 SpatialValueModel with 5-Ply Beam CRN-GRPO ---
 ================================================================
@@ -15,3 +11,7 @@ warning: `blockfish` (lib) generated 11 warnings (run `cargo fix --lib -p blockf
 [Iter  1/20] tr_ok=192/192 tr_mean=212.76 top=0 steps=39696 kl=0.0106 (27.0s+1.1s)
 [Iter  2/20] tr_ok=192/192 tr_mean=213.80 top=0 steps=39940 kl=0.0395 (27.0s+1.0s) | VAL=60/60 top=0 mean=210.83 [191..224] 
 [Iter  3/20] tr_ok=192/192 tr_mean=215.47 top=0 steps=40197 kl=0.0262 (27.3s+1.1s)
+[Iter  4/20] tr_ok=192/192 tr_mean=214.98 top=0 steps=40163 kl=0.0197 (27.1s+1.1s) | VAL=60/60 top=0 mean=209.27 [190..230] *** NEW BEST ***
+[Iter  5/20] tr_ok=192/192 tr_mean=213.93 top=0 steps=39960 kl=0.0371 (27.0s+1.1s)
+[Iter  6/20] tr_ok=192/192 tr_mean=213.58 top=0 steps=39844 kl=0.0249 (26.9s+1.1s) | VAL=60/60 top=0 mean=208.75 [186..237] *** NEW BEST ***
+[Iter  7/20] tr_ok=192/192 tr_mean=213.64 top=0 steps=39823 kl=0.0250 (26.8s+1.1s)
