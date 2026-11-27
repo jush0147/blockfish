@@ -1,4 +1,4 @@
-RUNNING commit=4c5d1dac heartbeat=2026-11-27T18:18:18Z cores=8
+RUNNING commit=4c5d1dac heartbeat=2026-11-27T18:20:20Z cores=8
 --- tail /tmp/colab_run.log ---
 --- [2/2] Running strict same-binary fullmlp_w16 step1_prior A/B (5 seeds 101..=105) ---
   [seed 103] pcs=176 nds=59 0ds=76 (cov=25 O=19 nar= 7 wide=19 end= 6) cov_nxt=12.0% | 1018.8s
