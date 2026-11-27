@@ -1,4 +1,4 @@
-RUNNING commit=47e7b3af heartbeat=2026-11-27T08:15:38Z cores=8
+RUNNING commit=47e7b3af heartbeat=2026-11-27T08:17:40Z cores=8
 --- tail /tmp/colab_run.log ---
 [Round  2/5] outer=230.57(28/28) states=140 crn_disagree=86.4% crn_gain=0.497pc | ce=2.4279 adv=0.2739 top1=14.3% (214.2s+0.5s) | VAL=0/60 top=60 mean=999.00 [18446744073709551615..0] 
 [Round  3/5] outer=999.00(0/28) states=60 crn_disagree=91.7% crn_gain=1.393pc | ce=2.3578 adv=0.4838 top1=14.0% (104.2s+0.4s) | VAL=0/60 top=60 mean=999.00 [18446744073709551615..0] 
