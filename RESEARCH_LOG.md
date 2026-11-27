@@ -261,6 +261,10 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
             - Fixed 60-seed 5-ply `beam=16` val (`top=0` all iters): `Iter 0 BASE = 210.60 [196..235]` → `Iter 6 NEW BEST = 208.75 [186..237]` (`-1.85` pcs), then drifted back to `210–211`.
             - Strict same-binary 5-seed `fullmlp_w16` (`101..=105`): `spatial_bc4 = 184.20 [176..193]` (`cov=25.0, nar=8.6, wide=27.0`) vs `spatial_grpo_v2_5ply_v6 = 185.00 [176..194] (+0.80 pcs)` (`cov=29.0, nar=7.0, wide=24.8, avg_c=11.9`).
             - Fast-eliminated trajectory-level GRPO on `beam=16`: diverging trajectories with `rem_g`-matched baselines are NOT true same-state sibling Q-Advantages and fail to break out of the `183–185` ceiling in `fullmlp_w16`. Pivoting to **True Same-State Sibling-Action CRN Q-Advantage Policy Iteration (`train_sibling_q.rs`)**.
+          - **Colab Run #26-CPU (`train_sibling_q.rs`, INVALID — physics & world-alignment bugs caught and fixed)**:
+            - **Bug #1**: `spawn_from_hole_stream` wrote `0x3FF ^ (1 << hc)` without `EMPTY_ROW (0xFC00)` high bits, so `FastBoard::place_and_sift` (`row == FULL_ROW (0xFFFF)`) could NEVER clear newly spawned garbage rows during CRN rollouts (`VAL` collapsed to 60/60 topout in Rounds 2, 3, 5; best remained initial `bc4`).
+            - **Bug #2**: When a world topped out immediately on spawn, `q_crn` included a failure penalty while `world_feats` skipped that world. Fixed both bugs and added physics + world-alignment unit tests before any further Colab runs.
+
 
 
 ---

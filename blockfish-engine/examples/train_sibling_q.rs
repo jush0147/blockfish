@@ -1,7 +1,7 @@
 use block_stacker::{Config as BSConfig, Ruleset, Stacker};
 use blockfish::{
     ai::{
-        fast::{color_to_idx, FastBoard, FastPlace, FastPlaceGen, FastShapeTable},
+        fast::{color_to_idx, FastBoard, FastPlace, FastPlaceGen, FastShapeTable, EMPTY_ROW, FULL_ROW},
         spatial_val::{
             extract_spatial_features_ex, SpatialValueModel, DENSE_DIM, SPARSE_DIM, SPATIAL_H1,
             SPATIAL_H2,
@@ -11,6 +11,7 @@ use blockfish::{
     Input, StackerExt as _,
 };
 use std::collections::HashSet;
+use std::convert::TryFrom;
 use std::io::Write;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
@@ -110,25 +111,27 @@ fn spawn_from_hole_stream(
     holes: &[u16],
     hole_cursor: &mut usize,
 ) -> bool {
-    let target_g = if lines_cleared > 0 { 4usize } else { 9usize }.min(rem_g as usize);
+    let target_g = if lines_cleared > 0 { 4usize } else { 9usize };
     let cur_g = b.garbage_rows as usize;
-    if target_g <= cur_g {
+    let unspawned = (rem_g as usize).saturating_sub(cur_g);
+    let num_new = target_g.saturating_sub(cur_g).min(unspawned);
+    if num_new == 0 {
         return (b.rows as usize) < 20;
     }
-    let num_new = target_g - cur_g;
-    if (b.rows as usize) + num_new >= 20 {
+    let old_rows = b.rows as usize;
+    if old_rows + num_new >= 20 {
         return false;
     }
     // Shift existing rows up by `num_new`
-    let old_rows = b.rows as usize;
     for r in (0..old_rows).rev() {
         b.data[r + num_new] = b.data[r];
     }
     for k in 0..num_new {
         let hc = holes[(*hole_cursor) % holes.len()];
         *hole_cursor += 1;
-        // Row at bottom: `num_new - 1 - k` so earliest spawned row ends up highest among new rows
-        b.data[num_new - 1 - k] = 0x3FF ^ (1u16 << hc);
+        // Row at bottom: `num_new - 1 - k` so earliest spawned row ends up highest among new rows.
+        // MUST include EMPTY_ROW (0xFC00) high bits so place_and_sift matches FULL_ROW (0xFFFF)!
+        b.data[num_new - 1 - k] = EMPTY_ROW | (0x3FF & !(1u16 << hc));
     }
     b.rows = (old_rows + num_new) as u8;
     b.garbage_rows = (cur_g + num_new) as u8;
@@ -896,7 +899,7 @@ fn collect_game_samples(
                 for &fp0 in &chosen_sibs {
                     let mut q_sum = 0.0f32;
                     let mut w_feats: Vec<AfterFeat> = Vec::with_capacity(w_worlds);
-                    let mut valid_worlds = 0usize;
+                    let mut all_alive = true;
 
                     for world in &worlds {
                         let mut b1 = board;
@@ -911,7 +914,6 @@ fn collect_game_samples(
                                 dense: [0.0; DENSE_DIM],
                                 is_win: true,
                             });
-                            valid_worlds += 1;
                             continue;
                         }
 
@@ -924,9 +926,10 @@ fn collect_game_samples(
                             &mut h_cur,
                         );
                         if !alive {
-                            let rem_left = rem1.saturating_sub(goal_rem) as f32;
-                            q_sum += 1.0 + rem_left * 2.5 + 35.0;
-                            continue;
+                            // Immediate playfield overflow on spawn: exclude sibling so q_crn
+                            // and world_feats ALWAYS correspond to the exact same W-world set.
+                            all_alive = false;
+                            break;
                         }
                         let (held1, qc1) = if hold.is_some() {
                             if fp0.did_hold {
@@ -965,7 +968,6 @@ fn collect_game_samples(
                             dense: sc.dense_buf,
                             is_win: false,
                         });
-                        valid_worlds += 1;
 
                         let (ret, _top) = rollout_legal_p5_to_goal(
                             &fst,
@@ -986,7 +988,8 @@ fn collect_game_samples(
                         q_sum += ret;
                     }
 
-                    if valid_worlds > 0 {
+                    if all_alive {
+                        debug_assert_eq!(w_feats.len(), w_worlds);
                         sib_recs.push(SiblingRec {
                             world_feats: w_feats,
                             q_crn: q_sum / (w_worlds as f32),
@@ -1681,13 +1684,42 @@ fn self_check() {
     let h2 = observable_state_hash(&b, Some(1), &[0, 2, 3, 4, 5, 6], 50, 0x7F, 42);
     assert_eq!(h1, h2);
 
-    // 3. Verify spawn_from_hole_stream respects min_height=4, max_height=9 & hole stream
+    // 3. Verify spawn_from_hole_stream matches fast.rs EMPTY_ROW encoding AND actually clears via place_and_sift
     let mut b_sp = FastBoard::empty();
     let mut hc = 0usize;
     let holes = [3u16, 7, 1, 8, 2, 5, 0, 9, 4];
     assert!(spawn_from_hole_stream(&mut b_sp, 50, 0, &holes, &mut hc));
     assert_eq!(b_sp.garbage_rows, 9);
+    assert_eq!(b_sp.rows, 9);
     assert_eq!(hc, 9);
+    for r in 0..9usize {
+        let expected_hole = holes[8 - r];
+        let row = b_sp.data[r];
+        assert_eq!(row & EMPTY_ROW, EMPTY_ROW, "spawned garbage row missing EMPTY_ROW high bits");
+        assert_eq!(row | (1u16 << expected_hole), FULL_ROW, "filling hole must produce FULL_ROW");
+    }
+
+    // Place a vertical I-piece into the topmost garbage row's hole (col = holes[0] = 3)
+    // and verify place_and_sift clears the garbage line (lines == 1, ds == 1, garbage_rows: 9 -> 8).
+    let fst = FastShapeTable::srs();
+    let mut pgen = FastPlaceGen::new();
+    let mut places = Vec::new();
+    let i_idx = color_to_idx(blockfish::Color::try_from('I').unwrap()) as u8;
+    pgen.generate_for_state(&fst, &b_sp, Some(i_idx), None, &mut places);
+    let mut cleared_garbage = false;
+    for fp in places {
+        let mut b2 = b_sp;
+        let orient = &fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
+        let (lines, ds, _) = b2.place_and_sift(orient, fp.norm_i, fp.norm_j);
+        if lines == 1 && ds == 1 && b2.garbage_rows == 8 {
+            cleared_garbage = true;
+            break;
+        }
+    }
+    assert!(
+        cleared_garbage,
+        "vertical I-piece into spawned garbage hole MUST clear 1 garbage line (ds=1)"
+    );
 }
 
 fn main() {
@@ -1962,3 +1994,74 @@ fn main() {
         base_val, base_top, best_val, best_top, out_path
     );
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_spawn_from_hole_stream_clears_garbage_and_caps_unspawned() {
+        self_check();
+
+        // Verify unspawned cap when rem_g < target_g (endgame)
+        let mut b = FastBoard::empty();
+        let mut hc = 0usize;
+        let holes = [2u16, 6, 1, 8, 4];
+        assert!(spawn_from_hole_stream(&mut b, 3, 0, &holes, &mut hc));
+        assert_eq!(b.garbage_rows, 3);
+        assert_eq!(b.rows, 3);
+        assert_eq!(hc, 3);
+
+        // Verify clearing 1 line from g=5 spawns 0 new rows (target_g=4 <= cur_g=4)
+        let mut b5 = FastBoard::empty();
+        let mut hc5 = 0usize;
+        assert!(spawn_from_hole_stream(&mut b5, 5, 0, &holes, &mut hc5));
+        assert_eq!(b5.garbage_rows, 5);
+        // Simulate clearing top garbage row (hole = holes[0] = 2) with vertical I-piece
+        let fst = FastShapeTable::srs();
+        let mut pgen = FastPlaceGen::new();
+        let mut places = Vec::new();
+        let i_idx = color_to_idx(blockfish::Color::try_from('I').unwrap()) as u8;
+        pgen.generate_for_state(&fst, &b5, Some(i_idx), None, &mut places);
+        let cleared_fp = places
+            .into_iter()
+            .find(|fp| {
+                let mut tmp = b5;
+                let o = &fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
+                let (l, ds, _) = tmp.place_and_sift(o, fp.norm_i, fp.norm_j);
+                l == 1 && ds == 1 && tmp.garbage_rows == 4
+            })
+            .expect("must find vertical I placement clearing top spawned garbage row");
+        let o = &fst.shapes[cleared_fp.color_idx as usize].orients[cleared_fp.tf.2 as usize];
+        let (l, ds, _) = b5.place_and_sift(o, cleared_fp.norm_i, cleared_fp.norm_j);
+        assert_eq!((l, ds), (1, 1));
+        assert_eq!(b5.garbage_rows, 4);
+        assert!(spawn_from_hole_stream(&mut b5, 4, l, &holes, &mut hc5));
+        assert_eq!(b5.garbage_rows, 4);
+        assert_eq!(hc5, 5, "no new rows should spawn when g_after == 4 on clear");
+    }
+
+    #[test]
+    fn test_sibling_world_alignment_and_loss() {
+        let mdl = SpatialValueModel::load_from_file("../models/spatial_bc4.txt")
+            .or_else(|_| SpatialValueModel::load_from_file("models/spatial_bc4.txt"))
+            .expect("load spatial_bc4.txt");
+        let (samples, _pcs, _top) =
+            collect_game_samples(101, &mdl, &mdl, 12, 8, 2, 6, 4, 8, 1591);
+        assert!(!samples.is_empty(), "should collect at least 1 state sample");
+        let mut g = GradBuf::new();
+        for s in &samples {
+            for sib in &s.siblings {
+                assert_eq!(
+                    sib.world_feats.len(),
+                    4,
+                    "world_feats must align 1-to-1 with all W CRN worlds"
+                );
+                assert!(sib.q_crn.is_finite());
+            }
+            let (ce, adv, _) = accumulate_state_loss(&mdl, s, 0.6, 0.6, 1.0, 0.6, 2.0, true, &mut g);
+            assert!(ce.is_finite() && adv.is_finite());
+        }
+    }
+}
+
