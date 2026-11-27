@@ -256,7 +256,12 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
           - **Colab Run #24-CPU (`train_grpo.rs`, 5,120 Legal `p=5` 2-Ply CRN-GRPO games → `model-spatial-grpo-v1`, 8-core CPU — FIRST PURE LEGAL RL TO BEAT `bc4` IN `fullmlp_w16`!)**:
             - 2-ply `val=60`: `59/60 (top=1) 269.73` → **`60/60 (top=0) 267.42`**; training `top` dropped `34/256 -> 4/256` (`tr_mean: 284.90 -> 277.62`).
             - Strict same-binary 5-seed `fullmlp_w16` (`101..=105`): `spatial_bc4 = 184.20 [176..193]` vs **`spatial_grpo_v1 = 183.60 [176..194] (-0.60 pcs)`** (`104: 188->181 (-7)`, `105: 193->185 (-8)`, `nds: 62.4->62.2, O: 20.0->19.0, nar: 8.6->8.0, wide: 27.0->26.4, avg_c: 12.4->11.4`).
-            - Fixed `step_pieces` alignment in `train_grpo.rs` and upgrading to **5-Ply Beam CRN-GRPO + Full 1,591 V6 2D `3×3` patterns** (Run #25-CPU).
+            - Fixed `step_pieces` alignment in `train_grpo.rs` and upgraded to **5-Ply Beam CRN-GRPO + Full 1,591 V6 2D `3×3` patterns** (Run #25-CPU).
+          - **Colab Run #25-CPU (`train_grpo.rs`, 5-ply `beam=16` + Full V6 `1,591` sparse, 3,840 games → `model-spatial-grpo-v2`, 8-core CPU — FAST ELIMINATED)**:
+            - Fixed 60-seed 5-ply `beam=16` val (`top=0` all iters): `Iter 0 BASE = 210.60 [196..235]` → `Iter 6 NEW BEST = 208.75 [186..237]` (`-1.85` pcs), then drifted back to `210–211`.
+            - Strict same-binary 5-seed `fullmlp_w16` (`101..=105`): `spatial_bc4 = 184.20 [176..193]` (`cov=25.0, nar=8.6, wide=27.0`) vs `spatial_grpo_v2_5ply_v6 = 185.00 [176..194] (+0.80 pcs)` (`cov=29.0, nar=7.0, wide=24.8, avg_c=11.9`).
+            - Fast-eliminated trajectory-level GRPO on `beam=16`: diverging trajectories with `rem_g`-matched baselines are NOT true same-state sibling Q-Advantages and fail to break out of the `183–185` ceiling in `fullmlp_w16`. Pivoting to **True Same-State Sibling-Action CRN Q-Advantage Policy Iteration (`train_sibling_q.rs`)**.
+
 
 ---
 
