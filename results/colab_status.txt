@@ -1,17 +1,1 @@
-RUNNING commit=47e7b3af heartbeat=2026-11-27T08:35:55Z cores=8
---- tail /tmp/colab_run.log ---
-Created release id=460318960 (https://github.com/jush0147/blockfish/releases/tag/model-spatial-sibq-v1)
-UPLOAD SUCCESS: https://github.com/jush0147/blockfish/releases/download/model-spatial-sibq-v1/spatial_sibq_v1.txt (1133787 bytes)
-Uploading spatial_sibq_v1_last.txt (1.09 MB) to release tag 'model-spatial-sibq-v1'...
-Found existing release id=460318960 (https://github.com/jush0147/blockfish/releases/tag/model-spatial-sibq-v1)
-UPLOAD SUCCESS: https://github.com/jush0147/blockfish/releases/download/model-spatial-sibq-v1/spatial_sibq_v1_last.txt (1143544 bytes)
-
---- [3/3] STRICT SAME-BINARY fullmlp_w16 A/B (5 seeds 101..=105): bc4 vs sibq_v1 ---
-  [seed 102] pcs=184 nds=62 0ds=84 (cov=24 O=20 nar= 7 wide=30 end= 3) cov_nxt=15.0% | 617.1s
-  [seed 103] pcs=176 nds=59 0ds=76 (cov=25 O=19 nar= 7 wide=19 end= 6) cov_nxt=12.0% | 628.1s
-  [seed 101] pcs=180 nds=61 0ds=80 (cov=25 O=19 nar= 9 wide=24 end= 3) cov_nxt=17.0% | 633.1s
-  [seed 104] pcs=188 nds=64 0ds=88 (cov=24 O=21 nar=11 wide=28 end= 4) cov_nxt=18.0% | 636.0s
-  [seed 105] pcs=193 nds=66 0ds=93 (cov=27 O=21 nar= 9 wide=34 end= 2) cov_nxt=13.0% | 712.0s
-fullmlp_w16 [models/spatial_bc4.txt] n= 5 mean=184.20 min=176 max=193 <=166: 0 top= 0 | nds=62.40 0ds=84.20 (cov=25.0 O=20.0 nar=8.6 wide=27.0 g0=0.0 end=3.6) cov_nxt=15.0% avg_c=12.4 | 712.0s
-  seeds: [101:180, 102:184, 103:176, 104:188, 105:193]
-  [seed 103] pcs=176 nds=59 0ds=76 (cov=25 O=19 nar= 7 wide=19 end= 6) cov_nxt=12.0% | 516.1s
+DONE commit=47e7b3af exit=0 finished=2026-11-27T08:37:48Z
