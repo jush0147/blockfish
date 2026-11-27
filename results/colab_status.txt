@@ -1,9 +1,5 @@
-RUNNING commit=472698e9 heartbeat=2026-11-27T06:19:37Z cores=8
+RUNNING commit=472698e9 heartbeat=2026-11-27T06:21:39Z cores=8
 --- tail /tmp/colab_run.log ---
-================================================================
-[Iter  0 BASE] val=59/60 top=1 mean=269.73 [233..315] (6.0s)
-[Iter  1/20] tr_ok=233/256 tr_mean=284.90 top=23 steps=73181 kl=0.0101 (28.3s+4.4s)
-[Iter  2/20] tr_ok=226/256 tr_mean=280.80 top=30 steps=72538 kl=0.0280 (28.1s+4.3s) | VAL=60/60 top=0 mean=278.57 [232..318] *** NEW BEST ***
 [Iter  3/20] tr_ok=222/256 tr_mean=283.71 top=34 steps=73349 kl=0.0649 (28.3s+4.5s)
 [Iter  4/20] tr_ok=237/256 tr_mean=282.34 top=19 steps=72409 kl=0.1210 (27.7s+4.2s) | VAL=60/60 top=0 mean=269.03 [226..309] *** NEW BEST ***
 [Iter  5/20] tr_ok=249/256 tr_mean=279.16 top=7 steps=71128 kl=0.0544 (27.4s+4.2s)
@@ -15,3 +11,7 @@ RUNNING commit=472698e9 heartbeat=2026-11-27T06:19:37Z cores=8
 [Iter 11/20] tr_ok=247/256 tr_mean=281.39 top=9 steps=71779 kl=0.0259 (27.3s+4.3s)
 [Iter 12/20] tr_ok=246/256 tr_mean=280.88 top=10 steps=71677 kl=0.0237 (27.4s+4.3s) | VAL=60/60 top=0 mean=267.42 [234..312] *** NEW BEST ***
 [Iter 13/20] tr_ok=243/256 tr_mean=280.64 top=13 steps=71751 kl=0.0249 (27.7s+4.3s)
+[Iter 14/20] tr_ok=238/256 tr_mean=280.75 top=18 steps=71991 kl=0.0222 (27.8s+4.3s) | VAL=59/60 top=1 mean=272.93 [231..314] 
+[Iter 15/20] tr_ok=247/256 tr_mean=280.79 top=9 steps=71595 kl=0.0226 (27.4s+4.3s)
+[Iter 16/20] tr_ok=245/256 tr_mean=280.64 top=11 steps=71627 kl=0.0231 (27.4s+4.3s) | VAL=60/60 top=0 mean=267.78 [237..315] 
+[Iter 17/20] tr_ok=247/256 tr_mean=277.62 top=9 steps=70844 kl=0.0221 (27.5s+4.2s)
