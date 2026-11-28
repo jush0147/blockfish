@@ -384,6 +384,25 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
                 - **`TruncTailApprox_LeafCPW_s3000_eqW`** (matched wall-time `157.5s` vs `160.9s`): **`190.35 [177..200]`** (`avg_d=7.11, ps_d=0.60, cov=17.7%, tr=218.9`, **`+0.10±1.59, 95%CI=[-3.01,+3.21], W/T/L=10/0/10`** — `-2.20` pc gain completely vanished!)
                 - `FullP5Disclosure_LeafCPW_s2400` (`split_tail=true, cpw=(1.0,0.5), cpw_tail=(0.35,0.20)`): `243.55 [217..261]` (`wall=46.8s, avg_d=1.98, ps_d=0.16, cov=27.4%` — unexpanded `next[4]` leaf termination collapses depth at `d=1`).
                 - **Conclusion**: Honestly eliminated CPW (`cpw_alpha=0.0` default). The prior `-2.20` pc gain came purely from probability-distorting forced redirection to expanded children. Kept unbiased `TruncTailApprox_noCPW` (`FixedDAG + ParentProp`, `190.25` at `s=2400`, `189.05` at `s=2650`) as clean baseline.
+            - **SO-ISMCTS v2.4: Clean `CPW=OFF` Scaling Baselines (`B1_BellMin` vs `B4_VisitW`), Root Stability, Candidate Recall & Same-Path Stratified TD Residual (`bench_ismcts.rs`, `30001..=30010`, `test20` SEALED)**:
+              - **1. Unconfounded `CPW=OFF` Budget Scaling (`FixedDAG + ParentProp`, `TruncTailApprox`, `max_depth=16`, `n=10`, all `top=0.0%`)**:
+                - `B1_BellMin` (`backup_mode=1`):
+                  - `s=1200`: `190.80 [174..204]` (`wall=41.6s, 866 g/hr, avg_d=6.53, ps_d=0.60, cov=16.8%, tr=123.3`)
+                  - `s=2400`: `189.70 [186..194]` (`wall=76.4s, 471 g/hr, avg_d=7.05, ps_d=0.83, cov=18.0%, tr=261.3`, `-1.10±2.78`)
+                  - `s=4800`: **`187.70 [179..195]`** (`wall=150.6s, 239 g/hr, avg_d=7.66, ps_d=1.01, cov=19.8%, tr=593.1`, **`-3.10±3.43, W/T/L=6/1/3`** — monotonic scaling once biased CPW removed!).
+                - `B4_VisitW` (`backup_mode=4`):
+                  - `s=1200`: `192.70 [176..199]` (`wall=43.7s, 824 g/hr, avg_d=6.28, ps_d=0.56, cov=20.1%, tr=127.4`)
+                  - `s=2400`: `189.60 [179..197]` (`wall=78.5s, 459 g/hr, avg_d=7.06, ps_d=0.75, cov=18.4%, tr=290.6`, `-3.10±2.35, W/T/L=7/1/2`)
+                  - `s=4800`: `190.40 [182..196]` (`wall=155.7s, 231 g/hr, avg_d=7.63, ps_d=0.95, cov=18.3%, tr=652.3`, `-2.30±1.87, W/T/L=8/0/2` — trails `B1_s4800` by `+2.70` pcs at matched wall-time).
+              - **2. Clean `CPW=OFF` Root Stability (`45` identical midgame states, `1200/2400/4800`) & Candidate Pruning Recall**:
+                - `B1_BellMin`: `chg 1200->2400=13.3% (6/45)`, `2400->4800=4.4% (2/45)`, `1200->4800=13.3% (6/45)`, `Top3_ov=77.0%`, `Spearman=0.627`.
+                - `B4_VisitW`: `chg 1200->2400=13.3% (6/45)`, `2400->4800=6.7% (3/45)`, `1200->4800=20.0% (9/45)`, `Top3_ov=83.7%`, `Spearman=0.804`.
+                - **Candidate Pruning Recall (`root_max_actions=64` @ `s=2400`, avg `48.5` legal cands)**: Best-Q recall in 1-ply linear `top-16 = 100.0% (45/45)`, `top-10 = 100.0% (45/45)`, Most-visited recall in `top-16 = 100.0% (45/45)`. Rules out root candidate pruning as a bottleneck.
+              - **3. Same-Path Stratified TD Residual (`n=1,898` transitions across 10 full `CPW=OFF` games, `delta_t = (100 + V_bc4(s_{t+1})) - V_bc4(s_t)`)**:
+                - Overall: `k=1: +12.42±2.05 cp`, `k=2: +12.58±1.38 cp`, `k=4: +12.83±0.88 cp`, `k=8: +12.89±0.48 cp/ply`; global calibration `V_bc4(s_t) - 100*(T-t) = -1293.22±20.26 cp`.
+                - **By Garbage Spawn (MAJOR FINDING)**: `n_spawn==0: -4.59±2.20 cp (n=1483)` vs **`n_spawn==1: +67.05±6.30 cp (n=172)`** vs **`n_spawn>=2: +77.56±4.89 cp (n=243)`** (`>10–15 sigma` spawn-transition jump!).
+                - **By Line Clear**: `lines==0: +82.56±3.00 cp (n=663)` | `ds>0: -24.58±2.23 cp (n=990)` | `nds clear: -27.88±4.69 cp (n=245)`.
+                - **By Board Height**: `rows<=6: +16.80±10.59 cp` | `7..=10: +20.69±2.96 cp` | `11..=13: +7.85±2.97 cp` | `rows>=14: -37.72±12.82 cp`.
 
 
 

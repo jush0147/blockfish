@@ -5,6 +5,7 @@
 use block_stacker::{Config as BSConfig, Ruleset, Stacker};
 use blockfish::{
     ai::{
+        fast::{color_to_idx, FastBoard},
         BagTracker, BeamConfig, FastAI, GameContext, IsMctsConfig, IsMctsSearcher,
         SpatialValueModel,
     },
@@ -382,6 +383,284 @@ fn main() {
         spatial_model: Some(sm.clone()),
         ..Default::default()
     };
+
+    if mode == "nocpw_scale_b1" || mode == "nocpw_scale_b4" {
+        let bm: u8 = if mode == "nocpw_scale_b1" { 1 } else { 4 };
+        let tag = if bm == 1 { "B1_BellMin" } else { "B4_VisitW" };
+        let mut ref_res: Option<Vec<GameRes>> = None;
+        for &sims in &[1200usize, 2400, 4800] {
+            let name = format!("TruncTailApprox_noCPW_{}_s{}", tag, sims);
+            let mut cfg = base_m.clone();
+            cfg.simulations = sims;
+            cfg.max_depth = 16;
+            cfg.backup_mode = bm;
+            cfg.split_tail_preview = false;
+            cfg.use_endgame_solver = true;
+            cfg.use_transposition = true;
+            cfg.dag_propagate_parents = true;
+            cfg.cpw_alpha = 0.0;
+            cfg.cpw_tail_alpha = 0.0;
+            let (res, wall_s) = run_parallel(&seeds, |s| play_ismcts_seed(s, &cfg));
+            summarize(&name, &res, wall_s, ref_res.as_deref());
+            if ref_res.is_none() {
+                ref_res = Some(res);
+            }
+        }
+        return;
+    }
+
+    if mode == "nocpw_diag" {
+        let eval_v_bc4 = |snap: &blockfish::ai::Snapshot, g_rows: u16, rem_g: u16, bmask: u8| -> f64 {
+            let fb = FastBoard::from_basic_matrix(&snap.matrix, g_rows);
+            let q_len = snap.queue.len().min(6);
+            let hold = snap.hold.map(|c| color_to_idx(c) as u8);
+            let cur = if q_len > 0 { Some(color_to_idx(snap.queue[0]) as u8) } else { None };
+            let in_hand = hold.or(cur);
+            let mut avail = bmask;
+            if let Some(h) = hold { avail |= 1u8 << h; }
+            for i in 0..q_len { avail |= 1u8 << (color_to_idx(snap.queue[i]) as u8); }
+            sm.evaluate_board_with_bag(&fb, rem_g, in_hand, avail) as f64
+        };
+
+        // Part A & B: Play 10 full CPW-OFF games (30001..=30010, s=1200) to collect:
+        //   - Same-path 1-step & k-step TD residuals stratified by spawn, clear, and board height
+        //   - 45 midgame states (from 30001..=30003) for CPW-OFF root action stability & recall audit
+        println!("=== Part 1: Same-Path TD Residual delta_t = (100 + V_bc4(s_t+1)) - V_bc4(s_t) [CPW=OFF, TruncTailApprox] ===");
+        #[derive(Default)]
+        struct Stat { n: usize, sum: f64, sum2: f64 }
+        impl Stat {
+            fn push(&mut self, x: f64) { self.n += 1; self.sum += x; self.sum2 += x * x; }
+            fn report(&self, label: &str) {
+                if self.n == 0 {
+                    println!("  {:28}: n=   0", label);
+                    return;
+                }
+                let m = self.sum / self.n as f64;
+                let var = if self.n > 1 {
+                    ((self.sum2 - self.n as f64 * m * m) / (self.n as f64 - 1.0)).max(0.0)
+                } else { 0.0 };
+                let sd = var.sqrt();
+                let se = sd / (self.n as f64).sqrt();
+                println!("  {:28}: n={:4}  mean={:+7.2} cp  SE={:5.2}  SD={:6.2}", label, self.n, m, se, sd);
+            }
+        }
+        let mut st_all = Stat::default();
+        let mut st_sp0 = Stat::default();
+        let mut st_sp1 = Stat::default();
+        let mut st_sp2 = Stat::default();
+        let mut st_clr0 = Stat::default();
+        let mut st_ds = Stat::default();
+        let mut st_nds = Stat::default();
+        let mut st_h_lo = Stat::default();
+        let mut st_h_mid = Stat::default();
+        let mut st_h_hi = Stat::default();
+        let mut st_h_dan = Stat::default();
+        let mut st_k = [Stat::default(), Stat::default(), Stat::default(), Stat::default()]; // k=1,2,4,8
+        let mut st_cal = Stat::default(); // V_bc4(s_t) - 100*(T - t)
+        let mut audit_states = Vec::new();
+
+        let mut roll_cfg = base_m.clone();
+        roll_cfg.simulations = 1200;
+        roll_cfg.max_depth = 16;
+        roll_cfg.backup_mode = 1;
+        roll_cfg.split_tail_preview = false;
+        roll_cfg.use_endgame_solver = true;
+        roll_cfg.use_transposition = true;
+        roll_cfg.dag_propagate_parents = true;
+        roll_cfg.cpw_alpha = 0.0;
+
+        let mut searcher = IsMctsSearcher::new_srs();
+        for &sd in &seeds {
+            let mut game_cfg = BSConfig::default();
+            game_cfg.garbage.total_lines = Some(100);
+            game_cfg.prng_seed = Some(sd);
+            let mut stacker = Stacker::new(Ruleset::guideline().into(), game_cfg);
+            let mut bt = BagTracker::new();
+            let mut ds_tot = 0usize;
+            let mut ply = 0usize;
+            let mut traj_v: Vec<f64> = Vec::new();
+            let mut traj_meta: Vec<(usize, usize, usize, u8)> = Vec::new(); // (n_spawn, lines, ds, rows_before)
+
+            while ds_tot < 100 && stacker.current_piece_type().is_some() && ply < 350 {
+                let snap = stacker.snapshot().unwrap();
+                let g_rows = garbage_rows(&stacker);
+                let rem_g = 100usize.saturating_sub(ds_tot) as u16;
+                let bmask = bt.observe(snap.hold, &snap.queue[..snap.queue.len().min(6)]);
+                let fb_before = FastBoard::from_basic_matrix(&snap.matrix, g_rows);
+                let v_before = eval_v_bc4(&snap, g_rows, rem_g, bmask);
+                let ctx = GameContext {
+                    garbage_rows: Some(g_rows),
+                    remaining_garbage: Some(rem_g),
+                    next_bag_mask: Some(bmask),
+                };
+                if sd <= seeds[0] + 2 && ply % 10 == 5 && rem_g > 12 {
+                    audit_states.push((snap.clone(), ctx));
+                }
+                let r = searcher.search_with_ctx(&snap, ctx, &roll_cfg);
+                if r.inputs.is_empty() { break; }
+                let mut ins = r.inputs;
+                ins.pop();
+                stacker.run(ins);
+                let (lines, ds) = stacker.hard_drop();
+                ds_tot += ds;
+                let g_after = garbage_rows(&stacker);
+                let g_no_spawn = (g_rows as usize).saturating_sub(ds);
+                let n_spawn = (g_after as usize).saturating_sub(g_no_spawn);
+                traj_v.push(v_before);
+                traj_meta.push((n_spawn, lines, ds, fb_before.rows));
+                ply += 1;
+            }
+            if ds_tot >= 100 && traj_v.len() >= 10 {
+                let t_tot = traj_v.len();
+                for t in 0..t_tot {
+                    st_cal.push(traj_v[t] - 100.0 * ((t_tot - t) as f64));
+                }
+                for t in 0..(t_tot - 1) {
+                    let delta = (100.0 + traj_v[t + 1]) - traj_v[t];
+                    let (nsp, lines, ds, rows) = traj_meta[t];
+                    st_all.push(delta);
+                    if nsp == 0 { st_sp0.push(delta); }
+                    else if nsp == 1 { st_sp1.push(delta); }
+                    else { st_sp2.push(delta); }
+                    if lines == 0 { st_clr0.push(delta); }
+                    else if ds > 0 { st_ds.push(delta); }
+                    else { st_nds.push(delta); }
+                    if rows <= 6 { st_h_lo.push(delta); }
+                    else if rows <= 10 { st_h_mid.push(delta); }
+                    else if rows <= 13 { st_h_hi.push(delta); }
+                    else { st_h_dan.push(delta); }
+                }
+                for (ki, &k) in [1usize, 2, 4, 8].iter().enumerate() {
+                    for t in 0..t_tot.saturating_sub(k) {
+                        let dk = (100.0 * k as f64 + traj_v[t + k]) - traj_v[t];
+                        st_k[ki].push(dk / (k as f64)); // per-ply drift
+                    }
+                }
+            }
+        }
+        st_all.report("ALL transitions (1-step)");
+        st_cal.report("V_bc4(s_t) - 100*(T-t)");
+        println!("  -- Stratified by Garbage Spawn --");
+        st_sp0.report("n_spawn == 0");
+        st_sp1.report("n_spawn == 1");
+        st_sp2.report("n_spawn >= 2");
+        println!("  -- Stratified by Line Clear / Downstack --");
+        st_clr0.report("lines == 0");
+        st_ds.report("ds > 0 (downstack)");
+        st_nds.report("lines > 0 && ds == 0 (nds)");
+        println!("  -- Stratified by Board Height (rows before move) --");
+        st_h_lo.report("rows <= 6");
+        st_h_mid.report("rows 7..=10");
+        st_h_hi.report("rows 11..=13");
+        st_h_dan.report("rows >= 14");
+        println!("  -- Multi-Step Per-Ply TD Residual ((k*100 + V(t+k) - V(t))/k) --");
+        for (ki, &k) in [1usize, 2, 4, 8].iter().enumerate() {
+            st_k[ki].report(&format!("k={} per-ply drift", k));
+        }
+
+        // Part 2: CPW-OFF Root Action Stability (backup_mode=1 and backup_mode=4) + Candidate Pruning Recall
+        let n_st = audit_states.len().min(45);
+        audit_states.truncate(n_st);
+        println!("\n=== Part 2: CPW-OFF Root Action Stability (n={} identical states, 1200 vs 2400 vs 4800) ===", n_st);
+        for &(bm, label) in &[(1u8, "B1_BellMin"), (4u8, "B4_VisitW")] {
+            let mut chg_12_24 = 0usize;
+            let mut chg_24_48 = 0usize;
+            let mut chg_12_48 = 0usize;
+            let mut top3_ov = 0.0f64;
+            let mut rho_sum = 0.0f64;
+            let mut rho_cnt = 0usize;
+            for (snap, ctx) in &audit_states {
+                let mut res_by_s = Vec::new();
+                for &sims in &[1200usize, 2400, 4800] {
+                    let mut cfg = base_m.clone();
+                    cfg.simulations = sims;
+                    cfg.max_depth = 16;
+                    cfg.backup_mode = bm;
+                    cfg.split_tail_preview = false;
+                    cfg.use_endgame_solver = false;
+                    cfg.use_transposition = true;
+                    cfg.dag_propagate_parents = true;
+                    cfg.cpw_alpha = 0.0;
+                    let r = searcher.search_with_ctx(snap, *ctx, &cfg);
+                    let mut by_q = r.root_candidates.clone();
+                    by_q.sort_by(|a, b| a.2.total_cmp(&b.2));
+                    res_by_s.push((r.inputs, by_q));
+                }
+                if res_by_s[0].0 != res_by_s[1].0 { chg_12_24 += 1; }
+                if res_by_s[1].0 != res_by_s[2].0 { chg_24_48 += 1; }
+                if res_by_s[0].0 != res_by_s[2].0 { chg_12_48 += 1; }
+                let t3_a: Vec<_> = res_by_s[0].1.iter().take(3).map(|x| (x.0.did_hold, x.0.tf)).collect();
+                let t3_b: Vec<_> = res_by_s[2].1.iter().take(3).map(|x| (x.0.did_hold, x.0.tf)).collect();
+                top3_ov += (t3_a.iter().filter(|x| t3_b.contains(x)).count() as f64) / 3.0;
+                let mut ra_v = Vec::new();
+                let mut rb_v = Vec::new();
+                for (ra, ca) in res_by_s[0].1.iter().enumerate() {
+                    let key = (ca.0.did_hold, ca.0.tf);
+                    if let Some(rb) = res_by_s[2].1.iter().position(|cb| (cb.0.did_hold, cb.0.tf) == key) {
+                        ra_v.push(ra as f64);
+                        rb_v.push(rb as f64);
+                    }
+                }
+                let k = ra_v.len();
+                if k >= 3 {
+                    let d2: f64 = ra_v.iter().zip(&rb_v).map(|(a, b)| (a - b).powi(2)).sum();
+                    rho_sum += 1.0 - (6.0 * d2) / ((k as f64) * ((k * k - 1) as f64));
+                    rho_cnt += 1;
+                }
+            }
+            println!(
+                "  {:12}: chg 1200->2400={:4.1}% ({:2}/{}) | 2400->4800={:4.1}% ({:2}/{}) | 1200->4800={:4.1}% ({:2}/{}) | Top3_ov={:.1}% | Spearman={:.3}",
+                label,
+                100.0 * chg_12_24 as f64 / n_st as f64, chg_12_24, n_st,
+                100.0 * chg_24_48 as f64 / n_st as f64, chg_24_48, n_st,
+                100.0 * chg_12_48 as f64 / n_st as f64, chg_12_48, n_st,
+                100.0 * top3_ov / n_st as f64,
+                rho_sum / rho_cnt.max(1) as f64
+            );
+        }
+
+        // Part 3: Candidate Action Pruning Recall (root_max_actions=64 vs top-16 / top-10 linear prior)
+        println!("\n=== Part 3: Candidate Pruning Recall (root_max_actions=64 @ s=2400 vs 1-ply linear top-16 / top-10) ===");
+        let mut in_top16 = 0usize;
+        let mut in_top10 = 0usize;
+        let mut in_top16_by_v = 0usize;
+        let mut total_cands = 0usize;
+        for (snap, ctx) in &audit_states {
+            let mut cfg64 = base_m.clone();
+            cfg64.simulations = 2400;
+            cfg64.max_depth = 16;
+            cfg64.root_max_actions = 64;
+            cfg64.backup_mode = 1;
+            cfg64.split_tail_preview = false;
+            cfg64.use_endgame_solver = false;
+            cfg64.use_transposition = true;
+            cfg64.dag_propagate_parents = true;
+            cfg64.cpw_alpha = 0.0;
+            let r64 = searcher.search_with_ctx(snap, *ctx, &cfg64);
+            total_cands += r64.root_candidates.len();
+            // Sort by prior descending (= exact 1-ply linear ranking!)
+            let mut by_prior = r64.root_candidates.clone();
+            by_prior.sort_by(|a, b| b.3.total_cmp(&a.3));
+            // Best Q among visited >= max_v/4 (same rule as select_by_visits=false)
+            let max_v = r64.root_candidates.iter().map(|x| x.1).max().unwrap_or(0);
+            let min_req = (max_v / 4).max(1);
+            let best_q_cand = r64.root_candidates.iter().filter(|x| x.1 >= min_req).min_by(|a, b| a.2.total_cmp(&b.2)).unwrap();
+            let best_v_cand = &r64.root_candidates[0]; // already sorted by visits desc
+            let rank_q = by_prior.iter().position(|x| x.0.did_hold == best_q_cand.0.did_hold && x.0.tf == best_q_cand.0.tf).unwrap_or(99);
+            let rank_v = by_prior.iter().position(|x| x.0.did_hold == best_v_cand.0.did_hold && x.0.tf == best_v_cand.0.tf).unwrap_or(99);
+            if rank_q < 16 { in_top16 += 1; }
+            if rank_q < 10 { in_top10 += 1; }
+            if rank_v < 16 { in_top16_by_v += 1; }
+        }
+        println!(
+            "  Avg legal root cands={:.1} | Best-Q recall in top-16={:.1}% ({}/{}), in top-10={:.1}% ({}/{}) | Most-visited recall in top-16={:.1}% ({}/{})",
+            total_cands as f64 / n_st as f64,
+            100.0 * in_top16 as f64 / n_st as f64, in_top16, n_st,
+            100.0 * in_top10 as f64 / n_st as f64, in_top10, n_st,
+            100.0 * in_top16_by_v as f64 / n_st as f64, in_top16_by_v, n_st
+        );
+        return;
+    }
 
     if mode == "audit_all" {
         // Part A: Non-uniform P=[0.90, 0.05, 0.05], V=[0, 100, 100], exact E[V]=10.0
