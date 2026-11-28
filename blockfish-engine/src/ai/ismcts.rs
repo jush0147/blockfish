@@ -69,6 +69,19 @@ pub struct IsMctsConfig {
     /// If true, share identical `(board, hold, rem_g, vis_q, vis_len, bag_mask, depth)` nodes
     /// across paths via an acyclic Transposition DAG.
     pub use_transposition: bool,
+    /// If true (default), propagate shared-child `v_bellman` updates to ALL parents in exact
+    /// reverse-depth topological order so no parent caches stale child values.
+    pub dag_propagate_parents: bool,
+    /// Chance-Node Progressive Widening coefficient `c_pw` (active when `cpw_alpha > 0.0`).
+    /// Caps distinct expanded chance outcomes on an edge at `ceil(cpw_c * (N + 1)^cpw_alpha)`.
+    pub cpw_c: f64,
+    /// Chance-Node Progressive Widening exponent `alpha_pw` (`0.0` = disabled; e.g. `0.5` = sqrt).
+    pub cpw_alpha: f64,
+    /// Optional separate CPW coefficient for pure tail-preview chance events (`n_spawn == 0`).
+    /// Active when `cpw_tail_alpha > 0.0`; otherwise falls back to `(cpw_c, cpw_alpha)`.
+    pub cpw_tail_c: f64,
+    /// Optional separate CPW exponent for pure tail-preview chance events (`n_spawn == 0`).
+    pub cpw_tail_alpha: f64,
     /// Frozen or iterated spatial value model (used for full-MLP leaf evaluation).
     pub spatial_model: Option<Arc<SpatialValueModel>>,
     /// Optional separate policy prior model (used ONLY for 1-ply linear prior `P(u, a)` in `expand_node`;
@@ -95,6 +108,11 @@ impl Default for IsMctsConfig {
             split_tail_preview: true,
             use_endgame_solver: false,
             use_transposition: false,
+            dag_propagate_parents: true,
+            cpw_c: 1.0,
+            cpw_alpha: 0.0,
+            cpw_tail_c: 0.5,
+            cpw_tail_alpha: 0.0,
             spatial_model: None,
             policy_prior: None,
         }
@@ -157,7 +175,7 @@ impl ActionEdge {
             0.0
         } else {
             match backup_mode {
-                1 => self.q_bellman,
+                1 | 4 => self.q_bellman,
                 2 => 0.5 * self.q_bellman + 0.5 * self.q_mean(),
                 3 => self.q_bellman + 100.0 / (self.visits as f64).sqrt(),
                 _ => self.q_mean(),
@@ -185,6 +203,8 @@ struct DecisionNode {
     visits: u32,
     v_sum: f64,
     actions: Vec<ActionEdge>,
+    /// Parent edges `(parent_node_id, parent_action_idx)` pointing to this node in the acyclic DAG.
+    parents: Vec<(u32, u16)>,
     expanded: bool,
 }
 
@@ -929,6 +949,7 @@ impl IsMctsSearcher {
             visits: 0,
             v_sum: 0.0,
             actions: Vec::new(),
+            parents: Vec::new(),
             expanded: false,
         });
         self.expand_node(0, cfg.root_max_actions, cfg);
@@ -963,8 +984,13 @@ impl IsMctsSearcher {
 
         for sim in 0..sims {
             let world = Self::sample_world(root_q, bag_mask, init_prev_hole, sim, base_seed);
+            let mut sim_p_rng = base_seed
+                ^ ((sim as u64).wrapping_add(1)).wrapping_mul(0x9E3779B97F4A7C15)
+                ^ 0xA24BAED4963EE407;
+            let mut sim_h_rng = sim_p_rng ^ 0xD6E8FEB86659FD93;
             let mut node_idx = 0usize;
             let mut hole_cursor = 0usize;
+            let mut reanchored = false;
             let mut terminal_on_last_edge = false;
             let mut first_spawn_depth: Option<usize> = None;
             let mut reached_depth = 0usize;
@@ -1027,32 +1053,20 @@ impl IsMctsSearcher {
                     break root_ref + cfg.topout_penalty;
                 }
 
-                // 3. Chance Event 1: Garbage spawn (if triggered)
-                let spawn_key = if rem2 > 0 {
-                    match Self::spawn_cheese_from_stream(
-                        &mut b2,
-                        rem2,
-                        lines,
-                        cfg.steady_g4,
-                        &world.holes,
-                        &mut hole_cursor,
-                    ) {
-                        Some((n_spawn, sk)) => {
-                            if n_spawn > 0 && first_spawn_depth.is_none() {
-                                first_spawn_depth = Some(next_depth);
-                            }
-                            sk
-                        }
-                        None => {
-                            terminal_on_last_edge = true;
-                            break root_ref + cfg.topout_penalty;
-                        }
-                    }
+                // Determine deterministically whether this transition triggers chance events
+                let target_g: usize = if cfg.steady_g4 || lines > 0 { 4 } else { 9 };
+                let g_after = b2.garbage_rows as usize;
+                let unspawned = (rem2 as usize).saturating_sub(g_after);
+                let n_spawn = if rem2 > 0 {
+                    target_g.saturating_sub(g_after).min(unspawned)
                 } else {
-                    0u64
+                    0
                 };
+                if n_spawn > 0 && (b2.rows as usize) + n_spawn >= 20 {
+                    terminal_on_last_edge = true;
+                    break root_ref + cfg.topout_penalty;
+                }
 
-                // 4. Advance hold / queue cursor & update observable preview window `vis_q_next`
                 let (nh, consumed) = if hold.is_some() {
                     if fp.did_hold {
                         (cur_piece, usize::from(cur_piece.is_some()))
@@ -1065,42 +1079,136 @@ impl IsMctsSearcher {
                     (None, 1)
                 };
                 let nqc = qc + consumed;
-
-                // Build child's observable `vis_q_next` and `piece_key`:
-                // - Start with remaining already-observable pieces `vis_q[consumed..vis_len]`.
-                // - If `split_tail_preview`: refill up to 6 pieces (full Legal p=5 window) from `world.q`,
-                //   encoding EVERY newly revealed piece into `piece_key`.
-                // - If `!split_tail_preview`: only refill up to `min_need` (`1` if `nh.is_some()`, else `2`)
-                //   from `world.q`, encoding those newly revealed pieces into `piece_key`.
-                let mut vis_q_next = [0u8; 6];
                 let kept = vis_len.saturating_sub(consumed);
-                for i in 0..kept {
-                    vis_q_next[i] = vis_q[consumed + i];
-                }
                 let target_vis = if cfg.split_tail_preview {
                     6usize.min(world.q.len().saturating_sub(nqc))
                 } else {
                     let min_need = if nh.is_some() { 1 } else { 2 };
                     kept.max(min_need).min(world.q.len().saturating_sub(nqc))
                 };
+                let is_chance = n_spawn > 0 || target_vis > kept;
+
+                // 3. Chance-Node Progressive Widening (CPW):
+                //    Never merges distinct observable states. When `k >= ceil(c_pw * (N+1)^alpha)`,
+                //    re-selects the least-visited already-expanded child (strictly unbiased equal
+                //    weighting among i.i.d. expanded outcomes) and re-anchors future sampling legally.
+                if is_chance && (cfg.cpw_alpha > 0.0 || (n_spawn == 0 && cfg.cpw_tail_alpha > 0.0)) {
+                    let (pw_c, pw_a) = if n_spawn == 0 && cfg.cpw_tail_alpha > 0.0 {
+                        (cfg.cpw_tail_c, cfg.cpw_tail_alpha)
+                    } else {
+                        (cfg.cpw_c, cfg.cpw_alpha)
+                    };
+                    if pw_a > 0.0 {
+                        let k = self.nodes[node_idx].actions[act_idx].children.len();
+                        let e_vis = self.nodes[node_idx].actions[act_idx].visits;
+                        let k_max = (pw_c * ((e_vis + 1) as f64).powf(pw_a))
+                            .ceil()
+                            .max(1.0) as usize;
+                        if k >= k_max && k > 0 {
+                        if n_spawn > 0 && first_spawn_depth.is_none() {
+                            first_spawn_depth = Some(next_depth);
+                        }
+                        // Pick least-visited existing child to maintain equal-weight unbiasedness
+                        let start_off = (sim + node_idx + act_idx) % k;
+                        let mut best_ci = start_off;
+                        let mut best_en = u32::MAX;
+                        for off in 0..k {
+                            let ci = (start_off + off) % k;
+                            let en = self.nodes[node_idx].actions[act_idx].children[ci].2;
+                            if en < best_en {
+                                best_en = en;
+                                best_ci = ci;
+                            }
+                        }
+                        let cid = {
+                            let ch = &mut self.nodes[node_idx].actions[act_idx].children[best_ci];
+                            ch.2 += 1;
+                            ch.1 as usize
+                        };
+                            node_idx = cid;
+                            reanchored = true;
+                            continue;
+                        }
+                    }
+                }
+
+                // 4. Chance Event 1: Garbage spawn (stratified `world.holes` or legal on-the-fly)
+                let spawn_key = if n_spawn > 0 {
+                    if first_spawn_depth.is_none() {
+                        first_spawn_depth = Some(next_depth);
+                    }
+                    if !reanchored {
+                        match Self::spawn_cheese_from_stream(
+                            &mut b2,
+                            rem2,
+                            lines,
+                            cfg.steady_g4,
+                            &world.holes,
+                            &mut hole_cursor,
+                        ) {
+                            Some((_ns, sk)) => sk,
+                            None => {
+                                terminal_on_last_edge = true;
+                                break root_ref + cfg.topout_penalty;
+                            }
+                        }
+                    } else {
+                        // Legal on-the-fly sampling strictly respecting `bottom_hole_col(&b2)`
+                        let old_rows = b2.rows as usize;
+                        let mut prev_h = Self::bottom_hole_col(&b2);
+                        for r in (0..old_rows).rev() {
+                            b2.data[r + n_spawn] = b2.data[r];
+                        }
+                        let mut sk: u64 = 0;
+                        for kk in 0..n_spawn {
+                            let hole = match prev_h {
+                                Some(ph) => {
+                                    let off = (((Self::next_rng(&mut sim_h_rng) >> 32) as u16) % 9) + 1;
+                                    (ph + off) % 10
+                                }
+                                None => ((Self::next_rng(&mut sim_h_rng) >> 32) as u16) % 10,
+                            };
+                            prev_h = Some(hole);
+                            let dst_r = n_spawn - 1 - kk;
+                            b2.data[dst_r] = 0xFC00 | (0x3FF & !(1u16 << hole));
+                            sk = (sk << 4) | ((hole as u64) + 1);
+                        }
+                        b2.rows = (old_rows + n_spawn) as u8;
+                        b2.garbage_rows = (g_after + n_spawn) as u8;
+                        sk
+                    }
+                } else {
+                    0u64
+                };
+
+                // 5. Chance Event 2: Update observable preview window `vis_q_next` & `bag_next`
+                let mut vis_q_next = [0u8; 6];
+                for i in 0..kept {
+                    vis_q_next[i] = vis_q[consumed + i];
+                }
                 let mut piece_key: u64 = 0;
-                for i in kept..target_vis {
-                    let p_new = world.q[nqc + i];
-                    vis_q_next[i] = p_new;
-                    piece_key = (piece_key << 4) | ((p_new as u64) + 1);
+                let mut bag_next = bag_cur;
+                if target_vis > kept {
+                    if !reanchored {
+                        for i in kept..target_vis {
+                            let p_new = world.q[nqc + i];
+                            vis_q_next[i] = p_new;
+                            piece_key = (piece_key << 4) | ((p_new as u64) + 1);
+                        }
+                        bag_next = world.bags[(nqc + target_vis - 1).min(world.bags.len() - 1)];
+                    } else {
+                        for i in kept..target_vis {
+                            let p_new = Self::draw_from_bag(&mut bag_next, &mut sim_p_rng);
+                            vis_q_next[i] = p_new;
+                            piece_key = (piece_key << 4) | ((p_new as u64) + 1);
+                        }
+                    }
                 }
                 let vis_len_next = target_vis;
-                let bag_next = if vis_len_next > kept {
-                    // Bag state strictly after the last revealed piece `nqc + vis_len_next - 1`
-                    world.bags[(nqc + vis_len_next - 1).min(world.bags.len() - 1)]
-                } else {
-                    // No new piece was revealed beyond parent's window; bag_mask unchanged
-                    bag_cur
-                };
 
                 let chance_key = (spawn_key << 12) | piece_key;
 
-                // 5. Look up existing child edge `(node_idx, act_idx, chance_key)`
+                // 6. Look up existing child edge `(node_idx, act_idx, chance_key)`
                 let existing_slot = self.nodes[node_idx].actions[act_idx]
                     .children
                     .iter()
@@ -1135,6 +1243,10 @@ impl IsMctsSearcher {
                         self.nodes[node_idx].actions[act_idx]
                             .children
                             .push((chance_key, cid as u32, 1));
+                        let parent_link = (node_idx as u32, act_idx as u16);
+                        if !self.nodes[cid].parents.contains(&parent_link) {
+                            self.nodes[cid].parents.push(parent_link);
+                        }
                         let v_reuse = if cfg.backup_mode > 0 {
                             self.nodes[cid].v_bellman
                         } else if self.nodes[cid].visits > 0 {
@@ -1176,6 +1288,7 @@ impl IsMctsSearcher {
                         visits: 1,
                         v_sum: leaf_v,
                         actions: Vec::new(),
+                        parents: vec![(node_idx as u32, act_idx as u16)],
                         expanded: false,
                     });
                     if cfg.use_transposition {
@@ -1206,7 +1319,7 @@ impl IsMctsSearcher {
                 post_spawn_depth_sum += reached_depth.saturating_sub(sd);
             }
 
-            // 6. Backup along visited `(node_idx, act_idx)` path
+            // 7. Backup along visited `(node_idx, act_idx)` path + acyclic DAG parent propagation
             if terminal_on_last_edge {
                 if let Some(&(last_n, last_a)) = path.last() {
                     let e = &mut self.nodes[last_n].actions[last_a];
@@ -1214,7 +1327,9 @@ impl IsMctsSearcher {
                     e.term_q_sum += backed_val;
                 }
             }
+            let mut changed_nodes: Vec<usize> = Vec::new();
             for &(n_id, a_id) in path.iter().rev() {
+                let old_v = self.nodes[n_id].v_bellman;
                 {
                     let n = &mut self.nodes[n_id];
                     n.visits += 1;
@@ -1225,7 +1340,17 @@ impl IsMctsSearcher {
                 }
                 if cfg.backup_mode > 0 {
                     self.recompute_edge_and_node_bellman(n_id, a_id, cfg.backup_mode, backed_val);
+                    if cfg.dag_propagate_parents
+                        && cfg.use_transposition
+                        && self.nodes[n_id].parents.len() > 1
+                        && (self.nodes[n_id].v_bellman - old_v).abs() > 1e-9
+                    {
+                        changed_nodes.push(n_id);
+                    }
                 }
+            }
+            if !changed_nodes.is_empty() {
+                self.propagate_bellman_to_all_parents(&changed_nodes, cfg.backup_mode);
             }
         }
 
@@ -1311,21 +1436,72 @@ impl IsMctsSearcher {
         };
         let n = &mut self.nodes[n_id];
         n.actions[a_id].q_bellman = q_b;
-        let mut best_v = f64::INFINITY;
-        for e in &n.actions {
-            if e.visits > 0 {
-                let cand = if backup_mode == 3 {
-                    e.q_bellman + 100.0 / (e.visits as f64).sqrt()
-                } else {
-                    e.q_bellman
-                };
-                if cand < best_v {
-                    best_v = cand;
+        if backup_mode == 4 {
+            // Visit-Weighted DAG Value (exact DAG generalization of MCTS mean backup):
+            // eliminates Bellman min winner's curse while preserving full DAG parent propagation.
+            let mut v_wsum = n.leaf_val;
+            let mut v_wcnt = 1.0f64;
+            for e in &n.actions {
+                if e.visits > 0 {
+                    let w = e.visits as f64;
+                    v_wsum += w * e.q_bellman;
+                    v_wcnt += w;
+                }
+            }
+            n.v_bellman = v_wsum / v_wcnt;
+        } else {
+            let mut best_v = f64::INFINITY;
+            for e in &n.actions {
+                if e.visits > 0 {
+                    let cand = if backup_mode == 3 {
+                        e.q_bellman + 100.0 / (e.visits as f64).sqrt()
+                    } else {
+                        e.q_bellman
+                    };
+                    if cand < best_v {
+                        best_v = cand;
+                    }
+                }
+            }
+            if best_v.is_finite() {
+                n.v_bellman = best_v;
+            }
+        }
+    }
+
+    /// Propagate shared-child `v_bellman` updates to ALL ancestors in exact reverse-depth
+    /// topological order (acyclic because `TransKey` includes `depth`). Prevents stale parent caches.
+    fn propagate_bellman_to_all_parents(&mut self, seeds: &[usize], backup_mode: u8) {
+        let mut buckets: [Vec<usize>; 32] = Default::default();
+        let mut max_d = 0usize;
+        for &cid in seeds {
+            let d = (self.nodes[cid].depth as usize).min(31);
+            if !buckets[d].contains(&cid) {
+                buckets[d].push(cid);
+                if d > max_d {
+                    max_d = d;
                 }
             }
         }
-        if best_v.is_finite() {
-            n.v_bellman = best_v;
+        for d in (1..=max_d).rev() {
+            let layer = std::mem::take(&mut buckets[d]);
+            for cid in layer {
+                let n_par = self.nodes[cid].parents.len();
+                for pi in 0..n_par {
+                    let (p_id_u32, p_a_u16) = self.nodes[cid].parents[pi];
+                    let p_id = p_id_u32 as usize;
+                    let p_a = p_a_u16 as usize;
+                    let old_v = self.nodes[p_id].v_bellman;
+                    let fallback = self.nodes[p_id].leaf_val;
+                    self.recompute_edge_and_node_bellman(p_id, p_a, backup_mode, fallback);
+                    if (self.nodes[p_id].v_bellman - old_v).abs() > 1e-9 && d > 1 {
+                        let pd = (self.nodes[p_id].depth as usize).min(31);
+                        if !buckets[pd].contains(&p_id) {
+                            buckets[pd].push(p_id);
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -1584,22 +1760,26 @@ mod tests {
             norm_i: 0,
             norm_j: 0,
         };
-        let make_node = |v: f64, visits: u32, depth: u8, actions: Vec<ActionEdge>| DecisionNode {
-            board: FastBoard::empty(),
-            hold: None,
-            rem_g: 10,
-            depth,
-            qc: depth,
-            vis_q: [0; 6],
-            vis_len: 6,
-            bag_mask: 0x7F,
-            leaf_val: v,
-            v_bellman: v,
-            visits,
-            v_sum: v * (visits as f64),
-            actions,
-            expanded: true,
-        };
+        let make_node =
+            |v: f64, visits: u32, depth: u8, actions: Vec<ActionEdge>, parents: Vec<(u32, u16)>| {
+                DecisionNode {
+                    board: FastBoard::empty(),
+                    hold: None,
+                    rem_g: 10,
+                    depth,
+                    qc: depth,
+                    vis_q: [0; 6],
+                    vis_len: 6,
+                    bag_mask: 0x7F,
+                    leaf_val: v,
+                    v_bellman: v,
+                    visits,
+                    v_sum: v * (visits as f64),
+                    actions,
+                    parents,
+                    expanded: true,
+                }
+            };
 
         s.nodes.clear();
         // node 0: u1
@@ -1617,6 +1797,7 @@ mod tests {
                 term_q_sum: 0.0,
                 children: vec![(1, 2, 1), (2, 3, 1)], // edge-local counts: 1 and 1
             }],
+            Vec::new(),
         ));
         // node 1: u2 (visits child_A 50 times)
         s.nodes.push(make_node(
@@ -1633,11 +1814,12 @@ mod tests {
                 term_q_sum: 0.0,
                 children: vec![(1, 2, 50)],
             }],
+            Vec::new(),
         ));
-        // node 2: shared child_A (total visits = 51!)
-        s.nodes.push(make_node(1000.0, 51, 1, Vec::new()));
-        // node 3: child_B (total visits = 1)
-        s.nodes.push(make_node(2000.0, 1, 1, Vec::new()));
+        // node 2: shared child_A (parents: u1 and u2; total visits = 51!)
+        s.nodes.push(make_node(1000.0, 51, 1, Vec::new(), vec![(0, 0), (1, 0)]));
+        // node 3: child_B (parent: u1; total visits = 1)
+        s.nodes.push(make_node(2000.0, 1, 1, Vec::new(), vec![(0, 0)]));
 
         s.recompute_edge_and_node_bellman(0, 0, 1, 0.0);
         let q_u1 = s.nodes[0].actions[0].q_bellman;
@@ -1648,11 +1830,20 @@ mod tests {
         );
         assert!((s.nodes[0].v_bellman - 1500.0).abs() < 1e-9);
 
-        // Update shared child_A's value (e.g. from u2's search): u1's subsequent backup picks it up
-        // with exact edge-local weight 0.5!
+        // Counterexample test for stale parent cache:
+        // Update shared child_A via u2's search ONLY (never calling backup directly on u1),
+        // then call propagate_bellman_to_all_parents(&[2], 1).
+        // u1's cached q_bellman and v_bellman MUST immediately update to 0.5*1200 + 0.5*2000 = 1600.0!
         s.nodes[2].v_bellman = 1200.0;
-        s.recompute_edge_and_node_bellman(0, 0, 1, 0.0);
-        assert!((s.nodes[0].actions[0].q_bellman - 1600.0).abs() < 1e-9);
+        s.propagate_bellman_to_all_parents(&[2], 1);
+        assert!(
+            (s.nodes[0].actions[0].q_bellman - 1600.0).abs() < 1e-9,
+            "stale parent u1 cache not refreshed: got {}",
+            s.nodes[0].actions[0].q_bellman
+        );
+        assert!((s.nodes[0].v_bellman - 1600.0).abs() < 1e-9);
+        assert!((s.nodes[1].actions[0].q_bellman - 1200.0).abs() < 1e-9);
+        assert!((s.nodes[1].v_bellman - 1200.0).abs() < 1e-9);
 
         // Part B: Full live Transposition DAG search conservation invariant check.
         let mat4 = make_test_board(&[3, 7, 1, 5]);
@@ -1678,6 +1869,7 @@ mod tests {
             max_depth: 10,
             split_tail_preview: false,
             use_transposition: true,
+            dag_propagate_parents: true,
             backup_mode: 1,
             ..Default::default()
         };
@@ -1696,5 +1888,106 @@ mod tests {
                 );
             }
         }
+    }
+
+    #[test]
+    fn test_cpw_synthetic_chance_tree_unbiased_and_convergent() {
+        // Synthetic M=63 equiprobable chance node (modeling 9 holes x 7 previews).
+        // Verify that Chance-Node Progressive Widening with least-visited re-selection:
+        // 1. Is strictly unbiased (mean across trials == exact E[V] within 3*SE) at N=10, 50, 200, 1000.
+        // 2. Converges monotonically (RMSE strictly decreases with N).
+        // 3. Achieves much deeper visits per expanded child than unwidened sampling at N=50.
+        const M: usize = 63;
+        let mut true_v = [0.0f64; M];
+        for i in 0..M {
+            true_v[i] = 1000.0 + ((i * 37) % M) as f64 * 10.0;
+        }
+        let exact_mean: f64 = true_v.iter().sum::<f64>() / (M as f64);
+
+        let c_pw = 1.0f64;
+        let alpha_pw = 0.5f64;
+        let trials = 400usize;
+        let budgets = [10usize, 50, 200, 1000];
+        let mut prev_rmse = f64::INFINITY;
+        let mut mean_visits_per_child_n50 = 0.0f64;
+
+        for &n_sims in &budgets {
+            let mut est_sum = 0.0f64;
+            let mut sq_err_sum = 0.0f64;
+            let mut vpc_sum = 0.0f64;
+
+            for tr in 0..trials {
+                let mut rng: u64 = 0x517cc1b727220a95
+                    ^ ((tr as u64 + 1).wrapping_mul(0x9E3779B97F4A7C15))
+                    ^ ((n_sims as u64).wrapping_mul(0xBF58476D1CE4E5B9));
+                // Expanded children: (outcome_id, edge_visits)
+                let mut children: Vec<(usize, u32)> = Vec::new();
+                for sim in 0..n_sims {
+                    let k = children.len();
+                    let k_max = (c_pw * ((sim + 1) as f64).powf(alpha_pw))
+                        .ceil()
+                        .max(1.0) as usize;
+                    if k >= k_max && k > 0 {
+                        // Least-visited re-selection (exact same rule as ismcts.rs)
+                        let start_off = sim % k;
+                        let mut best_ci = start_off;
+                        let mut best_en = u32::MAX;
+                        for off in 0..k {
+                            let ci = (start_off + off) % k;
+                            if children[ci].1 < best_en {
+                                best_en = children[ci].1;
+                                best_ci = ci;
+                            }
+                        }
+                        children[best_ci].1 += 1;
+                    } else {
+                        let o = ((IsMctsSearcher::next_rng(&mut rng) >> 32) as usize) % M;
+                        if let Some(slot) = children.iter().position(|&(oid, _)| oid == o) {
+                            children[slot].1 += 1;
+                        } else {
+                            children.push((o, 1));
+                        }
+                    }
+                }
+                let mut num = 0.0f64;
+                let mut den = 0.0f64;
+                for &(oid, en) in &children {
+                    num += (en as f64) * true_v[oid];
+                    den += en as f64;
+                }
+                let q_hat = num / den;
+                est_sum += q_hat;
+                sq_err_sum += (q_hat - exact_mean).powi(2);
+                vpc_sum += (n_sims as f64) / (children.len() as f64);
+            }
+
+            let mean_est = est_sum / (trials as f64);
+            let rmse = (sq_err_sum / (trials as f64)).sqrt();
+            let se = rmse / (trials as f64).sqrt();
+            assert!(
+                (mean_est - exact_mean).abs() <= 3.5 * se + 1.0,
+                "CPW estimator biased at N={}: mean_est={:.2} vs exact={:.2} (SE={:.2})",
+                n_sims,
+                mean_est,
+                exact_mean,
+                se
+            );
+            assert!(
+                rmse < prev_rmse,
+                "CPW RMSE did not decrease monotonically at N={}: {:.2} >= {:.2}",
+                n_sims,
+                rmse,
+                prev_rmse
+            );
+            prev_rmse = rmse;
+            if n_sims == 50 {
+                mean_visits_per_child_n50 = vpc_sum / (trials as f64);
+            }
+        }
+        assert!(
+            mean_visits_per_child_n50 >= 5.0,
+            "expected >= 5 visits/child at N=50 on M=63 with CPW, got {:.2}",
+            mean_visits_per_child_n50
+        );
     }
 }

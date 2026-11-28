@@ -383,6 +383,146 @@ fn main() {
         ..Default::default()
     };
 
+    if mode == "cpw20" {
+        let mut ref_res: Option<Vec<GameRes>> = None;
+        for &(name, split_tail, sims, cpw_c, cpw_a) in &[
+            ("A_trunc_noCPW_s2400", false, 2400usize, 1.0f64, 0.0f64),
+            ("B_trunc_CPW_1.0_0.5", false, 2400, 1.0, 0.5),
+            ("C_fullP5_CPW_1.0_0.5", true, 2400, 1.0, 0.5),
+        ] {
+            let mut cfg = base_m.clone();
+            cfg.simulations = sims;
+            cfg.split_tail_preview = split_tail;
+            cfg.use_endgame_solver = true;
+            cfg.use_transposition = true;
+            cfg.dag_propagate_parents = true;
+            cfg.cpw_c = cpw_c;
+            cfg.cpw_alpha = cpw_a;
+            let (res, wall_s) = run_parallel(&seeds, |s| play_ismcts_seed(s, &cfg));
+            summarize(name, &res, wall_s, ref_res.as_deref());
+            if ref_res.is_none() {
+                ref_res = Some(res);
+            }
+        }
+        return;
+    }
+
+    if mode == "cpw20_part2" {
+        for &(name, split_tail, sims, cpw_c, cpw_a) in &[
+            ("C_fullP5_CPW_1.0_0.5", true, 2400usize, 1.0f64, 0.5f64),
+            ("B_trunc_CPW_s1900_eqW", false, 1900, 1.0, 0.5),
+        ] {
+            let mut cfg = base_m.clone();
+            cfg.simulations = sims;
+            cfg.split_tail_preview = split_tail;
+            cfg.use_endgame_solver = true;
+            cfg.use_transposition = true;
+            cfg.dag_propagate_parents = true;
+            cfg.cpw_c = cpw_c;
+            cfg.cpw_alpha = cpw_a;
+            let (res, wall_s) = run_parallel(&seeds, |s| play_ismcts_seed(s, &cfg));
+            summarize(name, &res, wall_s, None);
+        }
+        return;
+    }
+
+    if mode == "fullp5_sep" {
+        let mut ref_res: Option<Vec<GameRes>> = None;
+        for &(name, tc, ta) in &[
+            ("C1_fullP5_sepCPW_0.5_0.25", 0.5f64, 0.25f64),
+            ("C2_fullP5_sepCPW_0.35_0.20", 0.35, 0.20),
+        ] {
+            let mut cfg = base_m.clone();
+            cfg.simulations = 2400;
+            cfg.split_tail_preview = true;
+            cfg.use_endgame_solver = true;
+            cfg.use_transposition = true;
+            cfg.dag_propagate_parents = true;
+            cfg.cpw_c = 1.0;
+            cfg.cpw_alpha = 0.5;
+            cfg.cpw_tail_c = tc;
+            cfg.cpw_tail_alpha = ta;
+            let (res, wall_s) = run_parallel(&seeds, |s| play_ismcts_seed(s, &cfg));
+            summarize(name, &res, wall_s, ref_res.as_deref());
+            if ref_res.is_none() {
+                ref_res = Some(res);
+            }
+        }
+        return;
+    }
+
+    if mode == "scale10" {
+        let mut ref_res: Option<Vec<GameRes>> = None;
+        for &(name, sims) in &[
+            ("S1200_trunc_CPW_d16", 1200usize),
+            ("S2400_trunc_CPW_d16", 2400),
+            ("S4800_trunc_CPW_d16", 4800),
+        ] {
+            let mut cfg = base_m.clone();
+            cfg.simulations = sims;
+            cfg.max_depth = 16;
+            cfg.split_tail_preview = false;
+            cfg.use_endgame_solver = true;
+            cfg.use_transposition = true;
+            cfg.dag_propagate_parents = true;
+            cfg.cpw_c = 1.0;
+            cfg.cpw_alpha = 0.5;
+            let (res, wall_s) = run_parallel(&seeds, |s| play_ismcts_seed(s, &cfg));
+            summarize(name, &res, wall_s, ref_res.as_deref());
+            if ref_res.is_none() {
+                ref_res = Some(res);
+            }
+        }
+        return;
+    }
+
+    if mode == "scale10_vw" {
+        let mut ref_res: Option<Vec<GameRes>> = None;
+        for &(name, sims) in &[
+            ("S1200_VW_CPW_d16", 1200usize),
+            ("S2400_VW_CPW_d16", 2400),
+            ("S4800_VW_CPW_d16", 4800),
+        ] {
+            let mut cfg = base_m.clone();
+            cfg.simulations = sims;
+            cfg.max_depth = 16;
+            cfg.backup_mode = 4;
+            cfg.split_tail_preview = false;
+            cfg.use_endgame_solver = true;
+            cfg.use_transposition = true;
+            cfg.dag_propagate_parents = true;
+            cfg.cpw_c = 1.0;
+            cfg.cpw_alpha = 0.5;
+            let (res, wall_s) = run_parallel(&seeds, |s| play_ismcts_seed(s, &cfg));
+            summarize(name, &res, wall_s, ref_res.as_deref());
+            if ref_res.is_none() {
+                ref_res = Some(res);
+            }
+        }
+        return;
+    }
+
+    if mode == "beam20" {
+        let mut ref_res: Option<Vec<GameRes>> = None;
+        for &(name, bw, mpr) in &[
+            ("BASE_5ply_b16", 16usize, 8usize),
+            ("BASE_5ply_b32", 32, 12),
+        ] {
+            let mut b_cfg = BeamConfig::default();
+            b_cfg.beam_width = bw;
+            b_cfg.max_per_root = mpr;
+            b_cfg.spatial_model = Some(sm.clone());
+            b_cfg.spatial_no_pe_internal = true;
+            b_cfg.root_pimc_worlds = 0;
+            let (res, wall_s) = run_parallel(&seeds, |s| play_beam_seed(s, &b_cfg));
+            summarize(name, &res, wall_s, ref_res.as_deref());
+            if ref_res.is_none() {
+                ref_res = Some(res);
+            }
+        }
+        return;
+    }
+
     if mode == "psd20" {
         let mut ref_res: Option<Vec<GameRes>> = None;
         for &(name, sims, max_a, root_a) in &[
