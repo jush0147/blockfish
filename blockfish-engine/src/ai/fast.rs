@@ -334,6 +334,10 @@ pub struct FastShapeTable {
 }
 
 impl FastShapeTable {
+    pub fn new_srs() -> Self {
+        Self::from_shape_table(&crate::shape::srs())
+    }
+
     pub fn from_shape_table(shtb: &ShapeTable) -> Self {
         let mut shapes_opt: [Option<FastShape>; 7] = [None, None, None, None, None, None, None];
         for idx in 0..7 {

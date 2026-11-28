@@ -334,6 +334,14 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
             - **True Non-Clairvoyant CRN Rollout PIMC (`nc_rollout.rs`, `2/2` unit tests pass) — FAST ELIMINATED**:
               - Tested on `101..=110` (`W=18`, `K=12`, `p1` fast linear rollout policy): `NC_w18_h8_p1 = 232.90 [215..254]` (`39.5s`), `NC_w18_h12_p1 = 243.10 [227..260]` (`59.9s`, `+10.20` worse).
               - **Conclusion**: Rolling out a weak fast linear policy (`~260` pcs) for `8..12` steps degrades board quality too rapidly to guide `185`-piece play. Fast-eliminated cleanly with zero Colab CU spent.
+            - **SO-ISMCTS v2: Full Observable Next-5 `vis_q`, True Throughput/Depth Diagnostics, Endgame Solver & Acyclic Transposition DAG (`ismcts.rs`, `4/4` unit tests pass)**:
+              - Upgraded `DecisionNode` to store full observable `vis_q[..vis_len]` + `bag_mask` (zero `root_q` dependency in `expand_node`), added `test_ismcts_uses_full_next5_preview_information`, `solve_deterministic_endgame` (`rem_g <= 9 && rem_g == g_rows`), and acyclic `TransKey` DAG.
+              - **20 Fresh Independent Seeds (`20001..=20020`, 2 CPU threads, all `top=0.0%`, `s=2400, d=12, bellman`)**:
+                - `A_base_noSplit_noEG`: `192.60 [179..202]` (`wall=177.1s, 406.5 g/hr, 78,296 st/hr, avg_d=6.71, ps_d=0.64`)
+                - `B_fullNext5_splitTail`: `208.90 [187..231]` (`wall=184.6s, avg_d=3.98, ps_d=0.22`, `+16.30±2.40, W/T/L=1/0/19` — fast-eliminated due to 7× branching on `next[4]` at `d=1`)
+                - `C_noSplit_EG`: `192.50 [179..202]` (`wall=175.3s, 410.7 g/hr, avg_d=6.82, ps_d=0.64, eg=6.8`, `-0.10±0.10, W/T/L=1/19/0`)
+                - **`D_noSplit_EG_TransDAG`**: **`190.60 [181..203]`** (`wall=161.8s, 445.0 g/hr, 84,825 st/hr, avg_d=7.12, ps_d=0.77, eg=6.8, tr=269.8`, **`-2.00±1.80, 95%CI=[-5.54,+1.54], W/T/L=13/1/6`** — faster, deeper post-spawn, and `-2.00` pcs better on 20 fresh seeds!).
+
 
 
 

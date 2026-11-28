@@ -3,26 +3,29 @@
 //!
 //! Design guarantees:
 //! 1. **Strict Legal `p=5` Observability**: Never reads beyond `snapshot.queue[..6]` (cur + 5 previews)
-//!    or `ctx.next_bag_mask`. All future pieces and unspawned garbage holes are sampled legally.
-//! 2. **Zero Strategy Fusion**: Every decision node in the tree represents an observable state
-//!    reached *before* unspawned garbage holes or unrevealed future pieces occur. All determinized
-//!    simulations reaching the same decision node share the exact same PUCT action statistics
-//!    `(N, Q, P)` and cannot condition their move on unrevealed future outcomes. Branching into
-//!    distinct child decision nodes happens strictly *after* a chance event (garbage spawn or new
-//!    active piece draw) becomes observable.
+//!    or `ctx.next_bag_mask`. Every `DecisionNode` stores its own exact observable preview window
+//!    `vis_q[..vis_len]` and `bag_mask`, updated strictly when chance events reveal new pieces.
+//! 2. **Zero Strategy Fusion**: Every decision node represents an observable information set
+//!    reached *before* unspawned garbage holes or unrevealed future pieces occur. All simulations
+//!    reaching the same decision node share the exact same PUCT action statistics `(N, Q, P)` and
+//!    cannot condition their move on unrevealed future outcomes.
 //! 3. **Depth-Consistent Cost-to-Go**: Uses Frozen BC-4 FULL-MLP (`SpatialValueModel::evaluate_board_with_bag`)
-//!    for leaf values (`J(v) = depth * 100 + V_bc4(v)`, centipieces, lower is better) and Frozen BC-4
-//!    fast linear evaluation for 1-ply action priors `P(u, a)`.
+//!    for leaf values (`J(v) = depth * step_cost_cp + V_bc4(v)`, centipieces, lower is better) and
+//!    Frozen BC-4 fast linear evaluation for 1-ply action priors `P(u, a)`.
 
+use std::collections::HashMap;
+use std::hash::BuildHasherDefault;
 use std::sync::Arc;
 
 use super::{
-    beam::{BagTracker, GameContext},
+    beam::{BagTracker, FxHasher, GameContext},
     fast::{color_to_idx, idx_to_color, FastBoard, FastPlace, FastPlaceGen, FastShapeTable},
     spatial_val::SpatialValueModel,
     Snapshot,
 };
 use crate::{finesse::FinesseFinder, shape::ShapeTable, Color, Input};
+
+type FxHashMap<K, V> = HashMap<K, V, BuildHasherDefault<FxHasher>>;
 
 /// Configuration for `IsMctsSearcher`.
 #[derive(Clone, Debug)]
@@ -53,14 +56,24 @@ pub struct IsMctsConfig {
     /// Backup mode at decision nodes: `0` = standard MCTS mean backup, `1` = Bellman Expecti-Min,
     /// `2` = 50/50 blend, `3` = conservative Bellman.
     pub backup_mode: u8,
-    /// Optional strictly-observable deterministic greedy lookahead plies at leaf expansion
-    /// (uses ONLY `root_q[qc..q_len]` and stops immediately before any unknown garbage spawn).
-    pub leaf_obs_lookahead: usize,
     /// Per-ply step cost in centipieces added to leaf `V_bc4` (`depth * step_cost_cp + V_bc4`).
-    /// Calibrating this to `V_bc4`'s empirical per-move drop (~89 cp) eliminates variable-depth bias.
     pub step_cost_cp: f64,
-    /// Frozen BC-4 spatial value model (required for full-MLP leaf evaluation + linear prior).
+    /// If true, chance events branch on every newly revealed tail preview piece so every child
+    /// `DecisionNode` maintains the exact full 6-piece Legal `p=5` window (`cur + next5`).
+    /// If false, child nodes retain all already-revealed pieces from the parent's `vis_q` and
+    /// only reveal new pieces from `bag_mask` once needed to keep `(cur, next1)` known.
+    pub split_tail_preview: bool,
+    /// If true, run a fast deterministic Legal `p=5` exact clear solver whenever all remaining
+    /// garbage is already visible on the board (`rem_g <= 9 && rem_g == garbage_rows`).
+    pub use_endgame_solver: bool,
+    /// If true, share identical `(board, hold, rem_g, vis_q, vis_len, bag_mask, depth)` nodes
+    /// across paths via an acyclic Transposition DAG.
+    pub use_transposition: bool,
+    /// Frozen or iterated spatial value model (used for full-MLP leaf evaluation).
     pub spatial_model: Option<Arc<SpatialValueModel>>,
+    /// Optional separate policy prior model (used ONLY for 1-ply linear prior `P(u, a)` in `expand_node`;
+    /// falls back to `spatial_model` when `None`).
+    pub policy_prior: Option<Arc<SpatialValueModel>>,
 }
 
 impl Default for IsMctsConfig {
@@ -77,10 +90,13 @@ impl Default for IsMctsConfig {
             topout_penalty: 4000.0,
             steady_g4: true,
             select_by_visits: false,
-            backup_mode: 0,
-            leaf_obs_lookahead: 0,
+            backup_mode: 1,
             step_cost_cp: 100.0,
+            split_tail_preview: true,
+            use_endgame_solver: false,
+            use_transposition: false,
             spatial_model: None,
+            policy_prior: None,
         }
     }
 }
@@ -94,7 +110,20 @@ pub struct IsMctsResult {
     pub total_simulations: usize,
     pub nodes_expanded: usize,
     pub mlp_evals: usize,
-    pub root_candidates: Vec<(FastPlace, u32, f64, f64)>, // (place, visits, q_mean, prior)
+    /// Average depth (in plies from root) reached per simulation.
+    pub avg_sim_depth: f64,
+    /// Maximum depth reached across all simulations.
+    pub max_sim_depth: usize,
+    /// Average additional depth reached *after* the first garbage spawn (among simulations
+    /// that triggered at least one garbage spawn).
+    pub post_spawn_avg_depth: f64,
+    /// Number of simulations that triggered at least one garbage spawn.
+    pub spawn_sims: usize,
+    /// Number of transposition DAG hits (when `use_transposition == true`).
+    pub trans_hits: usize,
+    /// Whether the move was chosen by the deterministic endgame clear solver.
+    pub used_endgame_solver: bool,
+    pub root_candidates: Vec<(FastPlace, u32, f64, f64)>, // (place, visits, q, prior)
 }
 
 #[derive(Clone, Debug)]
@@ -107,8 +136,6 @@ struct ActionEdge {
     term_visits: u32,
     term_q_sum: f64,
     /// Chance outcome key -> child decision node index.
-    /// When the transition is deterministic (no garbage spawn & no newly revealed active piece),
-    /// there is at most 1 entry with `chance_key == 0`.
     children: Vec<(u64, u32)>,
 }
 
@@ -143,11 +170,14 @@ struct DecisionNode {
     hold: Option<u8>,
     rem_g: u16,
     depth: u8,
+    /// Queue cursor in the determinized world `world.q` corresponding to `vis_q[0]`.
     qc: u8,
-    cur_piece: Option<u8>,
-    next1_piece: Option<u8>,
+    /// Observable piece window at this decision node (`vis_q[0] = cur`, `vis_q[1..vis_len] = next previews`).
+    vis_q: [u8; 6],
+    vis_len: u8,
+    /// Legal 7-bag remaining piece mask *after* `vis_q[..vis_len]`.
     bag_mask: u8,
-    /// Cached `depth * 100 + V_bc4(node)` in centipieces.
+    /// Cached `depth * step_cost_cp + V_bc4(node)` in centipieces.
     leaf_val: f64,
     v_bellman: f64,
     visits: u32,
@@ -156,11 +186,32 @@ struct DecisionNode {
     expanded: bool,
 }
 
+#[derive(Clone, Copy, Eq, PartialEq, Hash)]
+struct TransKey {
+    board: FastBoard,
+    hold: Option<u8>,
+    rem_g: u16,
+    vis_q: [u8; 6],
+    vis_len: u8,
+    bag_mask: u8,
+    depth: u8,
+}
+
 #[derive(Clone, Copy)]
 struct SampledWorld {
-    q: [u8; 32],
-    bags: [u8; 32],
+    q: [u8; 40],
+    bags: [u8; 40],
     holes: [u16; 48],
+}
+
+#[derive(Clone, Copy)]
+struct EndgameNode {
+    board: FastBoard,
+    hold: Option<u8>,
+    rem_g: u16,
+    q_off: u8,
+    first_idx: u16,
+    score: f64,
 }
 
 /// Reusable Single-Observer IS-MCTS searcher.
@@ -171,6 +222,7 @@ pub struct IsMctsSearcher {
     ff: FinesseFinder,
     bag_tracker: BagTracker,
     nodes: Vec<DecisionNode>,
+    trans_map: FxHashMap<TransKey, u32>,
     tmp_places: Vec<FastPlace>,
 }
 
@@ -184,6 +236,7 @@ impl IsMctsSearcher {
             ff: FinesseFinder::new(),
             bag_tracker: BagTracker::new(),
             nodes: Vec::with_capacity(4096),
+            trans_map: FxHashMap::default(),
             tmp_places: Vec::with_capacity(128),
         }
     }
@@ -277,38 +330,17 @@ impl IsMctsSearcher {
         Some((num, key))
     }
 
-    /// Legal observable `avail_mask` at depth `d`: uses ONLY pieces observable at `(hold, qc)`
-    /// within the initial `q_len_root` window + `bag_mask` (NEVER peeks at `world_q[>= q_len_root]`
-    /// beyond `cur_piece` / `next1_piece`).
+    /// Legal observable `avail_mask` derived strictly from this node's own `vis_q[..vis_len]` + `bag_mask`.
     #[inline]
-    fn observable_avail_mask(
-        hold: Option<u8>,
-        qc: usize,
-        root_q: &[u8],
-        cur_piece: Option<u8>,
-        next1_piece: Option<u8>,
-        bag_mask: u8,
-    ) -> u8 {
+    fn avail_mask_from_vis(hold: Option<u8>, vis_q: &[u8], bag_mask: u8) -> u8 {
         let mut mask = 0u8;
         if let Some(h) = hold {
             mask |= 1u8 << h;
         }
-        if let Some(c) = cur_piece {
-            mask |= 1u8 << c;
+        for &p in vis_q {
+            mask |= 1u8 << p;
         }
-        if let Some(n1) = next1_piece {
-            mask |= 1u8 << n1;
-        }
-        // Any remaining pieces already visible from the root preview window (<= 5 previews)
-        let mut cnt = 0usize;
-        for i in qc..root_q.len() {
-            mask |= 1u8 << root_q[i];
-            cnt += 1;
-            if cnt >= 6 {
-                break;
-            }
-        }
-        if cnt < 3 {
+        if vis_q.len() < 3 {
             mask |= bag_mask;
         }
         if mask == 0 {
@@ -387,8 +419,8 @@ impl IsMctsSearcher {
         base_seed: u64,
     ) -> SampledWorld {
         let mut w = SampledWorld {
-            q: [0u8; 32],
-            bags: [0x7Fu8; 32],
+            q: [0u8; 40],
+            bags: [0x7Fu8; 40],
             holes: [0u16; 48],
         };
         let q_len = root_q.len().min(6);
@@ -401,7 +433,6 @@ impl IsMctsSearcher {
             ^ ((sim_idx as u64).wrapping_add(1)).wrapping_mul(0x9E3779B97F4A7C15)
             ^ 0xBF58476D1CE4E5B9;
 
-        // Stratified first unknown piece from `bag_mask`
         let mut bag_bits = [0u8; 7];
         let mut bag_n = 0usize;
         for p in 0..7u8 {
@@ -411,7 +442,7 @@ impl IsMctsSearcher {
             }
         }
         let mut bag = bag_mask;
-        if q_len < 32 {
+        if q_len < 40 {
             if bag_n > 0 {
                 let p0 = bag_bits[sim_idx % bag_n];
                 w.q[q_len] = p0;
@@ -420,19 +451,18 @@ impl IsMctsSearcher {
                     bag = 0x7F;
                 }
                 w.bags[q_len] = bag;
-                for step in (q_len + 1)..32 {
+                for step in (q_len + 1)..40 {
                     w.q[step] = Self::draw_from_bag(&mut bag, &mut rng);
                     w.bags[step] = bag;
                 }
             } else {
-                for step in q_len..32 {
+                for step in q_len..40 {
                     w.q[step] = Self::draw_from_bag(&mut bag, &mut rng);
                     w.bags[step] = bag;
                 }
             }
         }
 
-        // Stratified first unknown garbage hole offset (1..=9)
         let mut h_rng = rng ^ 0xD6E8FEB86659FD93;
         let mut prev_h = match init_prev_hole {
             Some(ph) => ph,
@@ -450,16 +480,177 @@ impl IsMctsSearcher {
         w
     }
 
-    /// Expand a decision node: generate legal placements for `(cur_piece, hold)` and compute
-    /// 1-ply linear BC-4 priors `P(u, a)` using ONLY currently observable information.
-    fn expand_node(
+    /// Deterministic Legal `p=5` endgame exact-clear solver when all remaining garbage is
+    /// already on the board (`rem_g <= 9 && rem_g == root_board.garbage_rows`).
+    /// Uses ONLY the currently observable `root_q[..q_len]` + `hold0` (zero future peeking).
+    /// Returns `Some((best_fp, exact_score))` if a guaranteed exact clear (`rem_g == 0`) is found.
+    fn solve_deterministic_endgame(
         &mut self,
-        node_idx: usize,
+        root_board: &FastBoard,
+        hold0: Option<u8>,
         root_q: &[u8],
-        max_actions: usize,
+        bag_mask: u8,
+        rem_g0: u16,
         cfg: &IsMctsConfig,
-    ) {
-        let (board, hold, rem_g, qc, cur_piece, next1_piece, bag_mask) = {
+    ) -> Option<(FastPlace, i64)> {
+        let q_len = root_q.len();
+        if q_len == 0 || rem_g0 == 0 || rem_g0 > 9 || rem_g0 != root_board.garbage_rows as u16 {
+            return None;
+        }
+
+        let sm = cfg.spatial_model.as_deref();
+        let cur0 = Some(root_q[0]);
+        let (c_nh0, c_h0) = if hold0.is_some() {
+            (cur0, hold0)
+        } else {
+            (cur0, root_q.get(1).copied())
+        };
+
+        let mut root_places = Vec::with_capacity(128);
+        self.pgen
+            .generate_for_state(&self.fst, root_board, c_nh0, c_h0, &mut root_places);
+        if root_places.is_empty() {
+            return None;
+        }
+
+        let mut cur_beam: Vec<EndgameNode> = Vec::with_capacity(128);
+        let mut best_clear: Option<(usize, usize, u8)> = None; // (plies, first_idx, rows)
+
+        for (idx, &fp) in root_places.iter().enumerate() {
+            let mut b2 = *root_board;
+            let orient = &self.fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
+            let (_lines, ds, _) = b2.place_and_sift(orient, fp.norm_i, fp.norm_j);
+            let rem2 = rem_g0.saturating_sub(ds as u16);
+            if rem2 == 0 && b2.rows < 20 {
+                let cand = (1usize, idx, b2.rows);
+                if best_clear.map_or(true, |bc| (cand.0, cand.2) < (bc.0, bc.2)) {
+                    best_clear = Some(cand);
+                }
+                continue;
+            }
+            if b2.rows >= 20 {
+                continue;
+            }
+            let (nh, nq) = if hold0.is_some() {
+                if fp.did_hold {
+                    (cur0, 1.min(q_len))
+                } else {
+                    (hold0, 1.min(q_len))
+                }
+            } else if fp.did_hold {
+                (cur0, 2.min(q_len))
+            } else {
+                (None, 1.min(q_len))
+            };
+            let vis_slice = &root_q[nq.min(q_len)..];
+            let ih = nh.or_else(|| vis_slice.first().copied());
+            let av = Self::avail_mask_from_vis(nh, vis_slice, bag_mask);
+            let sc = Self::eval_prior_linear(sm, &b2, rem2, ih, av);
+            cur_beam.push(EndgameNode {
+                board: b2,
+                hold: nh,
+                rem_g: rem2,
+                q_off: nq as u8,
+                first_idx: idx as u16,
+                score: sc,
+            });
+        }
+
+        if let Some((plies, fidx, rows)) = best_clear {
+            return Some((root_places[fidx], (plies as i64) * 100 + (rows as i64) * 5));
+        }
+
+        let max_plies = q_len + usize::from(hold0.is_some());
+        let width = 64usize;
+        cur_beam.sort_by(|a, b| a.score.total_cmp(&b.score));
+        if cur_beam.len() > width {
+            cur_beam.truncate(width);
+        }
+
+        let mut nxt_beam: Vec<EndgameNode> = Vec::with_capacity(512);
+        let mut seen: FxHashMap<(FastBoard, Option<u8>, u8), ()> = FxHashMap::default();
+
+        for ply in 2..=max_plies {
+            nxt_beam.clear();
+            seen.clear();
+            for &node in &cur_beam {
+                let qo = node.q_off as usize;
+                let cur = root_q.get(qo).copied();
+                let (c_nh, c_h) = if node.hold.is_some() {
+                    (cur, node.hold)
+                } else {
+                    (cur, root_q.get(qo + 1).copied())
+                };
+                if c_nh.is_none() && c_h.is_none() {
+                    continue;
+                }
+                self.pgen
+                    .generate_for_state(&self.fst, &node.board, c_nh, c_h, &mut self.tmp_places);
+                for &fp in &self.tmp_places {
+                    let mut b2 = node.board;
+                    let orient = &self.fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
+                    let (_lines, ds, _) = b2.place_and_sift(orient, fp.norm_i, fp.norm_j);
+                    let rem2 = node.rem_g.saturating_sub(ds as u16);
+                    if rem2 == 0 && b2.rows < 20 {
+                        let cand = (ply, node.first_idx as usize, b2.rows);
+                        if best_clear.map_or(true, |bc| (cand.0, cand.2) < (bc.0, bc.2)) {
+                            best_clear = Some(cand);
+                        }
+                        continue;
+                    }
+                    if b2.rows >= 20 {
+                        continue;
+                    }
+                    // Optimistic pruning: ds <= 1 per piece, so if remaining plies < rem2, cannot clear.
+                    if max_plies - ply < rem2 as usize {
+                        continue;
+                    }
+                    let (nh, nq) = if node.hold.is_some() {
+                        if fp.did_hold {
+                            (cur, if cur.is_some() { (qo + 1).min(q_len) } else { qo })
+                        } else {
+                            (node.hold, (qo + 1).min(q_len))
+                        }
+                    } else if fp.did_hold {
+                        (cur, (qo + 2).min(q_len))
+                    } else {
+                        (None, (qo + 1).min(q_len))
+                    };
+                    if seen.insert((b2, nh, nq as u8), ()).is_some() {
+                        continue;
+                    }
+                    let vis_slice = &root_q[nq.min(q_len)..];
+                    let ih = nh.or_else(|| vis_slice.first().copied());
+                    let av = Self::avail_mask_from_vis(nh, vis_slice, bag_mask);
+                    let sc = Self::eval_prior_linear(sm, &b2, rem2, ih, av);
+                    nxt_beam.push(EndgameNode {
+                        board: b2,
+                        hold: nh,
+                        rem_g: rem2,
+                        q_off: nq as u8,
+                        first_idx: node.first_idx,
+                        score: sc,
+                    });
+                }
+            }
+            if let Some((plies, fidx, rows)) = best_clear {
+                return Some((root_places[fidx], (plies as i64) * 100 + (rows as i64) * 5));
+            }
+            if nxt_beam.is_empty() {
+                break;
+            }
+            nxt_beam.sort_by(|a, b| a.score.total_cmp(&b.score));
+            if nxt_beam.len() > width {
+                nxt_beam.truncate(width);
+            }
+            std::mem::swap(&mut cur_beam, &mut nxt_beam);
+        }
+        None
+    }
+
+    /// Expand a decision node using ONLY this node's own observable `vis_q[..vis_len]` and `bag_mask`.
+    fn expand_node(&mut self, node_idx: usize, max_actions: usize, cfg: &IsMctsConfig) {
+        let (board, hold, rem_g, vis_q, vis_len, bag_mask) = {
             let n = &self.nodes[node_idx];
             if n.expanded {
                 return;
@@ -468,13 +659,14 @@ impl IsMctsSearcher {
                 n.board,
                 n.hold,
                 n.rem_g,
-                n.qc as usize,
-                n.cur_piece,
-                n.next1_piece,
+                n.vis_q,
+                n.vis_len as usize,
                 n.bag_mask,
             )
         };
 
+        let cur_piece = if vis_len > 0 { Some(vis_q[0]) } else { None };
+        let next1_piece = if vis_len > 1 { Some(vis_q[1]) } else { None };
         let (c_nh, c_h) = if hold.is_some() {
             (cur_piece, hold)
         } else {
@@ -489,7 +681,10 @@ impl IsMctsSearcher {
             return;
         }
 
-        let sm = cfg.spatial_model.as_deref();
+        let sm = cfg
+            .policy_prior
+            .as_deref()
+            .or(cfg.spatial_model.as_deref());
         let mut scored: Vec<(FastPlace, f64, bool)> = Vec::with_capacity(self.tmp_places.len());
         for &fp in &self.tmp_places {
             let mut b2 = board;
@@ -497,26 +692,23 @@ impl IsMctsSearcher {
             let (_lines, ds, _) = b2.place_and_sift(orient, fp.norm_i, fp.norm_j);
             let rem2 = rem_g.saturating_sub(ds as u16);
 
-            let (nh, nqc) = if hold.is_some() {
+            let (nh, consumed) = if hold.is_some() {
                 if fp.did_hold {
-                    (cur_piece, if cur_piece.is_some() { qc + 1 } else { qc })
+                    (cur_piece, usize::from(cur_piece.is_some()))
                 } else {
-                    (hold, qc + 1)
+                    (hold, 1.min(vis_len))
                 }
             } else if fp.did_hold {
-                (cur_piece, qc + 2)
+                (cur_piece, 2.min(vis_len))
             } else {
-                (None, qc + 1)
+                (None, 1.min(vis_len))
             };
 
-            let next_cur_obs = if nqc < root_q.len() {
-                Some(root_q[nqc])
-            } else {
-                None
-            };
-            let in_hand = nh.or(next_cur_obs);
-            let avail = Self::observable_avail_mask(nh, nqc, root_q, next_cur_obs, None, bag_mask);
-            let s1 = 100.0 + Self::eval_prior_linear(sm, &b2, rem2, in_hand, avail);
+            // Strictly use the remaining already-observable slice of `node.vis_q` (zero future peeking!)
+            let rem_vis = &vis_q[consumed.min(vis_len)..vis_len];
+            let in_hand = nh.or_else(|| rem_vis.first().copied());
+            let avail = Self::avail_mask_from_vis(nh, rem_vis, bag_mask);
+            let s1 = cfg.step_cost_cp + Self::eval_prior_linear(sm, &b2, rem2, in_hand, avail);
             scored.push((fp, s1, ds > 0));
         }
 
@@ -546,7 +738,6 @@ impl IsMctsSearcher {
             }
         }
 
-        // Softmax prior `P(u, a) = exp(-(s1 - min_s1) / temp)`
         let min_s1 = selected
             .iter()
             .map(|x| x.1)
@@ -586,14 +777,13 @@ impl IsMctsSearcher {
     }
 
     /// Select action index at decision node `node_idx` via PUCT (lower Q is better).
-    /// Strictly uses ONLY `self.nodes[node_idx]` statistics — zero dependence on hidden future!
+    /// Strictly uses ONLY `self.nodes[node_idx]` statistics — zero Strategy Fusion!
     #[inline]
     fn select_puct(&self, node_idx: usize, cfg: &IsMctsConfig) -> usize {
         let node = &self.nodes[node_idx];
         let parent_n = (node.visits.max(1)) as f64;
         let sqrt_n = parent_n.sqrt();
 
-        // Reference Q for normalization: best visited Q or node's own leaf_val.
         let mut min_visited_q = f64::INFINITY;
         let mut max_visited_q = f64::NEG_INFINITY;
         for e in &node.actions {
@@ -649,11 +839,11 @@ impl IsMctsSearcher {
     ) -> IsMctsResult {
         // Strictly truncate to Legal p=5 (`cur` + 5 previews = 6 pieces max).
         let q_len = snapshot.queue.len().min(6);
-        let mut root_q_arr = [0u8; 6];
+        let mut root_vis_q = [0u8; 6];
         for i in 0..q_len {
-            root_q_arr[i] = color_to_idx(snapshot.queue[i]) as u8;
+            root_vis_q[i] = color_to_idx(snapshot.queue[i]) as u8;
         }
-        let root_q = &root_q_arr[..q_len];
+        let root_q = &root_vis_q[..q_len];
 
         let g_rows = ctx
             .garbage_rows
@@ -661,11 +851,33 @@ impl IsMctsSearcher {
         let rem_g0 = ctx.remaining_garbage.unwrap_or(g_rows);
         let root_board = FastBoard::from_basic_matrix(&snapshot.matrix, g_rows);
         let hold0 = snapshot.hold.map(|c| color_to_idx(c) as u8);
-        let cur0 = if q_len > 0 { Some(root_q[0]) } else { None };
-        let next1_0 = if q_len > 1 { Some(root_q[1]) } else { None };
         let bag_mask = ctx
             .next_bag_mask
             .unwrap_or_else(|| self.bag_tracker.observe(snapshot.hold, &snapshot.queue[..q_len]));
+
+        // Optional deterministic exact-clear endgame solver when all remaining garbage is visible.
+        if cfg.use_endgame_solver {
+            if let Some((eg_fp, eg_sc)) =
+                self.solve_deterministic_endgame(&root_board, hold0, root_q, bag_mask, rem_g0, cfg)
+            {
+                let inputs = self.fp_to_inputs(&snapshot.matrix, eg_fp);
+                return IsMctsResult {
+                    inputs,
+                    best_q: eg_sc,
+                    best_visits: 1,
+                    total_simulations: 0,
+                    nodes_expanded: 1,
+                    mlp_evals: 0,
+                    avg_sim_depth: 0.0,
+                    max_sim_depth: 0,
+                    post_spawn_avg_depth: 0.0,
+                    spawn_sims: 0,
+                    trans_hits: 0,
+                    used_endgame_solver: true,
+                    root_candidates: vec![(eg_fp, 1, eg_sc as f64, 1.0)],
+                };
+            }
+        }
 
         // Deterministic CRN seed derived purely from observable root state.
         let mut base_seed: u64 = 0x517cc1b727220a95
@@ -683,8 +895,8 @@ impl IsMctsSearcher {
         }
 
         let sm = cfg.spatial_model.as_deref();
-        let avail0 = Self::observable_avail_mask(hold0, 0, root_q, cur0, next1_0, bag_mask);
-        let in_hand0 = hold0.or(cur0);
+        let avail0 = Self::avail_mask_from_vis(hold0, root_q, bag_mask);
+        let in_hand0 = hold0.or_else(|| root_q.first().copied());
         let root_ref = Self::eval_leaf_full(
             sm,
             &root_board,
@@ -698,14 +910,17 @@ impl IsMctsSearcher {
         );
 
         self.nodes.clear();
+        if cfg.use_transposition {
+            self.trans_map.clear();
+        }
         self.nodes.push(DecisionNode {
             board: root_board,
             hold: hold0,
             rem_g: rem_g0,
             depth: 0,
             qc: 0,
-            cur_piece: cur0,
-            next1_piece: next1_0,
+            vis_q: root_vis_q,
+            vis_len: q_len as u8,
             bag_mask,
             leaf_val: root_ref,
             v_bellman: root_ref,
@@ -714,7 +929,7 @@ impl IsMctsSearcher {
             actions: Vec::new(),
             expanded: false,
         });
-        self.expand_node(0, root_q, cfg.root_max_actions, cfg);
+        self.expand_node(0, cfg.root_max_actions, cfg);
 
         let mut mlp_evals = 1usize;
         if self.nodes[0].actions.is_empty() {
@@ -725,6 +940,12 @@ impl IsMctsSearcher {
                 total_simulations: 0,
                 nodes_expanded: 1,
                 mlp_evals,
+                avg_sim_depth: 0.0,
+                max_sim_depth: 0,
+                post_spawn_avg_depth: 0.0,
+                spawn_sims: 0,
+                trans_hits: 0,
+                used_endgame_solver: false,
                 root_candidates: Vec::new(),
             };
         }
@@ -732,17 +953,24 @@ impl IsMctsSearcher {
         let init_prev_hole = Self::bottom_hole_col(&root_board);
         let sims = cfg.simulations.max(1);
         let mut path: Vec<(usize, usize)> = Vec::with_capacity(cfg.max_depth + 2);
+        let mut sim_depth_sum = 0usize;
+        let mut max_sim_depth = 0usize;
+        let mut post_spawn_depth_sum = 0usize;
+        let mut spawn_sims = 0usize;
+        let mut trans_hits = 0usize;
 
         for sim in 0..sims {
             let world = Self::sample_world(root_q, bag_mask, init_prev_hole, sim, base_seed);
             let mut node_idx = 0usize;
             let mut hole_cursor = 0usize;
             let mut terminal_on_last_edge = false;
+            let mut first_spawn_depth: Option<usize> = None;
+            let mut reached_depth = 0usize;
             path.clear();
 
             let backed_val: f64 = loop {
                 if !self.nodes[node_idx].expanded {
-                    self.expand_node(node_idx, root_q, cfg.max_actions, cfg);
+                    self.expand_node(node_idx, cfg.max_actions, cfg);
                 }
                 if self.nodes[node_idx].actions.is_empty() {
                     let v = root_ref + cfg.topout_penalty;
@@ -765,17 +993,20 @@ impl IsMctsSearcher {
                 let act_idx = self.select_puct(node_idx, cfg);
                 path.push((node_idx, act_idx));
 
-                let (board, hold, rem_g, qc, cur_piece, fp) = {
+                let (board, hold, rem_g, qc, vis_q, vis_len, bag_cur, fp) = {
                     let n = &self.nodes[node_idx];
                     (
                         n.board,
                         n.hold,
                         n.rem_g,
                         n.qc as usize,
-                        n.cur_piece,
+                        n.vis_q,
+                        n.vis_len as usize,
+                        n.bag_mask,
                         n.actions[act_idx].fp,
                     )
                 };
+                let cur_piece = if vis_len > 0 { Some(vis_q[0]) } else { None };
 
                 // 2. Deterministic placement
                 let mut b2 = board;
@@ -783,6 +1014,7 @@ impl IsMctsSearcher {
                 let (lines, ds, _) = b2.place_and_sift(orient, fp.norm_i, fp.norm_j);
                 let rem2 = rem_g.saturating_sub(ds as u16);
                 let next_depth = depth + 1;
+                reached_depth = next_depth;
 
                 if rem2 == 0 && b2.rows < 20 {
                     terminal_on_last_edge = true;
@@ -803,7 +1035,12 @@ impl IsMctsSearcher {
                         &world.holes,
                         &mut hole_cursor,
                     ) {
-                        Some((_n_spawn, sk)) => sk,
+                        Some((n_spawn, sk)) => {
+                            if n_spawn > 0 && first_spawn_depth.is_none() {
+                                first_spawn_depth = Some(next_depth);
+                            }
+                            sk
+                        }
                         None => {
                             terminal_on_last_edge = true;
                             break root_ref + cfg.topout_penalty;
@@ -813,44 +1050,55 @@ impl IsMctsSearcher {
                     0u64
                 };
 
-                // 4. Advance hold / queue cursor
-                let (nh, nqc) = if hold.is_some() {
+                // 4. Advance hold / queue cursor & update observable preview window `vis_q_next`
+                let (nh, consumed) = if hold.is_some() {
                     if fp.did_hold {
-                        (cur_piece, if cur_piece.is_some() { qc + 1 } else { qc })
+                        (cur_piece, usize::from(cur_piece.is_some()))
                     } else {
-                        (hold, qc + 1)
+                        (hold, 1)
                     }
                 } else if fp.did_hold {
-                    (cur_piece, qc + 2)
+                    (cur_piece, 2)
                 } else {
-                    (None, qc + 1)
+                    (None, 1)
                 };
+                let nqc = qc + consumed;
 
-                // 5. Chance Event 2: Newly revealed playable piece(s) beyond initial root window
-                let cur_next = if nqc < 32 { Some(world.q[nqc]) } else { None };
-                let next1_next = if nh.is_none() && nqc + 1 < 32 {
-                    Some(world.q[nqc + 1])
-                } else if nqc + 1 < q_len {
-                    Some(root_q[nqc + 1])
+                // Build child's observable `vis_q_next` and `piece_key`:
+                // - Start with remaining already-observable pieces `vis_q[consumed..vis_len]`.
+                // - If `split_tail_preview`: refill up to 6 pieces (full Legal p=5 window) from `world.q`,
+                //   encoding EVERY newly revealed piece into `piece_key`.
+                // - If `!split_tail_preview`: only refill up to `min_need` (`1` if `nh.is_some()`, else `2`)
+                //   from `world.q`, encoding those newly revealed pieces into `piece_key`.
+                let mut vis_q_next = [0u8; 6];
+                let kept = vis_len.saturating_sub(consumed);
+                for i in 0..kept {
+                    vis_q_next[i] = vis_q[consumed + i];
+                }
+                let target_vis = if cfg.split_tail_preview {
+                    6usize.min(world.q.len().saturating_sub(nqc))
                 } else {
-                    None
+                    let min_need = if nh.is_some() { 1 } else { 2 };
+                    kept.max(min_need).min(world.q.len().saturating_sub(nqc))
                 };
-                let bag_next = if nqc < 32 { world.bags[nqc] } else { 0x7F };
-
                 let mut piece_key: u64 = 0;
-                if nqc >= q_len {
-                    if let Some(cn) = cur_next {
-                        piece_key = (cn as u64) + 1;
-                    }
+                for i in kept..target_vis {
+                    let p_new = world.q[nqc + i];
+                    vis_q_next[i] = p_new;
+                    piece_key = (piece_key << 4) | ((p_new as u64) + 1);
                 }
-                if nh.is_none() && nqc + 1 >= q_len {
-                    if let Some(n1) = next1_next {
-                        piece_key = (piece_key << 4) | ((n1 as u64) + 1);
-                    }
-                }
-                let chance_key = (spawn_key << 8) | piece_key;
+                let vis_len_next = target_vis;
+                let bag_next = if vis_len_next > kept {
+                    // Bag state strictly after the last revealed piece `nqc + vis_len_next - 1`
+                    world.bags[(nqc + vis_len_next - 1).min(world.bags.len() - 1)]
+                } else {
+                    // No new piece was revealed beyond parent's window; bag_mask unchanged
+                    bag_cur
+                };
 
-                // 6. Look up or expand child decision node for `(node_idx, act_idx, chance_key)`
+                let chance_key = (spawn_key << 12) | piece_key;
+
+                // 5. Look up existing child edge `(node_idx, act_idx, chance_key)`
                 let existing_child = self.nodes[node_idx].actions[act_idx]
                     .children
                     .iter()
@@ -860,169 +1108,51 @@ impl IsMctsSearcher {
                 if let Some(cid) = existing_child {
                     node_idx = cid;
                 } else {
-                    let leaf_v = if cfg.leaf_obs_lookahead == 0 {
-                        let in_hand_next = nh.or(cur_next);
-                        let avail_next = Self::observable_avail_mask(
-                            nh,
-                            nqc,
-                            root_q,
-                            cur_next,
-                            next1_next,
-                            bag_next,
-                        );
-                        Self::eval_leaf_full(
-                            sm,
-                            &b2,
-                            rem2,
-                            in_hand_next,
-                            avail_next,
-                            next_depth,
-                            cfg.step_cost_cp,
-                            root_ref,
-                            cfg.topout_penalty,
-                        )
+                    // Optional Transposition DAG lookup (acyclic because `depth` is in `TransKey`)
+                    let trans_hit = if cfg.use_transposition {
+                        let tkey = TransKey {
+                            board: b2,
+                            hold: nh,
+                            rem_g: rem2,
+                            vis_q: vis_q_next,
+                            vis_len: vis_len_next as u8,
+                            bag_mask: bag_next,
+                            depth: next_depth as u8,
+                        };
+                        self.trans_map.get(&tkey).copied().map(|id| id as usize)
                     } else {
-                        // Strictly observable deterministic greedy lookahead:
-                        // Uses ONLY `root_q[..q_len]` (never `world.q` or `world.holes`) and stops
-                        // immediately before any unknown garbage spawn. Zero Strategy Fusion!
-                        let mut cb = b2;
-                        let mut ch = nh;
-                        let mut crem = rem2;
-                        let mut cqc = nqc;
-                        let mut cd = next_depth;
-                        let mut exact_term: Option<f64> = None;
-
-                        for _ in 0..cfg.leaf_obs_lookahead {
-                            let (c_nh, c_h) = if ch.is_some() {
-                                if cqc < q_len {
-                                    (Some(root_q[cqc]), ch)
-                                } else {
-                                    break;
-                                }
-                            } else if cqc + 1 < q_len {
-                                (Some(root_q[cqc]), Some(root_q[cqc + 1]))
-                            } else {
-                                break;
-                            };
-
-                            self.pgen.generate_for_state(
-                                &self.fst,
-                                &cb,
-                                c_nh,
-                                c_h,
-                                &mut self.tmp_places,
-                            );
-                            if self.tmp_places.is_empty() {
-                                break;
-                            }
-
-                            let mut best_sc = f64::INFINITY;
-                            let mut best_step: Option<(FastBoard, u8, u16, Option<u8>, usize)> =
-                                None;
-                            for &fp_s in &self.tmp_places {
-                                let mut bs = cb;
-                                let os = &self.fst.shapes[fp_s.color_idx as usize].orients
-                                    [fp_s.tf.2 as usize];
-                                let (ls, dss, _) = bs.place_and_sift(os, fp_s.norm_i, fp_s.norm_j);
-                                let rs = crem.saturating_sub(dss as u16);
-                                let (nhs, nqcs) = if ch.is_some() {
-                                    if fp_s.did_hold {
-                                        (c_nh, cqc + 1)
-                                    } else {
-                                        (ch, cqc + 1)
-                                    }
-                                } else if fp_s.did_hold {
-                                    (c_nh, cqc + 2)
-                                } else {
-                                    (None, cqc + 1)
-                                };
-                                let next_c_obs = if nqcs < q_len {
-                                    Some(root_q[nqcs])
-                                } else {
-                                    None
-                                };
-                                let ihs = nhs.or(next_c_obs);
-                                let avs = Self::observable_avail_mask(
-                                    nhs,
-                                    nqcs,
-                                    root_q,
-                                    next_c_obs,
-                                    None,
-                                    bag_next,
-                                );
-                                let scs = Self::eval_prior_linear(sm, &bs, rs, ihs, avs);
-                                if scs < best_sc {
-                                    best_sc = scs;
-                                    best_step = Some((bs, ls, rs, nhs, nqcs));
-                                }
-                            }
-
-                            let (bs, ls, rs, nhs, nqcs) = match best_step {
-                                Some(t) => t,
-                                None => break,
-                            };
-                            if rs == 0 && bs.rows < 20 {
-                                exact_term = Some(
-                                    ((cd + 1) as f64) * cfg.step_cost_cp + (bs.rows as f64) * 5.0,
-                                );
-                                break;
-                            }
-                            if bs.rows >= 20 {
-                                break;
-                            }
-                            // Stop strictly before any unknown garbage spawn!
-                            let target_g: usize = if cfg.steady_g4 || ls > 0 { 4 } else { 9 };
-                            let g_after = bs.garbage_rows as usize;
-                            let unspawned = (rs as usize).saturating_sub(g_after);
-                            if target_g.saturating_sub(g_after).min(unspawned) > 0 {
-                                break;
-                            }
-                            cb = bs;
-                            ch = nhs;
-                            crem = rs;
-                            cqc = nqcs;
-                            cd += 1;
-                        }
-
-                        if let Some(tv) = exact_term {
-                            tv
-                        } else {
-                            let c_cur_obs = if cqc < q_len {
-                                Some(root_q[cqc])
-                            } else if cqc == nqc {
-                                cur_next
-                            } else {
-                                None
-                            };
-                            let c_n1_obs = if cqc + 1 < q_len {
-                                Some(root_q[cqc + 1])
-                            } else if cqc == nqc {
-                                next1_next
-                            } else {
-                                None
-                            };
-                            let ih_f = ch.or(c_cur_obs);
-                            let av_f = Self::observable_avail_mask(
-                                ch,
-                                cqc,
-                                root_q,
-                                c_cur_obs,
-                                c_n1_obs,
-                                bag_next,
-                            );
-                            Self::eval_leaf_full(
-                                sm,
-                                &cb,
-                                crem,
-                                ih_f,
-                                av_f,
-                                cd,
-                                cfg.step_cost_cp,
-                                root_ref,
-                                cfg.topout_penalty,
-                            )
-                        }
+                        None
                     };
+
+                    if let Some(cid) = trans_hit {
+                        trans_hits += 1;
+                        self.nodes[node_idx].actions[act_idx]
+                            .children
+                            .push((chance_key, cid as u32));
+                        let v_reuse = if cfg.backup_mode > 0 {
+                            self.nodes[cid].v_bellman
+                        } else if self.nodes[cid].visits > 0 {
+                            self.nodes[cid].v_sum / (self.nodes[cid].visits as f64)
+                        } else {
+                            self.nodes[cid].leaf_val
+                        };
+                        break v_reuse;
+                    }
+
+                    let vis_slice = &vis_q_next[..vis_len_next];
+                    let in_hand_next = nh.or_else(|| vis_slice.first().copied());
+                    let avail_next = Self::avail_mask_from_vis(nh, vis_slice, bag_next);
+                    let leaf_v = Self::eval_leaf_full(
+                        sm,
+                        &b2,
+                        rem2,
+                        in_hand_next,
+                        avail_next,
+                        next_depth,
+                        cfg.step_cost_cp,
+                        root_ref,
+                        cfg.topout_penalty,
+                    );
                     mlp_evals += 1;
 
                     let new_id = self.nodes.len();
@@ -1032,8 +1162,8 @@ impl IsMctsSearcher {
                         rem_g: rem2,
                         depth: next_depth as u8,
                         qc: nqc as u8,
-                        cur_piece: cur_next,
-                        next1_piece: next1_next,
+                        vis_q: vis_q_next,
+                        vis_len: vis_len_next as u8,
                         bag_mask: bag_next,
                         leaf_val: leaf_v,
                         v_bellman: leaf_v,
@@ -1042,6 +1172,18 @@ impl IsMctsSearcher {
                         actions: Vec::new(),
                         expanded: false,
                     });
+                    if cfg.use_transposition {
+                        let tkey = TransKey {
+                            board: b2,
+                            hold: nh,
+                            rem_g: rem2,
+                            vis_q: vis_q_next,
+                            vis_len: vis_len_next as u8,
+                            bag_mask: bag_next,
+                            depth: next_depth as u8,
+                        };
+                        self.trans_map.insert(tkey, new_id as u32);
+                    }
                     self.nodes[node_idx].actions[act_idx]
                         .children
                         .push((chance_key, new_id as u32));
@@ -1049,7 +1191,16 @@ impl IsMctsSearcher {
                 }
             };
 
-            // 7. Backup along visited `(node_idx, act_idx)` path
+            sim_depth_sum += reached_depth;
+            if reached_depth > max_sim_depth {
+                max_sim_depth = reached_depth;
+            }
+            if let Some(sd) = first_spawn_depth {
+                spawn_sims += 1;
+                post_spawn_depth_sum += reached_depth.saturating_sub(sd);
+            }
+
+            // 6. Backup along visited `(node_idx, act_idx)` path
             if terminal_on_last_edge {
                 if let Some(&(last_n, last_a)) = path.last() {
                     let e = &mut self.nodes[last_n].actions[last_a];
@@ -1067,7 +1218,6 @@ impl IsMctsSearcher {
                     e.q_sum += backed_val;
                 }
                 if cfg.backup_mode > 0 {
-                    // Exact expectation over all chance outcomes of `(n_id, a_id)`
                     let mut sum_w = self.nodes[n_id].actions[a_id].term_q_sum;
                     let mut cnt_w = self.nodes[n_id].actions[a_id].term_visits as f64;
                     let n_ch = self.nodes[n_id].actions[a_id].children.len();
@@ -1124,7 +1274,6 @@ impl IsMctsSearcher {
                 })
                 .unwrap()
         } else {
-            // Lowest Q among visited actions (preferring well-visited actions when sims >= 32)
             let max_v = root.actions.iter().map(|e| e.visits).max().unwrap_or(0);
             let min_v_req = (max_v / 4).max(1);
             root.actions
@@ -1149,6 +1298,16 @@ impl IsMctsSearcher {
             total_simulations: sims,
             nodes_expanded: self.nodes.len(),
             mlp_evals,
+            avg_sim_depth: sim_depth_sum as f64 / sims as f64,
+            max_sim_depth,
+            post_spawn_avg_depth: if spawn_sims > 0 {
+                post_spawn_depth_sum as f64 / spawn_sims as f64
+            } else {
+                0.0
+            },
+            spawn_sims,
+            trans_hits,
+            used_endgame_solver: false,
             root_candidates,
         }
     }
@@ -1173,7 +1332,7 @@ impl IsMctsSearcher {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{shape::srs, BasicMatrix, Color};
+    use crate::{BasicMatrix, Color};
 
     fn make_test_board(hole_cols: &[u16]) -> BasicMatrix {
         let mut m = BasicMatrix::with_cols(10);
@@ -1187,66 +1346,68 @@ mod tests {
 
     #[test]
     fn test_ismcts_zero_future_peeking_beyond_p5() {
-        let mut s1 = IsMctsSearcher::new(srs());
-        let mut s2 = IsMctsSearcher::new(srs());
+        for split_tail in [true, false] {
+            let mut s1 = IsMctsSearcher::new_srs();
+            let mut s2 = IsMctsSearcher::new_srs();
 
-        let mat = make_test_board(&[2, 7, 4, 1]);
-        let snap1 = Snapshot {
-            hold: Some(Color::n('I')),
-            queue: vec![
-                Color::n('T'),
-                Color::n('L'),
-                Color::n('J'),
-                Color::n('S'),
-                Color::n('Z'),
-                Color::n('O'),
-                // Illegal future beyond p=5:
-                Color::n('I'),
-                Color::n('I'),
-                Color::n('I'),
-            ],
-            matrix: mat.clone(),
-        };
-        let snap2 = Snapshot {
-            hold: Some(Color::n('I')),
-            queue: vec![
-                Color::n('T'),
-                Color::n('L'),
-                Color::n('J'),
-                Color::n('S'),
-                Color::n('Z'),
-                Color::n('O'),
-                // Completely different illegal future beyond p=5:
-                Color::n('O'),
-                Color::n('Z'),
-                Color::n('S'),
-            ],
-            matrix: mat,
-        };
-        let ctx = GameContext {
-            garbage_rows: Some(4),
-            remaining_garbage: Some(50),
-            next_bag_mask: Some(0x7F),
-        };
-        let cfg = IsMctsConfig {
-            simulations: 64,
-            max_depth: 8,
-            ..Default::default()
-        };
+            let mat = make_test_board(&[2, 7, 4, 1]);
+            let snap1 = Snapshot {
+                hold: Some(Color::n('I')),
+                queue: vec![
+                    Color::n('T'),
+                    Color::n('L'),
+                    Color::n('J'),
+                    Color::n('S'),
+                    Color::n('Z'),
+                    Color::n('O'),
+                    // Illegal future beyond p=5:
+                    Color::n('I'),
+                    Color::n('I'),
+                    Color::n('I'),
+                ],
+                matrix: mat.clone(),
+            };
+            let snap2 = Snapshot {
+                hold: Some(Color::n('I')),
+                queue: vec![
+                    Color::n('T'),
+                    Color::n('L'),
+                    Color::n('J'),
+                    Color::n('S'),
+                    Color::n('Z'),
+                    Color::n('O'),
+                    // Completely different illegal future beyond p=5:
+                    Color::n('O'),
+                    Color::n('Z'),
+                    Color::n('S'),
+                ],
+                matrix: mat,
+            };
+            let ctx = GameContext {
+                garbage_rows: Some(4),
+                remaining_garbage: Some(50),
+                next_bag_mask: Some(0x7F),
+            };
+            let cfg = IsMctsConfig {
+                simulations: 64,
+                max_depth: 8,
+                split_tail_preview: split_tail,
+                ..Default::default()
+            };
 
-        let r1 = s1.search_with_ctx(&snap1, ctx, &cfg);
-        let r2 = s2.search_with_ctx(&snap2, ctx, &cfg);
+            let r1 = s1.search_with_ctx(&snap1, ctx, &cfg);
+            let r2 = s2.search_with_ctx(&snap2, ctx, &cfg);
 
-        assert_eq!(r1.inputs, r2.inputs, "chosen move must not depend on queue[6..]");
-        assert_eq!(r1.best_q, r2.best_q, "Q value must not depend on queue[6..]");
-        assert_eq!(r1.best_visits, r2.best_visits);
-        assert_eq!(r1.nodes_expanded, r2.nodes_expanded);
+            assert_eq!(r1.inputs, r2.inputs, "must not depend on queue[6..]");
+            assert_eq!(r1.best_q, r2.best_q, "Q must not depend on queue[6..]");
+            assert_eq!(r1.best_visits, r2.best_visits);
+            assert_eq!(r1.nodes_expanded, r2.nodes_expanded);
+        }
     }
 
     #[test]
     fn test_ismcts_zero_strategy_fusion_branches_only_after_spawn() {
-        let mut searcher = IsMctsSearcher::new(srs());
-        // 4 garbage rows, top hole at col 0; clearing 1 line triggers 1 unknown garbage spawn.
+        let mut searcher = IsMctsSearcher::new_srs();
         let mat = make_test_board(&[5, 2, 8, 0]);
         let snap = Snapshot {
             hold: Some(Color::n('I')),
@@ -1268,16 +1429,13 @@ mod tests {
         let cfg = IsMctsConfig {
             simulations: 120,
             max_depth: 6,
+            split_tail_preview: false,
             ..Default::default()
         };
 
         let res = searcher.search_with_ctx(&snap, ctx, &cfg);
         assert!(!res.inputs.is_empty());
 
-        // Inspect root actions:
-        // - Actions with ds==0 (no spawn, qc=1 < 6) must have <= 1 deterministic child (key == 0).
-        // - Actions with ds==1 (triggers spawn) may have multiple distinct children with non-zero spawn_key,
-        //   all sharing the single pre-spawn root decision node `0`.
         let root = &searcher.nodes[0];
         let mut saw_deterministic = false;
         let mut saw_spawn_branching = false;
@@ -1289,11 +1447,7 @@ mod tests {
             let orient = &searcher.fst.shapes[e.fp.color_idx as usize].orients[e.fp.tf.2 as usize];
             let (_lines, ds, _) = b2.place_and_sift(orient, e.fp.norm_i, e.fp.norm_j);
             if ds == 0 {
-                assert_eq!(
-                    e.children.len(),
-                    1,
-                    "0ds move within p=5 window must have strictly 1 deterministic child"
-                );
+                assert_eq!(e.children.len(), 1);
                 assert_eq!(e.children[0].0, 0);
                 saw_deterministic = true;
             } else if e.visits >= 2 {
@@ -1306,5 +1460,130 @@ mod tests {
             }
         }
         assert!(saw_deterministic || saw_spawn_branching);
+    }
+
+    #[test]
+    fn test_ismcts_uses_full_next5_preview_information() {
+        // Fixed board, same hold, same cur, same next1, DIFFERENT legal previews in next2..next5.
+        // Verify that DecisionNodes store full 6-piece vis_q and search Q-values / decisions
+        // genuinely utilize the legal next2..next5 preview sequence.
+        let mut s_a = IsMctsSearcher::new_srs();
+        let mut s_b = IsMctsSearcher::new_srs();
+
+        // 5-row deterministic garbage stack (no unknown spawns on first clear!)
+        let mat = make_test_board(&[0, 1, 2, 3, 4]);
+        let snap_a = Snapshot {
+            hold: Some(Color::n('O')),
+            queue: vec![
+                Color::n('O'), // cur (same)
+                Color::n('O'), // next1 (same)
+                Color::n('I'), // next2 (different!)
+                Color::n('I'), // next3 (different!)
+                Color::n('I'), // next4 (different!)
+                Color::n('I'), // next5 (different!)
+            ],
+            matrix: mat.clone(),
+        };
+        let snap_b = Snapshot {
+            hold: Some(Color::n('O')),
+            queue: vec![
+                Color::n('O'), // cur (same)
+                Color::n('O'), // next1 (same)
+                Color::n('O'), // next2 (different!)
+                Color::n('O'), // next3 (different!)
+                Color::n('O'), // next4 (different!)
+                Color::n('O'), // next5 (different!)
+            ],
+            matrix: mat,
+        };
+        let ctx = GameContext {
+            garbage_rows: Some(5),
+            remaining_garbage: Some(5),
+            next_bag_mask: Some(0x7F),
+        };
+        let cfg = IsMctsConfig {
+            simulations: 240,
+            max_depth: 8,
+            split_tail_preview: true,
+            ..Default::default()
+        };
+
+        let ra = s_a.search_with_ctx(&snap_a, ctx, &cfg);
+        let rb = s_b.search_with_ctx(&snap_b, ctx, &cfg);
+
+        // With 4 I-pieces in next2..next5 vs 4 O-pieces, the search must evaluate snap_a
+        // dramatically better (lower Q) and every expanded child must maintain full vis_len == 6.
+        assert!(
+            ra.best_q < rb.best_q,
+            "expected legal next2..next5 I-pieces to yield strictly better Q than O-pieces: {} vs {}",
+            ra.best_q,
+            rb.best_q
+        );
+        for n in &s_a.nodes {
+            assert_eq!(n.vis_len, 6, "every DecisionNode must maintain full 6-piece Legal p=5 window");
+        }
+    }
+
+    #[test]
+    fn test_ismcts_endgame_solver_and_transposition_dag() {
+        let mut s = IsMctsSearcher::new_srs();
+        // 1 garbage line with hole at col 0; vertical I clears it in 1 piece!
+        let mat = make_test_board(&[0]);
+        let snap = Snapshot {
+            hold: Some(Color::n('T')),
+            queue: vec![
+                Color::n('I'),
+                Color::n('L'),
+                Color::n('J'),
+                Color::n('S'),
+                Color::n('Z'),
+                Color::n('O'),
+            ],
+            matrix: mat,
+        };
+        let ctx = GameContext {
+            garbage_rows: Some(1),
+            remaining_garbage: Some(1),
+            next_bag_mask: Some(0x7F),
+        };
+        let cfg = IsMctsConfig {
+            simulations: 64,
+            max_depth: 6,
+            use_endgame_solver: true,
+            ..Default::default()
+        };
+        let res = s.search_with_ctx(&snap, ctx, &cfg);
+        assert!(res.used_endgame_solver);
+        assert!(!res.inputs.is_empty());
+
+        // Transposition DAG test on 4-row board
+        let mat4 = make_test_board(&[3, 7, 1, 5]);
+        let snap4 = Snapshot {
+            hold: Some(Color::n('T')),
+            queue: vec![
+                Color::n('L'),
+                Color::n('J'),
+                Color::n('S'),
+                Color::n('Z'),
+                Color::n('I'),
+                Color::n('O'),
+            ],
+            matrix: mat4,
+        };
+        let ctx4 = GameContext {
+            garbage_rows: Some(4),
+            remaining_garbage: Some(40),
+            next_bag_mask: Some(0x7F),
+        };
+        let cfg_t = IsMctsConfig {
+            simulations: 200,
+            max_depth: 8,
+            split_tail_preview: false,
+            use_transposition: true,
+            ..Default::default()
+        };
+        let r_t = s.search_with_ctx(&snap4, ctx4, &cfg_t);
+        assert!(!r_t.inputs.is_empty());
+        assert!(r_t.avg_sim_depth > 1.0);
     }
 }
