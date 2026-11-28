@@ -383,6 +383,50 @@ fn main() {
         ..Default::default()
     };
 
+    if mode == "psd20" {
+        let mut ref_res: Option<Vec<GameRes>> = None;
+        for &(name, sims, max_a, root_a) in &[
+            ("FixedDAG_a10_s2400", 2400usize, 10usize, 16usize),
+            ("FixedDAG_a6_s2400", 2400, 6, 16),
+            ("FixedDAG_a4_s2400", 2400, 4, 16),
+        ] {
+            let mut cfg = base_m.clone();
+            cfg.simulations = sims;
+            cfg.max_actions = max_a;
+            cfg.root_max_actions = root_a;
+            cfg.split_tail_preview = false;
+            cfg.use_endgame_solver = true;
+            cfg.use_transposition = true;
+            let (res, wall_s) = run_parallel(&seeds, |s| play_ismcts_seed(s, &cfg));
+            summarize(name, &res, wall_s, ref_res.as_deref());
+            if ref_res.is_none() {
+                ref_res = Some(res);
+            }
+        }
+        return;
+    }
+
+    if mode == "walltime" {
+        let mut ref_res: Option<Vec<GameRes>> = None;
+        for &(name, sims, trans) in &[
+            ("NoDAG_EG_s2400", 2400usize, false),
+            ("FixedDAG_EG_s2400", 2400, true),
+            ("FixedDAG_EG_s2650_eqW", 2650, true),
+        ] {
+            let mut cfg = base_m.clone();
+            cfg.simulations = sims;
+            cfg.split_tail_preview = false;
+            cfg.use_endgame_solver = true;
+            cfg.use_transposition = trans;
+            let (res, wall_s) = run_parallel(&seeds, |s| play_ismcts_seed(s, &cfg));
+            summarize(name, &res, wall_s, ref_res.as_deref());
+            if ref_res.is_none() {
+                ref_res = Some(res);
+            }
+        }
+        return;
+    }
+
     if mode == "dag20" {
         let mut cfg = base_m.clone();
         cfg.split_tail_preview = false;

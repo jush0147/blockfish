@@ -135,8 +135,10 @@ struct ActionEdge {
     q_bellman: f64,
     term_visits: u32,
     term_q_sum: f64,
-    /// Chance outcome key -> child decision node index.
-    children: Vec<(u64, u32)>,
+    /// Chance outcome `(chance_key, child_node_id, edge_local_visits)`.
+    /// Storing `edge_local_visits` ensures Transposition DAG Bellman backups weight each chance
+    /// outcome strictly by this parent edge's own transition count, never by `child.visits`.
+    children: Vec<(u64, u32, u32)>,
 }
 
 impl ActionEdge {
@@ -1099,13 +1101,17 @@ impl IsMctsSearcher {
                 let chance_key = (spawn_key << 12) | piece_key;
 
                 // 5. Look up existing child edge `(node_idx, act_idx, chance_key)`
-                let existing_child = self.nodes[node_idx].actions[act_idx]
+                let existing_slot = self.nodes[node_idx].actions[act_idx]
                     .children
                     .iter()
-                    .find(|&&(k, _)| k == chance_key)
-                    .map(|&(_, cid)| cid as usize);
+                    .position(|&(k, _, _)| k == chance_key);
 
-                if let Some(cid) = existing_child {
+                if let Some(ci) = existing_slot {
+                    let cid = {
+                        let ch = &mut self.nodes[node_idx].actions[act_idx].children[ci];
+                        ch.2 += 1;
+                        ch.1 as usize
+                    };
                     node_idx = cid;
                 } else {
                     // Optional Transposition DAG lookup (acyclic because `depth` is in `TransKey`)
@@ -1128,7 +1134,7 @@ impl IsMctsSearcher {
                         trans_hits += 1;
                         self.nodes[node_idx].actions[act_idx]
                             .children
-                            .push((chance_key, cid as u32));
+                            .push((chance_key, cid as u32, 1));
                         let v_reuse = if cfg.backup_mode > 0 {
                             self.nodes[cid].v_bellman
                         } else if self.nodes[cid].visits > 0 {
@@ -1186,7 +1192,7 @@ impl IsMctsSearcher {
                     }
                     self.nodes[node_idx].actions[act_idx]
                         .children
-                        .push((chance_key, new_id as u32));
+                        .push((chance_key, new_id as u32, 1));
                     break leaf_v;
                 }
             };
@@ -1218,39 +1224,7 @@ impl IsMctsSearcher {
                     e.q_sum += backed_val;
                 }
                 if cfg.backup_mode > 0 {
-                    let mut sum_w = self.nodes[n_id].actions[a_id].term_q_sum;
-                    let mut cnt_w = self.nodes[n_id].actions[a_id].term_visits as f64;
-                    let n_ch = self.nodes[n_id].actions[a_id].children.len();
-                    for ci in 0..n_ch {
-                        let cid = self.nodes[n_id].actions[a_id].children[ci].1 as usize;
-                        let cn = &self.nodes[cid];
-                        let w = cn.visits as f64;
-                        sum_w += w * cn.v_bellman;
-                        cnt_w += w;
-                    }
-                    let q_b = if cnt_w > 0.0 {
-                        sum_w / cnt_w
-                    } else {
-                        backed_val
-                    };
-                    let n = &mut self.nodes[n_id];
-                    n.actions[a_id].q_bellman = q_b;
-                    let mut best_v = f64::INFINITY;
-                    for e in &n.actions {
-                        if e.visits > 0 {
-                            let cand = if cfg.backup_mode == 3 {
-                                e.q_bellman + 100.0 / (e.visits as f64).sqrt()
-                            } else {
-                                e.q_bellman
-                            };
-                            if cand < best_v {
-                                best_v = cand;
-                            }
-                        }
-                    }
-                    if best_v.is_finite() {
-                        n.v_bellman = best_v;
-                    }
+                    self.recompute_edge_and_node_bellman(n_id, a_id, cfg.backup_mode, backed_val);
                 }
             }
         }
@@ -1309,6 +1283,49 @@ impl IsMctsSearcher {
             trans_hits,
             used_endgame_solver: false,
             root_candidates,
+        }
+    }
+
+    #[inline]
+    fn recompute_edge_and_node_bellman(
+        &mut self,
+        n_id: usize,
+        a_id: usize,
+        backup_mode: u8,
+        fallback_val: f64,
+    ) {
+        let mut sum_w = self.nodes[n_id].actions[a_id].term_q_sum;
+        let mut cnt_w = self.nodes[n_id].actions[a_id].term_visits as f64;
+        let n_ch = self.nodes[n_id].actions[a_id].children.len();
+        for ci in 0..n_ch {
+            let (_, cid, edge_n) = self.nodes[n_id].actions[a_id].children[ci];
+            let cn = &self.nodes[cid as usize];
+            let w = edge_n as f64;
+            sum_w += w * cn.v_bellman;
+            cnt_w += w;
+        }
+        let q_b = if cnt_w > 0.0 {
+            sum_w / cnt_w
+        } else {
+            fallback_val
+        };
+        let n = &mut self.nodes[n_id];
+        n.actions[a_id].q_bellman = q_b;
+        let mut best_v = f64::INFINITY;
+        for e in &n.actions {
+            if e.visits > 0 {
+                let cand = if backup_mode == 3 {
+                    e.q_bellman + 100.0 / (e.visits as f64).sqrt()
+                } else {
+                    e.q_bellman
+                };
+                if cand < best_v {
+                    best_v = cand;
+                }
+            }
+        }
+        if best_v.is_finite() {
+            n.v_bellman = best_v;
         }
     }
 
@@ -1451,7 +1468,7 @@ mod tests {
                 assert_eq!(e.children[0].0, 0);
                 saw_deterministic = true;
             } else if e.visits >= 2 {
-                for &(k, _) in &e.children {
+                for &(k, _, _) in &e.children {
                     assert_ne!(k, 0, "spawn-triggering move must key children by spawned hole");
                 }
                 if e.children.len() >= 2 {
@@ -1464,35 +1481,31 @@ mod tests {
 
     #[test]
     fn test_ismcts_uses_full_next5_preview_information() {
-        // Fixed board, same hold, same cur, same next1, DIFFERENT legal previews in next2..next5.
-        // Verify that DecisionNodes store full 6-piece vis_q and search Q-values / decisions
-        // genuinely utilize the legal next2..next5 preview sequence.
         let mut s_a = IsMctsSearcher::new_srs();
         let mut s_b = IsMctsSearcher::new_srs();
 
-        // 5-row deterministic garbage stack (no unknown spawns on first clear!)
         let mat = make_test_board(&[0, 1, 2, 3, 4]);
         let snap_a = Snapshot {
             hold: Some(Color::n('O')),
             queue: vec![
-                Color::n('O'), // cur (same)
-                Color::n('O'), // next1 (same)
-                Color::n('I'), // next2 (different!)
-                Color::n('I'), // next3 (different!)
-                Color::n('I'), // next4 (different!)
-                Color::n('I'), // next5 (different!)
+                Color::n('O'),
+                Color::n('O'),
+                Color::n('I'),
+                Color::n('I'),
+                Color::n('I'),
+                Color::n('I'),
             ],
             matrix: mat.clone(),
         };
         let snap_b = Snapshot {
             hold: Some(Color::n('O')),
             queue: vec![
-                Color::n('O'), // cur (same)
-                Color::n('O'), // next1 (same)
-                Color::n('O'), // next2 (different!)
-                Color::n('O'), // next3 (different!)
-                Color::n('O'), // next4 (different!)
-                Color::n('O'), // next5 (different!)
+                Color::n('O'),
+                Color::n('O'),
+                Color::n('O'),
+                Color::n('O'),
+                Color::n('O'),
+                Color::n('O'),
             ],
             matrix: mat,
         };
@@ -1511,8 +1524,6 @@ mod tests {
         let ra = s_a.search_with_ctx(&snap_a, ctx, &cfg);
         let rb = s_b.search_with_ctx(&snap_b, ctx, &cfg);
 
-        // With 4 I-pieces in next2..next5 vs 4 O-pieces, the search must evaluate snap_a
-        // dramatically better (lower Q) and every expanded child must maintain full vis_len == 6.
         assert!(
             ra.best_q < rb.best_q,
             "expected legal next2..next5 I-pieces to yield strictly better Q than O-pieces: {} vs {}",
@@ -1527,7 +1538,6 @@ mod tests {
     #[test]
     fn test_ismcts_endgame_solver_and_transposition_dag() {
         let mut s = IsMctsSearcher::new_srs();
-        // 1 garbage line with hole at col 0; vertical I clears it in 1 piece!
         let mat = make_test_board(&[0]);
         let snap = Snapshot {
             hold: Some(Color::n('T')),
@@ -1555,17 +1565,105 @@ mod tests {
         let res = s.search_with_ctx(&snap, ctx, &cfg);
         assert!(res.used_endgame_solver);
         assert!(!res.inputs.is_empty());
+    }
 
-        // Transposition DAG test on 4-row board
+    #[test]
+    fn test_ismcts_dag_edge_local_chance_weights_and_backup() {
+        // Part A: Minimal reproducible synthetic 2-parent DAG with shared child_A.
+        // Parent u1 has action 0 with 2 chance outcomes:
+        //   - outcome 1 -> child_A (v_bellman = 1000.0), visited 1 time via u1
+        //   - outcome 2 -> child_B (v_bellman = 2000.0), visited 1 time via u1
+        // Another parent u2 visited child_A 50 times, so child_A.visits == 51.
+        // True edge-local Bellman expectation for u1 must be 0.5*1000 + 0.5*2000 = 1500.0
+        // (NOT contaminated by child_A.visits == 51, which would give ~1019.2).
+        let mut s = IsMctsSearcher::new_srs();
+        let dummy_fp = FastPlace {
+            color_idx: 0,
+            did_hold: false,
+            tf: (0, 0, crate::Orientation::R0),
+            norm_i: 0,
+            norm_j: 0,
+        };
+        let make_node = |v: f64, visits: u32, depth: u8, actions: Vec<ActionEdge>| DecisionNode {
+            board: FastBoard::empty(),
+            hold: None,
+            rem_g: 10,
+            depth,
+            qc: depth,
+            vis_q: [0; 6],
+            vis_len: 6,
+            bag_mask: 0x7F,
+            leaf_val: v,
+            v_bellman: v,
+            visits,
+            v_sum: v * (visits as f64),
+            actions,
+            expanded: true,
+        };
+
+        s.nodes.clear();
+        // node 0: u1
+        s.nodes.push(make_node(
+            1500.0,
+            2,
+            0,
+            vec![ActionEdge {
+                fp: dummy_fp,
+                prior: 1.0,
+                visits: 2,
+                q_sum: 3000.0,
+                q_bellman: 0.0,
+                term_visits: 0,
+                term_q_sum: 0.0,
+                children: vec![(1, 2, 1), (2, 3, 1)], // edge-local counts: 1 and 1
+            }],
+        ));
+        // node 1: u2 (visits child_A 50 times)
+        s.nodes.push(make_node(
+            1000.0,
+            50,
+            0,
+            vec![ActionEdge {
+                fp: dummy_fp,
+                prior: 1.0,
+                visits: 50,
+                q_sum: 50_000.0,
+                q_bellman: 1000.0,
+                term_visits: 0,
+                term_q_sum: 0.0,
+                children: vec![(1, 2, 50)],
+            }],
+        ));
+        // node 2: shared child_A (total visits = 51!)
+        s.nodes.push(make_node(1000.0, 51, 1, Vec::new()));
+        // node 3: child_B (total visits = 1)
+        s.nodes.push(make_node(2000.0, 1, 1, Vec::new()));
+
+        s.recompute_edge_and_node_bellman(0, 0, 1, 0.0);
+        let q_u1 = s.nodes[0].actions[0].q_bellman;
+        assert!(
+            (q_u1 - 1500.0).abs() < 1e-9,
+            "expected exact edge-local expectation 1500.0, got {} (contaminated by child.visits!)",
+            q_u1
+        );
+        assert!((s.nodes[0].v_bellman - 1500.0).abs() < 1e-9);
+
+        // Update shared child_A's value (e.g. from u2's search): u1's subsequent backup picks it up
+        // with exact edge-local weight 0.5!
+        s.nodes[2].v_bellman = 1200.0;
+        s.recompute_edge_and_node_bellman(0, 0, 1, 0.0);
+        assert!((s.nodes[0].actions[0].q_bellman - 1600.0).abs() < 1e-9);
+
+        // Part B: Full live Transposition DAG search conservation invariant check.
         let mat4 = make_test_board(&[3, 7, 1, 5]);
         let snap4 = Snapshot {
             hold: Some(Color::n('T')),
             queue: vec![
-                Color::n('L'),
-                Color::n('J'),
-                Color::n('S'),
-                Color::n('Z'),
-                Color::n('I'),
+                Color::n('O'),
+                Color::n('O'),
+                Color::n('O'),
+                Color::n('O'),
+                Color::n('O'),
                 Color::n('O'),
             ],
             matrix: mat4,
@@ -1576,14 +1674,27 @@ mod tests {
             next_bag_mask: Some(0x7F),
         };
         let cfg_t = IsMctsConfig {
-            simulations: 200,
-            max_depth: 8,
+            simulations: 400,
+            max_depth: 10,
             split_tail_preview: false,
             use_transposition: true,
+            backup_mode: 1,
             ..Default::default()
         };
         let r_t = s.search_with_ctx(&snap4, ctx4, &cfg_t);
-        assert!(!r_t.inputs.is_empty());
-        assert!(r_t.avg_sim_depth > 1.0);
+        assert!(r_t.trans_hits > 0, "expected DAG transposition hits");
+
+        for (nid, node) in s.nodes.iter().enumerate() {
+            for (aid, e) in node.actions.iter().enumerate() {
+                let sum_edge_n: u32 = e.children.iter().map(|&(_, _, en)| en).sum();
+                assert_eq!(
+                    e.term_visits + sum_edge_n,
+                    e.visits,
+                    "edge-local conservation violated at node {} action {}",
+                    nid,
+                    aid
+                );
+            }
+        }
     }
 }

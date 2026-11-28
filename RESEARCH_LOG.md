@@ -341,6 +341,21 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
                 - `B_fullNext5_splitTail`: `208.90 [187..231]` (`wall=184.6s, avg_d=3.98, ps_d=0.22`, `+16.30±2.40, W/T/L=1/0/19` — fast-eliminated due to 7× branching on `next[4]` at `d=1`)
                 - `C_noSplit_EG`: `192.50 [179..202]` (`wall=175.3s, 410.7 g/hr, avg_d=6.82, ps_d=0.64, eg=6.8`, `-0.10±0.10, W/T/L=1/19/0`)
                 - **`D_noSplit_EG_TransDAG`**: **`190.60 [181..203]`** (`wall=161.8s, 445.0 g/hr, 84,825 st/hr, avg_d=7.12, ps_d=0.77, eg=6.8, tr=269.8`, **`-2.00±1.80, 95%CI=[-5.54,+1.54], W/T/L=13/1/6`** — faster, deeper post-spawn, and `-2.00` pcs better on 20 fresh seeds!).
+            - **SO-ISMCTS v2.1: Edge-Local DAG Bellman Backup Fix (`ismcts.rs`, `5/5` unit tests) & Equal-Wall-Time Verification on Fresh `dev20` (`30001..=30020`, `test20: 40001..=40020` SEALED)**:
+              - Fixed DAG Bellman backup to weight chance outcomes strictly by edge-local transition counts `(chance_key, child_id, edge_visits)` rather than `child.visits`; added minimal reproducible 2-parent shared-child + full-DAG conservation test (`test_ismcts_dag_edge_local_chance_weights_and_backup`).
+              - **Equal Wall-Time Comparison on `dev20` (`30001..=30020`, 2 CPU threads, all `top=0.0%`)**:
+                - `NoDAG_EG_s2400`: `192.25 [183..207]` (`wall=181.3s, 397.0 g/hr, avg_d=6.81, ps_d=0.70, cov=20.0%`)
+                - `FixedDAG_EG_s2400`: `190.05 [178..199]` (`wall=162.3s, 443.7 g/hr, avg_d=7.11, ps_d=0.81, cov=17.6%`, `-2.20±1.63, W/T/L=12/0/8`)
+                - **`FixedDAG_EG_s2650_eqW`** (matched wall-time `179.2s` vs `181.3s`): **`189.05 [177..199]`** (`avg_d=7.17, ps_d=0.85, tr=299.6`, **`-3.20±1.66, 95%CI=[-6.45,+0.05], W/T/L=13/1/6`**).
+              - **Internal `max_actions` Ablation on `dev20` (`s=2400`)**: `a10 = 190.05 (ps_d=0.81)` vs `a6 = 190.15 (+0.10, ps_d=0.84)` vs `a4 = 191.05 (+1.00, ps_d=0.85)` — confirms `ps_d` bottleneck is 9-way garbage-spawn chance branching rather than action width.
+            - **Small-Scale Self-Play Value Iteration (`train_ismcts_az.rs`, `40` self-play games `50001..=50040`, `s=800`, `mean=192.82`, `top=0/40`) — ALL REJECTED ON `dev20` (`s=1200`, `-1.50` pc gate)**:
+              - Anchor-based `k`-step return $G_t^{(k)} = k + V_{\text{anchor}}(s_{t+k})$ + one-sided high-stack/topout risk floor (`peak_h`, `h>=12%`, `cov%`, `top%` tracked):
+                - `Zero-Train BASE`: `191.35` (`top=0/20, peak_h=14.7, h12=34.7%, cov=17.3%`)
+                - `k=8` anchor-boot: Huber `1.18->1.14`, `dev20=193.95 (+2.60±1.38, top=0/20, h12=36.7%, cov=20.7%, W/T/L=5/0/15)` — REJECTED.
+                - `k=12` anchor-boot: Huber `1.36->1.32`, `dev20=191.65 (+0.30±1.51, top=0/20, h12=37.3%, cov=18.6%, W/T/L=13/0/7)` — REJECTED.
+                - `k=16` anchor-boot: Huber `1.53->1.49`, `dev20=192.75 (+1.40±2.17, top=0/20, h12=36.1%, cov=19.2%, W/T/L=11/0/9)` — REJECTED.
+              - **Conclusion**: Fine-tuning `spatial_bc4` (originally trained on `164.6`-pc `WG_ds`) on `192.82`-pc self-play trajectories degrades `cov_nxt` and `h>=12%` even when Huber loss drops. Kept `Zero-Train BASE` (`test20: 40001..=40020` remains completely untouched; zero Colab CU spent).
+
 
 
 
