@@ -2,6 +2,7 @@
 
 mod controller;
 mod controls;
+mod replay;
 mod resources;
 mod theme;
 mod timer;
@@ -25,6 +26,10 @@ enum Error {
     Resources(#[from] resources::ResourceLoadError),
     #[error("failed to parse {0} config")]
     ParseConfig(&'static str, #[source] serde_json::Error),
+    #[error("failed to load replay")]
+    ReplayLoad(#[from] replay::ReplayLoadError),
+    #[error("{0}")]
+    ReplayValidation(#[from] replay::ReplayValidationError),
 }
 
 fn sdl_error(e: impl std::fmt::Display) -> Error {
@@ -53,6 +58,24 @@ struct Args {
     /// integer used to seed the random number generator
     #[argh(option, short = 'A')]
     ai_params: Option<BFConfig>,
+    /// path to a BC-4 Mass Legal Replay JSON file to launch in Replay Mode (AI disabled)
+    #[argh(option)]
+    replay: Option<std::path::PathBuf>,
+    /// initial step to jump to in Replay Mode (default: 0)
+    #[argh(option)]
+    start_step: Option<usize>,
+    /// initial playback speed in pieces per second in Replay Mode (default: 2.5)
+    #[argh(option)]
+    speed: Option<f64>,
+    /// start Replay Mode paused instead of auto-playing
+    #[argh(switch)]
+    paused: bool,
+    /// headlessly verify the --replay file step-by-step and exit without opening a window
+    #[argh(switch)]
+    verify_only: bool,
+    /// render a single Replay Mode frame at --start-step, save BMP to path, and exit
+    #[argh(option)]
+    screenshot: Option<std::path::PathBuf>,
 }
 
 impl Args {
@@ -133,6 +156,7 @@ fn error_trace_log(err: &(dyn std::error::Error + 'static)) {
     let mut trace = Some(err);
     while let Some(err) = trace {
         log::error!("{}", err);
+        eprintln!("Error: {}", err);
         trace = err.source();
     }
 }
@@ -152,14 +176,44 @@ fn error_trace_msgbox(err: &(dyn std::error::Error + 'static)) {
 // Entry point
 
 fn entry(mut args: Args) -> Result<()> {
+    let rules = std::rc::Rc::new(Ruleset::guideline());
+
+    // Headless verification mode for --replay --verify-only (no SDL2 required)
+    if args.verify_only {
+        let path = args.replay.as_ref().ok_or_else(|| {
+            Error::Sdl("--verify-only requires --replay <path>".to_string())
+        })?;
+        let session = replay::ReplaySession::load_from_file(path, rules)?;
+        if let Some(err) = session.validation_error {
+            return Err(Error::ReplayValidation(err));
+        }
+        let last = session.frame(session.max_valid_step());
+        println!(
+            "REPLAY VERIFIED OK: file={} seed={} status={} pieces={} lines={} ds={}/100 steps={}",
+            path.display(),
+            session.record.seed,
+            session.record.status,
+            last.pieces,
+            last.lines_cleared,
+            last.ds_total,
+            session.max_valid_step(),
+        );
+        return Ok(());
+    }
+
     // init subsystems
     let sdl = sdl2::init().map_err(sdl_error)?;
     let sdl_video = sdl.video().map_err(sdl_error)?;
     let ttf = sdl2::ttf::init().map_err(sdl_error)?;
 
     // create window
+    let window_title = if args.replay.is_some() {
+        "Blockfish — BC-4 Replay Mode"
+    } else {
+        "Blockfish"
+    };
     let mut canvas = sdl_video
-        .window("Blockfish", view::DEFAULT_SIZE.0, view::DEFAULT_SIZE.1)
+        .window(window_title, view::DEFAULT_SIZE.0, view::DEFAULT_SIZE.1)
         .position_centered()
         .build()
         .map_err(sdl_error)?
@@ -183,8 +237,45 @@ fn entry(mut args: Args) -> Result<()> {
     let controls = controls::Controls::from_config_file(&config_dir)?;
     let theme = theme::Theme::from_config_file(&config_dir)?;
 
-    // build ai, game state, view and controller
-    let rules = std::rc::Rc::new(Ruleset::guideline());
+    // BC-4 Replay Mode: AI is NOT constructed and best_move() is never called.
+    if let Some(replay_path) = args.replay.take() {
+        let session = replay::ReplaySession::load_from_file(&replay_path, rules.clone())?;
+        if let Some(ref err) = session.validation_error {
+            log::error!("{}", err);
+            eprintln!("Replay validation error: {}", err);
+        }
+        let view = view::View::new(resources, rules, controls, &theme);
+        let mut player = replay::ReplayPlayer::new(
+            view,
+            session,
+            args.start_step.unwrap_or(0),
+            args.speed.unwrap_or(2.5),
+            args.paused || args.screenshot.is_some(),
+        );
+
+        if let Some(shot_path) = args.screenshot.take() {
+            player.view().render_labels(&texture_creator);
+            player.view().paint(&mut canvas);
+            canvas.present();
+            save_canvas_bmp(&canvas, &shot_path)?;
+            return Ok(());
+        }
+
+        loop {
+            for evt in events.poll_iter() {
+                if let Err(view::Quit) = player.handle_event(evt) {
+                    return Ok(());
+                }
+            }
+            player.tick();
+            player.view().render_labels(&texture_creator);
+            player.view().paint(&mut canvas);
+            canvas.present();
+            std::thread::sleep(player.idle_sleep());
+        }
+    }
+
+    // Normal interactive mode: build ai, game state, view and controller
     let ai = blockfish::ai::AI::new(args.ai_config());
     let stacker = block_stacker::Stacker::new(rules.clone(), args.game_config());
     let view = view::View::new(resources, rules, controls, &theme);
@@ -215,6 +306,21 @@ fn entry(mut args: Args) -> Result<()> {
         ctl.view().paint(&mut canvas);
         canvas.present();
     }
+}
+
+fn save_canvas_bmp(canvas: &view::Canvas, path: &std::path::Path) -> Result<()> {
+    let (w, h) = canvas.output_size().map_err(sdl_error)?;
+    let fmt = sdl2::pixels::PixelFormatEnum::RGB24;
+    let mut pixels = canvas.read_pixels(None, fmt).map_err(sdl_error)?;
+    let surf = sdl2::surface::Surface::from_data(&mut pixels, w, h, w * 3, fmt)
+        .map_err(sdl_error)?;
+    if let Some(parent) = path.parent() {
+        if !parent.as_os_str().is_empty() {
+            std::fs::create_dir_all(parent).map_err(sdl_error)?;
+        }
+    }
+    surf.save_bmp(path).map_err(sdl_error)?;
+    Ok(())
 }
 
 trait FromConfigFile: (for<'de> serde::Deserialize<'de>) + Default {

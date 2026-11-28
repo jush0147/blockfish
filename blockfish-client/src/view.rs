@@ -347,6 +347,45 @@ impl<'r> View<'r> {
         self.eng_status.set("engine not enabled");
     }
 
+    /// Sets the heading text for BC-4 Replay Mode.
+    pub fn set_replay_motd(&mut self, seed: u64, pieces: usize) {
+        self.motd
+            .set(&format!("BC-4 Replay #{} ({}p)", seed, pieces));
+    }
+
+    /// Sets the left-side help labels for Replay Mode controls.
+    pub fn set_replay_help(&mut self) {
+        let playback = &mut self.help[0];
+        playback.resize_with(7, Label::new);
+        playback[0].set("replay controls");
+        playback[1].set("play/pause:   space, p");
+        playback[2].set("step -/+1:    \u{2190}, \u{2192}");
+        playback[3].set("jump -/+10:   pgup, pgdn");
+        playback[4].set("speed -/+:    \u{2193}, \u{2191} (-/+)");
+        playback[5].set("restart/end:  r, end");
+        playback[6].set("goto / quit:  g, esc");
+
+        let info = &mut self.help[1];
+        info.resize_with(5, Label::new);
+        info[0].set("replay mode");
+        info[1].set("ai search:    OFF");
+        info[2].set("rules:        guideline");
+        info[3].set("preview:      p=5 legal");
+        info[4].set("mini board:   next move");
+    }
+
+    /// Sets the 4-line overlay text above the right-side preview matrix in Replay Mode.
+    pub fn set_replay_overlay(&mut self, lines: [String; 4]) {
+        for (lbl, txt) in self.eng_overlay.iter_mut().zip(lines.iter()) {
+            lbl.set(txt);
+        }
+    }
+
+    /// Sets the bottom status bar text in Replay Mode.
+    pub fn set_replay_status(&mut self, text: &str) {
+        self.eng_status.set(text);
+    }
+
     /// Enables the tree sidebar in the view. Note that this function isn't always
     /// necessary to call, since other tree functions (e.g. `set_tree_nodes`) will
     /// automatically enable the sidebar.
