@@ -403,6 +403,19 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
                 - **By Garbage Spawn (MAJOR FINDING)**: `n_spawn==0: -4.59±2.20 cp (n=1483)` vs **`n_spawn==1: +67.05±6.30 cp (n=172)`** vs **`n_spawn>=2: +77.56±4.89 cp (n=243)`** (`>10–15 sigma` spawn-transition jump!).
                 - **By Line Clear**: `lines==0: +82.56±3.00 cp (n=663)` | `ds>0: -24.58±2.23 cp (n=990)` | `nds clear: -27.88±4.69 cp (n=245)`.
                 - **By Board Height**: `rows<=6: +16.80±10.59 cp` | `7..=10: +20.69±2.96 cp` | `11..=13: +7.85±2.97 cp` | `rows>=14: -37.72±12.82 cp`.
+            - **SO-ISMCTS v2.5: Exact Searcher-Encoding Causal TD Decomposition (`G=20` Game-Clustered SE), Fair Non-Circular Recall & `steady_g4` vs `exactJstrisG9` A/B (`ismcts.rs`, `bench_ismcts.rs`, `82/82` unit tests PASS; `test20` SEALED)**:
+              - **1. Feature-Encoding Consistency Fix**: Exposed `IsMctsSearcher::avail_mask_from_vis` (`bag_mask` only OR'd when `vis_q.len() < 3`) and `eval_board_v_bc4`; added regression test `test_eval_board_v_bc4_matches_searcher_avail_mask_encoding`.
+              - **2. Exact 3-Term Causal TD Decomposition (`td_causal_audit`, `dev20`, `G=20` games, `n=3,806` transitions, all SEs Game-Clustered, `delta = d_place + d_spawn + d_queue`) — DEBUNKS GARBAGE-SPAWN CORRECTION**:
+                - `ALL transitions`: `total=+12.49±0.69 | place=+16.97±0.74 | spawn=-2.51±0.08 | queue=-1.96±0.28` (`k=1/2/4/8` clustered drift: `+12.49±0.69 / +12.68±0.69 / +12.88±0.68 / +12.96±0.66 cp/ply`; global `V_bc4 - 100*(T-t) = -1275.60±87.83 cp`).
+                - **Joint `(n_spawn, ds, lines)`**: `sp=0, lines=0`: `total=+88.01±2.63 (place=+96.09, sp=0, q=-8.08)` | `sp=0, ds>0`: `total=-23.36±1.29 (place=-26.93, sp=0, q=+3.57)` | `sp=1, ds=1 (G=17, n=48)`: `total=-4.56±12.68 (place=-22.86, spawn=+2.24±2.21, q=+16.06)`.
+                - **Spawn Events (`n_spawn>=1`, `n=814`)**: `rem_g>60: total=+73.47±5.00 (place=+95.48±4.90, spawn=-11.88±0.55, queue=-10.13±1.66)` | `31..=60: spawn=-11.89±0.58` | `<=30: spawn=-12.00±0.84` | `rows<=8: spawn=-14.67±0.93` | `9..=11: spawn=-10.14±0.36` | `>=12: spawn=-7.42±1.12`.
+                - **Key Scientific Conclusion**: The apparent `+67~78 cp` jump on `n_spawn>=1` was **100% confounding**: 94.1% (`766/814`) of real spawns occur on `lines==0` (non-clearing) moves (`place=+95 cp`), while the pure causal effect of spawning garbage on the same board (`d_spawn = V2 - V1`) is actually **`-11.9 cp` (negative)**. **NO Garbage-Spawn Value Correction is warranted.**
+              - **3. Fair Non-Circular Candidate Pruning Recall (`root_max_actions=64, root_min_visits_per_action=40, s=3000, CPW=OFF, n=45`)**:
+                - Avg legal root cands: `48.5`; Fair Best-Q recall: `top-16 = 97.8% (44/45)`, `top-10 = 97.8% (44/45)`.
+                - Tail (`>top-16`) beats `top-16`: **`>0cp = 0.0% (0/45)`**, **`>25cp = 0.0% (0/45)`**, **`>50cp = 0.0% (0/45)`**, **`mean Q regret = 0.00 cp`** (the 1/45 non-top-16 move was an exact Q tie). Decisively rules out root candidate pruning as a bottleneck.
+              - **4. Exact Jstris `max_height=9` Refill vs `steady_g4=true` A/B on `dev20` (`s=2400, CPW=OFF, B1_BellMin`)**:
+                - `steady_g4=true`: `190.60 [183..203]` (`wall=186.8s, avg_d=7.07, ps_d=0.83, cov=19.2%, tr=261.1`)
+                - `exactJstrisG9` (`steady_g4=false`): `207.95 [178..232]` (`wall=168.6s, avg_d=4.53, ps_d=1.29, cov=20.0%, tr=70.4`, `+17.35±2.83, W/T/L=1/1/18`) — 5-row simultaneous refill creates `9^5 = 59,049`-way chance branching on every `lines==0` move, collapsing `avg_d` and DAG hits. Kept `steady_g4=true`.
 
 
 

@@ -197,9 +197,10 @@ fn play_ismcts_seed(seed: u64, cfg: &IsMctsConfig) -> GameRes {
     res
 }
 
-fn run_parallel<F>(seeds: &[u64], f: F) -> (Vec<GameRes>, f64)
+fn run_parallel<T, F>(seeds: &[u64], f: F) -> (Vec<T>, f64)
 where
-    F: Fn(u64) -> GameRes + Sync,
+    T: Send,
+    F: Fn(u64) -> T + Sync,
 {
     let batch_t0 = Instant::now();
     let workers = std::thread::available_parallelism()
@@ -207,7 +208,7 @@ where
         .unwrap_or(2)
         .min(seeds.len().max(1));
     let next_idx = std::sync::atomic::AtomicUsize::new(0);
-    let mut out: Vec<Option<GameRes>> = vec![None; seeds.len()];
+    let mut out: Vec<Option<T>> = (0..seeds.len()).map(|_| None).collect();
     std::thread::scope(|sc| {
         let mut handles = Vec::new();
         for _ in 0..workers {
@@ -409,17 +410,341 @@ fn main() {
         return;
     }
 
+    if mode == "steady_ab20" {
+        let mut ref_res: Option<Vec<GameRes>> = None;
+        for &(name, sg4) in &[
+            ("TruncTailApprox_noCPW_steadyG4_true", true),
+            ("TruncTailApprox_noCPW_exactJstrisG9", false),
+        ] {
+            let mut cfg = base_m.clone();
+            cfg.simulations = 2400;
+            cfg.max_depth = 16;
+            cfg.backup_mode = 1;
+            cfg.steady_g4 = sg4;
+            cfg.split_tail_preview = false;
+            cfg.use_endgame_solver = true;
+            cfg.use_transposition = true;
+            cfg.dag_propagate_parents = true;
+            cfg.cpw_alpha = 0.0;
+            let (res, wall_s) = run_parallel(&seeds, |s| play_ismcts_seed(s, &cfg));
+            summarize(name, &res, wall_s, ref_res.as_deref());
+            if ref_res.is_none() {
+                ref_res = Some(res);
+            }
+        }
+        return;
+    }
+
+    if mode == "td_causal_audit" {
+        let extract_vis = |snap: &blockfish::ai::Snapshot| -> (Option<u8>, [u8; 6], usize) {
+            let q_len = snap.queue.len().min(6);
+            let mut vis = [0u8; 6];
+            for i in 0..q_len {
+                vis[i] = color_to_idx(snap.queue[i]) as u8;
+            }
+            let hold = snap.hold.map(|c| color_to_idx(c) as u8);
+            (hold, vis, q_len)
+        };
+
+        #[derive(Clone, Default)]
+        struct StepRec {
+            d_place: f64,
+            d_spawn: f64,
+            d_queue: f64,
+            delta: f64,
+            n_spawn: usize,
+            lines: usize,
+            ds: usize,
+            rem_g: u16,
+            rows: u8,
+        }
+        #[derive(Clone, Default)]
+        struct GameTraj {
+            steps: Vec<StepRec>,
+            k_drifts: [Vec<f64>; 4], // k=1,2,4,8
+            cal_errs: Vec<f64>,
+            audit_states: Vec<(blockfish::ai::Snapshot, GameContext)>,
+        }
+
+        let mut roll_cfg = base_m.clone();
+        roll_cfg.simulations = 1200;
+        roll_cfg.max_depth = 16;
+        roll_cfg.backup_mode = 1;
+        roll_cfg.split_tail_preview = false;
+        roll_cfg.use_endgame_solver = true;
+        roll_cfg.use_transposition = true;
+        roll_cfg.dag_propagate_parents = true;
+        roll_cfg.cpw_alpha = 0.0;
+
+        let sm_c = sm.clone();
+        let seed0 = seeds[0];
+        let (trajs, wall_s) = run_parallel(&seeds, |sd| {
+            let mut game_cfg = BSConfig::default();
+            game_cfg.garbage.total_lines = Some(100);
+            game_cfg.prng_seed = Some(sd);
+            let mut stacker = Stacker::new(Ruleset::guideline().into(), game_cfg);
+            let mut searcher = IsMctsSearcher::new_srs();
+            let mut bt = BagTracker::new();
+            let mut ds_tot = 0usize;
+            let mut ply = 0usize;
+            let mut gt = GameTraj::default();
+            let mut v_seq: Vec<f64> = Vec::new();
+
+            while ds_tot < 100 && stacker.current_piece_type().is_some() && ply < 350 {
+                let snap0 = stacker.snapshot().unwrap();
+                let g0 = garbage_rows(&stacker);
+                let rem0 = 100usize.saturating_sub(ds_tot) as u16;
+                let bm0 = bt.observe(snap0.hold, &snap0.queue[..snap0.queue.len().min(6)]);
+                let fb0 = FastBoard::from_basic_matrix(&snap0.matrix, g0);
+                let (h0, vis0, vl0) = extract_vis(&snap0);
+                let v0 = IsMctsSearcher::eval_board_v_bc4(&sm_c, &fb0, rem0, h0, &vis0[..vl0], bm0);
+                let ctx0 = GameContext {
+                    garbage_rows: Some(g0),
+                    remaining_garbage: Some(rem0),
+                    next_bag_mask: Some(bm0),
+                };
+                if sd <= seed0 + 2 && ply % 10 == 5 && rem0 > 12 {
+                    gt.audit_states.push((snap0.clone(), ctx0));
+                }
+                let r = searcher.search_with_ctx(&snap0, ctx0, &roll_cfg);
+                if r.inputs.is_empty() { break; }
+                let mut ins = r.inputs;
+                ins.pop();
+                stacker.run(ins);
+                let (lines, ds) = stacker.hard_drop();
+                ds_tot += ds;
+                v_seq.push(v0);
+
+                if ds_tot < 100 && stacker.current_piece_type().is_some() {
+                    let snap1 = stacker.snapshot().unwrap();
+                    let g1 = garbage_rows(&stacker);
+                    let rem1 = 100usize.saturating_sub(ds_tot) as u16;
+                    let bm1 = {
+                        let mut bt_peek = bt.clone();
+                        bt_peek.observe(snap1.hold, &snap1.queue[..snap1.queue.len().min(6)])
+                    };
+                    let fb_after = FastBoard::from_basic_matrix(&snap1.matrix, g1);
+                    let g_no_spawn = (g0 as usize).saturating_sub(ds);
+                    let n_spawn = (g1 as usize).saturating_sub(g_no_spawn);
+                    // Reconstruct exact intermediate board B_placed (after placement/clear, BEFORE spawn)
+                    let mut fb_placed = fb_after;
+                    if n_spawn > 0 && (fb_after.rows as usize) >= n_spawn {
+                        let new_r = (fb_after.rows as usize) - n_spawn;
+                        for rr in 0..new_r {
+                            fb_placed.data[rr] = fb_after.data[rr + n_spawn];
+                        }
+                        for rr in new_r..(fb_after.rows as usize) {
+                            fb_placed.data[rr] = 0;
+                        }
+                        fb_placed.rows = new_r as u8;
+                        fb_placed.garbage_rows = fb_after.garbage_rows.saturating_sub(n_spawn as u8);
+                    }
+                    let (h1, vis1, vl1) = extract_vis(&snap1);
+                    let v1 = IsMctsSearcher::eval_board_v_bc4(&sm_c, &fb_placed, rem1, h0, &vis0[..vl0], bm0);
+                    let v2 = IsMctsSearcher::eval_board_v_bc4(&sm_c, &fb_after, rem1, h0, &vis0[..vl0], bm0);
+                    let v3 = IsMctsSearcher::eval_board_v_bc4(&sm_c, &fb_after, rem1, h1, &vis1[..vl1], bm1);
+                    let d_place = (100.0 + v1) - v0;
+                    let d_spawn = v2 - v1;
+                    let d_queue = v3 - v2;
+                    let delta = (100.0 + v3) - v0;
+                    assert!((d_place + d_spawn + d_queue - delta).abs() < 1e-6);
+                    gt.steps.push(StepRec {
+                        d_place,
+                        d_spawn,
+                        d_queue,
+                        delta,
+                        n_spawn,
+                        lines,
+                        ds,
+                        rem_g: rem0,
+                        rows: fb0.rows,
+                    });
+                }
+                ply += 1;
+            }
+            if ds_tot >= 100 && v_seq.len() >= 10 {
+                let t_tot = v_seq.len();
+                for t in 0..t_tot {
+                    gt.cal_errs.push(v_seq[t] - 100.0 * ((t_tot - t) as f64));
+                }
+                for (ki, &k) in [1usize, 2, 4, 8].iter().enumerate() {
+                    for t in 0..t_tot.saturating_sub(k) {
+                        gt.k_drifts[ki].push(((100.0 * k as f64 + v_seq[t + k]) - v_seq[t]) / (k as f64));
+                    }
+                }
+            }
+            gt
+        });
+
+        let cluster_stats = |per_game_vals: &[Vec<f64>]| -> (usize, usize, f64, f64) {
+            let mut g_means = Vec::new();
+            let mut n_tot = 0usize;
+            for gv in per_game_vals {
+                if !gv.is_empty() {
+                    n_tot += gv.len();
+                    g_means.push(gv.iter().sum::<f64>() / gv.len() as f64);
+                }
+            }
+            let g_act = g_means.len();
+            if g_act == 0 {
+                return (0, 0, 0.0, 0.0);
+            }
+            let mean = g_means.iter().sum::<f64>() / g_act as f64;
+            let se = if g_act > 1 {
+                let var = g_means.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / (g_act as f64 - 1.0);
+                (var / g_act as f64).sqrt()
+            } else {
+                0.0
+            };
+            (g_act, n_tot, mean, se)
+        };
+
+        let report_decomp = |label: &str, pred: &dyn Fn(&StepRec) -> bool| {
+            let mut pg_tot = Vec::new();
+            let mut pg_pl = Vec::new();
+            let mut pg_sp = Vec::new();
+            let mut pg_qu = Vec::new();
+            for gt in &trajs {
+                let mut vt = Vec::new();
+                let mut vp = Vec::new();
+                let mut vs = Vec::new();
+                let mut vq = Vec::new();
+                for s in &gt.steps {
+                    if pred(s) {
+                        vt.push(s.delta);
+                        vp.push(s.d_place);
+                        vs.push(s.d_spawn);
+                        vq.push(s.d_queue);
+                    }
+                }
+                pg_tot.push(vt);
+                pg_pl.push(vp);
+                pg_sp.push(vs);
+                pg_qu.push(vq);
+            }
+            let (g_act, n_st, mt, set) = cluster_stats(&pg_tot);
+            let (_, _, mp, sep) = cluster_stats(&pg_pl);
+            let (_, _, ms, ses) = cluster_stats(&pg_sp);
+            let (_, _, mq, seq) = cluster_stats(&pg_qu);
+            println!(
+                "  {:28} | G={:2} n={:4} | total={:+6.2}±{:4.2} | place={:+6.2}±{:4.2} | spawn={:+6.2}±{:4.2} | queue={:+6.2}±{:4.2}",
+                label, g_act, n_st, mt, set, mp, sep, ms, ses, mq, seq
+            );
+        };
+
+        println!("=== Part 1: Exact Searcher-Encoding Causal TD Decomposition [CPW=OFF, G={} games, wall={:.1}s] ===", trajs.len(), wall_s);
+        println!("  (All SEs are Game-Clustered across G independent games; delta = d_place + d_spawn + d_queue)");
+        report_decomp("ALL transitions", &|_| true);
+        println!("  -- Joint Stratification (n_spawn, ds, lines) --");
+        report_decomp("sp=0, lines=0 (stack)", &|s| s.n_spawn == 0 && s.lines == 0);
+        report_decomp("sp=0, ds>0 (no-spawn ds)", &|s| s.n_spawn == 0 && s.ds > 0);
+        report_decomp("sp=0, nds>0 (non-ds clr)", &|s| s.n_spawn == 0 && s.lines > 0 && s.ds == 0);
+        report_decomp("sp=1, ds=1", &|s| s.n_spawn == 1 && s.ds == 1);
+        report_decomp("sp=1, ds>=2", &|s| s.n_spawn == 1 && s.ds >= 2);
+        report_decomp("sp>=2, ds>=2", &|s| s.n_spawn >= 2 && s.ds >= 2);
+        println!("  -- Spawn Events (n_spawn>=1) by rem_g & Board Height --");
+        report_decomp("sp>=1, rem_g>60 (early)", &|s| s.n_spawn >= 1 && s.rem_g > 60);
+        report_decomp("sp>=1, rem_g 31..=60 (mid)", &|s| s.n_spawn >= 1 && s.rem_g > 30 && s.rem_g <= 60);
+        report_decomp("sp>=1, rem_g<=30 (late)", &|s| s.n_spawn >= 1 && s.rem_g <= 30);
+        report_decomp("sp>=1, rows<=8", &|s| s.n_spawn >= 1 && s.rows <= 8);
+        report_decomp("sp>=1, rows 9..=11", &|s| s.n_spawn >= 1 && s.rows >= 9 && s.rows <= 11);
+        report_decomp("sp>=1, rows>=12", &|s| s.n_spawn >= 1 && s.rows >= 12);
+        println!("  -- Multi-Step Per-Ply Drift & Global Calibration (Game-Clustered SE) --");
+        for (ki, &k) in [1usize, 2, 4, 8].iter().enumerate() {
+            let pg: Vec<Vec<f64>> = trajs.iter().map(|gt| gt.k_drifts[ki].clone()).collect();
+            let (ga, ns, m, se) = cluster_stats(&pg);
+            println!("  k={} per-ply drift           | G={:2} n={:4} | mean={:+6.2} ± {:4.2} cp/ply", k, ga, ns, m, se);
+        }
+        {
+            let pg: Vec<Vec<f64>> = trajs.iter().map(|gt| gt.cal_errs.clone()).collect();
+            let (ga, ns, m, se) = cluster_stats(&pg);
+            println!("  V_bc4(s_t) - 100*(T-t)       | G={:2} n={:4} | mean={:+7.2} ± {:5.2} cp", ga, ns, m, se);
+        }
+
+        // Part 2: Non-Circular Candidate Pruning Recall (Fair minimum visits to ALL legal root cands!)
+        let mut audit_states = Vec::new();
+        for gt in &trajs {
+            audit_states.extend(gt.audit_states.iter().cloned());
+        }
+        let n_st = audit_states.len().min(45);
+        audit_states.truncate(n_st);
+        println!("\n=== Part 2: Fair Non-Circular Candidate Pruning Recall (root_max=64, min_visits=40/cand, s=3000, CPW=OFF, n={}) ===", n_st);
+        let mut searcher = IsMctsSearcher::new_srs();
+        let mut rec_top16 = 0usize;
+        let mut rec_top10 = 0usize;
+        let mut tail_beats_0 = 0usize;
+        let mut tail_beats_25 = 0usize;
+        let mut tail_beats_50 = 0usize;
+        let mut q_gap_sum = 0.0f64;
+        let mut tot_cands = 0usize;
+
+        for (snap, ctx) in &audit_states {
+            let mut cfg_fair = base_m.clone();
+            cfg_fair.simulations = 3000;
+            cfg_fair.max_depth = 16;
+            cfg_fair.root_max_actions = 64;
+            cfg_fair.root_min_visits_per_action = 40;
+            cfg_fair.backup_mode = 1;
+            cfg_fair.split_tail_preview = false;
+            cfg_fair.use_endgame_solver = false;
+            cfg_fair.use_transposition = true;
+            cfg_fair.dag_propagate_parents = true;
+            cfg_fair.cpw_alpha = 0.0;
+            let r = searcher.search_with_ctx(snap, *ctx, &cfg_fair);
+            tot_cands += r.root_candidates.len();
+            // Rank by 1-ply linear prior descending
+            let mut by_prior = r.root_candidates.clone();
+            by_prior.sort_by(|a, b| b.3.total_cmp(&a.3));
+            let best_all = r
+                .root_candidates
+                .iter()
+                .filter(|x| x.1 >= 40)
+                .min_by(|a, b| a.2.total_cmp(&b.2))
+                .unwrap();
+            let best_top16_q = by_prior
+                .iter()
+                .take(16)
+                .filter(|x| x.1 >= 40)
+                .map(|x| x.2)
+                .fold(f64::INFINITY, f64::min);
+            let rank = by_prior
+                .iter()
+                .position(|x| x.0.did_hold == best_all.0.did_hold && x.0.tf == best_all.0.tf)
+                .unwrap_or(99);
+            if rank < 16 { rec_top16 += 1; }
+            if rank < 10 { rec_top10 += 1; }
+            let gap = best_top16_q - best_all.2; // > 0 means tail beat top-16!
+            if gap > 1e-6 { tail_beats_0 += 1; }
+            if gap > 25.0 { tail_beats_25 += 1; }
+            if gap > 50.0 { tail_beats_50 += 1; }
+            q_gap_sum += gap.max(0.0);
+        }
+        println!(
+            "  Avg legal cands={:.1} | Fair Best-Q recall: top-16={:.1}% ({}/{}), top-10={:.1}% ({}/{})",
+            tot_cands as f64 / n_st as f64,
+            100.0 * rec_top16 as f64 / n_st as f64, rec_top16, n_st,
+            100.0 * rec_top10 as f64 / n_st as f64, rec_top10, n_st
+        );
+        println!(
+            "  Tail (>top-16) beats top-16: >0cp={:.1}% ({}/{}), >25cp={:.1}% ({}/{}), >50cp={:.1}% ({}/{}) | mean Q regret={:.2} cp",
+            100.0 * tail_beats_0 as f64 / n_st as f64, tail_beats_0, n_st,
+            100.0 * tail_beats_25 as f64 / n_st as f64, tail_beats_25, n_st,
+            100.0 * tail_beats_50 as f64 / n_st as f64, tail_beats_50, n_st,
+            q_gap_sum / n_st as f64
+        );
+        return;
+    }
+
     if mode == "nocpw_diag" {
         let eval_v_bc4 = |snap: &blockfish::ai::Snapshot, g_rows: u16, rem_g: u16, bmask: u8| -> f64 {
             let fb = FastBoard::from_basic_matrix(&snap.matrix, g_rows);
             let q_len = snap.queue.len().min(6);
+            let mut vis = [0u8; 6];
+            for i in 0..q_len {
+                vis[i] = color_to_idx(snap.queue[i]) as u8;
+            }
             let hold = snap.hold.map(|c| color_to_idx(c) as u8);
-            let cur = if q_len > 0 { Some(color_to_idx(snap.queue[0]) as u8) } else { None };
-            let in_hand = hold.or(cur);
-            let mut avail = bmask;
-            if let Some(h) = hold { avail |= 1u8 << h; }
-            for i in 0..q_len { avail |= 1u8 << (color_to_idx(snap.queue[i]) as u8); }
-            sm.evaluate_board_with_bag(&fb, rem_g, in_hand, avail) as f64
+            IsMctsSearcher::eval_board_v_bc4(&sm, &fb, rem_g, hold, &vis[..q_len], bmask)
         };
 
         // Part A & B: Play 10 full CPW-OFF games (30001..=30010, s=1200) to collect:

@@ -86,6 +86,9 @@ pub struct IsMctsConfig {
     pub cpw_tail_c: f64,
     /// Optional separate CPW exponent for pure tail-preview chance events (`n_spawn == 0`).
     pub cpw_tail_alpha: f64,
+    /// Optional forced minimum visits per root candidate before PUCT takes over (`0` = disabled).
+    /// Used for fair non-circular candidate pruning recall audits.
+    pub root_min_visits_per_action: u32,
     /// Frozen or iterated spatial value model (used for full-MLP leaf evaluation).
     pub spatial_model: Option<Arc<SpatialValueModel>>,
     /// Optional separate policy prior model (used ONLY for 1-ply linear prior `P(u, a)` in `expand_node`;
@@ -117,6 +120,7 @@ impl Default for IsMctsConfig {
             cpw_alpha: 0.0,
             cpw_tail_c: 0.5,
             cpw_tail_alpha: 0.0,
+            root_min_visits_per_action: 0,
             spatial_model: None,
             policy_prior: None,
         }
@@ -361,8 +365,9 @@ impl IsMctsSearcher {
     }
 
     /// Legal observable `avail_mask` derived strictly from this node's own `vis_q[..vis_len]` + `bag_mask`.
+    /// Note: `bag_mask` is ONLY OR'd in when `vis_q.len() < 3` (matching internal `IsMctsSearcher` encoding).
     #[inline]
-    fn avail_mask_from_vis(hold: Option<u8>, vis_q: &[u8], bag_mask: u8) -> u8 {
+    pub fn avail_mask_from_vis(hold: Option<u8>, vis_q: &[u8], bag_mask: u8) -> u8 {
         let mut mask = 0u8;
         if let Some(h) = hold {
             mask |= 1u8 << h;
@@ -378,6 +383,22 @@ impl IsMctsSearcher {
         } else {
             mask
         }
+    }
+
+    /// Evaluate a board with the EXACT feature encoding used by `IsMctsSearcher`
+    /// (`in_hand = hold.or(vis_q[0])`, `avail_mask = avail_mask_from_vis(hold, vis_q, bag_mask)`).
+    #[inline]
+    pub fn eval_board_v_bc4(
+        sm: &SpatialValueModel,
+        board: &FastBoard,
+        rem_g: u16,
+        hold: Option<u8>,
+        vis_q: &[u8],
+        bag_mask: u8,
+    ) -> f64 {
+        let in_hand = hold.or_else(|| vis_q.first().copied());
+        let avail = Self::avail_mask_from_vis(hold, vis_q, bag_mask);
+        Self::eval_leaf_full(Some(sm), board, rem_g, in_hand, avail, 0, 100.0, 20_000.0, 4000.0)
     }
 
     #[inline]
@@ -813,6 +834,19 @@ impl IsMctsSearcher {
     #[inline]
     fn select_puct(&self, node_idx: usize, cfg: &IsMctsConfig) -> usize {
         let node = &self.nodes[node_idx];
+        if node_idx == 0 && cfg.root_min_visits_per_action > 0 {
+            let mut best_i: Option<usize> = None;
+            let mut min_v = cfg.root_min_visits_per_action;
+            for (i, e) in node.actions.iter().enumerate() {
+                if e.visits < min_v {
+                    min_v = e.visits;
+                    best_i = Some(i);
+                }
+            }
+            if let Some(i) = best_i {
+                return i;
+            }
+        }
         let parent_n = (node.visits.max(1)) as f64;
         let sqrt_n = parent_n.sqrt();
 
@@ -2113,6 +2147,71 @@ mod tests {
                 prev_b_rmse
             );
             prev_b_rmse = rmse;
+        }
+    }
+
+    #[test]
+    fn test_eval_board_v_bc4_matches_searcher_avail_mask_encoding() {
+        // Regression test: `avail_mask_from_vis` MUST NOT OR in `bag_mask` when `vis_q.len() >= 3`,
+        // and MUST OR in `bag_mask` when `vis_q.len() < 3`.
+        let hold = Some(0u8); // I
+        let vis_6 = [1u8, 2, 3, 1, 2, 3]; // O, T, S only (bits 1,2,3)
+        let vis_2 = [1u8, 2]; // O, T only (bits 1,2)
+        let bag_mask = 1u8 << 6; // L only (bit 6)
+
+        let m6 = IsMctsSearcher::avail_mask_from_vis(hold, &vis_6, bag_mask);
+        assert_eq!(
+            m6,
+            (1u8 << 0) | (1u8 << 1) | (1u8 << 2) | (1u8 << 3),
+            "bag_mask must NOT be OR'd into avail_mask when vis_q.len() >= 3"
+        );
+        assert_eq!(m6 & bag_mask, 0);
+
+        let m2 = IsMctsSearcher::avail_mask_from_vis(hold, &vis_2, bag_mask);
+        assert_eq!(
+            m2,
+            (1u8 << 0) | (1u8 << 1) | (1u8 << 2) | bag_mask,
+            "bag_mask MUST be OR'd into avail_mask when vis_q.len() < 3"
+        );
+
+        // Also verify `root_min_visits_per_action` gives every legal root candidate >= min_v visits.
+        let mut s = IsMctsSearcher::new_srs();
+        let mat = make_test_board(&[3, 7, 1, 5]);
+        let snap = Snapshot {
+            hold: Some(Color::n('I')),
+            queue: vec![
+                Color::n('O'),
+                Color::n('T'),
+                Color::n('S'),
+                Color::n('O'),
+                Color::n('T'),
+                Color::n('S'),
+            ],
+            matrix: mat,
+        };
+        let ctx = GameContext {
+            garbage_rows: Some(4),
+            remaining_garbage: Some(40),
+            next_bag_mask: Some(bag_mask),
+        };
+        let cfg = IsMctsConfig {
+            simulations: 200,
+            max_depth: 6,
+            root_max_actions: 20,
+            root_min_visits_per_action: 5,
+            split_tail_preview: false,
+            use_transposition: true,
+            cpw_alpha: 0.0,
+            ..Default::default()
+        };
+        let r = s.search_with_ctx(&snap, ctx, &cfg);
+        assert!(r.root_candidates.len() >= 10);
+        for &(_, v, _, _) in &r.root_candidates {
+            assert!(
+                v >= 5,
+                "expected every root candidate to get >= 5 fair visits, got {}",
+                v
+            );
         }
     }
 }
