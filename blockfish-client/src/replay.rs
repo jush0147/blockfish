@@ -449,6 +449,25 @@ impl<'v> ReplayPlayer<'v> {
         &self.view
     }
 
+    pub fn total_steps(&self) -> usize {
+        self.session.max_valid_step()
+    }
+
+    pub fn validation_error(&self) -> Option<&ReplayValidationError> {
+        self.session.validation_error.as_ref()
+    }
+
+    pub fn record(&self) -> &ReplayRecord {
+        &self.session.record
+    }
+
+    pub fn set_export_step(&mut self, step: usize, playing: bool) {
+        self.step = step.min(self.session.max_valid_step());
+        self.playing = playing;
+        self.goto_input = None;
+        self.sync_view();
+    }
+
     pub fn tick(&mut self) {
         let now = Instant::now();
         let dt = now.duration_since(self.last_tick).as_secs_f64();

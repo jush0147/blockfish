@@ -76,6 +76,21 @@ struct Args {
     /// render a single Replay Mode frame at --start-step, save BMP to path, and exit
     #[argh(option)]
     screenshot: Option<std::path::PathBuf>,
+    /// offline-render the --replay file to a 1920x1080 H.264 MP4 via FFmpeg and exit
+    #[argh(option)]
+    export_video: Option<std::path::PathBuf>,
+    /// output video frame rate for --export-video (default: 60)
+    #[argh(option)]
+    fps: Option<u32>,
+    /// opening still duration in seconds for --export-video (default: 2.0)
+    #[argh(option)]
+    lead_sec: Option<f64>,
+    /// closing still duration in seconds for --export-video (default: 2.0)
+    #[argh(option)]
+    tail_sec: Option<f64>,
+    /// optional path to save the final 1920x1080 frame as PNG during --export-video
+    #[argh(option)]
+    final_png: Option<std::path::PathBuf>,
 }
 
 impl Args {
@@ -244,14 +259,34 @@ fn entry(mut args: Args) -> Result<()> {
             log::error!("{}", err);
             eprintln!("Replay validation error: {}", err);
         }
+        let is_export = args.export_video.is_some();
+        let speed_pps = args.speed.unwrap_or(if is_export { 5.0 } else { 2.5 });
         let view = view::View::new(resources, rules, controls, &theme);
         let mut player = replay::ReplayPlayer::new(
             view,
             session,
             args.start_step.unwrap_or(0),
-            args.speed.unwrap_or(2.5),
-            args.paused || args.screenshot.is_some(),
+            speed_pps,
+            args.paused || args.screenshot.is_some() || is_export,
         );
+
+        if let Some(video_path) = args.export_video.take() {
+            if let Some(err) = player.validation_error() {
+                return Err(Error::ReplayValidation(err.clone()));
+            }
+            export_replay_video(
+                &mut player,
+                &mut canvas,
+                &texture_creator,
+                &video_path,
+                args.final_png.as_deref(),
+                args.fps.unwrap_or(60),
+                speed_pps,
+                args.lead_sec.unwrap_or(2.0),
+                args.tail_sec.unwrap_or(2.0),
+            )?;
+            return Ok(());
+        }
 
         if let Some(shot_path) = args.screenshot.take() {
             player.view().render_labels(&texture_creator);
@@ -320,6 +355,202 @@ fn save_canvas_bmp(canvas: &view::Canvas, path: &std::path::Path) -> Result<()> 
         }
     }
     surf.save_bmp(path).map_err(sdl_error)?;
+    Ok(())
+}
+
+const FFMPEG_1080P_FILTER: &str =
+    "scale=1920:1080:force_original_aspect_ratio=decrease:flags=lanczos,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:black";
+
+#[allow(clippy::too_many_arguments)]
+fn export_replay_video<'v>(
+    player: &mut replay::ReplayPlayer<'v>,
+    canvas: &mut view::Canvas,
+    texture_creator: &'v view::TextureCreator,
+    out_mp4: &std::path::Path,
+    final_png: Option<&std::path::Path>,
+    fps: u32,
+    speed_pps: f64,
+    lead_sec: f64,
+    tail_sec: f64,
+) -> Result<()> {
+    use std::io::Write as _;
+    use std::process::{Command, Stdio};
+
+    if fps == 0 {
+        return Err(Error::Sdl("--fps must be > 0".to_string()));
+    }
+    if speed_pps <= 0.0 {
+        return Err(Error::Sdl("--speed must be > 0".to_string()));
+    }
+    if let Some(parent) = out_mp4.parent() {
+        if !parent.as_os_str().is_empty() {
+            std::fs::create_dir_all(parent).map_err(sdl_error)?;
+        }
+    }
+
+    let (w, h) = canvas.output_size().map_err(sdl_error)?;
+    let fmt = sdl2::pixels::PixelFormatEnum::RGB24;
+    let size_arg = format!("{}x{}", w, h);
+    let fps_arg = fps.to_string();
+
+    let mut child = Command::new("ffmpeg")
+        .args(&[
+            "-y",
+            "-loglevel",
+            "error",
+            "-f",
+            "rawvideo",
+            "-pix_fmt",
+            "rgb24",
+            "-s",
+            &size_arg,
+            "-r",
+            &fps_arg,
+            "-i",
+            "-",
+            "-vf",
+            FFMPEG_1080P_FILTER,
+            "-c:v",
+            "libx264",
+            "-preset",
+            "medium",
+            "-crf",
+            "18",
+            "-pix_fmt",
+            "yuv420p",
+            "-movflags",
+            "+faststart",
+            "-an",
+        ])
+        .arg(out_mp4)
+        .stdin(Stdio::piped())
+        .spawn()
+        .map_err(|e| Error::Sdl(format!("failed to spawn ffmpeg: {}", e)))?;
+
+    let mut stdin = child
+        .stdin
+        .take()
+        .ok_or_else(|| Error::Sdl("failed to open ffmpeg stdin".to_string()))?;
+
+    let total_steps = player.total_steps();
+    let fps_f = fps as f64;
+    let lead_frames = (lead_sec.max(0.0) * fps_f).round() as usize;
+    let tail_frames = (tail_sec.max(0.0) * fps_f).round() as usize;
+
+    let mut total_frames_written = 0usize;
+    let mut final_pixels: Option<Vec<u8>> = None;
+
+    for step in 0..=total_steps {
+        let frame_count = if step == 0 {
+            lead_frames.max(1)
+        } else if step == total_steps {
+            tail_frames.max(1)
+        } else {
+            let f0 = (((step - 1) as f64) * fps_f / speed_pps).round() as usize;
+            let f1 = ((step as f64) * fps_f / speed_pps).round() as usize;
+            f1.saturating_sub(f0).max(1)
+        };
+
+        let is_playing = step > 0 && step < total_steps;
+        player.set_export_step(step, is_playing);
+        player.view().render_labels(texture_creator);
+        player.view().paint(canvas);
+        canvas.present();
+
+        let pixels = canvas.read_pixels(None, fmt).map_err(sdl_error)?;
+        for _ in 0..frame_count {
+            stdin
+                .write_all(&pixels)
+                .map_err(|e| Error::Sdl(format!("ffmpeg pipe write failed at step {}: {}", step, e)))?;
+        }
+        total_frames_written += frame_count;
+
+        if step == total_steps {
+            final_pixels = Some(pixels);
+        }
+    }
+
+    drop(stdin);
+    let status = child
+        .wait()
+        .map_err(|e| Error::Sdl(format!("failed waiting for ffmpeg: {}", e)))?;
+    if !status.success() {
+        return Err(Error::Sdl(format!("ffmpeg exited with status {}", status)));
+    }
+
+    if let (Some(png_path), Some(pixels)) = (final_png, final_pixels.as_ref()) {
+        save_rgb24_as_1080p_png(pixels, w, h, png_path)?;
+    }
+
+    let rec = player.record();
+    println!(
+        "EXPORT VIDEO OK: out={} seed={} pieces={} lines={} ds={}/100 steps={} fps={} speed={:.2}pps frames={} duration={:.2}s",
+        out_mp4.display(),
+        rec.seed,
+        rec.pieces,
+        rec.lines_cleared,
+        rec.ds_cleared,
+        total_steps,
+        fps,
+        speed_pps,
+        total_frames_written,
+        (total_frames_written as f64) / fps_f,
+    );
+    Ok(())
+}
+
+fn save_rgb24_as_1080p_png(
+    pixels: &[u8],
+    w: u32,
+    h: u32,
+    out_png: &std::path::Path,
+) -> Result<()> {
+    use std::io::Write as _;
+    use std::process::{Command, Stdio};
+
+    if let Some(parent) = out_png.parent() {
+        if !parent.as_os_str().is_empty() {
+            std::fs::create_dir_all(parent).map_err(sdl_error)?;
+        }
+    }
+    let size_arg = format!("{}x{}", w, h);
+    let mut child = Command::new("ffmpeg")
+        .args(&[
+            "-y",
+            "-loglevel",
+            "error",
+            "-f",
+            "rawvideo",
+            "-pix_fmt",
+            "rgb24",
+            "-s",
+            &size_arg,
+            "-i",
+            "-",
+            "-vf",
+            FFMPEG_1080P_FILTER,
+            "-frames:v",
+            "1",
+        ])
+        .arg(out_png)
+        .stdin(Stdio::piped())
+        .spawn()
+        .map_err(|e| Error::Sdl(format!("failed to spawn ffmpeg for PNG: {}", e)))?;
+    {
+        let mut stdin = child
+            .stdin
+            .take()
+            .ok_or_else(|| Error::Sdl("failed to open ffmpeg PNG stdin".to_string()))?;
+        stdin
+            .write_all(pixels)
+            .map_err(|e| Error::Sdl(format!("ffmpeg PNG pipe write failed: {}", e)))?;
+    }
+    let status = child
+        .wait()
+        .map_err(|e| Error::Sdl(format!("failed waiting for ffmpeg PNG: {}", e)))?;
+    if !status.success() {
+        return Err(Error::Sdl(format!("ffmpeg PNG exited with status {}", status)));
+    }
     Ok(())
 }
 

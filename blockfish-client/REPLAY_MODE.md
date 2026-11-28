@@ -24,6 +24,19 @@ Native SDL2 replay player built directly into `blockfish-client` for viewing rec
 - `--paused`: Start paused instead of auto-playing
 - `--verify-only`: Headlessly verify every step and exit `0` on exact match / `1` on mismatch (no window opened)
 - `--screenshot <path.bmp>`: Render a single native SDL2 frame at `--start-step`, save BMP, and exit
+- `--export-video <path.mp4>`: Offline deterministic frame-stepped export to `1920x1080` H.264 (`yuv420p`, `+faststart`, no audio) via FFmpeg (preserves aspect ratio with centered black padding; default `--speed 5.0`, `--fps 60`, `--lead-sec 2.0`, `--tail-sec 2.0`)
+- `--final-png <path.png>`: Save the final `1920x1080` frame as PNG during `--export-video`
+
+### Example: Offline 1080p60 MP4 Export (Headless Linux)
+```bash
+xvfb-run -a -s "-screen 0 1280x800x24" \
+  env SDL_VIDEODRIVER=x11 SDL_RENDER_DRIVER=software \
+  ./target/release/blockfish-client \
+  --replay seed_102015_pcs_168.replay.json \
+  --export-video bc4_seed_102015_168p.mp4 \
+  --final-png bc4_seed_102015_final.png \
+  --fps 60 --speed 5.0 --lead-sec 2.0 --tail-sec 2.0
+```
 
 ## Keyboard Controls (Replay Mode)
 
