@@ -11,6 +11,8 @@ pub mod cheese_val;
 mod eval;
 pub mod fast;
 pub mod fast_eval;
+pub mod ismcts;
+pub mod nc_rollout;
 pub mod ordered_policy;
 pub mod spatial_val;
 mod state;
@@ -18,6 +20,8 @@ mod state;
 pub use beam::{BagTracker, BeamConfig, BeamResult, BeamSearcher, GameContext};
 pub use cheese_val::LearnedValueModel;
 pub use fast_eval::EvalWeights;
+pub use ismcts::{IsMctsConfig, IsMctsResult, IsMctsSearcher};
+pub use nc_rollout::{NcRolloutConfig, NcRolloutResult, NcRolloutSearcher};
 pub use ordered_policy::OrderedRootPolicy;
 pub use spatial_val::SpatialValueModel;
 

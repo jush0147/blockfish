@@ -310,6 +310,33 @@ Verified runs on seeds `101..=102` with exact `zds_o` (`placed_c == 'O'`) metric
                 - `Pure BC-4 1-ply a=0.15`: `206.53 [182..234]` (`-3.33 ± 1.89, 95%CI=[-7.03,+0.38], W/T/L=24/1/15`)
                 - **`Pure BC-4 1-ply a=0.25`**: **`206.53 [190..224]`** (**`-3.33 ± 1.57, 95%CI=[-6.40,-0.25], W/T/L=25/1/14`** — statistically significant!)
               - Integrated opt-in `root_step1_prior_pct` (default `0`, exact `×100` scale) into `beam.rs` for strict same-binary `fullmlp_w16` A/B (`p0` vs `p08` vs `p15`, Run #30-CPU).
+            - **Colab Run #30-CPU (`4c5d1da`, `bench_legal step1_prior 5 models/spatial_bc4.txt`) — FAST ELIMINATED**:
+              - Strict same-binary 5-seed `fullmlp_w16` A/B (`101..=105`, all `top=0`):
+                - `BASE (p0)`: **`184.20`** (`[101:180, 102:184, 103:176, 104:188, 105:193]`, `nds=62.40`, `cov_nxt=15.0%`)
+                - `step1_p08`: `184.60` (`+0.40`, `[101:186 (+6), 102:182 (-2), 103:177 (+1), 104:189 (+1), 105:189 (-4)]`, `W/T/L=2/0/3`, `cov_nxt=16.4%`)
+                - `step1_p15`: `186.20` (`+2.00`, `[101:187 (+7), 102:194 (+10), 103:178 (+2), 104:180 (-8), 105:192 (-1)]`, `W/T/L=2/0/3`, `cov_nxt=17.2%`)
+              - **Conclusion**: While 1-ply prior dampened single-world 5-ply beam noise (`-3.33 ± 1.57`), formal 16-world `fullmlp_w16` already averages out leaf noise across 16 worlds; adding 1-ply myopic prior only adds bias (`cov_nxt` degraded `15.0% -> 16.4% -> 17.2%`). Fast-eliminated; pivoting to **Zero-Strategy-Fusion Information-Set MCTS (`ismcts.rs`)**.
+            - **Zero-Strategy-Fusion SO-ISMCTS Prototype (`ismcts.rs`, `bench_ismcts.rs`, pure local CPU, ZERO Colab CU)**:
+              - Implemented `IsMctsSearcher` (strictly truncates `queue[..6]`, decision nodes keyed strictly before chance events, chance branching strictly after observable garbage spawns / new piece draws; `2/2` unit tests pass).
+              - **10 Fresh Independent Seeds (`20001..=20010`, all `top=0`)**:
+                - `BASE_5ply_b16`: `196.40 [181..207]` (`7.3s`)
+                - `PIMC_w4_h7_b8`: `193.70 [186..203]` (`42.7s`)
+                - `ISMCTS s2400_d12_mean`: `192.70 [182..202]` (`21.1s`, `-1.00` vs PIMC, `2×` faster)
+                - `ISMCTS s5000_d12_mean`: `191.10 [187..195]` (`41.2s`, `-2.60` vs PIMC, same time)
+                - **`ISMCTS s2400_d12_bellman`**: **`190.00 [185..197]`** (`19.8s`, **`-3.70` vs PIMC, `2.2×` faster**!)
+                - `leaf_obs_lookahead=2`: `190.20` (`+0.20`, `1.8×` slower → eliminated); `consbell (+100/√N)`: `195.10–196.60` (eliminated); `c_puct=0.8`: `195.50` (eliminated); `c_puct=2.5`: `189.90`.
+              - **10-Seed `101..=110` Direct Comparison vs `fullmlp_w16` (`185.60`)**:
+                - `s2400_d12_bellman`: `190.50 [176..201]` (`101..105: 183.60`, `106..110: 197.40`, `21.4s`)
+                - `s5000_d12_mean`: `191.80 [177..202]` (`43.4s`)
+                - `s5000_d12_bellman`: `194.20 [188..200]` (`41.4s`, `cov_nxt` jumped `17.2% -> 20.2%`)
+                - `step_cost_cp` calibration (`sc=90: 195.70`, `sc=86: 193.10`) worsened 0ds waste (`nds: 65.1 -> 67.1`).
+              - **Root Cause & Pivot**: Pure tree-based SO-ISMCTS beats matched-budget `PIMC_w4_h7_b8` (`-3.70` pcs in half the time), but hits the `9^k` chance-branching wall after 1–2 garbage spawns (truncating `ds=1` branches at depth `2–3` vs `fullmlp_w16`'s depth `8`).
+            - **True Non-Clairvoyant CRN Rollout PIMC (`nc_rollout.rs`, `2/2` unit tests pass) — FAST ELIMINATED**:
+              - Tested on `101..=110` (`W=18`, `K=12`, `p1` fast linear rollout policy): `NC_w18_h8_p1 = 232.90 [215..254]` (`39.5s`), `NC_w18_h12_p1 = 243.10 [227..260]` (`59.9s`, `+10.20` worse).
+              - **Conclusion**: Rolling out a weak fast linear policy (`~260` pcs) for `8..12` steps degrades board quality too rapidly to guide `185`-piece play. Fast-eliminated cleanly with zero Colab CU spent.
+
+
+
 
 
 
