@@ -48,13 +48,17 @@ pub struct IsMctsConfig {
     pub q_scale: f64,
     /// Topout penalty (centipieces above root reference value).
     pub topout_penalty: f64,
-    /// Whether to use steady-state `target_g = 4` cheese spawning (Jstris 100L Cheese Race).
+    /// Garbage refill planning model inside the search tree:
+    /// - `true` (**G4ApproxPlanning**): finite-budget planning approximation that caps mid-search
+    ///   garbage refill at `target_g = 4` even on `lines == 0` moves (NOT exact Jstris physics!).
+    /// - `false` (**G9ExactDynamics**): exact `block-stacker` Jstris Cheese Race dynamics
+    ///   (`min_height = 4` on `lines > 0`, `max_height = 9` on `lines == 0`).
     pub steady_g4: bool,
     /// If true, select root move by highest visit count (tie-break by lowest Q).
     /// If false, select root move by lowest Q among actions with at least `min_select_visits`.
     pub select_by_visits: bool,
     /// Backup mode at decision nodes: `0` = standard MCTS mean backup, `1` = Bellman Expecti-Min,
-    /// `2` = 50/50 blend, `3` = conservative Bellman.
+    /// `2` = 50/50 blend, `3` = conservative Bellman, `4` = Visit-Weighted DAG Value.
     pub backup_mode: u8,
     /// Per-ply step cost in centipieces added to leaf `V_bc4` (`depth * step_cost_cp + V_bc4`).
     pub step_cost_cp: f64,
@@ -89,6 +93,14 @@ pub struct IsMctsConfig {
     /// Optional forced minimum visits per root candidate before PUCT takes over (`0` = disabled).
     /// Used for fair non-circular candidate pruning recall audits.
     pub root_min_visits_per_action: u32,
+    /// Hybrid **G4-proposal + G9-rerank** (`0` = disabled): rerank Top-K root proposals from
+    /// `G4ApproxPlanning` under exact `G9ExactDynamics` (`min_height=4, max_height=9`) using CRN.
+    pub g9_rerank_topk: usize,
+    /// Number of CRN worlds per root candidate for `G9ExactDynamics` reranking (e.g., `16`).
+    pub g9_rerank_worlds: usize,
+    /// Fixed mini-search simulations per post-G9 state (`0` = direct `V_bc4` leaf eval; `>0` = non-clairvoyant
+    /// Legal `p=5` mini-SO-ISMCTS with zero future hole peeking).
+    pub g9_rerank_sims: usize,
     /// Frozen or iterated spatial value model (used for full-MLP leaf evaluation).
     pub spatial_model: Option<Arc<SpatialValueModel>>,
     /// Optional separate policy prior model (used ONLY for 1-ply linear prior `P(u, a)` in `expand_node`;
@@ -121,6 +133,9 @@ impl Default for IsMctsConfig {
             cpw_tail_c: 0.5,
             cpw_tail_alpha: 0.0,
             root_min_visits_per_action: 0,
+            g9_rerank_topk: 0,
+            g9_rerank_worlds: 16,
+            g9_rerank_sims: 20,
             spatial_model: None,
             policy_prior: None,
         }
@@ -1396,11 +1411,257 @@ impl IsMctsSearcher {
                 .unwrap_or_else(|| &root.actions[0])
         };
 
-        let best_fp = best_edge.fp;
-        let best_q = best_edge.q_val(bm).round() as i64;
-        let best_visits = best_edge.visits;
+        let mut best_fp = best_edge.fp;
+        let mut best_q = best_edge.q_val(bm).round() as i64;
+        let mut best_visits = best_edge.visits;
+        let mut total_sims_done = sims;
+        let nodes_expanded = self.nodes.len();
 
         root_candidates.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.2.total_cmp(&b.2)));
+
+        // Optional Hybrid: G4-proposal + G9ExactDynamics CRN rerank (zero future hole peeking).
+        if cfg.g9_rerank_topk > 1 && cfg.g9_rerank_worlds > 0 && root_candidates.len() > 1 {
+            let max_v = root_candidates.iter().map(|x| x.1).max().unwrap_or(0);
+            let min_v_prop = (max_v / 8).max(1);
+            let mut prop_order = root_candidates.clone();
+            prop_order.sort_by(|a, b| {
+                let qa = a.1 >= min_v_prop;
+                let qb = b.1 >= min_v_prop;
+                qb.cmp(&qa)
+                    .then_with(|| a.2.total_cmp(&b.2))
+                    .then_with(|| b.1.cmp(&a.1))
+            });
+            let k_prop = cfg.g9_rerank_topk.min(prop_order.len());
+            let topk: Vec<(FastPlace, u32, f64, f64)> = prop_order[..k_prop].to_vec();
+
+            // Check whether ANY Top-K candidate differs between G4ApproxPlanning and G9ExactDynamics
+            let mut any_g9_diff = false;
+            let cur_piece0 = if q_len > 0 { Some(root_vis_q[0]) } else { None };
+            struct PropInfo {
+                fp: FastPlace,
+                visits: u32,
+                q_g4: f64,
+                b_placed: FastBoard,
+                rem2: u16,
+                nh: Option<u8>,
+                consumed: usize,
+                n_spawn_g4: usize,
+                n_spawn_g9: usize,
+                is_clear: bool,
+                is_topout: bool,
+            }
+            let mut infos: Vec<PropInfo> = Vec::with_capacity(k_prop);
+            for &(fp, vis, q_g4, _) in &topk {
+                let mut b2 = root_board;
+                let orient = &self.fst.shapes[fp.color_idx as usize].orients[fp.tf.2 as usize];
+                let (lines, ds, _) = b2.place_and_sift(orient, fp.norm_i, fp.norm_j);
+                let rem2 = rem_g0.saturating_sub(ds as u16);
+                let is_clear = rem2 == 0 && b2.rows < 20;
+                let is_topout = b2.rows >= 20;
+                let g_after = b2.garbage_rows as usize;
+                let unspawned = (rem2 as usize).saturating_sub(g_after);
+                let n_spawn_g4 = if rem2 > 0 {
+                    4usize.saturating_sub(g_after).min(unspawned)
+                } else {
+                    0
+                };
+                let target_g9 = if lines > 0 { 4usize } else { 9usize };
+                let n_spawn_g9 = if rem2 > 0 {
+                    target_g9.saturating_sub(g_after).min(unspawned)
+                } else {
+                    0
+                };
+                if n_spawn_g9 != n_spawn_g4 && !is_clear && !is_topout {
+                    any_g9_diff = true;
+                }
+                let (nh, consumed) = if hold0.is_some() {
+                    if fp.did_hold {
+                        (cur_piece0, usize::from(cur_piece0.is_some()))
+                    } else {
+                        (hold0, 1)
+                    }
+                } else if fp.did_hold {
+                    (cur_piece0, 2)
+                } else {
+                    (None, 1)
+                };
+                infos.push(PropInfo {
+                    fp,
+                    visits: vis,
+                    q_g4,
+                    b_placed: b2,
+                    rem2,
+                    nh,
+                    consumed,
+                    n_spawn_g4,
+                    n_spawn_g9,
+                    is_clear,
+                    is_topout,
+                });
+            }
+
+            if any_g9_diff {
+                let w_cnt = cfg.g9_rerank_worlds;
+                let mini_sims = cfg.g9_rerank_sims;
+                // Generate shared CRN hole streams purely from observable root state
+                let mut crn_worlds = Vec::with_capacity(w_cnt);
+                for w in 0..w_cnt {
+                    crn_worlds.push(Self::sample_world(
+                        root_q,
+                        bag_mask,
+                        init_prev_hole,
+                        w,
+                        base_seed ^ 0xA5A5_5A5A_F0F0_0F0Fu64,
+                    ));
+                }
+
+                let mut mini_cfg = cfg.clone();
+                mini_cfg.simulations = mini_sims.max(1);
+                mini_cfg.max_depth = 6;
+                mini_cfg.root_max_actions = 8;
+                mini_cfg.max_actions = 6;
+                mini_cfg.steady_g4 = true;
+                mini_cfg.use_endgame_solver = false;
+                mini_cfg.g9_rerank_topk = 0;
+                mini_cfg.cpw_alpha = 0.0;
+
+                let fb_to_basic = |fb: &FastBoard| -> crate::BasicMatrix {
+                    let mut m = crate::BasicMatrix::with_cols(10);
+                    for r in 0..(fb.rows as usize) {
+                        let bits = fb.data[r];
+                        for c in 0..10u16 {
+                            if (bits & (1u16 << c)) != 0 {
+                                m.set((r as u16, c));
+                            }
+                        }
+                    }
+                    m
+                };
+
+                let apply_n_spawn = |base: &FastBoard, ns: usize, holes: &[u16]| -> Option<FastBoard> {
+                    if ns == 0 {
+                        return Some(*base);
+                    }
+                    if (base.rows as usize) + ns >= 20 {
+                        return None;
+                    }
+                    let mut b = *base;
+                    let old_r = b.rows as usize;
+                    for rr in (0..old_r).rev() {
+                        b.data[rr + ns] = b.data[rr];
+                    }
+                    let mut prev_h = Self::bottom_hole_col(&b);
+                    for kk in 0..ns {
+                        let mut hole = holes[kk];
+                        if let Some(ph) = prev_h {
+                            if hole == ph {
+                                hole = (hole + 1) % 10;
+                            }
+                        }
+                        prev_h = Some(hole);
+                        let dst_r = ns - 1 - kk;
+                        b.data[dst_r] = 0xFC00 | (0x3FF & !(1u16 << hole));
+                    }
+                    b.rows = (old_r + ns) as u8;
+                    b.garbage_rows = (b.garbage_rows as usize + ns) as u8;
+                    Some(b)
+                };
+
+                let mut best_g9_q = f64::INFINITY;
+                for info in &infos {
+                    let g9_q = if info.is_clear {
+                        cfg.step_cost_cp + (info.b_placed.rows as f64) * 5.0
+                    } else if info.is_topout {
+                        root_ref + cfg.topout_penalty
+                    } else if mini_sims == 0 {
+                        // Control-Variate G9 Delta Rerank: preserves full 7-ply Q_g4 and adds
+                        // exact CRN 1-step discrepancy E_w[V_bc4(B_G9(w)) - V_bc4(B_G4(w))].
+                        if info.n_spawn_g9 == info.n_spawn_g4 {
+                            info.q_g4
+                        } else {
+                            let sub_vis_slice = &root_vis_q[info.consumed..q_len];
+                            let ih = info.nh.or_else(|| sub_vis_slice.first().copied());
+                            let av = Self::avail_mask_from_vis(info.nh, sub_vis_slice, bag_mask);
+                            let mut delta_sum = 0.0f64;
+                            for w in 0..w_cnt {
+                                let v_g9 = match apply_n_spawn(&info.b_placed, info.n_spawn_g9, &crn_worlds[w].holes) {
+                                    Some(bg9) => {
+                                        mlp_evals += 1;
+                                        Self::eval_leaf_full(sm, &bg9, info.rem2, ih, av, 1, cfg.step_cost_cp, root_ref, cfg.topout_penalty)
+                                    }
+                                    None => root_ref + cfg.topout_penalty,
+                                };
+                                let v_g4 = match apply_n_spawn(&info.b_placed, info.n_spawn_g4, &crn_worlds[w].holes) {
+                                    Some(bg4) => {
+                                        mlp_evals += 1;
+                                        Self::eval_leaf_full(sm, &bg4, info.rem2, ih, av, 1, cfg.step_cost_cp, root_ref, cfg.topout_penalty)
+                                    }
+                                    None => root_ref + cfg.topout_penalty,
+                                };
+                                delta_sum += v_g9 - v_g4;
+                            }
+                            info.q_g4 + delta_sum / (w_cnt as f64)
+                        }
+                    } else {
+                        let kept = q_len.saturating_sub(info.consumed);
+                        let mut sub_q = Vec::with_capacity(kept);
+                        for i in 0..kept {
+                            sub_q.push(idx_to_color(root_vis_q[info.consumed + i] as usize));
+                        }
+                        let sub_hold = info.nh.map(|c| idx_to_color(c as usize));
+
+                        if info.n_spawn_g9 == 0 {
+                            let sub_snap = Snapshot {
+                                hold: sub_hold,
+                                queue: sub_q,
+                                matrix: fb_to_basic(&info.b_placed),
+                            };
+                            let sub_ctx = GameContext {
+                                garbage_rows: Some(info.b_placed.garbage_rows as u16),
+                                remaining_garbage: Some(info.rem2),
+                                next_bag_mask: Some(bag_mask),
+                            };
+                            let sr = self.search_with_ctx(&sub_snap, sub_ctx, &mini_cfg);
+                            total_sims_done += sr.total_simulations;
+                            mlp_evals += sr.mlp_evals;
+                            cfg.step_cost_cp + (sr.best_q as f64)
+                        } else {
+                            let mut q_sum_w = 0.0f64;
+                            for w in 0..w_cnt {
+                                let bw_exact = match apply_n_spawn(&info.b_placed, info.n_spawn_g9, &crn_worlds[w].holes) {
+                                    Some(b) => b,
+                                    None => {
+                                        q_sum_w += root_ref + cfg.topout_penalty;
+                                        continue;
+                                    }
+                                };
+                                let sub_snap = Snapshot {
+                                    hold: sub_hold,
+                                    queue: sub_q.clone(),
+                                    matrix: fb_to_basic(&bw_exact),
+                                };
+                                let sub_ctx = GameContext {
+                                    garbage_rows: Some(bw_exact.garbage_rows as u16),
+                                    remaining_garbage: Some(info.rem2),
+                                    next_bag_mask: Some(bag_mask),
+                                };
+                                let sr = self.search_with_ctx(&sub_snap, sub_ctx, &mini_cfg);
+                                total_sims_done += sr.total_simulations;
+                                mlp_evals += sr.mlp_evals;
+                                q_sum_w += cfg.step_cost_cp + (sr.best_q as f64);
+                            }
+                            q_sum_w / (w_cnt as f64)
+                        }
+                    };
+                    if g9_q < best_g9_q {
+                        best_g9_q = g9_q;
+                        best_fp = info.fp;
+                        best_q = g9_q.round() as i64;
+                        best_visits = info.visits;
+                    }
+                }
+            }
+        }
 
         let inputs = self.fp_to_inputs(&snapshot.matrix, best_fp);
 
@@ -1408,8 +1669,8 @@ impl IsMctsSearcher {
             inputs,
             best_q,
             best_visits,
-            total_simulations: sims,
-            nodes_expanded: self.nodes.len(),
+            total_simulations: total_sims_done,
+            nodes_expanded,
             mlp_evals,
             avg_sim_depth: sim_depth_sum as f64 / sims as f64,
             max_sim_depth,
@@ -2065,7 +2326,7 @@ mod tests {
         for r in 0..4u16 {
             for c in 0..10u16 {
                 if c != 3 {
-                    mat.set((c, r));
+                    mat.set((r, c));
                 }
             }
         }
@@ -2213,5 +2474,147 @@ mod tests {
                 v
             );
         }
+    }
+
+    #[cfg(feature = "block-stacker")]
+    #[test]
+    fn test_g9_exact_dynamics_differential_vs_block_stacker() {
+        use crate::StackerExt as _;
+        use block_stacker::{Config as BSConfig, Ruleset, Stacker};
+
+        let count_g = |st: &Stacker| -> usize {
+            let mut max_g = 0usize;
+            let mut any = false;
+            for ((r, _), cc) in st.matrix() {
+                if cc == 'G' {
+                    any = true;
+                    max_g = max_g.max((r as usize) + 1);
+                }
+            }
+            if any { max_g } else { 0 }
+        };
+
+        // Case 1: Live differential check driven by fast IsMctsSearcher (total_lines = 15)
+        // Covers: lines==0 with g=4..9, lines>0 with g<4 and g>=4, and insufficient rem_g depletion!
+        let mut bs_cfg = BSConfig::default();
+        bs_cfg.garbage.total_lines = Some(15);
+        bs_cfg.prng_seed = Some(30001);
+        let mut stacker = Stacker::new(Ruleset::guideline().into(), bs_cfg);
+        let mut searcher = IsMctsSearcher::new_srs();
+        let play_cfg = IsMctsConfig {
+            simulations: 30,
+            max_depth: 4,
+            steady_g4: true,
+            split_tail_preview: false,
+            ..Default::default()
+        };
+        let mut ds_tot = 0usize;
+        let mut saw_no_clear_refill = false;
+        let mut saw_clear_keep4 = false;
+        let mut saw_insufficient_rem = false;
+        let dummy_holes = [0u16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5];
+
+        for _ in 0..80 {
+            if ds_tot >= 15 || stacker.current_piece_type().is_none() {
+                break;
+            }
+            let snap0 = stacker.snapshot().unwrap();
+            let g0 = count_g(&stacker);
+            let rem0 = 15usize.saturating_sub(ds_tot) as u16;
+            let ctx0 = GameContext {
+                garbage_rows: Some(g0 as u16),
+                remaining_garbage: Some(rem0),
+                next_bag_mask: Some(0x7F),
+            };
+            let mv = searcher.search_with_ctx(&snap0, ctx0, &play_cfg);
+            if mv.inputs.is_empty() {
+                break;
+            }
+            let mut ins = mv.inputs;
+            ins.pop();
+            stacker.run(ins);
+            let (lines, ds) = stacker.hard_drop();
+            ds_tot += ds;
+            let g1 = count_g(&stacker);
+            let rem1 = 15usize.saturating_sub(ds_tot) as u16;
+            let g_after_clear = g0.saturating_sub(ds);
+            let bs_n_spawn = g1.saturating_sub(g_after_clear);
+
+            // Simulate exact G9ExactDynamics (steady_g4 = false) on post-clear board
+            let mut fb_sim = FastBoard::from_basic_matrix(&snap0.matrix, g_after_clear as u16);
+            if fb_sim.rows > 10 {
+                fb_sim.rows = 10;
+            }
+            let mut hc = 0usize;
+            let sim_res = IsMctsSearcher::spawn_cheese_from_stream(
+                &mut fb_sim,
+                rem1,
+                lines as u8,
+                false, // G9ExactDynamics
+                &dummy_holes,
+                &mut hc,
+            );
+            let sim_n_spawn = sim_res.map(|(n, _)| n).unwrap_or(0);
+            assert_eq!(
+                sim_n_spawn, bs_n_spawn,
+                "G9ExactDynamics mismatch vs block-stacker: g0={}, lines={}, ds={}, rem0={}, rem1={} => bs={}, sim={}",
+                g0, lines, ds, rem0, rem1, bs_n_spawn, sim_n_spawn
+            );
+            assert_eq!(fb_sim.garbage_rows as usize, g1);
+
+            if lines == 0 && g_after_clear < 9 && bs_n_spawn > 0 {
+                saw_no_clear_refill = true;
+            }
+            if lines > 0 && g_after_clear >= 4 && bs_n_spawn == 0 {
+                saw_clear_keep4 = true;
+            }
+            if lines == 0 && g_after_clear < 9 && (9 - g_after_clear) > (rem1 as usize).saturating_sub(g_after_clear) {
+                saw_insufficient_rem = true;
+            }
+        }
+        assert!(
+            saw_no_clear_refill || saw_clear_keep4 || saw_insufficient_rem,
+            "expected to exercise live G9 transitions"
+        );
+
+        // Case 2: Explicit matrix of (g_after, lines, rem2) covering g=4..9, clear/no-clear, insufficient rem_g
+        for &(g_after, lines, rem2, expected_g9, expected_g4) in &[
+            (4usize, 0u8, 50u16, 5usize, 0usize), // no-clear at g=4: G9 refills +5 -> 9, G4Approx spawns 0!
+            (6, 0, 50, 3, 0),                     // no-clear at g=6: G9 refills +3 -> 9
+            (9, 0, 50, 0, 0),                     // no-clear at g=9: already at max_height=9
+            (3, 1, 50, 1, 1),                     // line clear at g=3: both refill +1 -> 4
+            (4, 1, 50, 0, 0),                     // line clear at g=4: both spawn 0
+            (4, 0, 6, 2, 0),                      // insufficient rem_g: only 2 unspawned left -> clamps to 2
+            (2, 1, 3, 1, 1),                      // insufficient rem_g on clear: only 1 unspawned left -> 1
+            (0, 1, 0, 0, 0),                      // endgame rem_g == 0: spawns 0
+        ] {
+            let mut b_g9 = FastBoard::empty();
+            b_g9.rows = (g_after + 2) as u8;
+            b_g9.garbage_rows = g_after as u8;
+            let mut hc = 0usize;
+            let (ns_g9, _) = IsMctsSearcher::spawn_cheese_from_stream(
+                &mut b_g9, rem2, lines, false, &dummy_holes, &mut hc,
+            ).expect("non-topout");
+            assert_eq!(ns_g9, expected_g9, "G9 mismatch for g={}, lines={}, rem={}", g_after, lines, rem2);
+
+            let mut b_g4 = FastBoard::empty();
+            b_g4.rows = (g_after + 2) as u8;
+            b_g4.garbage_rows = g_after as u8;
+            let mut hc4 = 0usize;
+            let (ns_g4, _) = IsMctsSearcher::spawn_cheese_from_stream(
+                &mut b_g4, rem2, lines, true, &dummy_holes, &mut hc4,
+            ).expect("non-topout");
+            assert_eq!(ns_g4, expected_g4, "G4Approx mismatch for g={}, lines={}, rem={}", g_after, lines, rem2);
+        }
+
+        // Case 3: Near-topout under G9ExactDynamics (rows=16, g=4, lines=0 -> +5 rows => 21 >= 20 => None/topout!)
+        let mut b_top = FastBoard::empty();
+        b_top.rows = 16;
+        b_top.garbage_rows = 4;
+        let mut hc_top = 0usize;
+        let top_res = IsMctsSearcher::spawn_cheese_from_stream(
+            &mut b_top, 50, 0, false, &dummy_holes, &mut hc_top,
+        );
+        assert!(top_res.is_none(), "expected G9ExactDynamics topout when rows=16 + n_spawn=5 >= 20");
     }
 }

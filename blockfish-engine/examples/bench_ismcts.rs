@@ -410,6 +410,57 @@ fn main() {
         return;
     }
 
+    if mode == "g9_hybrid20" {
+        let mut ref_res: Option<Vec<GameRes>> = None;
+        for &(name, sims, topk, worlds, msims) in &[
+            ("G4ApproxPlanning_s2400", 2400usize, 0usize, 0usize, 0usize),
+            ("G4Prop_s1600_G9Rerank_K4W12M16", 1600, 4, 12, 16),
+        ] {
+            let mut cfg = base_m.clone();
+            cfg.simulations = sims;
+            cfg.max_depth = 16;
+            cfg.backup_mode = 1;
+            cfg.steady_g4 = true;
+            cfg.split_tail_preview = false;
+            cfg.use_endgame_solver = true;
+            cfg.use_transposition = true;
+            cfg.dag_propagate_parents = true;
+            cfg.cpw_alpha = 0.0;
+            cfg.g9_rerank_topk = topk;
+            cfg.g9_rerank_worlds = worlds;
+            cfg.g9_rerank_sims = msims;
+            let (res, wall_s) = run_parallel(&seeds, |s| play_ismcts_seed(s, &cfg));
+            summarize(name, &res, wall_s, ref_res.as_deref());
+            if ref_res.is_none() {
+                ref_res = Some(res);
+            }
+        }
+        return;
+    }
+
+    if mode == "g9_hybrid20_m0" {
+        for &(name, sims, topk, worlds, msims) in &[
+            ("G4Prop_s2200_G9Rerank_K4W16M0", 2200usize, 4usize, 16usize, 0usize),
+        ] {
+            let mut cfg = base_m.clone();
+            cfg.simulations = sims;
+            cfg.max_depth = 16;
+            cfg.backup_mode = 1;
+            cfg.steady_g4 = true;
+            cfg.split_tail_preview = false;
+            cfg.use_endgame_solver = true;
+            cfg.use_transposition = true;
+            cfg.dag_propagate_parents = true;
+            cfg.cpw_alpha = 0.0;
+            cfg.g9_rerank_topk = topk;
+            cfg.g9_rerank_worlds = worlds;
+            cfg.g9_rerank_sims = msims;
+            let (res, wall_s) = run_parallel(&seeds, |s| play_ismcts_seed(s, &cfg));
+            summarize(name, &res, wall_s, None);
+        }
+        return;
+    }
+
     if mode == "steady_ab20" {
         let mut ref_res: Option<Vec<GameRes>> = None;
         for &(name, sg4) in &[
