@@ -383,6 +383,249 @@ fn main() {
         ..Default::default()
     };
 
+    if mode == "audit_all" {
+        // Part A: Non-uniform P=[0.90, 0.05, 0.05], V=[0, 100, 100], exact E[V]=10.0
+        println!("=== Part A: Non-Uniform Chance Tree P=[0.90, 0.05, 0.05], V=[0, 100, 100], exact E[V]=10.00 ===");
+        let probs = [0.90f64, 0.05, 0.05];
+        let vals = [0.0f64, 100.0, 100.0];
+        let exact = 10.0f64;
+        let next_u64 = |s: &mut u64| -> u64 {
+            let mut x = *s;
+            x ^= x >> 12;
+            x ^= x << 25;
+            x ^= x >> 27;
+            *s = x;
+            x.wrapping_mul(0x2545F4914F6CDD1D)
+        };
+        let draw_nu = |s: &mut u64| -> usize {
+            let u = ((next_u64(s) >> 11) as f64) * (1.0 / ((1u64 << 53) as f64));
+            if u < probs[0] { 0 } else if u < probs[0] + probs[1] { 1 } else { 2 }
+        };
+        let trials = 400usize;
+        for &(label, use_old) in &[
+            ("OLD_least_visited_CPW(k_max=2)", true),
+            ("NEW_TrueSample_LeafEval_CPW(0.5,0.20)", false),
+        ] {
+            println!("  [{}]", label);
+            for &n_sims in &[20usize, 100, 500, 2000] {
+                let mut est_sum = 0.0f64;
+                let mut sq_sum = 0.0f64;
+                let mut freq = [0usize; 3];
+                let mut unexp_cnt = 0usize;
+                for tr in 0..trials {
+                    let mut rng = 0x517cc1b727220a95u64
+                        ^ ((tr as u64 + 1).wrapping_mul(0x9E3779B97F4A7C15))
+                        ^ ((n_sims as u64).wrapping_mul(0xBF58476D1CE4E5B9));
+                    let mut ch: Vec<(usize, u32)> = Vec::new();
+                    let mut uq = 0.0f64;
+                    for sim in 0..n_sims {
+                        if use_old {
+                            if ch.len() >= 2 {
+                                let ci = if ch[0].1 <= ch[1].1 { 0 } else { 1 };
+                                ch[ci].1 += 1;
+                                freq[ch[ci].0] += 1;
+                            } else {
+                                let o = draw_nu(&mut rng);
+                                freq[o] += 1;
+                                if let Some(ci) = ch.iter().position(|&(oid, _)| oid == o) {
+                                    ch[ci].1 += 1;
+                                } else {
+                                    ch.push((o, 1));
+                                }
+                            }
+                        } else {
+                            let o = draw_nu(&mut rng);
+                            freq[o] += 1;
+                            if let Some(ci) = ch.iter().position(|&(oid, _)| oid == o) {
+                                ch[ci].1 += 1;
+                            } else {
+                                let k_max = (0.5 * ((sim + 1) as f64).powf(0.20)).ceil().max(1.0) as usize;
+                                if ch.len() >= k_max && !ch.is_empty() {
+                                    uq += vals[o];
+                                    unexp_cnt += 1;
+                                } else {
+                                    ch.push((o, 1));
+                                }
+                            }
+                        }
+                    }
+                    let num = uq + ch.iter().map(|&(o, n)| (n as f64) * vals[o]).sum::<f64>();
+                    let qh = num / (n_sims as f64);
+                    est_sum += qh;
+                    sq_sum += (qh - exact).powi(2);
+                }
+                let m = est_sum / (trials as f64);
+                let rmse = (sq_sum / (trials as f64)).sqrt();
+                let tot = (trials * n_sims) as f64;
+                println!(
+                    "    N={:4}: freq=[{:.4},{:.4},{:.4}] E[V]={:6.2} bias={:+6.2} RMSE={:5.2} unexp%={:4.1}%",
+                    n_sims,
+                    freq[0] as f64 / tot,
+                    freq[1] as f64 / tot,
+                    freq[2] as f64 / tot,
+                    m,
+                    m - exact,
+                    rmse,
+                    100.0 * unexp_cnt as f64 / tot
+                );
+            }
+        }
+
+        // Part B: Audit backup_mode=4 root action change rate & root Q ranking across s=1200/2400/4800
+        println!("\n=== Part B: backup_mode=4 Root Decision & Q-Ranking Stability (s=1200 vs 2400 vs 4800) ===");
+        let mut states = Vec::new();
+        for &sd in &[30001u64, 30002, 30003] {
+            let mut game_cfg = BSConfig::default();
+            game_cfg.garbage.total_lines = Some(100);
+            game_cfg.prng_seed = Some(sd);
+            let mut stacker = Stacker::new(Ruleset::guideline().into(), game_cfg);
+            let mut searcher = IsMctsSearcher::new_srs();
+            let mut bt = BagTracker::new();
+            let mut ds_tot = 0usize;
+            let mut ply = 0usize;
+            let mut roll_cfg = base_m.clone();
+            roll_cfg.simulations = 800;
+            roll_cfg.use_endgame_solver = true;
+            roll_cfg.use_transposition = true;
+            while ds_tot < 100 && stacker.current_piece_type().is_some() && ply < 180 {
+                let snap = stacker.snapshot().unwrap();
+                let g_rows = garbage_rows(&stacker);
+                let rem_g = 100usize.saturating_sub(ds_tot) as u16;
+                let bmask = bt.observe(snap.hold, &snap.queue[..snap.queue.len().min(6)]);
+                let ctx = GameContext {
+                    garbage_rows: Some(g_rows),
+                    remaining_garbage: Some(rem_g),
+                    next_bag_mask: Some(bmask),
+                };
+                if ply % 10 == 5 && rem_g > 12 {
+                    states.push((snap.clone(), ctx));
+                }
+                let r = searcher.search_with_ctx(&snap, ctx, &roll_cfg);
+                if r.inputs.is_empty() { break; }
+                let mut ins = r.inputs;
+                ins.pop();
+                stacker.run(ins);
+                let (_l, ds) = stacker.hard_drop();
+                ds_tot += ds;
+                ply += 1;
+            }
+        }
+        let n_st = states.len().min(45);
+        states.truncate(n_st);
+        let mut searcher = IsMctsSearcher::new_srs();
+        let mut chg_12_24 = 0usize;
+        let mut chg_24_48 = 0usize;
+        let mut chg_12_48 = 0usize;
+        let mut top3_ov_12_48 = 0.0f64;
+        let mut spearman_12_48 = 0.0f64;
+        let mut spearman_cnt = 0usize;
+
+        for (snap, ctx) in &states {
+            let mut res_by_s = Vec::new();
+            for &sims in &[1200usize, 2400, 4800] {
+                let mut cfg = base_m.clone();
+                cfg.simulations = sims;
+                cfg.max_depth = 16;
+                cfg.backup_mode = 4;
+                cfg.split_tail_preview = false;
+                cfg.use_endgame_solver = false;
+                cfg.use_transposition = true;
+                cfg.dag_propagate_parents = true;
+                cfg.cpw_c = 1.0;
+                cfg.cpw_alpha = 0.5;
+                let r = searcher.search_with_ctx(snap, *ctx, &cfg);
+                // Sort root candidates by Q ascending to inspect Q ranking
+                let mut by_q = r.root_candidates.clone();
+                by_q.sort_by(|a, b| a.2.total_cmp(&b.2));
+                res_by_s.push((r.inputs, by_q));
+            }
+            if res_by_s[0].0 != res_by_s[1].0 { chg_12_24 += 1; }
+            if res_by_s[1].0 != res_by_s[2].0 { chg_24_48 += 1; }
+            if res_by_s[0].0 != res_by_s[2].0 { chg_12_48 += 1; }
+            // Top-3 Q overlap between s=1200 and s=4800
+            let t3_a: Vec<_> = res_by_s[0].1.iter().take(3).map(|x| (x.0.did_hold, x.0.tf)).collect();
+            let t3_b: Vec<_> = res_by_s[2].1.iter().take(3).map(|x| (x.0.did_hold, x.0.tf)).collect();
+            let ov = t3_a.iter().filter(|x| t3_b.contains(x)).count();
+            top3_ov_12_48 += (ov as f64) / 3.0;
+            // Spearman rank correlation on common root candidates
+            let mut ranks_a = Vec::new();
+            let mut ranks_b = Vec::new();
+            for (ra, ca) in res_by_s[0].1.iter().enumerate() {
+                let key = (ca.0.did_hold, ca.0.tf);
+                if let Some(rb) = res_by_s[2].1.iter().position(|cb| (cb.0.did_hold, cb.0.tf) == key) {
+                    ranks_a.push(ra as f64);
+                    ranks_b.push(rb as f64);
+                }
+            }
+            let k = ranks_a.len();
+            if k >= 3 {
+                let d2: f64 = ranks_a.iter().zip(&ranks_b).map(|(a, b)| (a - b).powi(2)).sum();
+                let rho = 1.0 - (6.0 * d2) / ((k as f64) * ((k * k - 1) as f64));
+                spearman_12_48 += rho;
+                spearman_cnt += 1;
+            }
+        }
+        println!(
+            "  States audited: n={} | Root action change rate: 1200->2400={:.1}% ({}/{}), 2400->4800={:.1}% ({}/{}), 1200->4800={:.1}% ({}/{})",
+            n_st,
+            100.0 * chg_12_24 as f64 / n_st as f64, chg_12_24, n_st,
+            100.0 * chg_24_48 as f64 / n_st as f64, chg_24_48, n_st,
+            100.0 * chg_12_48 as f64 / n_st as f64, chg_12_48, n_st
+        );
+        println!(
+            "  Root Q-ranking (1200 vs 4800): Top-3 overlap={:.1}% | mean Spearman rho={:.3}",
+            100.0 * top3_ov_12_48 / n_st as f64,
+            spearman_12_48 / (spearman_cnt.max(1) as f64)
+        );
+        return;
+    }
+
+    if mode == "leafcpw20" {
+        let mut ref_res: Option<Vec<GameRes>> = None;
+        for &(name, split_tail, sims, cpw_c, cpw_a, tc, ta) in &[
+            ("TruncTailApprox_noCPW_s2400", false, 2400usize, 1.0f64, 0.0f64, 0.5f64, 0.0f64),
+            ("TruncTailApprox_LeafCPW_s2400", false, 2400, 1.0, 0.5, 0.5, 0.0),
+        ] {
+            let mut cfg = base_m.clone();
+            cfg.simulations = sims;
+            cfg.split_tail_preview = split_tail;
+            cfg.use_endgame_solver = true;
+            cfg.use_transposition = true;
+            cfg.dag_propagate_parents = true;
+            cfg.cpw_c = cpw_c;
+            cfg.cpw_alpha = cpw_a;
+            cfg.cpw_tail_c = tc;
+            cfg.cpw_tail_alpha = ta;
+            let (res, wall_s) = run_parallel(&seeds, |s| play_ismcts_seed(s, &cfg));
+            summarize(name, &res, wall_s, ref_res.as_deref());
+            if ref_res.is_none() {
+                ref_res = Some(res);
+            }
+        }
+        return;
+    }
+
+    if mode == "leafcpw20_fullp5" {
+        for &(name, split_tail, sims, cpw_c, cpw_a, tc, ta) in &[
+            ("TruncTailApprox_LeafCPW_s3000_eqW", false, 3000usize, 1.0f64, 0.5f64, 0.5f64, 0.0f64),
+            ("FullP5Disclosure_LeafCPW_s2400", true, 2400, 1.0, 0.5, 0.35, 0.20),
+        ] {
+            let mut cfg = base_m.clone();
+            cfg.simulations = sims;
+            cfg.split_tail_preview = split_tail;
+            cfg.use_endgame_solver = true;
+            cfg.use_transposition = true;
+            cfg.dag_propagate_parents = true;
+            cfg.cpw_c = cpw_c;
+            cfg.cpw_alpha = cpw_a;
+            cfg.cpw_tail_c = tc;
+            cfg.cpw_tail_alpha = ta;
+            let (res, wall_s) = run_parallel(&seeds, |s| play_ismcts_seed(s, &cfg));
+            summarize(name, &res, wall_s, None);
+        }
+        return;
+    }
+
     if mode == "cpw20" {
         let mut ref_res: Option<Vec<GameRes>> = None;
         for &(name, split_tail, sims, cpw_c, cpw_a) in &[

@@ -58,10 +58,12 @@ pub struct IsMctsConfig {
     pub backup_mode: u8,
     /// Per-ply step cost in centipieces added to leaf `V_bc4` (`depth * step_cost_cp + V_bc4`).
     pub step_cost_cp: f64,
-    /// If true, chance events branch on every newly revealed tail preview piece so every child
-    /// `DecisionNode` maintains the exact full 6-piece Legal `p=5` window (`cur + next5`).
-    /// If false, child nodes retain all already-revealed pieces from the parent's `vis_q` and
-    /// only reveal new pieces from `bag_mask` once needed to keep `(cur, next1)` known.
+    /// Information disclosure mode:
+    /// - `true` (**FullP5Disclosure**): chance events branch on every newly revealed tail preview
+    ///   piece so every child `DecisionNode` maintains the exact full 6-piece Legal `p=5` window.
+    /// - `false` (**TruncTailApprox**): truncated-tail information approximation — child nodes retain
+    ///   already-revealed pieces from the parent's `vis_q` and only reveal new pieces from `bag_mask`
+    ///   once needed to keep `(cur, next1)` known (`kept < 2`).
     pub split_tail_preview: bool,
     /// If true, run a fast deterministic Legal `p=5` exact clear solver whenever all remaining
     /// garbage is already visible on the board (`rem_g <= 9 && rem_g == garbage_rows`).
@@ -72,10 +74,12 @@ pub struct IsMctsConfig {
     /// If true (default), propagate shared-child `v_bellman` updates to ALL parents in exact
     /// reverse-depth topological order so no parent caches stale child values.
     pub dag_propagate_parents: bool,
-    /// Chance-Node Progressive Widening coefficient `c_pw` (active when `cpw_alpha > 0.0`).
-    /// Caps distinct expanded chance outcomes on an edge at `ceil(cpw_c * (N + 1)^cpw_alpha)`.
+    /// True-Sample-First Leaf-Eval CPW coefficient `c_pw` (active when `cpw_alpha > 0.0`).
+    /// Always samples the true legal chance outcome first; if already expanded, follows that child;
+    /// if unexpanded and `children.len() >= ceil(cpw_c * (N + 1)^cpw_alpha)`, directly evaluates
+    /// that exact unexpanded outcome as a leaf (zero probability distortion).
     pub cpw_c: f64,
-    /// Chance-Node Progressive Widening exponent `alpha_pw` (`0.0` = disabled; e.g. `0.5` = sqrt).
+    /// True-Sample-First Leaf-Eval CPW exponent `alpha_pw` (`0.0` = disabled; e.g. `0.5` = sqrt).
     pub cpw_alpha: f64,
     /// Optional separate CPW coefficient for pure tail-preview chance events (`n_spawn == 0`).
     /// Active when `cpw_tail_alpha > 0.0`; otherwise falls back to `(cpw_c, cpw_alpha)`.
@@ -153,6 +157,10 @@ struct ActionEdge {
     q_bellman: f64,
     term_visits: u32,
     term_q_sum: f64,
+    /// Unexpanded chance outcomes evaluated directly as leaves when CPW cap is full.
+    /// Preserves exact empirical sampling frequencies of the true chance distribution.
+    unexp_visits: u32,
+    unexp_q_sum: f64,
     /// Chance outcome `(chance_key, child_node_id, edge_local_visits)`.
     /// Storing `edge_local_visits` ensures Transposition DAG Bellman backups weight each chance
     /// outcome strictly by this parent edge's own transition count, never by `child.visits`.
@@ -789,6 +797,8 @@ impl IsMctsSearcher {
                 q_bellman: 0.0,
                 term_visits: 0,
                 term_q_sum: 0.0,
+                unexp_visits: 0,
+                unexp_q_sum: 0.0,
                 children: Vec::new(),
             });
         }
@@ -984,14 +994,10 @@ impl IsMctsSearcher {
 
         for sim in 0..sims {
             let world = Self::sample_world(root_q, bag_mask, init_prev_hole, sim, base_seed);
-            let mut sim_p_rng = base_seed
-                ^ ((sim as u64).wrapping_add(1)).wrapping_mul(0x9E3779B97F4A7C15)
-                ^ 0xA24BAED4963EE407;
-            let mut sim_h_rng = sim_p_rng ^ 0xD6E8FEB86659FD93;
             let mut node_idx = 0usize;
             let mut hole_cursor = 0usize;
-            let mut reanchored = false;
             let mut terminal_on_last_edge = false;
+            let mut unexp_on_last_edge = false;
             let mut first_spawn_depth: Option<usize> = None;
             let mut reached_depth = 0usize;
             path.clear();
@@ -1088,100 +1094,30 @@ impl IsMctsSearcher {
                 };
                 let is_chance = n_spawn > 0 || target_vis > kept;
 
-                // 3. Chance-Node Progressive Widening (CPW):
-                //    Never merges distinct observable states. When `k >= ceil(c_pw * (N+1)^alpha)`,
-                //    re-selects the least-visited already-expanded child (strictly unbiased equal
-                //    weighting among i.i.d. expanded outcomes) and re-anchors future sampling legally.
-                if is_chance && (cfg.cpw_alpha > 0.0 || (n_spawn == 0 && cfg.cpw_tail_alpha > 0.0)) {
-                    let (pw_c, pw_a) = if n_spawn == 0 && cfg.cpw_tail_alpha > 0.0 {
-                        (cfg.cpw_tail_c, cfg.cpw_tail_alpha)
-                    } else {
-                        (cfg.cpw_c, cfg.cpw_alpha)
-                    };
-                    if pw_a > 0.0 {
-                        let k = self.nodes[node_idx].actions[act_idx].children.len();
-                        let e_vis = self.nodes[node_idx].actions[act_idx].visits;
-                        let k_max = (pw_c * ((e_vis + 1) as f64).powf(pw_a))
-                            .ceil()
-                            .max(1.0) as usize;
-                        if k >= k_max && k > 0 {
-                        if n_spawn > 0 && first_spawn_depth.is_none() {
-                            first_spawn_depth = Some(next_depth);
-                        }
-                        // Pick least-visited existing child to maintain equal-weight unbiasedness
-                        let start_off = (sim + node_idx + act_idx) % k;
-                        let mut best_ci = start_off;
-                        let mut best_en = u32::MAX;
-                        for off in 0..k {
-                            let ci = (start_off + off) % k;
-                            let en = self.nodes[node_idx].actions[act_idx].children[ci].2;
-                            if en < best_en {
-                                best_en = en;
-                                best_ci = ci;
-                            }
-                        }
-                        let cid = {
-                            let ch = &mut self.nodes[node_idx].actions[act_idx].children[best_ci];
-                            ch.2 += 1;
-                            ch.1 as usize
-                        };
-                            node_idx = cid;
-                            reanchored = true;
-                            continue;
-                        }
-                    }
-                }
-
-                // 4. Chance Event 1: Garbage spawn (stratified `world.holes` or legal on-the-fly)
+                // 3. Chance Event 1: ALWAYS draw the true legal garbage spawn outcome first
                 let spawn_key = if n_spawn > 0 {
                     if first_spawn_depth.is_none() {
                         first_spawn_depth = Some(next_depth);
                     }
-                    if !reanchored {
-                        match Self::spawn_cheese_from_stream(
-                            &mut b2,
-                            rem2,
-                            lines,
-                            cfg.steady_g4,
-                            &world.holes,
-                            &mut hole_cursor,
-                        ) {
-                            Some((_ns, sk)) => sk,
-                            None => {
-                                terminal_on_last_edge = true;
-                                break root_ref + cfg.topout_penalty;
-                            }
+                    match Self::spawn_cheese_from_stream(
+                        &mut b2,
+                        rem2,
+                        lines,
+                        cfg.steady_g4,
+                        &world.holes,
+                        &mut hole_cursor,
+                    ) {
+                        Some((_ns, sk)) => sk,
+                        None => {
+                            terminal_on_last_edge = true;
+                            break root_ref + cfg.topout_penalty;
                         }
-                    } else {
-                        // Legal on-the-fly sampling strictly respecting `bottom_hole_col(&b2)`
-                        let old_rows = b2.rows as usize;
-                        let mut prev_h = Self::bottom_hole_col(&b2);
-                        for r in (0..old_rows).rev() {
-                            b2.data[r + n_spawn] = b2.data[r];
-                        }
-                        let mut sk: u64 = 0;
-                        for kk in 0..n_spawn {
-                            let hole = match prev_h {
-                                Some(ph) => {
-                                    let off = (((Self::next_rng(&mut sim_h_rng) >> 32) as u16) % 9) + 1;
-                                    (ph + off) % 10
-                                }
-                                None => ((Self::next_rng(&mut sim_h_rng) >> 32) as u16) % 10,
-                            };
-                            prev_h = Some(hole);
-                            let dst_r = n_spawn - 1 - kk;
-                            b2.data[dst_r] = 0xFC00 | (0x3FF & !(1u16 << hole));
-                            sk = (sk << 4) | ((hole as u64) + 1);
-                        }
-                        b2.rows = (old_rows + n_spawn) as u8;
-                        b2.garbage_rows = (g_after + n_spawn) as u8;
-                        sk
                     }
                 } else {
                     0u64
                 };
 
-                // 5. Chance Event 2: Update observable preview window `vis_q_next` & `bag_next`
+                // 4. Chance Event 2: ALWAYS draw true legal observable preview window `vis_q_next` & `bag_next`
                 let mut vis_q_next = [0u8; 6];
                 for i in 0..kept {
                     vis_q_next[i] = vis_q[consumed + i];
@@ -1189,26 +1125,18 @@ impl IsMctsSearcher {
                 let mut piece_key: u64 = 0;
                 let mut bag_next = bag_cur;
                 if target_vis > kept {
-                    if !reanchored {
-                        for i in kept..target_vis {
-                            let p_new = world.q[nqc + i];
-                            vis_q_next[i] = p_new;
-                            piece_key = (piece_key << 4) | ((p_new as u64) + 1);
-                        }
-                        bag_next = world.bags[(nqc + target_vis - 1).min(world.bags.len() - 1)];
-                    } else {
-                        for i in kept..target_vis {
-                            let p_new = Self::draw_from_bag(&mut bag_next, &mut sim_p_rng);
-                            vis_q_next[i] = p_new;
-                            piece_key = (piece_key << 4) | ((p_new as u64) + 1);
-                        }
+                    for i in kept..target_vis {
+                        let p_new = world.q[nqc + i];
+                        vis_q_next[i] = p_new;
+                        piece_key = (piece_key << 4) | ((p_new as u64) + 1);
                     }
+                    bag_next = world.bags[(nqc + target_vis - 1).min(world.bags.len() - 1)];
                 }
                 let vis_len_next = target_vis;
 
                 let chance_key = (spawn_key << 12) | piece_key;
 
-                // 6. Look up existing child edge `(node_idx, act_idx, chance_key)`
+                // 5. Look up existing child edge `(node_idx, act_idx, chance_key)`
                 let existing_slot = self.nodes[node_idx].actions[act_idx]
                     .children
                     .iter()
@@ -1222,6 +1150,52 @@ impl IsMctsSearcher {
                     };
                     node_idx = cid;
                 } else {
+                    // 6. True-Sample-First Leaf-Eval CPW:
+                    //    If this true sampled outcome is unexpanded and CPW cap is reached,
+                    //    directly evaluate THIS exact outcome as a leaf (never redirect to another
+                    //    child), preserving exact empirical sampling frequencies of P(outcome).
+                    let cpw_cap_hit = if is_chance
+                        && (cfg.cpw_alpha > 0.0 || (n_spawn == 0 && cfg.cpw_tail_alpha > 0.0))
+                    {
+                        let (pw_c, pw_a) = if n_spawn == 0 && cfg.cpw_tail_alpha > 0.0 {
+                            (cfg.cpw_tail_c, cfg.cpw_tail_alpha)
+                        } else {
+                            (cfg.cpw_c, cfg.cpw_alpha)
+                        };
+                        if pw_a > 0.0 {
+                            let k = self.nodes[node_idx].actions[act_idx].children.len();
+                            let e_vis = self.nodes[node_idx].actions[act_idx].visits;
+                            let k_max = (pw_c * ((e_vis + 1) as f64).powf(pw_a))
+                                .ceil()
+                                .max(1.0) as usize;
+                            k >= k_max && k > 0
+                        } else {
+                            false
+                        }
+                    } else {
+                        false
+                    };
+
+                    if cpw_cap_hit {
+                        let vis_slice = &vis_q_next[..vis_len_next];
+                        let in_hand_next = nh.or_else(|| vis_slice.first().copied());
+                        let avail_next = Self::avail_mask_from_vis(nh, vis_slice, bag_next);
+                        let leaf_v = Self::eval_leaf_full(
+                            sm,
+                            &b2,
+                            rem2,
+                            in_hand_next,
+                            avail_next,
+                            next_depth,
+                            cfg.step_cost_cp,
+                            root_ref,
+                            cfg.topout_penalty,
+                        );
+                        mlp_evals += 1;
+                        unexp_on_last_edge = true;
+                        break leaf_v;
+                    }
+
                     // Optional Transposition DAG lookup (acyclic because `depth` is in `TransKey`)
                     let trans_hit = if cfg.use_transposition {
                         let tkey = TransKey {
@@ -1326,6 +1300,12 @@ impl IsMctsSearcher {
                     e.term_visits += 1;
                     e.term_q_sum += backed_val;
                 }
+            } else if unexp_on_last_edge {
+                if let Some(&(last_n, last_a)) = path.last() {
+                    let e = &mut self.nodes[last_n].actions[last_a];
+                    e.unexp_visits += 1;
+                    e.unexp_q_sum += backed_val;
+                }
             }
             let mut changed_nodes: Vec<usize> = Vec::new();
             for &(n_id, a_id) in path.iter().rev() {
@@ -1419,8 +1399,10 @@ impl IsMctsSearcher {
         backup_mode: u8,
         fallback_val: f64,
     ) {
-        let mut sum_w = self.nodes[n_id].actions[a_id].term_q_sum;
-        let mut cnt_w = self.nodes[n_id].actions[a_id].term_visits as f64;
+        let mut sum_w = self.nodes[n_id].actions[a_id].term_q_sum
+            + self.nodes[n_id].actions[a_id].unexp_q_sum;
+        let mut cnt_w = (self.nodes[n_id].actions[a_id].term_visits
+            + self.nodes[n_id].actions[a_id].unexp_visits) as f64;
         let n_ch = self.nodes[n_id].actions[a_id].children.len();
         for ci in 0..n_ch {
             let (_, cid, edge_n) = self.nodes[n_id].actions[a_id].children[ci];
@@ -1795,6 +1777,8 @@ mod tests {
                 q_bellman: 0.0,
                 term_visits: 0,
                 term_q_sum: 0.0,
+                unexp_visits: 0,
+                unexp_q_sum: 0.0,
                 children: vec![(1, 2, 1), (2, 3, 1)], // edge-local counts: 1 and 1
             }],
             Vec::new(),
@@ -1812,6 +1796,8 @@ mod tests {
                 q_bellman: 1000.0,
                 term_visits: 0,
                 term_q_sum: 0.0,
+                unexp_visits: 0,
+                unexp_q_sum: 0.0,
                 children: vec![(1, 2, 50)],
             }],
             Vec::new(),
@@ -1845,7 +1831,7 @@ mod tests {
         assert!((s.nodes[1].actions[0].q_bellman - 1200.0).abs() < 1e-9);
         assert!((s.nodes[1].v_bellman - 1200.0).abs() < 1e-9);
 
-        // Part B: Full live Transposition DAG search conservation invariant check.
+        // Part B: Full live Transposition DAG search conservation invariant check (both CPW OFF & Leaf-Eval CPW ON).
         let mat4 = make_test_board(&[3, 7, 1, 5]);
         let snap4 = Snapshot {
             hold: Some(Color::n('T')),
@@ -1864,109 +1850,164 @@ mod tests {
             remaining_garbage: Some(40),
             next_bag_mask: Some(0x7F),
         };
-        let cfg_t = IsMctsConfig {
-            simulations: 400,
-            max_depth: 10,
-            split_tail_preview: false,
-            use_transposition: true,
-            dag_propagate_parents: true,
-            backup_mode: 1,
-            ..Default::default()
-        };
-        let r_t = s.search_with_ctx(&snap4, ctx4, &cfg_t);
-        assert!(r_t.trans_hits > 0, "expected DAG transposition hits");
+        for &cpw_alpha in &[0.0f64, 0.5f64] {
+            let cfg_t = IsMctsConfig {
+                simulations: 400,
+                max_depth: 10,
+                split_tail_preview: false,
+                use_transposition: true,
+                dag_propagate_parents: true,
+                cpw_c: 1.0,
+                cpw_alpha,
+                backup_mode: 1,
+                ..Default::default()
+            };
+            let r_t = s.search_with_ctx(&snap4, ctx4, &cfg_t);
+            assert!(r_t.trans_hits > 0, "expected DAG transposition hits");
 
-        for (nid, node) in s.nodes.iter().enumerate() {
-            for (aid, e) in node.actions.iter().enumerate() {
-                let sum_edge_n: u32 = e.children.iter().map(|&(_, _, en)| en).sum();
-                assert_eq!(
-                    e.term_visits + sum_edge_n,
-                    e.visits,
-                    "edge-local conservation violated at node {} action {}",
-                    nid,
-                    aid
-                );
+            let mut total_unexp = 0u32;
+            for (nid, node) in s.nodes.iter().enumerate() {
+                for (aid, e) in node.actions.iter().enumerate() {
+                    let sum_edge_n: u32 = e.children.iter().map(|&(_, _, en)| en).sum();
+                    total_unexp += e.unexp_visits;
+                    assert_eq!(
+                        e.term_visits + e.unexp_visits + sum_edge_n,
+                        e.visits,
+                        "edge-local conservation violated at node {} action {} (cpw_alpha={})",
+                        nid,
+                        aid,
+                        cpw_alpha
+                    );
+                }
+            }
+            if cpw_alpha == 0.0 {
+                assert_eq!(total_unexp, 0);
             }
         }
     }
 
     #[test]
-    fn test_cpw_synthetic_chance_tree_unbiased_and_convergent() {
-        // Synthetic M=63 equiprobable chance node (modeling 9 holes x 7 previews).
-        // Verify that Chance-Node Progressive Widening with least-visited re-selection:
-        // 1. Is strictly unbiased (mean across trials == exact E[V] within 3*SE) at N=10, 50, 200, 1000.
-        // 2. Converges monotonically (RMSE strictly decreases with N).
-        // 3. Achieves much deeper visits per expanded child than unwidened sampling at N=50.
-        const M: usize = 63;
-        let mut true_v = [0.0f64; M];
-        for i in 0..M {
-            true_v[i] = 1000.0 + ((i * 37) % M) as f64 * 10.0;
+    fn test_cpw_nonuniform_and_board_dependent_unbiased_and_convergent() {
+        // Part 1: Strongly non-uniform chance tree:
+        //   P = [0.90, 0.05, 0.05], V = [0.0, 100.0, 100.0], exact E[V] = 10.0.
+        // Verify:
+        //   (a) The old least-visited redirect heuristic (c=0.5, alpha=0.25 -> k_max=2)
+        //       badly distorts P and yields severe bias (> 25.0 vs true 10.0).
+        //   (b) True-Sample-First Leaf-Eval CPW preserves exact sampling frequencies
+        //       [0.90, 0.05, 0.05], has zero finite-sample bias (within 3.5*SE), and
+        //       strictly decreasing RMSE across N = 20, 100, 500, 2000.
+        let probs = [0.90f64, 0.05, 0.05];
+        let vals = [0.0f64, 100.0, 100.0];
+        let exact_mean = 10.0f64;
+
+        let draw_nonuniform = |rng: &mut u64| -> usize {
+            let u = ((IsMctsSearcher::next_rng(rng) >> 11) as f64) * (1.0 / ((1u64 << 53) as f64));
+            if u < probs[0] {
+                0
+            } else if u < probs[0] + probs[1] {
+                1
+            } else {
+                2
+            }
+        };
+
+        // (a) Confirm old least-visited redirect is severely biased on non-uniform P when k_max=2.
+        {
+            let mut old_sum = 0.0f64;
+            let trials = 200usize;
+            for tr in 0..trials {
+                let mut rng = 0x1234_5678_9ABC_DEF0u64 ^ ((tr as u64 + 1).wrapping_mul(0x9E3779B97F4A7C15));
+                let mut children: Vec<(usize, u32)> = Vec::new();
+                for sim in 0..200usize {
+                    let k = children.len();
+                    if k >= 2 {
+                        let best_ci = if children[0].1 <= children[1].1 { 0 } else { 1 };
+                        children[best_ci].1 += 1;
+                    } else {
+                        let o = draw_nonuniform(&mut rng);
+                        if let Some(ci) = children.iter().position(|&(oid, _)| oid == o) {
+                            children[ci].1 += 1;
+                        } else {
+                            children.push((o, 1));
+                        }
+                    }
+                    let _ = sim;
+                }
+                let num: f64 = children.iter().map(|&(o, n)| (n as f64) * vals[o]).sum();
+                let den: f64 = children.iter().map(|&(_, n)| n as f64).sum();
+                old_sum += num / den;
+            }
+            let old_mean = old_sum / (trials as f64);
+            assert!(
+                old_mean > 35.0,
+                "expected old least-visited redirect to be badly biased (~50 vs 10), got {:.2}",
+                old_mean
+            );
         }
-        let exact_mean: f64 = true_v.iter().sum::<f64>() / (M as f64);
 
-        let c_pw = 1.0f64;
-        let alpha_pw = 0.5f64;
+        // (b) True-Sample-First Leaf-Eval CPW on non-uniform P=[0.90, 0.05, 0.05]
+        let budgets = [20usize, 100, 500, 2000];
         let trials = 400usize;
-        let budgets = [10usize, 50, 200, 1000];
         let mut prev_rmse = f64::INFINITY;
-        let mut mean_visits_per_child_n50 = 0.0f64;
-
         for &n_sims in &budgets {
             let mut est_sum = 0.0f64;
             let mut sq_err_sum = 0.0f64;
-            let mut vpc_sum = 0.0f64;
-
+            let mut freq = [0usize; 3];
             for tr in 0..trials {
-                let mut rng: u64 = 0x517cc1b727220a95
+                let mut rng = 0x517cc1b727220a95u64
                     ^ ((tr as u64 + 1).wrapping_mul(0x9E3779B97F4A7C15))
                     ^ ((n_sims as u64).wrapping_mul(0xBF58476D1CE4E5B9));
                 // Expanded children: (outcome_id, edge_visits)
                 let mut children: Vec<(usize, u32)> = Vec::new();
+                let mut unexp_visits = 0u32;
+                let mut unexp_q_sum = 0.0f64;
                 for sim in 0..n_sims {
-                    let k = children.len();
-                    let k_max = (c_pw * ((sim + 1) as f64).powf(alpha_pw))
-                        .ceil()
-                        .max(1.0) as usize;
-                    if k >= k_max && k > 0 {
-                        // Least-visited re-selection (exact same rule as ismcts.rs)
-                        let start_off = sim % k;
-                        let mut best_ci = start_off;
-                        let mut best_en = u32::MAX;
-                        for off in 0..k {
-                            let ci = (start_off + off) % k;
-                            if children[ci].1 < best_en {
-                                best_en = children[ci].1;
-                                best_ci = ci;
-                            }
-                        }
-                        children[best_ci].1 += 1;
+                    // ALWAYS sample true outcome first
+                    let o = draw_nonuniform(&mut rng);
+                    freq[o] += 1;
+                    if let Some(ci) = children.iter().position(|&(oid, _)| oid == o) {
+                        children[ci].1 += 1;
                     } else {
-                        let o = ((IsMctsSearcher::next_rng(&mut rng) >> 32) as usize) % M;
-                        if let Some(slot) = children.iter().position(|&(oid, _)| oid == o) {
-                            children[slot].1 += 1;
+                        // Tight CPW cap (c=0.5, alpha=0.20) so unexpanded leaf eval fires frequently!
+                        let k_max = (0.5 * ((sim + 1) as f64).powf(0.20)).ceil().max(1.0) as usize;
+                        if children.len() >= k_max && !children.is_empty() {
+                            unexp_visits += 1;
+                            unexp_q_sum += vals[o];
                         } else {
                             children.push((o, 1));
                         }
                     }
                 }
-                let mut num = 0.0f64;
-                let mut den = 0.0f64;
-                for &(oid, en) in &children {
-                    num += (en as f64) * true_v[oid];
-                    den += en as f64;
-                }
-                let q_hat = num / den;
+                let ch_v: u32 = children.iter().map(|&(_, n)| n).sum();
+                assert_eq!(ch_v + unexp_visits, n_sims as u32);
+                let num = unexp_q_sum
+                    + children
+                        .iter()
+                        .map(|&(oid, en)| (en as f64) * vals[oid])
+                        .sum::<f64>();
+                let q_hat = num / (n_sims as f64);
                 est_sum += q_hat;
                 sq_err_sum += (q_hat - exact_mean).powi(2);
-                vpc_sum += (n_sims as f64) / (children.len() as f64);
             }
-
             let mean_est = est_sum / (trials as f64);
             let rmse = (sq_err_sum / (trials as f64)).sqrt();
             let se = rmse / (trials as f64).sqrt();
+            let total_draws = (trials * n_sims) as f64;
+            for i in 0..3 {
+                let emp_p = (freq[i] as f64) / total_draws;
+                let p_se = (probs[i] * (1.0 - probs[i]) / total_draws).sqrt();
+                assert!(
+                    (emp_p - probs[i]).abs() <= 4.0 * p_se + 1e-4,
+                    "sampling freq distorted at N={} outcome {}: emp={:.4} vs true={:.4}",
+                    n_sims,
+                    i,
+                    emp_p,
+                    probs[i]
+                );
+            }
             assert!(
-                (mean_est - exact_mean).abs() <= 3.5 * se + 1.0,
-                "CPW estimator biased at N={}: mean_est={:.2} vs exact={:.2} (SE={:.2})",
+                (mean_est - exact_mean).abs() <= 3.5 * se + 0.05,
+                "Leaf-Eval CPW biased at N={}: mean={:.3} vs exact={:.3} (SE={:.3})",
                 n_sims,
                 mean_est,
                 exact_mean,
@@ -1974,20 +2015,104 @@ mod tests {
             );
             assert!(
                 rmse < prev_rmse,
-                "CPW RMSE did not decrease monotonically at N={}: {:.2} >= {:.2}",
+                "Leaf-Eval CPW RMSE did not decrease monotonically at N={}: {:.3} >= {:.3}",
                 n_sims,
                 rmse,
                 prev_rmse
             );
             prev_rmse = rmse;
-            if n_sims == 50 {
-                mean_visits_per_child_n50 = vpc_sum / (trials as f64);
+        }
+
+        // Part 2: Board-state-dependent heterogeneous costs across legal garbage holes.
+        // Build a real board with a clean open well at col 3 (r=0..4) and 0 existing garbage rows:
+        // spawning a garbage row with hole==3 has 0 cover (low cost), while hole!=3 is buried under
+        // 4 solid rows (high cost) — directly testing heterogeneous board-dependent costs!
+        let mut mat = crate::BasicMatrix::with_cols(10);
+        for r in 0..4u16 {
+            for c in 0..10u16 {
+                if c != 3 {
+                    mat.set((c, r));
+                }
             }
         }
+        let fb = FastBoard::from_basic_matrix(&mat, 0);
+        let legal_holes: Vec<u16> = (0..10u16).collect();
+        assert_eq!(legal_holes.len(), 10);
+
+        let mut hole_costs = Vec::with_capacity(10);
+        for &h in &legal_holes {
+            let mut b2 = fb;
+            let old_r = b2.rows as usize;
+            for r in (0..old_r).rev() {
+                b2.data[r + 1] = b2.data[r];
+            }
+            b2.data[0] = 0xFC00 | (0x3FF & !(1u16 << h));
+            b2.rows = (old_r + 1) as u8;
+            b2.garbage_rows = 1;
+            let c = (crate::ai::fast_eval::fast_piece_estimate(&b2) as f64) * 100.0;
+            hole_costs.push(c);
+        }
+        let min_c = hole_costs.iter().copied().fold(f64::INFINITY, f64::min);
+        let max_c = hole_costs.iter().copied().fold(f64::NEG_INFINITY, f64::max);
         assert!(
-            mean_visits_per_child_n50 >= 5.0,
-            "expected >= 5 visits/child at N=50 on M=63 with CPW, got {:.2}",
-            mean_visits_per_child_n50
+            max_c - min_c > 20.0,
+            "expected board-dependent heterogeneous hole costs, got min={:.2} max={:.2}",
+            min_c,
+            max_c
         );
+        let exact_board_mean = hole_costs.iter().sum::<f64>() / (hole_costs.len() as f64);
+
+        let mut prev_b_rmse = f64::INFINITY;
+        for &n_sims in &budgets {
+            let mut est_sum = 0.0f64;
+            let mut sq_err_sum = 0.0f64;
+            for tr in 0..trials {
+                let mut rng = 0x9E37_79B9_7F4A_7C15u64
+                    ^ ((tr as u64 + 7).wrapping_mul(0xBF58476D1CE4E5B9))
+                    ^ ((n_sims as u64).wrapping_mul(0x94D049BB133111EB));
+                let mut children: Vec<(usize, u32)> = Vec::new();
+                let mut unexp_q_sum = 0.0f64;
+                for sim in 0..n_sims {
+                    let oi = ((IsMctsSearcher::next_rng(&mut rng) >> 32) as usize) % hole_costs.len();
+                    if let Some(ci) = children.iter().position(|&(oid, _)| oid == oi) {
+                        children[ci].1 += 1;
+                    } else {
+                        let k_max = (1.0 * ((sim + 1) as f64).powf(0.5)).ceil().max(1.0) as usize;
+                        if children.len() >= k_max && !children.is_empty() {
+                            unexp_q_sum += hole_costs[oi];
+                        } else {
+                            children.push((oi, 1));
+                        }
+                    }
+                }
+                let num = unexp_q_sum
+                    + children
+                        .iter()
+                        .map(|&(oi, en)| (en as f64) * hole_costs[oi])
+                        .sum::<f64>();
+                let q_hat = num / (n_sims as f64);
+                est_sum += q_hat;
+                sq_err_sum += (q_hat - exact_board_mean).powi(2);
+            }
+            let mean_est = est_sum / (trials as f64);
+            let rmse = (sq_err_sum / (trials as f64)).sqrt();
+            let se = rmse / (trials as f64).sqrt();
+            assert!(
+                (mean_est - exact_board_mean).abs() <= 3.5 * se + 0.1,
+                "board-dependent Leaf-Eval CPW biased at N={}: mean={:.2} vs exact={:.2} (SE={:.2})",
+                n_sims,
+                mean_est,
+                exact_board_mean,
+                se
+            );
+            assert!(
+                rmse < prev_b_rmse,
+                "board-dependent Leaf-Eval CPW RMSE did not decrease at N={}: {:.2} >= {:.2}",
+                n_sims,
+                rmse,
+                prev_b_rmse
+            );
+            prev_b_rmse = rmse;
+        }
     }
 }
